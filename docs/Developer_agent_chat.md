@@ -9508,3 +9508,211 @@ continue
   - `flutter test test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart test/call_history_screen_test.dart` (pass)
   - `scripts/check_ai_docs_sync.sh --files docs/TODO_PERFORMANCE.md lib/features/social/presentation/screens/date_ideas_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
 - **Next step:** Continue `TODO_PERFORMANCE.md` with any newly identified hotspots from profiling/runtime traces (current checklist items now fully statused).
+
+---
+
+### Task #170 — Archive Legacy `fix_*.py` Bulk Patch Scripts
+**Date:** 2026-03-09
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+do what is needed with all of them, since i will be afk for some moement, continue doing everything until you finish all without my presence
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Safely clean up all root-level `fix_*.py` scripts so they no longer create accidental-maintenance risk, while preserving history and context.
+- **Scope:** `/Users/ace/my_first_project/fix_*.py`, `/Users/ace/my_first_project/scripts/archive/legacy_fixers/`, required workflow docs.
+- **Constraints:**
+  - Do not run any legacy patch script on current code.
+  - Preserve scripts for reference (archive, not destructive deletion).
+  - Keep workflow docs compliant with AGENTS guard requirements.
+- **Expected Outcome:** All `fix_*.py` scripts are removed from project root, archived under `scripts/archive/legacy_fixers/`, documented as deprecated, and workflow/docs guard passes.
+
+**Status Updates:**
+- **Received:** Audited all `fix_*.py` scripts and confirmed they are one-off bulk text patchers with overlapping/conflicting rewrite behavior.
+- **In Progress:** Moved all root `fix_*.py` files into `scripts/archive/legacy_fixers/` and added archive policy README.
+- **Completed:** Verified root cleanup, no active `fix_*.py` references, and completed required docs sync updates.
+
+**Outcome:**
+- **Files changed:**
+  - Moved 20 files from repo root to `scripts/archive/legacy_fixers/`:
+    - `fix_again.py`
+    - `fix_all.py`
+    - `fix_calls.py`
+    - `fix_const_and_imports.py`
+    - `fix_const_methods.py`
+    - `fix_continue.py`
+    - `fix_di_and_showcase.py`
+    - `fix_final.py`
+    - `fix_final_consts.py`
+    - `fix_final_errors.py`
+    - `fix_final_round.py`
+    - `fix_import_path.py`
+    - `fix_imports.py`
+    - `fix_msg_screen.py`
+    - `fix_names.py`
+    - `fix_realtime_syntax.py`
+    - `fix_remaining.py`
+    - `fix_semantics.py`
+    - `fix_showcase.py`
+    - `fix_weekly_cubit.py`
+  - Added `scripts/archive/legacy_fixers/README.md` with deprecation/safety policy.
+  - Updated `docs/ai_workboard.md` (this task entry).
+  - Updated `docs/Developer_agent_chat.md` (this task entry).
+- **Result:** Success. Legacy fix scripts are now quarantined from normal workflow and documented as deprecated.
+- **Verification:**
+  - `find . -maxdepth 1 -name 'fix_*.py'` (no output)
+  - `find scripts/archive/legacy_fixers -maxdepth 1 -name 'fix_*.py' | wc -l` (20)
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md scripts/archive/legacy_fixers/README.md scripts/archive/legacy_fixers/fix_again.py scripts/archive/legacy_fixers/fix_all.py scripts/archive/legacy_fixers/fix_calls.py scripts/archive/legacy_fixers/fix_const_and_imports.py scripts/archive/legacy_fixers/fix_const_methods.py scripts/archive/legacy_fixers/fix_continue.py scripts/archive/legacy_fixers/fix_di_and_showcase.py scripts/archive/legacy_fixers/fix_final.py scripts/archive/legacy_fixers/fix_final_consts.py scripts/archive/legacy_fixers/fix_final_errors.py scripts/archive/legacy_fixers/fix_final_round.py scripts/archive/legacy_fixers/fix_import_path.py scripts/archive/legacy_fixers/fix_imports.py scripts/archive/legacy_fixers/fix_msg_screen.py scripts/archive/legacy_fixers/fix_names.py scripts/archive/legacy_fixers/fix_realtime_syntax.py scripts/archive/legacy_fixers/fix_remaining.py scripts/archive/legacy_fixers/fix_semantics.py scripts/archive/legacy_fixers/fix_showcase.py scripts/archive/legacy_fixers/fix_weekly_cubit.py` (pass)
+- **Next step:** If needed, replace ad-hoc patching with one maintained codemod entrypoint that supports `--dry-run` and targeted scope.
+
+---
+
+### Task #171 — Archive Remaining Legacy Root Python Patch/Audit Scripts
+**Date:** 2026-03-09
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+do what is needed with remove_*.py, replace_*.py, refactor_*.py, rm_*.py , rm_*.py , run_*.py , strip_consts.py ,trim_*.py, update_*.py , patch_*.py , move_methods.py , generate_*.py, final_lint_fixes.py, extract_*.py,  consolidate_todos.py ,clean_redundant_todos.py, build_chat_messages_list.py ,auth_audit.py, abstract_*.py, a11y_audit.py, _migrate_debug_print.py .
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Apply the same safety cleanup used for `fix_*.py` to the remaining root-level legacy Python helper scripts requested by pattern.
+- **Scope:** Matching root scripts in `/Users/ace/my_first_project/` and archive policy/docs updates under `/Users/ace/my_first_project/scripts/archive/legacy_fixers/` + workflow docs.
+- **Constraints:**
+  - Preserve scripts for historical reference (archive, not destructive delete).
+  - Confirm no active references before relocating.
+  - Keep AGENTS workflow compliant (task logs + docs guard).
+- **Expected Outcome:** Requested script groups are removed from repo root, archived under `scripts/archive/legacy_fixers/`, policy README is updated for expanded scope, and verification/docs guard passes.
+
+**Status Updates:**
+- **Received:** Enumerated requested patterns and mapped them to actual files in repo root.
+- **In Progress:** Per-file filename reference scan showed no active non-archive references; moved all matching scripts to archive.
+- **Completed:** Updated archive README to cover full script scope and verified root/script counts plus docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - Moved 39 additional root scripts into `scripts/archive/legacy_fixers/`:
+    - `_migrate_debug_print.py`
+    - `a11y_audit.py`
+    - `abstract_calls.py`
+    - `abstract_incognito.py`
+    - `abstract_media.py`
+    - `abstract_passport.py`
+    - `abstract_realtime.py`
+    - `abstract_story.py`
+    - `abstract_validation.py`
+    - `abstract_voice.py`
+    - `abstract_weekly_picks.py`
+    - `auth_audit.py`
+    - `build_chat_message_list.py` (matched requested `build_chat_messages_list.py` intent)
+    - `clean_redundant_todos.py`
+    - `consolidate_todos.py`
+    - `extract_message_list.py`
+    - `extract_methods.py`
+    - `extract_strings.py`
+    - `final_lint_fixes.py`
+    - `generate_audit_artifacts.py`
+    - `generate_pseudo_locale.py`
+    - `move_methods.py`
+    - `patch_plurals.py`
+    - `refactor_rtl.py`
+    - `remove_lines.py`
+    - `remove_methods_regex.py`
+    - `replace_messages.py`
+    - `replace_rtl.py`
+    - `rm_empty_state.py`
+    - `rm_match.py`
+    - `rm_skeleton.py`
+    - `rm_textfield.py`
+    - `rm_typing.py`
+    - `run_all.py`
+    - `strip_consts.py`
+    - `trim_chat_screen.py`
+    - `trim_input_bar.py`
+    - `update_plurals.py`
+    - `update_walkthrough.py`
+  - Updated `scripts/archive/legacy_fixers/README.md` to describe all archived root Python script categories.
+  - Updated `docs/ai_workboard.md` (this task entry).
+  - Updated `docs/Developer_agent_chat.md` (this task entry).
+- **Result:** Success. Requested legacy root script groups are archived, policy-documented, and removed from normal development surface.
+- **Verification:**
+  - `find . -maxdepth 1 -type f -name '*.py' | sed 's|^./||' | sort` (`add_plurals.py` only)
+  - `find scripts/archive/legacy_fixers -maxdepth 1 -type f -name '*.py' | wc -l` (`59`)
+  - `scripts/check_ai_docs_sync.sh --files $(git diff --name-only)` (pass)
+- **Next step:** If needed, keep `add_plurals.py` only if still actively used; otherwise archive it in a follow-up cleanup for a fully script-free root.
+
+---
+
+### Task #172 — Archive `add_plurals.py` (Final Root Python Script)
+**Date:** 2026-03-09
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+do what is needed with add_pluralspy
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete the root legacy-script cleanup by handling `add_plurals.py` (`add_pluralspy` intent).
+- **Scope:** `/Users/ace/my_first_project/add_plurals.py`, `/Users/ace/my_first_project/scripts/archive/legacy_fixers/README.md`, required workflow docs.
+- **Constraints:**
+  - Preserve script history (archive, not destructive delete).
+  - Verify no active references before/after move.
+  - Keep docs guard workflow compliant.
+- **Expected Outcome:** `add_plurals.py` is archived under `scripts/archive/legacy_fixers/`, archive policy reflects `add_*.py`, and root contains no `.py` helper scripts.
+
+**Status Updates:**
+- **Received:** Treated `add_pluralspy` as `add_plurals.py` and audited script purpose/references.
+- **In Progress:** Moved `add_plurals.py` into `scripts/archive/legacy_fixers/` and updated archive README scope.
+- **Completed:** Verified root has no `.py` files and docs sync guard passes.
+
+**Outcome:**
+- **Files changed:**
+  - Moved `add_plurals.py` -> `scripts/archive/legacy_fixers/add_plurals.py`
+  - Updated `scripts/archive/legacy_fixers/README.md` to include `add_*.py` in archived categories.
+  - Updated `docs/ai_workboard.md` (this task entry).
+  - Updated `docs/Developer_agent_chat.md` (this task entry).
+- **Result:** Success. Root legacy Python helper cleanup is now complete.
+- **Verification:**
+  - `find . -maxdepth 1 -type f -name '*.py' | sed 's|^./||' | sort` (no output)
+  - `find scripts/archive/legacy_fixers -maxdepth 1 -type f -name '*.py' | wc -l` (`60`)
+  - `scripts/check_ai_docs_sync.sh --files $(git diff --name-only)` (pass)
+- **Next step:** None required for this cleanup track.
+
+---
+
+### Task #173 — Settings Subscription Management Action
+**Date:** 2026-03-10
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+Please implement the code as described by the comment on `lib/presentation/screens/home/settings_screen.dart:86` and remove the comment.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Replace the placeholder TODO in the home settings screen with a working manage-subscription action.
+- **Scope:** `/Users/ace/my_first_project/lib/presentation/screens/home/settings_screen.dart`, required workflow docs.
+- **Constraints:**
+  - Keep the implementation fast and narrowly scoped to the existing screen.
+  - Use store-native subscription management entry points (App Store / Play Store).
+  - Remove the TODO comment after implementation.
+- **Expected Outcome:** Tapping "Manage Subscription" launches the correct platform subscription management page, with user-facing error feedback if launch fails or platform is unsupported.
+
+**Status Updates:**
+- **Received:** Reviewed the target file and existing subscription dependencies.
+- **In Progress:** Implemented platform-aware manage-subscription URL resolution and external launch handling.
+- **Completed:** Removed the TODO, verified analysis for the changed screen, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/presentation/screens/home/settings_screen.dart`
+    - Added platform-aware manage-subscription handling (`iOS` App Store subscriptions page, `Android` Play subscriptions page with app package + `plus_monthly` SKU).
+    - Wired `Manage Subscription` button to launch the URL and show error snackbars on unsupported platforms or launch failures.
+    - Removed the TODO comment.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The placeholder comment is replaced with working manage-subscription behavior.
+- **Verification:**
+  - `flutter analyze lib/presentation/screens/home/settings_screen.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/presentation/screens/home/settings_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** None.

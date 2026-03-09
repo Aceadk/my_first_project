@@ -3325,3 +3325,93 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `flutter test test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart test/call_history_screen_test.dart` (pass)
   - `scripts/check_ai_docs_sync.sh --files docs/TODO_PERFORMANCE.md lib/features/social/presentation/screens/date_ideas_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
 - Next Step: Continue performance work from runtime profiling output/new hotspots beyond the current checklist.
+
+### T-2026-03-09-MAINT-ARCHIVE-LEGACY-FIX-SCRIPTS
+- Date: 2026-03-09
+- Owner: Codex
+- Status: Completed
+- Goal: Remove accidental-change risk from legacy root-level `fix_*.py` patch scripts by quarantining them outside normal development paths.
+- Scope: `/Users/ace/my_first_project/fix_*.py`, `/Users/ace/my_first_project/scripts/archive/legacy_fixers/`, workflow docs.
+- Key Changes:
+  - Moved 20 root `fix_*.py` scripts to `scripts/archive/legacy_fixers/`.
+  - Added `scripts/archive/legacy_fixers/README.md` documenting deprecation status and safe handling policy.
+  - Confirmed no remaining root-level `fix_*.py` files.
+- Decisions/Handoffs:
+  - Chose archival (not deletion) to preserve script history while preventing accidental execution from project root.
+  - Treated scripts as historical one-off migration artifacts, not supported automation.
+- Risks/Mitigation:
+  - No new runtime risk introduced.
+  - Mitigated maintenance risk of accidental legacy bulk-rewrite execution by removing scripts from root workflow surface.
+- Verification:
+  - `find . -maxdepth 1 -name 'fix_*.py'` (no output)
+  - `find scripts/archive/legacy_fixers -maxdepth 1 -name 'fix_*.py' | wc -l` (`20`)
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md scripts/archive/legacy_fixers/README.md scripts/archive/legacy_fixers/fix_again.py scripts/archive/legacy_fixers/fix_all.py scripts/archive/legacy_fixers/fix_calls.py scripts/archive/legacy_fixers/fix_const_and_imports.py scripts/archive/legacy_fixers/fix_const_methods.py scripts/archive/legacy_fixers/fix_continue.py scripts/archive/legacy_fixers/fix_di_and_showcase.py scripts/archive/legacy_fixers/fix_final.py scripts/archive/legacy_fixers/fix_final_consts.py scripts/archive/legacy_fixers/fix_final_errors.py scripts/archive/legacy_fixers/fix_final_round.py scripts/archive/legacy_fixers/fix_import_path.py scripts/archive/legacy_fixers/fix_imports.py scripts/archive/legacy_fixers/fix_msg_screen.py scripts/archive/legacy_fixers/fix_names.py scripts/archive/legacy_fixers/fix_realtime_syntax.py scripts/archive/legacy_fixers/fix_remaining.py scripts/archive/legacy_fixers/fix_semantics.py scripts/archive/legacy_fixers/fix_showcase.py scripts/archive/legacy_fixers/fix_weekly_cubit.py` (pass)
+- Next Step: If future mass migrations are needed, implement a single maintained codemod flow with dry-run and scoped targeting.
+
+### T-2026-03-09-MAINT-ARCHIVE-ROOT-PY-HELPERS-PHASE2
+- Date: 2026-03-09
+- Owner: Codex
+- Status: Completed
+- Goal: Continue root-script cleanup by archiving the remaining requested legacy Python helper groups (`remove_/replace_/refactor_/rm_/run_/trim_/update_/extract_/generate_/abstract_` and named one-offs).
+- Scope: `/Users/ace/my_first_project/` root Python helper scripts, `/Users/ace/my_first_project/scripts/archive/legacy_fixers/README.md`, workflow docs.
+- Key Changes:
+  - Moved 39 additional root Python helper scripts into `scripts/archive/legacy_fixers/`.
+  - Kept archive additive with previous `fix_*.py` move, resulting in 59 archived legacy root scripts total.
+  - Updated archive README to reflect broader archived script categories beyond `fix_*.py`.
+  - Left only `add_plurals.py` at repo root.
+- Decisions/Handoffs:
+  - Applied the same non-destructive archival strategy as phase 1 (`fix_*.py`) to preserve forensic history while removing accidental execution risk.
+  - Interpreted requested `build_chat_messages_list.py` as existing `build_chat_message_list.py` (singular filename in repo).
+- Risks/Mitigation:
+  - No runtime/app architecture risk introduced.
+  - Reduced maintenance risk from accidental execution of broad string-rewrite scripts by removing them from root workflow surface.
+- Verification:
+  - `find . -maxdepth 1 -type f -name '*.py' | sed 's|^./||' | sort` (`add_plurals.py` only)
+  - `find scripts/archive/legacy_fixers -maxdepth 1 -type f -name '*.py' | wc -l` (`59`)
+  - `scripts/check_ai_docs_sync.sh --files $(git diff --name-only)` (pass)
+- Next Step: Optional final cleanup pass to archive `add_plurals.py` if not actively used.
+
+### T-2026-03-09-MAINT-ARCHIVE-ADD-PLURALS
+- Date: 2026-03-09
+- Owner: Codex
+- Status: Completed
+- Goal: Finalize root legacy script cleanup by archiving `add_plurals.py`.
+- Scope: `/Users/ace/my_first_project/add_plurals.py`, `/Users/ace/my_first_project/scripts/archive/legacy_fixers/README.md`, workflow docs.
+- Key Changes:
+  - Moved `add_plurals.py` from repo root to `scripts/archive/legacy_fixers/add_plurals.py`.
+  - Updated archive README to include `add_*.py` in deprecated archived script categories.
+  - Root now has no `.py` helper scripts.
+- Decisions/Handoffs:
+  - Applied same non-destructive archival policy used for earlier root script cleanup phases.
+- Risks/Mitigation:
+  - No runtime risk introduced.
+  - Further reduced accidental bulk-edit risk by removing final root Python helper script from normal workflow surface.
+- Verification:
+  - `find . -maxdepth 1 -type f -name '*.py' | sed 's|^./||' | sort` (no output)
+  - `find scripts/archive/legacy_fixers -maxdepth 1 -type f -name '*.py' | wc -l` (`60`)
+  - `scripts/check_ai_docs_sync.sh --files $(git diff --name-only)` (pass)
+- Next Step: None for this cleanup stream.
+
+### T-2026-03-10-SUBSCRIPTION-MANAGE-SHEET-SETTINGS
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Replace the `settings_screen.dart` TODO with a working manage-subscription action for Plus users.
+- Scope: `/Users/ace/my_first_project/lib/presentation/screens/home/settings_screen.dart`, workflow docs.
+- Key Changes:
+  - Updated `lib/presentation/screens/home/settings_screen.dart`:
+    - Replaced TODO-only manage button behavior with platform-aware subscription management launch flow.
+    - Added iOS target URL (`https://apps.apple.com/account/subscriptions`).
+    - Added Android target URL (`https://play.google.com/store/account/subscriptions`) with runtime package resolution and `plus_monthly` SKU query params.
+    - Added launch-failure and unsupported-platform error snackbar handling.
+    - Removed the TODO comment.
+  - Updated `docs/Developer_agent_chat.md` with Task #173.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Kept implementation local to the screen for speed and minimal risk, using existing `url_launcher` dependency instead of introducing a new SDK abstraction layer.
+- Risks/Mitigation:
+  - No new architectural/data-model risk introduced; change is isolated to a settings UI action.
+- Verification:
+  - `flutter analyze lib/presentation/screens/home/settings_screen.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/presentation/screens/home/settings_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: None.
