@@ -6,6 +6,7 @@ import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:crushhour/features/discovery/domain/usecases/matching_decision_engine.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
@@ -1042,64 +1043,16 @@ class StubDiscoveryRepository implements DiscoveryRepository {
     // Get already swiped profiles
     final swiped = await _getSwipedProfiles(userId);
 
-    // Filter out swiped profiles
-    var available = _mockProfiles.where((p) => !swiped.contains(p.id)).toList();
-
-    // Apply distance filtering if not in passport mode and distance limit is set
-    if (!filter.passportModeEnabled && filter.maxDistanceKm != null) {
-      final userLat = filter.effectiveLatitude;
-      final userLng = filter.effectiveLongitude;
-
-      if (userLat != null && userLng != null) {
-        available = available.where((profile) {
-          final profileLat = profile.latitude;
-          final profileLng = profile.longitude;
-
-          if (profileLat == null || profileLng == null) {
-            // Include profiles without location data
-            return true;
-          }
-
-          final distance = _calculateDistance(
-            userLat,
-            userLng,
-            profileLat,
-            profileLng,
-          );
-
-          return distance <= filter.maxDistanceKm!;
-        }).toList();
-      }
-    }
+    final available = MatchingDecisionEngine.filterCandidates(
+      candidates: _mockProfiles,
+      filter: filter,
+      excludedProfileIds: swiped,
+    );
 
     // Shuffle and return
     available.shuffle(_random);
     return available;
   }
-
-  /// Calculate distance between two coordinates using Haversine formula.
-  double _calculateDistance(
-    double lat1,
-    double lon1,
-    double lat2,
-    double lon2,
-  ) {
-    const earthRadiusKm = 6371.0;
-    final dLat = _toRadians(lat2 - lat1);
-    final dLon = _toRadians(lon2 - lon1);
-
-    final a =
-        sin(dLat / 2) * sin(dLat / 2) +
-        cos(_toRadians(lat1)) *
-            cos(_toRadians(lat2)) *
-            sin(dLon / 2) *
-            sin(dLon / 2);
-
-    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
-    return earthRadiusKm * c;
-  }
-
-  double _toRadians(double degrees) => degrees * pi / 180;
 
   @override
   Future<CrushMatch?> swipeRight({

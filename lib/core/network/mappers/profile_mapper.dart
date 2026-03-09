@@ -21,7 +21,6 @@ class ProfileMapper {
       primaryPhotoIndex: _findPrimaryPhotoIndex(dto.photos),
       bio: dto.bio ?? '',
       interests: dto.interests ?? const [],
-      prompts: const [],
       heightCm: dto.height,
       relationshipGoals: dto.relationshipGoals,
       languages: dto.languages ?? const [],

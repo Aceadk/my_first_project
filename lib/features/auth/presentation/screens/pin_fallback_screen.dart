@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
@@ -10,6 +11,14 @@ import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
 /// Supports two modes:
 /// - **Setup mode**: User creates a new PIN (enters twice to confirm).
 /// - **Verify mode**: User enters existing PIN to unlock.
+const Key pinFallbackContentConstraintKey = ValueKey<String>(
+  'pin_fallback_content_constraint',
+);
+
+double pinFallbackContentMaxWidthFor(double screenWidth) {
+  return DsBreakpoints.contentMaxWidth(screenWidth);
+}
+
 class PinFallbackScreen extends StatefulWidget {
   const PinFallbackScreen({
     super.key,
@@ -127,115 +136,141 @@ class _PinFallbackScreenState extends State<PinFallbackScreen> {
       child: Scaffold(
         backgroundColor: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(DsSpacing.xl),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  widget.isSetup ? Icons.lock_outline : Icons.lock,
-                  size: 64,
-                  color: DsColors.primary,
-                ),
-                const SizedBox(height: DsSpacing.lg),
-                Text(
-                  _title,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? DsColors.textPrimaryDark
-                        : DsColors.textPrimaryLight,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxContentWidth = pinFallbackContentMaxWidthFor(
+                constraints.maxWidth,
+              );
+              return Align(
+                alignment: AlignmentDirectional.topCenter,
+                child: ConstrainedBox(
+                  key: pinFallbackContentConstraintKey,
+                  constraints: BoxConstraints(
+                    maxWidth: maxContentWidth,
+                    minHeight: constraints.maxHeight,
                   ),
-                ),
-                const SizedBox(height: DsSpacing.sm),
-                Text(
-                  _subtitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: isDark
-                        ? DsColors.textMutedDark
-                        : DsColors.textMutedLight,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: DsSpacing.xxl),
-                // PIN dot indicators
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(_pinLength, (index) {
-                    final filled = index < _controller.text.length;
-                    return Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 8),
-                      width: 16,
-                      height: 16,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: filled
-                            ? DsColors.primary
-                            : (isDark
-                                  ? DsColors.surfaceLight.withValues(
-                                      alpha: 0.15,
-                                    )
-                                  : DsColors.ink900.withValues(alpha: 0.1)),
-                        border: Border.all(
-                          color: DsColors.primary.withValues(alpha: 0.3),
-                          width: 1.5,
+                  child: Padding(
+                    padding: const EdgeInsets.all(DsSpacing.xl),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          widget.isSetup ? Icons.lock_outline : Icons.lock,
+                          size: 64,
+                          color: DsColors.primary,
                         ),
-                      ),
-                    );
-                  }),
-                ),
-                const SizedBox(height: DsSpacing.lg),
-                // Hidden text field for keyboard input
-                SizedBox(
-                  width: 0,
-                  height: 0,
-                  child: TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    keyboardType: TextInputType.number,
-                    maxLength: _pinLength,
-                    obscureText: true,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(
-                      counterText: '',
-                      border: InputBorder.none,
+                        const SizedBox(height: DsSpacing.lg),
+                        Text(
+                          _title,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: isDark
+                                ? DsColors.textPrimaryDark
+                                : DsColors.textPrimaryLight,
+                          ),
+                        ),
+                        const SizedBox(height: DsSpacing.sm),
+                        Text(
+                          _subtitle,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark
+                                ? DsColors.textMutedDark
+                                : DsColors.textMutedLight,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: DsSpacing.xxl),
+                        // PIN dot indicators
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(_pinLength, (index) {
+                            final filled = index < _controller.text.length;
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: filled
+                                    ? DsColors.primary
+                                    : (isDark
+                                          ? DsColors.surfaceLight.withValues(
+                                              alpha: 0.15,
+                                            )
+                                          : DsColors.ink900.withValues(
+                                              alpha: 0.1,
+                                            )),
+                                border: Border.all(
+                                  color: DsColors.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  width: 1.5,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                        const SizedBox(height: DsSpacing.lg),
+                        // Hidden text field for keyboard input
+                        SizedBox(
+                          width: 0,
+                          height: 0,
+                          child: TextField(
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            keyboardType: TextInputType.number,
+                            maxLength: _pinLength,
+                            obscureText: true,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: const InputDecoration(
+                              counterText: '',
+                              border: InputBorder.none,
+                            ),
+                            onChanged: (value) {
+                              setState(() {});
+                              if (value.length == _pinLength) {
+                                _onPinComplete(value);
+                              }
+                            },
+                          ),
+                        ),
+                        // Tap to focus the keyboard
+                        Semantics(
+                          button: true,
+                          child: GestureDetector(
+                            onTap: () => _focusNode.requestFocus(),
+                            child: Text(
+                              'Tap here to show keyboard',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDark
+                                    ? DsColors.textMutedDark
+                                    : DsColors.textMutedLight,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: DsSpacing.lg),
+                          Text(
+                            _errorMessage!,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: DsColors.error,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ],
                     ),
-                    onChanged: (value) {
-                      setState(() {});
-                      if (value.length == _pinLength) {
-                        _onPinComplete(value);
-                      }
-                    },
                   ),
                 ),
-                // Tap to focus the keyboard
-                Semantics(
-                  button: true,
-                  child: GestureDetector(
-                    onTap: () => _focusNode.requestFocus(),
-                    child: Text(
-                      'Tap here to show keyboard',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark
-                            ? DsColors.textMutedDark
-                            : DsColors.textMutedLight,
-                      ),
-                    ),
-                  ),
-                ),
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: DsSpacing.lg),
-                  Text(
-                    _errorMessage!,
-                    style: const TextStyle(fontSize: 14, color: DsColors.error),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),

@@ -1,12 +1,13 @@
 import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/usecases/auth_flow_use_cases.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/features/auth/presentation/widgets/google_logo_icon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,6 +30,10 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _identifierError;
   String? _passwordError;
 
+  AuthFlowUseCases _authFlowUseCases() {
+    return AuthFlowUseCases(context.read<AuthRepository>());
+  }
+
   @override
   void dispose() {
     _identifierController.dispose();
@@ -39,13 +44,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authRepo = context.read<AuthRepository>();
-    final supportsUsernameLogin = authRepo.supportsUsernameLogin;
-    final showGoogleButton = authRepo.supportsGoogleSignIn;
+    final authFlowUseCases = _authFlowUseCases();
+    final supportsUsernameLogin = authFlowUseCases.supportsUsernameLogin;
+    final showGoogleButton = authFlowUseCases.supportsGoogleSignIn;
     final showAppleButton =
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS &&
-        authRepo.supportsAppleSignIn;
+        authFlowUseCases.supportsAppleSignIn;
 
     return BlocListener<AuthBloc, AuthState>(
       listenWhen: (previous, current) =>
@@ -100,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: const Icon(
                           Icons.favorite_rounded,
                           size: 36,
-                          color: DsColors.backgroundLight,
+                          color: Colors.white,
                         ),
                       ),
                       DsGap.xxl,
@@ -227,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (showGoogleButton) ...[
                         Semantics(
                           button: true,
-                          label: 'Continue with Google',
+                          label: context.l10n.authContinueWithGoogle,
                           child: SizedBox(
                             width: double.infinity,
                             child: GlassOutlinedButton(
@@ -238,18 +243,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderColor: const Color(0xFFDADCE0),
                               isExpanded: true,
                               isLoading: _isGoogleLoading,
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.g_mobiledata,
-                                    color: Color(0xFF4285F4),
-                                    size: 24,
-                                  ),
-                                  SizedBox(width: 8),
+                                  const GoogleLogoIcon(size: 20),
+                                  const SizedBox(width: 8),
                                   Text(
-                                    'Continue with Google',
-                                    style: TextStyle(
+                                    context.l10n.authContinueWithGoogle,
+                                    style: const TextStyle(
                                       color: Color(0xFF1F1F1F),
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -265,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (showAppleButton) ...[
                         Semantics(
                           button: true,
-                          label: 'Continue with Apple',
+                          label: context.l10n.authContinueWithApple,
                           child: SizedBox(
                             width: double.infinity,
                             child: GlassOutlinedButton(
@@ -276,18 +277,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderColor: Colors.black,
                               isExpanded: true,
                               isLoading: _isAppleLoading,
-                              child: const Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
+                                  const Icon(
                                     Icons.apple,
                                     color: Colors.white,
                                     size: 20,
                                   ),
-                                  SizedBox(width: 10),
+                                  const SizedBox(width: 10),
                                   Text(
-                                    'Continue with Apple',
-                                    style: TextStyle(
+                                    context.l10n.authContinueWithApple,
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -447,9 +448,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
-    final supportsUsernameLogin = context
-        .read<AuthRepository>()
-        .supportsUsernameLogin;
+    final authFlowUseCases = _authFlowUseCases();
+    final supportsUsernameLogin = authFlowUseCases.supportsUsernameLogin;
     final identifierError = _validateIdentifier(
       supportsUsernameLogin: supportsUsernameLogin,
     );
@@ -474,14 +474,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
-    final authRepo = context.read<AuthRepository>();
-    final result = await Result.guard(
-      () => authRepo.loginWithPassword(
-        identifier: identifier,
-        password: _passwordController.text,
-      ),
-      logLabel: 'AuthRepository.loginWithPassword',
-      fallbackError: 'Invalid credentials. Please try again.',
+    final result = await authFlowUseCases.loginWithPassword(
+      identifier: identifier,
+      password: _passwordController.text,
     );
 
     if (!mounted) return;
@@ -506,12 +501,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_isGoogleLoading) return;
 
     setState(() => _isGoogleLoading = true);
-    final authRepo = context.read<AuthRepository>();
-    final result = await Result.guard(
-      () => authRepo.signInWithGoogle(),
-      logLabel: 'AuthRepository.signInWithGoogle',
-      fallbackError: 'Google Sign-In failed. Please try again.',
-    );
+    final result = await _authFlowUseCases().signInWithGoogle();
 
     if (!mounted) return;
     setState(() => _isGoogleLoading = false);
@@ -538,12 +528,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_isAppleLoading) return;
 
     setState(() => _isAppleLoading = true);
-    final authRepo = context.read<AuthRepository>();
-    final result = await Result.guard(
-      () => authRepo.signInWithApple(),
-      logLabel: 'AuthRepository.signInWithApple',
-      fallbackError: 'Apple Sign-In failed. Please try again.',
-    );
+    final result = await _authFlowUseCases().signInWithApple();
 
     if (!mounted) return;
     setState(() => _isAppleLoading = false);

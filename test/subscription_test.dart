@@ -588,7 +588,11 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchasePlusPlan() async {
+    if (shouldFailCheckout) {
+      throw Exception('Checkout failed');
+    }
+  }
 
   @override
   Future<SubscriptionStatus> refreshStatus() async {

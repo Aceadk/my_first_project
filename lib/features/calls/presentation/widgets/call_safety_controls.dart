@@ -38,8 +38,9 @@ class CallSafetyControls extends StatelessWidget {
   }
 
   Widget _buildSafetyTip(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final targetName = (matchName == null || matchName!.trim().isEmpty)
-        ? 'this person'
+        ? l10n.callSafetyTipFallbackPerson
         : matchName!.trim();
 
     return Padding(
@@ -69,10 +70,10 @@ class CallSafetyControls extends StatelessWidget {
                       size: 18,
                     ),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Safety reminder',
-                        style: TextStyle(
+                        l10n.callSafetyTipTitle,
+                        style: const TextStyle(
                           color: DsColors.surfaceLight,
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -81,7 +82,7 @@ class CallSafetyControls extends StatelessWidget {
                     ),
                     IconButton(
                       visualDensity: VisualDensity.compact,
-                      tooltip: 'Dismiss safety tip',
+                      tooltip: l10n.callSafetyTipDismissTooltip,
                       onPressed: onDismissTip,
                       icon: const Icon(
                         Icons.close,
@@ -92,8 +93,7 @@ class CallSafetyControls extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  'On your first call with $targetName, avoid sharing private details. '
-                  'If anything feels unsafe, report or block immediately.',
+                  l10n.callSafetyTipBody(targetName),
                   style: TextStyle(
                     color: DsColors.surfaceLight.withValues(alpha: 0.9),
                     fontSize: 12,
@@ -104,9 +104,7 @@ class CallSafetyControls extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onOpenGuidelines,
                   icon: const Icon(Icons.menu_book_outlined, size: 16),
-                  label: Text(
-                    AppLocalizations.of(context).viewSafetyGuidelines,
-                  ),
+                  label: Text(l10n.viewSafetyGuidelines),
                   style: TextButton.styleFrom(
                     foregroundColor: DsColors.surfaceLight,
                     padding: const EdgeInsets.symmetric(
@@ -126,8 +124,11 @@ class CallSafetyControls extends StatelessWidget {
   }
 
   Widget _buildSafetyActions(BuildContext context) {
-    final reportLabel = isReportedRecently ? 'Reported' : 'Report';
-    final blockLabel = isBlocked ? 'Blocked' : 'Block';
+    final l10n = AppLocalizations.of(context);
+    final reportLabel = isReportedRecently
+        ? l10n.callSafetyActionReported
+        : l10n.commonReport;
+    final blockLabel = isBlocked ? l10n.wordBlocked : l10n.commonBlock;
 
     return Padding(
       padding: const EdgeInsetsDirectional.fromSTEB(24, 0, 24, 14),

@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/features/settings/data/preferences/notification_preference_sync_service.dart';
 
 class NotificationSettingsState {
   const NotificationSettingsState({
@@ -85,42 +88,22 @@ class NotificationSettingsState {
 }
 
 class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
-  NotificationSettingsCubit({required SharedPreferences preferences})
-    : _preferences = preferences,
-      super(_readInitial(preferences));
+  NotificationSettingsCubit({
+    required SharedPreferences preferences,
+    NotificationPreferenceSyncService? syncService,
+  }) : this._(
+         syncService ??
+             NotificationPreferenceSyncService.localOnly(
+               preferences: preferences,
+             ),
+       );
 
-  final SharedPreferences _preferences;
-
-  static const _pushKey = 'notifications_push';
-  static const _emailKey = 'notifications_email';
-  static const _soundKey = 'notifications_sound';
-  static const _vibrationKey = 'notifications_vibration';
-  static const _catMatchesKey = 'notifications_cat_matches';
-  static const _catMessagesKey = 'notifications_cat_messages';
-  static const _catLikesKey = 'notifications_cat_likes';
-  static const _catProfileViewsKey = 'notifications_cat_profile_views';
-  static const _catPromotionsKey = 'notifications_cat_promotions';
-  static const _quietHoursEnabledKey = 'notifications_quiet_hours_enabled';
-  static const _quietHoursStartKey = 'notifications_quiet_hours_start';
-  static const _quietHoursEndKey = 'notifications_quiet_hours_end';
-
-  static NotificationSettingsState _readInitial(SharedPreferences preferences) {
-    return NotificationSettingsState(
-      push: preferences.getBool(_pushKey) ?? true,
-      email: preferences.getBool(_emailKey) ?? true,
-      sound: preferences.getBool(_soundKey) ?? true,
-      vibration: preferences.getBool(_vibrationKey) ?? true,
-      catMatches: preferences.getBool(_catMatchesKey) ?? true,
-      catMessages: preferences.getBool(_catMessagesKey) ?? true,
-      catLikes: preferences.getBool(_catLikesKey) ?? true,
-      catProfileViews: preferences.getBool(_catProfileViewsKey) ?? true,
-      catPromotions: preferences.getBool(_catPromotionsKey) ?? true,
-      catSafetyAlerts: true, // Always on
-      quietHoursEnabled: preferences.getBool(_quietHoursEnabledKey) ?? false,
-      quietHoursStart: preferences.getInt(_quietHoursStartKey) ?? 22,
-      quietHoursEnd: preferences.getInt(_quietHoursEndKey) ?? 8,
-    );
+  NotificationSettingsCubit._(this._syncService)
+    : super(_stateFromRecord(_syncService.readLocalSnapshot().value)) {
+    unawaited(_hydrateFromRemote());
   }
+
+  final NotificationPreferenceSyncService _syncService;
 
   Future<void> togglePush(bool value) async {
     await AnalyticsService.instance.logNotificationSettingsChanged(
@@ -212,21 +195,74 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
 
   Future<void> _update(NotificationSettingsState next) async {
     emit(next);
-    await _persist(next);
+    await _syncService.persist(_recordFromState(next));
   }
 
-  Future<void> _persist(NotificationSettingsState state) async {
-    await _preferences.setBool(_pushKey, state.push);
-    await _preferences.setBool(_emailKey, state.email);
-    await _preferences.setBool(_soundKey, state.sound);
-    await _preferences.setBool(_vibrationKey, state.vibration);
-    await _preferences.setBool(_catMatchesKey, state.catMatches);
-    await _preferences.setBool(_catMessagesKey, state.catMessages);
-    await _preferences.setBool(_catLikesKey, state.catLikes);
-    await _preferences.setBool(_catProfileViewsKey, state.catProfileViews);
-    await _preferences.setBool(_catPromotionsKey, state.catPromotions);
-    await _preferences.setBool(_quietHoursEnabledKey, state.quietHoursEnabled);
-    await _preferences.setInt(_quietHoursStartKey, state.quietHoursStart);
-    await _preferences.setInt(_quietHoursEndKey, state.quietHoursEnd);
+  Future<void> _hydrateFromRemote() async {
+    final hydration = await _syncService.hydrate();
+    if (isClosed) return;
+    final mergedState = _stateFromRecord(hydration.record);
+    if (!_stateEquals(state, mergedState)) {
+      emit(mergedState);
+    }
+  }
+
+  static NotificationPreferenceRecord _recordFromState(
+    NotificationSettingsState state,
+  ) {
+    return NotificationPreferenceRecord(
+      push: state.push,
+      email: state.email,
+      sound: state.sound,
+      vibration: state.vibration,
+      catMatches: state.catMatches,
+      catMessages: state.catMessages,
+      catLikes: state.catLikes,
+      catProfileViews: state.catProfileViews,
+      catPromotions: state.catPromotions,
+      catSafetyAlerts: state.catSafetyAlerts,
+      quietHoursEnabled: state.quietHoursEnabled,
+      quietHoursStart: state.quietHoursStart,
+      quietHoursEnd: state.quietHoursEnd,
+    );
+  }
+
+  static NotificationSettingsState _stateFromRecord(
+    NotificationPreferenceRecord record,
+  ) {
+    return NotificationSettingsState(
+      push: record.push,
+      email: record.email,
+      sound: record.sound,
+      vibration: record.vibration,
+      catMatches: record.catMatches,
+      catMessages: record.catMessages,
+      catLikes: record.catLikes,
+      catProfileViews: record.catProfileViews,
+      catPromotions: record.catPromotions,
+      catSafetyAlerts: true,
+      quietHoursEnabled: record.quietHoursEnabled,
+      quietHoursStart: record.quietHoursStart,
+      quietHoursEnd: record.quietHoursEnd,
+    );
+  }
+
+  static bool _stateEquals(
+    NotificationSettingsState left,
+    NotificationSettingsState right,
+  ) {
+    return left.push == right.push &&
+        left.email == right.email &&
+        left.sound == right.sound &&
+        left.vibration == right.vibration &&
+        left.catMatches == right.catMatches &&
+        left.catMessages == right.catMessages &&
+        left.catLikes == right.catLikes &&
+        left.catProfileViews == right.catProfileViews &&
+        left.catPromotions == right.catPromotions &&
+        left.catSafetyAlerts == right.catSafetyAlerts &&
+        left.quietHoursEnabled == right.quietHoursEnabled &&
+        left.quietHoursStart == right.quietHoursStart &&
+        left.quietHoursEnd == right.quietHoursEnd;
   }
 }

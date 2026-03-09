@@ -1163,6 +1163,18 @@ abstract class AppLocalizations {
   /// **'Create account'**
   String get authCreateAccount;
 
+  /// No description provided for @authContinueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get authContinueWithGoogle;
+
+  /// No description provided for @authContinueWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get authContinueWithApple;
+
   /// No description provided for @authNoAccount.
   ///
   /// In en, this message translates to:
@@ -1180,6 +1192,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'or continue with'**
   String get authOrContinueWith;
+
+  /// No description provided for @authGatewayTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Find your Perfect Match'**
+  String get authGatewayTagline;
+
+  /// No description provided for @authGatewayFeatureVerifiedProfiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified profiles for safety'**
+  String get authGatewayFeatureVerifiedProfiles;
+
+  /// No description provided for @authGatewayFeatureSendMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Send messages before matching'**
+  String get authGatewayFeatureSendMessages;
+
+  /// No description provided for @authGatewayFeatureMeetNearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Meet people near you'**
+  String get authGatewayFeatureMeetNearby;
+
+  /// No description provided for @authGatewayAgeVerificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Age Verification'**
+  String get authGatewayAgeVerificationTitle;
+
+  /// No description provided for @authGatewayAgeVerificationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Crush is a dating app for adults only. You must be at least 18 years old to create an account.'**
+  String get authGatewayAgeVerificationDescription;
+
+  /// No description provided for @authGatewayAgeVerificationQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you 18 years or older?'**
+  String get authGatewayAgeVerificationQuestion;
+
+  /// No description provided for @authGatewayAgeVerificationLegalNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'By continuing, you confirm that you are at least 18 years old and agree to our Terms of Service.'**
+  String get authGatewayAgeVerificationLegalNotice;
+
+  /// No description provided for @authGatewayAgeUnderageError.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be at least 18 years old to use Crush.'**
+  String get authGatewayAgeUnderageError;
 
   /// No description provided for @authPhone.
   ///
@@ -1714,6 +1780,1692 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Restore purchases'**
   String get settingsRestorePurchases;
+
+  /// No description provided for @settingsNotificationsEnabledCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{enabled} of {total} enabled'**
+  String settingsNotificationsEnabledCount(int enabled, int total);
+
+  /// No description provided for @settingsLanguageRegionSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{language} - {region}'**
+  String settingsLanguageRegionSummary(String language, String region);
+
+  /// No description provided for @settingsDiscoverySummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{distanceKm} km, {minAge}-{maxAge} years'**
+  String settingsDiscoverySummary(int distanceKm, int minAge, int maxAge);
+
+  /// No description provided for @settingsCacheSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache: {sizeMb} MB'**
+  String settingsCacheSummary(int sizeMb);
+
+  /// No description provided for @settingsAccountNoEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'No email added'**
+  String get settingsAccountNoEmail;
+
+  /// No description provided for @settingsAccountEmailVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Email verified'**
+  String get settingsAccountEmailVerified;
+
+  /// No description provided for @settingsAccountEmailNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Email not verified'**
+  String get settingsAccountEmailNotVerified;
+
+  /// No description provided for @settingsIdVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'ID Verification'**
+  String get settingsIdVerification;
+
+  /// No description provided for @settingsIdVerificationVerifiedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified - Badge active'**
+  String get settingsIdVerificationVerifiedSubtitle;
+
+  /// No description provided for @settingsIdVerificationPromptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify to unlock 50% more swipes'**
+  String get settingsIdVerificationPromptSubtitle;
+
+  /// No description provided for @settingsChatSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Message retention & auto-delete'**
+  String get settingsChatSettingsSubtitle;
+
+  /// No description provided for @settingsCallHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent audio and video calls'**
+  String get settingsCallHistorySubtitle;
+
+  /// No description provided for @settingsIncognitoActivePremium.
+  ///
+  /// In en, this message translates to:
+  /// **'Active (Premium)'**
+  String get settingsIncognitoActivePremium;
+
+  /// No description provided for @settingsIncognitoBrowsePrivately.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse profiles privately'**
+  String get settingsIncognitoBrowsePrivately;
+
+  /// No description provided for @settingsSubscriptionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status: {status}'**
+  String settingsSubscriptionStatus(String status);
+
+  /// No description provided for @settingsSubscriptionAccessEndsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Access ends on {date}'**
+  String settingsSubscriptionAccessEndsOn(String date);
+
+  /// No description provided for @settingsSubscriptionRenewsOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Renews on {date}'**
+  String settingsSubscriptionRenewsOn(String date);
+
+  /// No description provided for @settingsSubscriptionManageBillingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage billing or renew your Plus plan.'**
+  String get settingsSubscriptionManageBillingSubtitle;
+
+  /// No description provided for @settingsSubscriptionUpgradePitchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to Plus for unlimited likes, rewinds, and Passport.'**
+  String get settingsSubscriptionUpgradePitchSubtitle;
+
+  /// No description provided for @settingsSubscriptionFirstMonthDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'50% off your first month!'**
+  String get settingsSubscriptionFirstMonthDiscount;
+
+  /// No description provided for @settingsManageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get settingsManageSubscription;
+
+  /// No description provided for @settingsSafetyBlocking.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety & Blocking'**
+  String get settingsSafetyBlocking;
+
+  /// No description provided for @settingsHelpSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'FAQ, contact support, and more'**
+  String get settingsHelpSubtitle;
+
+  /// No description provided for @settingsSignOutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out of your account'**
+  String get settingsSignOutSubtitle;
+
+  /// No description provided for @settingsLegalSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal'**
+  String get settingsLegalSection;
+
+  /// No description provided for @settingsAboutCrush.
+  ///
+  /// In en, this message translates to:
+  /// **'About Crush'**
+  String get settingsAboutCrush;
+
+  /// No description provided for @settingsManageBlockedUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage blocked users'**
+  String get settingsManageBlockedUsers;
+
+  /// No description provided for @settingsThemeDarkLuxuryRoyal.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Luxury (Royal)'**
+  String get settingsThemeDarkLuxuryRoyal;
+
+  /// No description provided for @settingsThemeDarkLuxuryModern.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark Luxury (Modern)'**
+  String get settingsThemeDarkLuxuryModern;
+
+  /// No description provided for @settingsIncognitoBrowseWithoutSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Browse profiles without being seen'**
+  String get settingsIncognitoBrowseWithoutSeen;
+
+  /// No description provided for @settingsIncognitoIsActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Incognito is active'**
+  String get settingsIncognitoIsActive;
+
+  /// No description provided for @settingsIncognitoHideFromLikedYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide from \"Liked You\"'**
+  String get settingsIncognitoHideFromLikedYou;
+
+  /// No description provided for @settingsIncognitoHideFromLikedYouSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your likes won\'t appear in their list'**
+  String get settingsIncognitoHideFromLikedYouSubtitle;
+
+  /// No description provided for @settingsIncognitoHideLastActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide last active'**
+  String get settingsIncognitoHideLastActive;
+
+  /// No description provided for @settingsIncognitoHideLastActiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Others won\'t see when you were online'**
+  String get settingsIncognitoHideLastActiveSubtitle;
+
+  /// No description provided for @settingsIncognitoHideReadReceipts.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide read receipts'**
+  String get settingsIncognitoHideReadReceipts;
+
+  /// No description provided for @settingsIncognitoHideReadReceiptsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages won\'t show as read'**
+  String get settingsIncognitoHideReadReceiptsSubtitle;
+
+  /// No description provided for @settingsIncognitoFeatureHideFromLikedYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Your likes won\'t appear in \"Liked You\"'**
+  String get settingsIncognitoFeatureHideFromLikedYou;
+
+  /// No description provided for @settingsIncognitoFeatureHideLastActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide your last active status'**
+  String get settingsIncognitoFeatureHideLastActive;
+
+  /// No description provided for @settingsIncognitoFeatureHideReadReceipts.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide read receipts in chats'**
+  String get settingsIncognitoFeatureHideReadReceipts;
+
+  /// No description provided for @settingsIncognitoFreeTierNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Free users get 1 hour. Upgrade for unlimited.'**
+  String get settingsIncognitoFreeTierNotice;
+
+  /// No description provided for @settingsSubscriptionFreeSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Free Plan - Upgrade for unlimited likes'**
+  String get settingsSubscriptionFreeSummary;
+
+  /// No description provided for @settingsSubscriptionPlusActiveSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus Member - Active'**
+  String get settingsSubscriptionPlusActiveSummary;
+
+  /// No description provided for @settingsSubscriptionPlusEndsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus Member - Ends on {date}'**
+  String settingsSubscriptionPlusEndsSummary(String date);
+
+  /// No description provided for @settingsSubscriptionPlusRenewsSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Plus Member - Renews on {date}'**
+  String settingsSubscriptionPlusRenewsSummary(String date);
+
+  /// No description provided for @settingsNotificationsHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay Connected'**
+  String get settingsNotificationsHeaderTitle;
+
+  /// No description provided for @settingsNotificationsHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified about matches, messages, and more.'**
+  String get settingsNotificationsHeaderSubtitle;
+
+  /// No description provided for @settingsNotificationsPushSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages, matches, and app updates'**
+  String get settingsNotificationsPushSubtitle;
+
+  /// No description provided for @settingsNotificationsPushEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications enabled.'**
+  String get settingsNotificationsPushEnabled;
+
+  /// No description provided for @settingsNotificationsPushDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Push notifications disabled.'**
+  String get settingsNotificationsPushDisabled;
+
+  /// No description provided for @settingsNotificationsEmailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Updates sent to your inbox'**
+  String get settingsNotificationsEmailSubtitle;
+
+  /// No description provided for @settingsNotificationsSoundSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Play sounds for alerts'**
+  String get settingsNotificationsSoundSubtitle;
+
+  /// No description provided for @settingsNotificationsVibrationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibrate on new messages or matches'**
+  String get settingsNotificationsVibrationSubtitle;
+
+  /// No description provided for @settingsNotificationCategoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Categories'**
+  String get settingsNotificationCategoriesTitle;
+
+  /// No description provided for @settingsNotificationCategoriesEnabledCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{enabled} of {total} enabled'**
+  String settingsNotificationCategoriesEnabledCount(int enabled, int total);
+
+  /// No description provided for @settingsNotificationCategoryMatchesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches'**
+  String get settingsNotificationCategoryMatchesTitle;
+
+  /// No description provided for @settingsNotificationCategoryMatchesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New match notifications'**
+  String get settingsNotificationCategoryMatchesSubtitle;
+
+  /// No description provided for @settingsNotificationCategoryMessagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get settingsNotificationCategoryMessagesTitle;
+
+  /// No description provided for @settingsNotificationCategoryMessagesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New message notifications'**
+  String get settingsNotificationCategoryMessagesSubtitle;
+
+  /// No description provided for @settingsNotificationCategoryLikesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes'**
+  String get settingsNotificationCategoryLikesTitle;
+
+  /// No description provided for @settingsNotificationCategoryLikesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone likes your profile'**
+  String get settingsNotificationCategoryLikesSubtitle;
+
+  /// No description provided for @settingsNotificationCategoryProfileViewsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Views'**
+  String get settingsNotificationCategoryProfileViewsTitle;
+
+  /// No description provided for @settingsNotificationCategoryProfileViewsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone views your profile'**
+  String get settingsNotificationCategoryProfileViewsSubtitle;
+
+  /// No description provided for @settingsNotificationCategoryPromotionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotions'**
+  String get settingsNotificationCategoryPromotionsTitle;
+
+  /// No description provided for @settingsNotificationCategoryPromotionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Special offers and features'**
+  String get settingsNotificationCategoryPromotionsSubtitle;
+
+  /// No description provided for @settingsNotificationCategorySafetyAlertsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety Alerts'**
+  String get settingsNotificationCategorySafetyAlertsTitle;
+
+  /// No description provided for @settingsNotificationCategorySafetyAlertsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Always on — cannot be disabled'**
+  String get settingsNotificationCategorySafetyAlertsSubtitle;
+
+  /// No description provided for @settingsNotificationQuietHoursTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet Hours'**
+  String get settingsNotificationQuietHoursTitle;
+
+  /// No description provided for @settingsNotificationQuietHoursTileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet hours'**
+  String get settingsNotificationQuietHoursTileTitle;
+
+  /// No description provided for @settingsNotificationDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get settingsNotificationDisabled;
+
+  /// No description provided for @settingsNotificationsDeviceSettingsInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'You can also manage notifications in your device settings.'**
+  String get settingsNotificationsDeviceSettingsInfo;
+
+  /// No description provided for @settingsPrivacySnackAllPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'All information set to public'**
+  String get settingsPrivacySnackAllPublic;
+
+  /// No description provided for @settingsPrivacySnackAllPrivate.
+  ///
+  /// In en, this message translates to:
+  /// **'All information set to private'**
+  String get settingsPrivacySnackAllPrivate;
+
+  /// No description provided for @settingsPrivacySnackResetDefaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy settings reset to defaults'**
+  String get settingsPrivacySnackResetDefaults;
+
+  /// No description provided for @settingsPrivacyHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Control Your Privacy'**
+  String get settingsPrivacyHeaderTitle;
+
+  /// No description provided for @settingsPrivacyHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what others can see when they view your profile.'**
+  String get settingsPrivacyHeaderSubtitle;
+
+  /// No description provided for @settingsPrivacySectionNameVisibilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Name Visibility'**
+  String get settingsPrivacySectionNameVisibilityTitle;
+
+  /// No description provided for @settingsPrivacySectionNameVisibilitySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Control how your name appears'**
+  String get settingsPrivacySectionNameVisibilitySubtitle;
+
+  /// No description provided for @settingsPrivacyFirstNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get settingsPrivacyFirstNameTitle;
+
+  /// No description provided for @settingsPrivacyFirstNameSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your first name on your profile'**
+  String get settingsPrivacyFirstNameSubtitle;
+
+  /// No description provided for @settingsPrivacyLastNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get settingsPrivacyLastNameTitle;
+
+  /// No description provided for @settingsPrivacyLastNameSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your last name on your profile'**
+  String get settingsPrivacyLastNameSubtitle;
+
+  /// No description provided for @settingsPrivacySectionSensitiveInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitive Information'**
+  String get settingsPrivacySectionSensitiveInfoTitle;
+
+  /// No description provided for @settingsPrivacySectionSensitiveInfoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'These are private by default'**
+  String get settingsPrivacySectionSensitiveInfoSubtitle;
+
+  /// No description provided for @settingsPrivacyAgeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get settingsPrivacyAgeTitle;
+
+  /// No description provided for @settingsPrivacyAgeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your age on your profile'**
+  String get settingsPrivacyAgeSubtitle;
+
+  /// No description provided for @settingsPrivacyDateOfBirthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get settingsPrivacyDateOfBirthTitle;
+
+  /// No description provided for @settingsPrivacyDateOfBirthSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your exact birth date'**
+  String get settingsPrivacyDateOfBirthSubtitle;
+
+  /// No description provided for @settingsPrivacyEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get settingsPrivacyEmailTitle;
+
+  /// No description provided for @settingsPrivacyEmailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your email address'**
+  String get settingsPrivacyEmailSubtitle;
+
+  /// No description provided for @settingsPrivacyPhoneNumberTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get settingsPrivacyPhoneNumberTitle;
+
+  /// No description provided for @settingsPrivacyPhoneNumberSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your phone number'**
+  String get settingsPrivacyPhoneNumberSubtitle;
+
+  /// No description provided for @settingsPrivacyExactLocationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Exact Location'**
+  String get settingsPrivacyExactLocationTitle;
+
+  /// No description provided for @settingsPrivacyExactLocationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show exact location instead of city only'**
+  String get settingsPrivacyExactLocationSubtitle;
+
+  /// No description provided for @settingsPrivacySectionDatingBasicsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dating Basics'**
+  String get settingsPrivacySectionDatingBasicsTitle;
+
+  /// No description provided for @settingsPrivacySectionDatingBasicsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic dating profile information'**
+  String get settingsPrivacySectionDatingBasicsSubtitle;
+
+  /// No description provided for @settingsPrivacyHeightTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Height'**
+  String get settingsPrivacyHeightTitle;
+
+  /// No description provided for @settingsPrivacyHeightSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your height'**
+  String get settingsPrivacyHeightSubtitle;
+
+  /// No description provided for @settingsPrivacyRelationshipGoalsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Relationship Goals'**
+  String get settingsPrivacyRelationshipGoalsTitle;
+
+  /// No description provided for @settingsPrivacyRelationshipGoalsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show what you\'re looking for'**
+  String get settingsPrivacyRelationshipGoalsSubtitle;
+
+  /// No description provided for @settingsPrivacyZodiacSignTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Zodiac Sign'**
+  String get settingsPrivacyZodiacSignTitle;
+
+  /// No description provided for @settingsPrivacyZodiacSignSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your zodiac sign'**
+  String get settingsPrivacyZodiacSignSubtitle;
+
+  /// No description provided for @settingsPrivacySectionAboutMeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Me'**
+  String get settingsPrivacySectionAboutMeTitle;
+
+  /// No description provided for @settingsPrivacySectionAboutMeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal characteristics'**
+  String get settingsPrivacySectionAboutMeSubtitle;
+
+  /// No description provided for @settingsPrivacyEducationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Education'**
+  String get settingsPrivacyEducationTitle;
+
+  /// No description provided for @settingsPrivacyEducationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your education level'**
+  String get settingsPrivacyEducationSubtitle;
+
+  /// No description provided for @settingsPrivacyFamilyPlansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Family Plans'**
+  String get settingsPrivacyFamilyPlansTitle;
+
+  /// No description provided for @settingsPrivacyFamilyPlansSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your family plans'**
+  String get settingsPrivacyFamilyPlansSubtitle;
+
+  /// No description provided for @settingsPrivacyPersonalityTypeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personality Type'**
+  String get settingsPrivacyPersonalityTypeTitle;
+
+  /// No description provided for @settingsPrivacyPersonalityTypeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your MBTI or personality'**
+  String get settingsPrivacyPersonalityTypeSubtitle;
+
+  /// No description provided for @settingsPrivacySectionLifestyleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifestyle'**
+  String get settingsPrivacySectionLifestyleTitle;
+
+  /// No description provided for @settingsPrivacySectionLifestyleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your habits and preferences'**
+  String get settingsPrivacySectionLifestyleSubtitle;
+
+  /// No description provided for @settingsPrivacyWorkoutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout'**
+  String get settingsPrivacyWorkoutTitle;
+
+  /// No description provided for @settingsPrivacyWorkoutSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your exercise habits'**
+  String get settingsPrivacyWorkoutSubtitle;
+
+  /// No description provided for @settingsPrivacySmokingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Smoking'**
+  String get settingsPrivacySmokingTitle;
+
+  /// No description provided for @settingsPrivacySmokingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your smoking habits'**
+  String get settingsPrivacySmokingSubtitle;
+
+  /// No description provided for @settingsPrivacyDrinkingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Drinking'**
+  String get settingsPrivacyDrinkingTitle;
+
+  /// No description provided for @settingsPrivacyDrinkingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your drinking habits'**
+  String get settingsPrivacyDrinkingSubtitle;
+
+  /// No description provided for @settingsPrivacyDietTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Diet'**
+  String get settingsPrivacyDietTitle;
+
+  /// No description provided for @settingsPrivacyDietSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your dietary preferences'**
+  String get settingsPrivacyDietSubtitle;
+
+  /// No description provided for @settingsPrivacySleepingHabitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleeping Habits'**
+  String get settingsPrivacySleepingHabitsTitle;
+
+  /// No description provided for @settingsPrivacySleepingHabitsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your sleep schedule'**
+  String get settingsPrivacySleepingHabitsSubtitle;
+
+  /// No description provided for @settingsPrivacyPetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pets'**
+  String get settingsPrivacyPetsTitle;
+
+  /// No description provided for @settingsPrivacyPetsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your pet preferences'**
+  String get settingsPrivacyPetsSubtitle;
+
+  /// No description provided for @settingsPrivacySectionWorkEducationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work & Education'**
+  String get settingsPrivacySectionWorkEducationTitle;
+
+  /// No description provided for @settingsPrivacySectionWorkEducationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Professional information'**
+  String get settingsPrivacySectionWorkEducationSubtitle;
+
+  /// No description provided for @settingsPrivacyJobTitleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Job Title'**
+  String get settingsPrivacyJobTitleTitle;
+
+  /// No description provided for @settingsPrivacyJobTitleSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your job title'**
+  String get settingsPrivacyJobTitleSubtitle;
+
+  /// No description provided for @settingsPrivacyCompanyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Company'**
+  String get settingsPrivacyCompanyTitle;
+
+  /// No description provided for @settingsPrivacyCompanySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show where you work'**
+  String get settingsPrivacyCompanySubtitle;
+
+  /// No description provided for @settingsPrivacySchoolTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get settingsPrivacySchoolTitle;
+
+  /// No description provided for @settingsPrivacySchoolSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your school or university'**
+  String get settingsPrivacySchoolSubtitle;
+
+  /// No description provided for @settingsPrivacySectionMusicTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get settingsPrivacySectionMusicTitle;
+
+  /// No description provided for @settingsPrivacySectionMusicSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your music taste'**
+  String get settingsPrivacySectionMusicSubtitle;
+
+  /// No description provided for @settingsPrivacyFavoriteSingerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Singer'**
+  String get settingsPrivacyFavoriteSingerTitle;
+
+  /// No description provided for @settingsPrivacyFavoriteSingerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your favorite artist'**
+  String get settingsPrivacyFavoriteSingerSubtitle;
+
+  /// No description provided for @settingsPrivacyFavoriteSongsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Songs'**
+  String get settingsPrivacyFavoriteSongsTitle;
+
+  /// No description provided for @settingsPrivacyFavoriteSongsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your favorite songs'**
+  String get settingsPrivacyFavoriteSongsSubtitle;
+
+  /// No description provided for @settingsPrivacySectionSocialTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social'**
+  String get settingsPrivacySectionSocialTitle;
+
+  /// No description provided for @settingsPrivacySectionSocialSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social information'**
+  String get settingsPrivacySectionSocialSubtitle;
+
+  /// No description provided for @settingsPrivacyLanguagesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Languages'**
+  String get settingsPrivacyLanguagesTitle;
+
+  /// No description provided for @settingsPrivacyLanguagesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show languages you speak'**
+  String get settingsPrivacyLanguagesSubtitle;
+
+  /// No description provided for @settingsPrivacySocialMediaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Media'**
+  String get settingsPrivacySocialMediaTitle;
+
+  /// No description provided for @settingsPrivacySocialMediaSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show your social media links'**
+  String get settingsPrivacySocialMediaSubtitle;
+
+  /// No description provided for @settingsPrivacySectionActivityStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Status'**
+  String get settingsPrivacySectionActivityStatusTitle;
+
+  /// No description provided for @settingsPrivacySectionActivityStatusSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Online presence'**
+  String get settingsPrivacySectionActivityStatusSubtitle;
+
+  /// No description provided for @settingsPrivacyOnlineStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Online Status'**
+  String get settingsPrivacyOnlineStatusTitle;
+
+  /// No description provided for @settingsPrivacyOnlineStatusSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show when you\'re online'**
+  String get settingsPrivacyOnlineStatusSubtitle;
+
+  /// No description provided for @settingsPrivacyLastActiveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Active'**
+  String get settingsPrivacyLastActiveTitle;
+
+  /// No description provided for @settingsPrivacyLastActiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show when you were last active'**
+  String get settingsPrivacyLastActiveSubtitle;
+
+  /// No description provided for @settingsPrivacySensitiveBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensitive'**
+  String get settingsPrivacySensitiveBadge;
+
+  /// No description provided for @settingsPrivacyInfoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden information will only be visible to you. Matches can see public information.'**
+  String get settingsPrivacyInfoNote;
+
+  /// No description provided for @accountActionsHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Your Account'**
+  String get accountActionsHeaderTitle;
+
+  /// No description provided for @accountActionsHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage security, password, and account status.'**
+  String get accountActionsHeaderSubtitle;
+
+  /// No description provided for @accountActionsSectionSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get accountActionsSectionSecurity;
+
+  /// No description provided for @accountActionsPhoneVerifiedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone verified'**
+  String get accountActionsPhoneVerifiedTitle;
+
+  /// No description provided for @accountActionsPhoneVerifyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify phone number'**
+  String get accountActionsPhoneVerifyTitle;
+
+  /// No description provided for @accountActionsPhoneAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add phone number'**
+  String get accountActionsPhoneAddTitle;
+
+  /// No description provided for @accountActionsPhoneVerifiedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone is verified and secured'**
+  String get accountActionsPhoneVerifiedSubtitle;
+
+  /// No description provided for @accountActionsPhoneVerifySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your phone for account security'**
+  String get accountActionsPhoneVerifySubtitle;
+
+  /// No description provided for @accountActionsChangePasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your account password'**
+  String get accountActionsChangePasswordSubtitle;
+
+  /// No description provided for @accountActionsSectionAccountStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Status'**
+  String get accountActionsSectionAccountStatus;
+
+  /// No description provided for @accountActionsSnoozeProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Snooze profile'**
+  String get accountActionsSnoozeProfileTitle;
+
+  /// No description provided for @accountActionsSnoozeProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide profile but keep messaging active matches'**
+  String get accountActionsSnoozeProfileSubtitle;
+
+  /// No description provided for @accountActionsDeactivateSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide your profile temporarily'**
+  String get accountActionsDeactivateSubtitle;
+
+  /// No description provided for @accountActionsSectionDataPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Data & Privacy'**
+  String get accountActionsSectionDataPrivacy;
+
+  /// No description provided for @accountActionsExportDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export your data'**
+  String get accountActionsExportDataTitle;
+
+  /// No description provided for @accountActionsExportDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Download a copy of your personal data'**
+  String get accountActionsExportDataSubtitle;
+
+  /// No description provided for @accountActionsSectionDangerZone.
+  ///
+  /// In en, this message translates to:
+  /// **'Danger zone'**
+  String get accountActionsSectionDangerZone;
+
+  /// No description provided for @accountActionsAboutDeactivationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Deactivation'**
+  String get accountActionsAboutDeactivationTitle;
+
+  /// No description provided for @accountActionsAboutDeactivationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When you deactivate your account, your profile will be hidden. You can reactivate anytime by signing back in. If you don\'t sign in for 6 months, your account will be permanently deleted.'**
+  String get accountActionsAboutDeactivationBody;
+
+  /// No description provided for @accountActionsAboutDeletionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Deletion'**
+  String get accountActionsAboutDeletionTitle;
+
+  /// No description provided for @accountActionsAboutDeletionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When you delete your account, you have 14 days to change your mind. Simply sign in within 14 days to recover your account. After 14 days, all your data will be permanently deleted.'**
+  String get accountActionsAboutDeletionBody;
+
+  /// No description provided for @accountActionsExportSignInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in again to export data.'**
+  String get accountActionsExportSignInRequired;
+
+  /// No description provided for @accountActionsExportNextAvailableOn.
+  ///
+  /// In en, this message translates to:
+  /// **'You can request your next export on {date}.'**
+  String accountActionsExportNextAvailableOn(String date);
+
+  /// No description provided for @accountActionsExportFallbackEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'your email'**
+  String get accountActionsExportFallbackEmail;
+
+  /// No description provided for @accountActionsExportItemProfileMedia.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile, photos, and media'**
+  String get accountActionsExportItemProfileMedia;
+
+  /// No description provided for @accountActionsExportItemLikesMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Likes and matches'**
+  String get accountActionsExportItemLikesMatches;
+
+  /// No description provided for @accountActionsExportItemMessagesMetadata.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages and chat metadata'**
+  String get accountActionsExportItemMessagesMetadata;
+
+  /// No description provided for @accountActionsExportItemPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences and account settings'**
+  String get accountActionsExportItemPreferences;
+
+  /// No description provided for @accountActionsExportRateLimitNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This request is rate-limited to once every {days} days. We will notify you when export generation completes.'**
+  String accountActionsExportRateLimitNotice(int days);
+
+  /// No description provided for @accountActionsExportPrimaryContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Primary contact: {email}'**
+  String accountActionsExportPrimaryContact(String email);
+
+  /// No description provided for @accountActionsExportRequestedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Data export requested. We will send a push notification when it is ready.'**
+  String get accountActionsExportRequestedSuccess;
+
+  /// No description provided for @accountActionsExportRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not request data export.'**
+  String get accountActionsExportRequestFailed;
+
+  /// No description provided for @accountActionsExportCloudUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud export is not available in this environment. Generating local export now.'**
+  String get accountActionsExportCloudUnavailable;
+
+  /// No description provided for @accountActionsExportProgressStarting.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting export...'**
+  String get accountActionsExportProgressStarting;
+
+  /// No description provided for @accountActionsExportProgressPercentComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% complete'**
+  String accountActionsExportProgressPercentComplete(int percent);
+
+  /// No description provided for @accountActionsExportGenerateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not generate data export. Please try again.'**
+  String get accountActionsExportGenerateFailed;
+
+  /// No description provided for @accountActionsExportCompletedNextRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Data export request completed. Next request available in {days} days.'**
+  String accountActionsExportCompletedNextRequest(int days);
+
+  /// No description provided for @accountActionsChangePasswordPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password and choose a new one.'**
+  String get accountActionsChangePasswordPrompt;
+
+  /// No description provided for @accountActionsCurrentPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get accountActionsCurrentPasswordLabel;
+
+  /// No description provided for @accountActionsCurrentPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password'**
+  String get accountActionsCurrentPasswordRequired;
+
+  /// No description provided for @accountActionsNewPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get accountActionsNewPasswordLabel;
+
+  /// No description provided for @accountActionsNewPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a new password'**
+  String get accountActionsNewPasswordRequired;
+
+  /// No description provided for @accountActionsNewPasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get accountActionsNewPasswordMinLength;
+
+  /// No description provided for @accountActionsNewPasswordMustDiffer.
+  ///
+  /// In en, this message translates to:
+  /// **'New password must be different from current password'**
+  String get accountActionsNewPasswordMustDiffer;
+
+  /// No description provided for @accountActionsConfirmNewPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm new password'**
+  String get accountActionsConfirmNewPasswordLabel;
+
+  /// No description provided for @accountActionsConfirmNewPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm your new password'**
+  String get accountActionsConfirmNewPasswordRequired;
+
+  /// No description provided for @accountActionsPasswordsDoNotMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get accountActionsPasswordsDoNotMatch;
+
+  /// No description provided for @accountActionsPasswordChangeFallbackError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not change password. Please try again.'**
+  String get accountActionsPasswordChangeFallbackError;
+
+  /// No description provided for @accountActionsPasswordChangedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Password changed successfully!'**
+  String get accountActionsPasswordChangedSuccess;
+
+  /// No description provided for @accountActionsPasswordChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Password change failed.'**
+  String get accountActionsPasswordChangeFailed;
+
+  /// No description provided for @accountActionsGenericErrorTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred. Please try again.'**
+  String get accountActionsGenericErrorTryAgain;
+
+  /// No description provided for @accountActionsDeactivateReasonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you leaving?'**
+  String get accountActionsDeactivateReasonTitle;
+
+  /// No description provided for @accountActionsReasonTakingBreakFromDating.
+  ///
+  /// In en, this message translates to:
+  /// **'Taking a break from dating'**
+  String get accountActionsReasonTakingBreakFromDating;
+
+  /// No description provided for @accountActionsReasonFoundSomeoneSpecial.
+  ///
+  /// In en, this message translates to:
+  /// **'Found someone special'**
+  String get accountActionsReasonFoundSomeoneSpecial;
+
+  /// No description provided for @accountActionsReasonTooManyNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many notifications'**
+  String get accountActionsReasonTooManyNotifications;
+
+  /// No description provided for @accountActionsReasonNotFindingGoodMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'Not finding good matches'**
+  String get accountActionsReasonNotFindingGoodMatches;
+
+  /// No description provided for @accountActionsReasonPrivacyConcerns.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy concerns'**
+  String get accountActionsReasonPrivacyConcerns;
+
+  /// No description provided for @accountActionsReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other reason'**
+  String get accountActionsReasonOther;
+
+  /// No description provided for @accountActionsDeactivateBulletHiddenFromDiscovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile will be hidden from discovery'**
+  String get accountActionsDeactivateBulletHiddenFromDiscovery;
+
+  /// No description provided for @accountActionsDeactivateBulletNoNewMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'You won\'t receive new matches'**
+  String get accountActionsDeactivateBulletNoNewMatches;
+
+  /// No description provided for @accountActionsDeactivateBulletKeepMatchesMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Your existing matches and messages are preserved'**
+  String get accountActionsDeactivateBulletKeepMatchesMessages;
+
+  /// No description provided for @accountActionsDeactivateBulletReactivateAnytime.
+  ///
+  /// In en, this message translates to:
+  /// **'You can reactivate anytime by signing in'**
+  String get accountActionsDeactivateBulletReactivateAnytime;
+
+  /// No description provided for @accountActionsDeactivateAutoDeleteWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'If you don\'t sign in for 6 months, your account will be permanently deleted.'**
+  String get accountActionsDeactivateAutoDeleteWarning;
+
+  /// No description provided for @accountActionsDeactivateFailedTryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not deactivate account. Please try again.'**
+  String get accountActionsDeactivateFailedTryAgain;
+
+  /// No description provided for @accountActionsDeactivateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been deactivated. Sign in anytime to reactivate.'**
+  String get accountActionsDeactivateSuccess;
+
+  /// No description provided for @accountActionsDeactivationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Deactivation failed.'**
+  String get accountActionsDeactivationFailed;
+
+  /// No description provided for @accountActionsDeleteSignInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in again to continue.'**
+  String get accountActionsDeleteSignInRequired;
+
+  /// No description provided for @accountActionsDeleteWarningMatches.
+  ///
+  /// In en, this message translates to:
+  /// **'All your matches'**
+  String get accountActionsDeleteWarningMatches;
+
+  /// No description provided for @accountActionsDeleteWarningMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'All your messages'**
+  String get accountActionsDeleteWarningMessages;
+
+  /// No description provided for @accountActionsDeleteWarningProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Your profile and photos'**
+  String get accountActionsDeleteWarningProfile;
+
+  /// No description provided for @accountActionsDeleteWarningSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription (if any)'**
+  String get accountActionsDeleteWarningSubscription;
+
+  /// No description provided for @accountActionsDeleteScheduledOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted on {date}. Sign back in within 14 days to cancel.'**
+  String accountActionsDeleteScheduledOn(String date);
+
+  /// No description provided for @accountActionsDeleteReasonTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional: Why are you deleting your account?'**
+  String get accountActionsDeleteReasonTitle;
+
+  /// No description provided for @accountActionsReasonFoundRelationship.
+  ///
+  /// In en, this message translates to:
+  /// **'Found a relationship'**
+  String get accountActionsReasonFoundRelationship;
+
+  /// No description provided for @accountActionsReasonNotHappyWithApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Not happy with the app'**
+  String get accountActionsReasonNotHappyWithApp;
+
+  /// No description provided for @accountActionsReasonTooExpensive.
+  ///
+  /// In en, this message translates to:
+  /// **'Too expensive'**
+  String get accountActionsReasonTooExpensive;
+
+  /// No description provided for @accountActionsReasonCreatingNewAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating a new account'**
+  String get accountActionsReasonCreatingNewAccount;
+
+  /// No description provided for @accountActionsDeleteNoReasonProvided.
+  ///
+  /// In en, this message translates to:
+  /// **'No reason provided'**
+  String get accountActionsDeleteNoReasonProvided;
+
+  /// No description provided for @accountActionsDeleteTypeToConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Type \"{value}\" to confirm account deletion.'**
+  String accountActionsDeleteTypeToConfirm(String value);
+
+  /// No description provided for @accountActionsDeleteTypeUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type username'**
+  String get accountActionsDeleteTypeUsernameLabel;
+
+  /// No description provided for @accountActionsDeletePasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get accountActionsDeletePasswordLabel;
+
+  /// No description provided for @accountActionsDeleteFailedCheckPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete account. Please check your password.'**
+  String get accountActionsDeleteFailedCheckPassword;
+
+  /// No description provided for @accountActionsDeleteScheduledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account is scheduled for deletion on {date}. Sign in within 14 days to recover it.'**
+  String accountActionsDeleteScheduledSuccess(String date);
+
+  /// No description provided for @accountActionsDeletionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletion failed.'**
+  String get accountActionsDeletionFailed;
+
+  /// No description provided for @accountActionsReasonOtherHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please tell us more...'**
+  String get accountActionsReasonOtherHint;
+
+  /// No description provided for @accountActionsReasonOtherPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Other: '**
+  String get accountActionsReasonOtherPrefix;
+
+  /// No description provided for @settingsSecurityProviderLinkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} linking is not available.'**
+  String settingsSecurityProviderLinkUnavailable(String provider);
+
+  /// No description provided for @settingsSecurityProviderLinkedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} linked successfully.'**
+  String settingsSecurityProviderLinkedSuccess(String provider);
+
+  /// No description provided for @settingsSecurityProviderUnlinkUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} unlink is not available.'**
+  String settingsSecurityProviderUnlinkUnavailable(String provider);
+
+  /// No description provided for @settingsSecurityProviderUnlinkedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} unlinked successfully.'**
+  String settingsSecurityProviderUnlinkedSuccess(String provider);
+
+  /// No description provided for @settingsSecurityProviderAlreadyLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} is already linked.'**
+  String settingsSecurityProviderAlreadyLinked(String provider);
+
+  /// No description provided for @settingsSecurityProviderLinkedAnotherAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} is already linked to another account.'**
+  String settingsSecurityProviderLinkedAnotherAccount(String provider);
+
+  /// No description provided for @settingsSecurityProviderNotEnabledEnvironment.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} is not enabled for this environment.'**
+  String settingsSecurityProviderNotEnabledEnvironment(String provider);
+
+  /// No description provided for @settingsSecurityProviderLinkCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'{provider} linking was canceled.'**
+  String settingsSecurityProviderLinkCanceled(String provider);
+
+  /// No description provided for @settingsSecurityProviderUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update linked account.'**
+  String get settingsSecurityProviderUpdateFailed;
+
+  /// No description provided for @settingsSecurityHeaderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect Your Account'**
+  String get settingsSecurityHeaderTitle;
+
+  /// No description provided for @settingsSecurityHeaderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add extra layers of security to keep your account safe.'**
+  String get settingsSecurityHeaderSubtitle;
+
+  /// No description provided for @settingsSecurityPhoneNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone not verified'**
+  String get settingsSecurityPhoneNotVerified;
+
+  /// No description provided for @settingsSecurityNoPhoneAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No phone added'**
+  String get settingsSecurityNoPhoneAdded;
+
+  /// No description provided for @settingsSecurityEmailProtectionLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Email protection (Locked)'**
+  String get settingsSecurityEmailProtectionLocked;
+
+  /// No description provided for @settingsSecurityEmailProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Email protection'**
+  String get settingsSecurityEmailProtection;
+
+  /// No description provided for @settingsSecurityVerifiedAndLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified and locked'**
+  String get settingsSecurityVerifiedAndLocked;
+
+  /// No description provided for @settingsSecurityVerifyYourEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get settingsSecurityVerifyYourEmail;
+
+  /// No description provided for @settingsSecurityAddEmailRecoveryOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an email for recovery and OTP'**
+  String get settingsSecurityAddEmailRecoveryOtp;
+
+  /// No description provided for @settingsSecurityPhoneProtectionLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone protection (Locked)'**
+  String get settingsSecurityPhoneProtectionLocked;
+
+  /// No description provided for @settingsSecurityPhoneProtection.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone protection'**
+  String get settingsSecurityPhoneProtection;
+
+  /// No description provided for @settingsSecurityVerifyYourPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your phone'**
+  String get settingsSecurityVerifyYourPhone;
+
+  /// No description provided for @settingsSecurityAddPhoneForSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a phone number for security'**
+  String get settingsSecurityAddPhoneForSecurity;
+
+  /// No description provided for @settingsSecurityBiometricLockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{biometric} Lock'**
+  String settingsSecurityBiometricLockTitle(String biometric);
+
+  /// No description provided for @settingsSecurityBiometricUnlockWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Crush with {biometric}'**
+  String settingsSecurityBiometricUnlockWith(String biometric);
+
+  /// No description provided for @settingsSecurityBiometricRequireToOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Require {biometric} to open Crush'**
+  String settingsSecurityBiometricRequireToOpen(String biometric);
+
+  /// No description provided for @settingsSecurityLinkedAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked Accounts'**
+  String get settingsSecurityLinkedAccounts;
+
+  /// No description provided for @settingsSecurityProviderEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get settingsSecurityProviderEmail;
+
+  /// No description provided for @settingsSecurityProviderPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get settingsSecurityProviderPhone;
+
+  /// No description provided for @settingsSecurityProviderGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Google'**
+  String get settingsSecurityProviderGoogle;
+
+  /// No description provided for @settingsSecurityProviderApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple'**
+  String get settingsSecurityProviderApple;
+
+  /// No description provided for @settingsSecurityLinkedVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked · Verified'**
+  String get settingsSecurityLinkedVerified;
+
+  /// No description provided for @settingsSecurityLinkedUnverified.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked · Unverified'**
+  String get settingsSecurityLinkedUnverified;
+
+  /// No description provided for @settingsSecurityNotLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get settingsSecurityNotLinked;
+
+  /// No description provided for @settingsSecurityChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking...'**
+  String get settingsSecurityChecking;
+
+  /// No description provided for @settingsSecurityActionManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get settingsSecurityActionManage;
+
+  /// No description provided for @settingsSecurityActionLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get settingsSecurityActionLink;
+
+  /// No description provided for @settingsSecurityActionLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked'**
+  String get settingsSecurityActionLinked;
+
+  /// No description provided for @settingsSecurityAddVerifyEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add and verify an email in Email Protection.'**
+  String get settingsSecurityAddVerifyEmailHint;
+
+  /// No description provided for @settingsSecurityAddVerifyPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add and verify a phone in Phone Protection.'**
+  String get settingsSecurityAddVerifyPhoneHint;
+
+  /// No description provided for @settingsSecurityTipsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Security tips'**
+  String get settingsSecurityTipsTitle;
+
+  /// No description provided for @settingsSecurityTipsUniquePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a unique password for this app'**
+  String get settingsSecurityTipsUniquePassword;
+
+  /// No description provided for @settingsSecurityTipsEnableEmailRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable email verification for account recovery'**
+  String get settingsSecurityTipsEnableEmailRecovery;
+
+  /// No description provided for @settingsSecurityTipsNeverShareCodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Never share your verification codes'**
+  String get settingsSecurityTipsNeverShareCodes;
 
   /// No description provided for @discoveryTitle.
   ///
@@ -2333,6 +4085,252 @@ abstract class AppLocalizations {
   /// **'Select your gender'**
   String get onboardingSelectGender;
 
+  /// No description provided for @onboardingBasicInfoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Info'**
+  String get onboardingBasicInfoTitle;
+
+  /// No description provided for @onboardingBasicInfoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us about you'**
+  String get onboardingBasicInfoSubtitle;
+
+  /// No description provided for @onboardingBasicInfoUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get onboardingBasicInfoUsernameLabel;
+
+  /// No description provided for @onboardingBasicInfoUsernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a unique username'**
+  String get onboardingBasicInfoUsernameHint;
+
+  /// No description provided for @onboardingBasicInfoFirstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Your First Name'**
+  String get onboardingBasicInfoFirstNameLabel;
+
+  /// No description provided for @onboardingBasicInfoFirstNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your first name'**
+  String get onboardingBasicInfoFirstNameHint;
+
+  /// No description provided for @onboardingBasicInfoLastNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get onboardingBasicInfoLastNameLabel;
+
+  /// No description provided for @onboardingBasicInfoLastNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your last name (optional)'**
+  String get onboardingBasicInfoLastNameHint;
+
+  /// No description provided for @onboardingBasicInfoBirthdateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get onboardingBasicInfoBirthdateLabel;
+
+  /// No description provided for @onboardingBasicInfoSelectBirthdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your birthdate'**
+  String get onboardingBasicInfoSelectBirthdate;
+
+  /// No description provided for @onboardingBasicInfoBirthdateHelpText.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your birthdate'**
+  String get onboardingBasicInfoBirthdateHelpText;
+
+  /// No description provided for @onboardingBasicInfoYearsOld.
+  ///
+  /// In en, this message translates to:
+  /// **'{age} years old'**
+  String onboardingBasicInfoYearsOld(int age);
+
+  /// No description provided for @onboardingBasicInfoUsernameCheckingAvailability.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking username availability...'**
+  String get onboardingBasicInfoUsernameCheckingAvailability;
+
+  /// No description provided for @onboardingBasicInfoUsernameAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Username is available'**
+  String get onboardingBasicInfoUsernameAvailable;
+
+  /// No description provided for @onboardingBasicInfoUsernameRules.
+  ///
+  /// In en, this message translates to:
+  /// **'3-20 characters, letters, numbers, or underscore'**
+  String get onboardingBasicInfoUsernameRules;
+
+  /// No description provided for @onboardingBasicInfoUsernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a username to continue'**
+  String get onboardingBasicInfoUsernameRequired;
+
+  /// No description provided for @onboardingBasicInfoUsernameFormatError.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 3-20 letters, numbers, or underscore'**
+  String get onboardingBasicInfoUsernameFormatError;
+
+  /// No description provided for @onboardingBasicInfoUsernameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This username is already taken'**
+  String get onboardingBasicInfoUsernameTaken;
+
+  /// No description provided for @onboardingBasicInfoBirthdateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your date of birth'**
+  String get onboardingBasicInfoBirthdateRequired;
+
+  /// No description provided for @onboardingBasicInfoBirthdateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a valid date'**
+  String get onboardingBasicInfoBirthdateInvalid;
+
+  /// No description provided for @onboardingBasicInfoBirthdateTooYoung.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be at least 18 years old'**
+  String get onboardingBasicInfoBirthdateTooYoung;
+
+  /// No description provided for @onboardingBasicInfoBirthdateTooOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum age allowed is 75'**
+  String get onboardingBasicInfoBirthdateTooOld;
+
+  /// No description provided for @onboardingBasicInfoOrientationOptionalSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Orientation is optional. You can skip this for now.'**
+  String get onboardingBasicInfoOrientationOptionalSemantics;
+
+  /// No description provided for @onboardingBasicInfoOrientationOptionalHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional - skip for now, add later in Settings'**
+  String get onboardingBasicInfoOrientationOptionalHelper;
+
+  /// No description provided for @onboardingBasicInfoAgeWarningBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re a bit too old to be using a dating app, don\'t you think?\n\nJust kidding! Love has no age limit. Are you sure you want to continue?'**
+  String get onboardingBasicInfoAgeWarningBody;
+
+  /// No description provided for @onboardingEmailVerificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Your Email'**
+  String get onboardingEmailVerificationTitle;
+
+  /// No description provided for @onboardingEmailVerificationSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve sent a verification link to:'**
+  String get onboardingEmailVerificationSentTo;
+
+  /// No description provided for @onboardingEmailVerificationFallbackEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'your email'**
+  String get onboardingEmailVerificationFallbackEmail;
+
+  /// No description provided for @onboardingEmailVerificationInstruction.
+  ///
+  /// In en, this message translates to:
+  /// **'Click the link in the email to verify your account and continue.'**
+  String get onboardingEmailVerificationInstruction;
+
+  /// No description provided for @onboardingEmailVerificationSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification email sent! Check your inbox.'**
+  String get onboardingEmailVerificationSent;
+
+  /// No description provided for @onboardingEmailVerificationSuccessRedirecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Email verified successfully! Redirecting...'**
+  String get onboardingEmailVerificationSuccessRedirecting;
+
+  /// No description provided for @onboardingEmailVerificationTooManyAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please wait about a minute and try again.'**
+  String get onboardingEmailVerificationTooManyAttempts;
+
+  /// No description provided for @onboardingEmailVerificationSendFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send email. Please try again.'**
+  String get onboardingEmailVerificationSendFailed;
+
+  /// No description provided for @onboardingEmailVerificationCheckingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking verification status...'**
+  String get onboardingEmailVerificationCheckingStatus;
+
+  /// No description provided for @onboardingEmailVerificationResendSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend verification email'**
+  String get onboardingEmailVerificationResendSemantics;
+
+  /// No description provided for @onboardingEmailVerificationResendButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend Verification Email'**
+  String get onboardingEmailVerificationResendButton;
+
+  /// No description provided for @onboardingEmailVerificationResendIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String onboardingEmailVerificationResendIn(int seconds);
+
+  /// No description provided for @onboardingEmailVerificationCheckNowSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'I have verified, check now'**
+  String get onboardingEmailVerificationCheckNowSemantics;
+
+  /// No description provided for @onboardingEmailVerificationCheckNowButton.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve Verified - Check Now'**
+  String get onboardingEmailVerificationCheckNowButton;
+
+  /// No description provided for @onboardingEmailVerificationAutoCheckStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-check stopped after {minutes} minutes. Tap \"I\'ve Verified\" to check manually.'**
+  String onboardingEmailVerificationAutoCheckStopped(int minutes);
+
+  /// No description provided for @onboardingOrientationOptionalPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select orientation (optional)'**
+  String get onboardingOrientationOptionalPrompt;
+
   /// No description provided for @onboardingAddPhotos.
   ///
   /// In en, this message translates to:
@@ -2374,6 +4372,846 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Start swiping'**
   String get onboardingStartSwiping;
+
+  /// No description provided for @onboardingTermsSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save. Please try again.'**
+  String get onboardingTermsSaveFailed;
+
+  /// No description provided for @onboardingTermsReadAndAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Please read and accept'**
+  String get onboardingTermsReadAndAccept;
+
+  /// No description provided for @onboardingTermsScrollToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Scroll to continue'**
+  String get onboardingTermsScrollToContinue;
+
+  /// No description provided for @onboardingTermsWelcomeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Crush'**
+  String get onboardingTermsWelcomeTitle;
+
+  /// No description provided for @onboardingTermsWelcomeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'By using our dating app, you agree to these Terms and Conditions. Please read them carefully before proceeding.'**
+  String get onboardingTermsWelcomeBody;
+
+  /// No description provided for @onboardingTermsEligibilityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Eligibility'**
+  String get onboardingTermsEligibilityTitle;
+
+  /// No description provided for @onboardingTermsEligibilityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be at least 18 years old to use Crush. By creating an account, you confirm that you are of legal age and have the right to enter into this agreement.'**
+  String get onboardingTermsEligibilityBody;
+
+  /// No description provided for @onboardingTermsAccountSecurityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Account Security'**
+  String get onboardingTermsAccountSecurityTitle;
+
+  /// No description provided for @onboardingTermsAccountSecurityBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are responsible for maintaining the confidentiality of your account credentials. Notify us immediately if you suspect unauthorized access to your account.'**
+  String get onboardingTermsAccountSecurityBody;
+
+  /// No description provided for @onboardingTermsUserConductTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'3. User Conduct'**
+  String get onboardingTermsUserConductTitle;
+
+  /// No description provided for @onboardingTermsUserConductBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You agree to:\n• Provide accurate information\n• Treat other users with respect\n• Not engage in harassment, hate speech, or illegal activities\n• Not impersonate others or create fake profiles\n• Not share inappropriate or explicit content'**
+  String get onboardingTermsUserConductBody;
+
+  /// No description provided for @onboardingTermsPrivacyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'4. Privacy'**
+  String get onboardingTermsPrivacyTitle;
+
+  /// No description provided for @onboardingTermsPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your privacy is important to us. We collect and process your personal data in accordance with our Privacy Policy. By using Crush, you consent to our data practices as described in the Privacy Policy.'**
+  String get onboardingTermsPrivacyBody;
+
+  /// No description provided for @onboardingTermsContentOwnershipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'5. Content Ownership'**
+  String get onboardingTermsContentOwnershipTitle;
+
+  /// No description provided for @onboardingTermsContentOwnershipBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You retain ownership of content you post. However, you grant Crush a non-exclusive license to use, display, and distribute your content within the app for the purpose of providing our services.'**
+  String get onboardingTermsContentOwnershipBody;
+
+  /// No description provided for @onboardingTermsSafetyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'6. Safety'**
+  String get onboardingTermsSafetyTitle;
+
+  /// No description provided for @onboardingTermsSafetyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your plans.'**
+  String get onboardingTermsSafetyBody;
+
+  /// No description provided for @onboardingTermsTerminationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'7. Termination'**
+  String get onboardingTermsTerminationTitle;
+
+  /// No description provided for @onboardingTermsTerminationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We reserve the right to suspend or terminate your account if you violate these terms. You may also delete your account at any time through the app settings.'**
+  String get onboardingTermsTerminationBody;
+
+  /// No description provided for @onboardingTermsDisclaimerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'8. Disclaimer'**
+  String get onboardingTermsDisclaimerTitle;
+
+  /// No description provided for @onboardingTermsDisclaimerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Crush is provided \"as is\" without warranties. We do not guarantee that you will find a match or that other users\' information is accurate.'**
+  String get onboardingTermsDisclaimerBody;
+
+  /// No description provided for @onboardingTermsChangesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'9. Changes to Terms'**
+  String get onboardingTermsChangesTitle;
+
+  /// No description provided for @onboardingTermsChangesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We may update these terms from time to time. Continued use of the app after changes constitutes acceptance of the new terms.'**
+  String get onboardingTermsChangesBody;
+
+  /// No description provided for @onboardingTermsContactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'10. Contact'**
+  String get onboardingTermsContactTitle;
+
+  /// No description provided for @onboardingTermsContactBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you have questions about these terms, please contact us through the app\'s support feature or email support@crushhour.app.'**
+  String get onboardingTermsContactBody;
+
+  /// No description provided for @onboardingTermsEndLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'End of Terms'**
+  String get onboardingTermsEndLabel;
+
+  /// No description provided for @onboardingTermsAgreementLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read and agree to the Terms and Conditions and Privacy Policy'**
+  String get onboardingTermsAgreementLabel;
+
+  /// No description provided for @onboardingTermsAgreementToggleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Double tap to toggle agreement'**
+  String get onboardingTermsAgreementToggleHint;
+
+  /// No description provided for @onboardingTermsContinueSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get onboardingTermsContinueSemantics;
+
+  /// No description provided for @onboardingTermsScrollHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Please scroll down to read all terms before agreeing'**
+  String get onboardingTermsScrollHint;
+
+  /// No description provided for @onboardingSignUpPhoneCodeSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Code sent. Check your messages.'**
+  String get onboardingSignUpPhoneCodeSent;
+
+  /// No description provided for @onboardingSignUpContinueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get onboardingSignUpContinueWithGoogle;
+
+  /// No description provided for @onboardingSignUpOrSignUpWithEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'or sign up with email'**
+  String get onboardingSignUpOrSignUpWithEmail;
+
+  /// No description provided for @onboardingSignUpOrSignUpWith.
+  ///
+  /// In en, this message translates to:
+  /// **'or sign up with'**
+  String get onboardingSignUpOrSignUpWith;
+
+  /// No description provided for @onboardingSignUpPhoneErrorRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number'**
+  String get onboardingSignUpPhoneErrorRequired;
+
+  /// No description provided for @onboardingSignUpPhoneErrorMinDigits.
+  ///
+  /// In en, this message translates to:
+  /// **'Add at least 6 digits'**
+  String get onboardingSignUpPhoneErrorMinDigits;
+
+  /// No description provided for @onboardingSignUpOtpErrorRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the verification code'**
+  String get onboardingSignUpOtpErrorRequired;
+
+  /// No description provided for @onboardingSignUpOtpErrorInvalidLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code'**
+  String get onboardingSignUpOtpErrorInvalidLength;
+
+  /// No description provided for @onboardingSignUpWaitBeforeRequestingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait {seconds}s before requesting another code.'**
+  String onboardingSignUpWaitBeforeRequestingCode(int seconds);
+
+  /// No description provided for @onboardingSignUpPhoneInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid phone number.'**
+  String get onboardingSignUpPhoneInvalid;
+
+  /// No description provided for @onboardingSignUpWaitBeforeResendingEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait {seconds}s before resending the verification email.'**
+  String onboardingSignUpWaitBeforeResendingEmail(int seconds);
+
+  /// No description provided for @onboardingSignUpUsernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get onboardingSignUpUsernameRequired;
+
+  /// No description provided for @onboardingSignUpEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get onboardingSignUpEmailRequired;
+
+  /// No description provided for @onboardingSignUpGoogleSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Sign-In failed. Please try again.'**
+  String get onboardingSignUpGoogleSignInFailed;
+
+  /// No description provided for @onboardingSignUpInvalidUsernameFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid username format'**
+  String get onboardingSignUpInvalidUsernameFormat;
+
+  /// No description provided for @onboardingSignUpInvalidEmailFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid email format'**
+  String get onboardingSignUpInvalidEmailFormat;
+
+  /// No description provided for @onboardingSignUpPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please create a password'**
+  String get onboardingSignUpPasswordRequired;
+
+  /// No description provided for @onboardingSignUpPasswordMinLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 8 characters'**
+  String get onboardingSignUpPasswordMinLength;
+
+  /// No description provided for @onboardingSignUpCompleteRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please complete all required fields: {fields}'**
+  String onboardingSignUpCompleteRequiredFields(String fields);
+
+  /// No description provided for @onboardingSignUpEmailAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists. Please sign in instead, or use a different email address.'**
+  String get onboardingSignUpEmailAlreadyExists;
+
+  /// No description provided for @onboardingSignUpAccountCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Account created! Welcome to Crush.'**
+  String get onboardingSignUpAccountCreated;
+
+  /// No description provided for @onboardingSignUpSendVerificationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send verification email. Please try again.'**
+  String get onboardingSignUpSendVerificationFailed;
+
+  /// No description provided for @onboardingSignUpRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Request failed.'**
+  String get onboardingSignUpRequestFailed;
+
+  /// No description provided for @onboardingSignUpVerificationEmailResent.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification email resent successfully.'**
+  String get onboardingSignUpVerificationEmailResent;
+
+  /// No description provided for @onboardingSignUpVerificationEmailSent.
+  ///
+  /// In en, this message translates to:
+  /// **'A verification email has been sent to your inbox.'**
+  String get onboardingSignUpVerificationEmailSent;
+
+  /// No description provided for @onboardingSignUpOpenEmailAppFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open email app. Please check your email manually.'**
+  String get onboardingSignUpOpenEmailAppFailed;
+
+  /// No description provided for @onboardingSignUpCheckEmailStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not verify email status.'**
+  String get onboardingSignUpCheckEmailStatusFailed;
+
+  /// No description provided for @onboardingSignUpEmailVerifiedWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Email verified! Welcome to Crush.'**
+  String get onboardingSignUpEmailVerifiedWelcome;
+
+  /// No description provided for @onboardingSignUpEmailNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Email not verified yet. Please click the link in your email, then try again.'**
+  String get onboardingSignUpEmailNotVerified;
+
+  /// No description provided for @onboardingSignUpPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String onboardingSignUpPercent(int percent);
+
+  /// No description provided for @onboardingSignUpStepOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Step 1'**
+  String get onboardingSignUpStepOne;
+
+  /// No description provided for @onboardingSignUpChooseUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your username'**
+  String get onboardingSignUpChooseUsername;
+
+  /// No description provided for @onboardingSignUpUsernameDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This is how others will find you on Crush.'**
+  String get onboardingSignUpUsernameDescription;
+
+  /// No description provided for @onboardingSignUpUsernameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., john_doe123'**
+  String get onboardingSignUpUsernameHint;
+
+  /// No description provided for @onboardingSignUpUsernameRules.
+  ///
+  /// In en, this message translates to:
+  /// **'3-20 characters, letters, numbers, and underscore only'**
+  String get onboardingSignUpUsernameRules;
+
+  /// No description provided for @onboardingSignUpEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s your email?'**
+  String get onboardingSignUpEmailTitle;
+
+  /// No description provided for @onboardingSignUpBypassHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Test mode: verification is disabled.'**
+  String get onboardingSignUpBypassHint;
+
+  /// No description provided for @onboardingSignUpEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send you a verification link to confirm your email.'**
+  String get onboardingSignUpEmailHint;
+
+  /// No description provided for @onboardingSignUpEmailAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get onboardingSignUpEmailAddressLabel;
+
+  /// No description provided for @onboardingSignUpEmailAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'you@example.com'**
+  String get onboardingSignUpEmailAddressHint;
+
+  /// No description provided for @onboardingSignUpPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a password'**
+  String get onboardingSignUpPasswordTitle;
+
+  /// No description provided for @onboardingSignUpPasswordDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Make it strong with at least 8 characters.'**
+  String get onboardingSignUpPasswordDescription;
+
+  /// No description provided for @onboardingSignUpMissingRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing required fields: {fields}. Go back to fill them before creating your account.'**
+  String onboardingSignUpMissingRequiredFields(String fields);
+
+  /// No description provided for @onboardingSignUpEmailInstructionOpenInbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Open your email inbox'**
+  String get onboardingSignUpEmailInstructionOpenInbox;
+
+  /// No description provided for @onboardingSignUpEmailInstructionFindEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the email from Crush'**
+  String get onboardingSignUpEmailInstructionFindEmail;
+
+  /// No description provided for @onboardingSignUpEmailInstructionClickLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Click the verification link'**
+  String get onboardingSignUpEmailInstructionClickLink;
+
+  /// No description provided for @onboardingSignUpEmailIgnoreNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'If you didn\'t request this, please ignore the email.'**
+  String get onboardingSignUpEmailIgnoreNotice;
+
+  /// No description provided for @onboardingSignUpDidntReceiveEmailResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive email? Resend'**
+  String get onboardingSignUpDidntReceiveEmailResend;
+
+  /// No description provided for @onboardingSignUpCheckSpam.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your spam folder if you don\'t see it'**
+  String get onboardingSignUpCheckSpam;
+
+  /// No description provided for @onboardingSignUpPhoneTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your phone number'**
+  String get onboardingSignUpPhoneTitle;
+
+  /// No description provided for @onboardingSignUpPhoneSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll send you a code to verify your account.'**
+  String get onboardingSignUpPhoneSubtitle;
+
+  /// No description provided for @onboardingSignUpCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get onboardingSignUpCodeLabel;
+
+  /// No description provided for @onboardingSignUpPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'(555) 123-4567'**
+  String get onboardingSignUpPhoneHint;
+
+  /// No description provided for @onboardingSignUpSmsRates.
+  ///
+  /// In en, this message translates to:
+  /// **'SMS rates may apply. We only use this to secure your account.'**
+  String get onboardingSignUpSmsRates;
+
+  /// No description provided for @onboardingSignUpOtpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter verification code'**
+  String get onboardingSignUpOtpTitle;
+
+  /// No description provided for @onboardingSignUpOtpSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'We sent a 6-digit code to {phoneNumber}'**
+  String onboardingSignUpOtpSentTo(String phoneNumber);
+
+  /// No description provided for @onboardingSignUpVerificationCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'000000'**
+  String get onboardingSignUpVerificationCodeHint;
+
+  /// No description provided for @onboardingSignUpDidntReceiveCodeResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive code? Resend'**
+  String get onboardingSignUpDidntReceiveCodeResend;
+
+  /// No description provided for @onboardingSignUpPasswordStrengthWeak.
+  ///
+  /// In en, this message translates to:
+  /// **'Weak'**
+  String get onboardingSignUpPasswordStrengthWeak;
+
+  /// No description provided for @onboardingSignUpPasswordStrengthFair.
+  ///
+  /// In en, this message translates to:
+  /// **'Fair'**
+  String get onboardingSignUpPasswordStrengthFair;
+
+  /// No description provided for @onboardingSignUpPasswordStrengthGood.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get onboardingSignUpPasswordStrengthGood;
+
+  /// No description provided for @onboardingSignUpPasswordStrengthStrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong'**
+  String get onboardingSignUpPasswordStrengthStrong;
+
+  /// No description provided for @onboardingProfileLocationRationaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find matches near you'**
+  String get onboardingProfileLocationRationaleTitle;
+
+  /// No description provided for @onboardingProfileLocationRationaleDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'CRUSH uses your location to show you people nearby. Your exact location is never shared with other users.'**
+  String get onboardingProfileLocationRationaleDescription;
+
+  /// No description provided for @onboardingProfileSignInRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You need to be signed in to continue.'**
+  String get onboardingProfileSignInRequired;
+
+  /// No description provided for @onboardingProfileAllFieldsOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'All fields are optional. You can complete your profile later in Settings.'**
+  String get onboardingProfileAllFieldsOptional;
+
+  /// No description provided for @onboardingProfileYourPhotosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Photos'**
+  String get onboardingProfileYourPhotosTitle;
+
+  /// No description provided for @onboardingProfileYourPhotosSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional - helps you get more matches'**
+  String get onboardingProfileYourPhotosSubtitle;
+
+  /// No description provided for @onboardingProfileAboutYouSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell others about yourself'**
+  String get onboardingProfileAboutYouSubtitle;
+
+  /// No description provided for @onboardingProfileLookingForTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'I Am Looking For'**
+  String get onboardingProfileLookingForTitle;
+
+  /// No description provided for @onboardingProfileLookingForSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Who would you like to see?'**
+  String get onboardingProfileLookingForSubtitle;
+
+  /// No description provided for @onboardingProfileLocationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Where are you based?'**
+  String get onboardingProfileLocationSubtitle;
+
+  /// No description provided for @onboardingProfileWorkEducationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work & Education'**
+  String get onboardingProfileWorkEducationTitle;
+
+  /// No description provided for @onboardingProfileOptionalSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get onboardingProfileOptionalSubtitle;
+
+  /// No description provided for @onboardingProfileSchoolUniversity.
+  ///
+  /// In en, this message translates to:
+  /// **'School / University'**
+  String get onboardingProfileSchoolUniversity;
+
+  /// No description provided for @onboardingProfileSelectUpToFive.
+  ///
+  /// In en, this message translates to:
+  /// **'Select up to 5'**
+  String get onboardingProfileSelectUpToFive;
+
+  /// No description provided for @onboardingProfileFavouritesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites'**
+  String get onboardingProfileFavouritesTitle;
+
+  /// No description provided for @onboardingProfileFavouritesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share what you love'**
+  String get onboardingProfileFavouritesSubtitle;
+
+  /// No description provided for @onboardingProfileSettingUpProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting up your profile...'**
+  String get onboardingProfileSettingUpProfile;
+
+  /// No description provided for @onboardingProfileCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Complete!'**
+  String get onboardingProfileCompleteTitle;
+
+  /// No description provided for @onboardingProfileBasicCompleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Profile Complete'**
+  String get onboardingProfileBasicCompleteTitle;
+
+  /// No description provided for @onboardingProfileEligibleToStartMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re eligible to start matching!'**
+  String get onboardingProfileEligibleToStartMatching;
+
+  /// No description provided for @onboardingProfileRecommendCompleteAll.
+  ///
+  /// In en, this message translates to:
+  /// **'We recommend completing all fields to get more matches and build trust with other users.'**
+  String get onboardingProfileRecommendCompleteAll;
+
+  /// No description provided for @onboardingProfileCompletionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Completion'**
+  String get onboardingProfileCompletionLabel;
+
+  /// No description provided for @onboardingProfileCompletionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{filled}/{total} fields ({percent}%)'**
+  String onboardingProfileCompletionCount(int filled, int total, int percent);
+
+  /// No description provided for @onboardingProfileFromBasicInfoStep.
+  ///
+  /// In en, this message translates to:
+  /// **'From your profile setup'**
+  String get onboardingProfileFromBasicInfoStep;
+
+  /// No description provided for @onboardingProfileYourUsernameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Username'**
+  String get onboardingProfileYourUsernameTitle;
+
+  /// No description provided for @onboardingProfileUsernameChangeEvery28Days.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change this once every 28 days'**
+  String get onboardingProfileUsernameChangeEvery28Days;
+
+  /// No description provided for @onboardingProfileUsernameLockedForDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked for {days} more days'**
+  String onboardingProfileUsernameLockedForDays(int days);
+
+  /// No description provided for @onboardingProfileEnterUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter username'**
+  String get onboardingProfileEnterUsername;
+
+  /// No description provided for @onboardingProfileUsernameChangeAgainInDays.
+  ///
+  /// In en, this message translates to:
+  /// **'You can change your username again in {days} days'**
+  String onboardingProfileUsernameChangeAgainInDays(int days);
+
+  /// No description provided for @onboardingProfileNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get onboardingProfileNotSet;
+
+  /// No description provided for @onboardingProfileDaysRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String onboardingProfileDaysRemaining(int days);
+
+  /// No description provided for @onboardingProfileUsernameChangesLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Username changes are limited to once every 28 days. You can change it again in {days} days.'**
+  String onboardingProfileUsernameChangesLimited(int days);
+
+  /// No description provided for @onboardingProfileFavouriteAthlete.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite Athlete'**
+  String get onboardingProfileFavouriteAthlete;
+
+  /// No description provided for @onboardingProfileFavouriteFood.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite Food'**
+  String get onboardingProfileFavouriteFood;
+
+  /// No description provided for @onboardingProfileFavouriteSport.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite Sport'**
+  String get onboardingProfileFavouriteSport;
+
+  /// No description provided for @onboardingProfileFavouriteTvShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite TV Show'**
+  String get onboardingProfileFavouriteTvShow;
+
+  /// No description provided for @onboardingProfileFavouriteActor.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite Actor'**
+  String get onboardingProfileFavouriteActor;
+
+  /// No description provided for @onboardingProfileFavouriteSinger.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite Singer'**
+  String get onboardingProfileFavouriteSinger;
+
+  /// No description provided for @onboardingProfileFavouriteMovie.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite Movie'**
+  String get onboardingProfileFavouriteMovie;
+
+  /// No description provided for @onboardingProfileFavouriteHobby.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourite Hobby'**
+  String get onboardingProfileFavouriteHobby;
+
+  /// No description provided for @onboardingProfileSelectPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select...'**
+  String get onboardingProfileSelectPlaceholder;
+
+  /// No description provided for @onboardingProfileOrTypeYourOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'Or type your own...'**
+  String get onboardingProfileOrTypeYourOwn;
+
+  /// No description provided for @onboardingProfileAddPhotoBeforeSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least 1 photo before skipping. This is required for dating apps.'**
+  String get onboardingProfileAddPhotoBeforeSkip;
+
+  /// No description provided for @onboardingProfileStartMatching.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Matching'**
+  String get onboardingProfileStartMatching;
+
+  /// No description provided for @onboardingProfileStartMatchingWithPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Matching ({percent}% complete)'**
+  String onboardingProfileStartMatchingWithPercent(int percent);
+
+  /// No description provided for @onboardingProfileCompleteLaterInSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'You can always complete your profile later in Settings'**
+  String get onboardingProfileCompleteLaterInSettings;
+
+  /// No description provided for @onboardingProfileSaveAndStartMatchingSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Save profile and start matching'**
+  String get onboardingProfileSaveAndStartMatchingSemantics;
+
+  /// No description provided for @onboardingProfileSkipSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip profile setup for now. Requires at least one photo.'**
+  String get onboardingProfileSkipSemantics;
 
   /// No description provided for @subscriptionFree.
   ///
@@ -7745,6 +10583,66 @@ abstract class AppLocalizations {
   /// **'Female'**
   String get wordFemale;
 
+  /// No description provided for @wordNonBinary.
+  ///
+  /// In en, this message translates to:
+  /// **'Non-binary'**
+  String get wordNonBinary;
+
+  /// No description provided for @orientationStraight.
+  ///
+  /// In en, this message translates to:
+  /// **'Straight'**
+  String get orientationStraight;
+
+  /// No description provided for @orientationGay.
+  ///
+  /// In en, this message translates to:
+  /// **'Gay'**
+  String get orientationGay;
+
+  /// No description provided for @orientationLesbian.
+  ///
+  /// In en, this message translates to:
+  /// **'Lesbian'**
+  String get orientationLesbian;
+
+  /// No description provided for @orientationBisexual.
+  ///
+  /// In en, this message translates to:
+  /// **'Bisexual'**
+  String get orientationBisexual;
+
+  /// No description provided for @orientationPansexual.
+  ///
+  /// In en, this message translates to:
+  /// **'Pansexual'**
+  String get orientationPansexual;
+
+  /// No description provided for @orientationAsexual.
+  ///
+  /// In en, this message translates to:
+  /// **'Asexual'**
+  String get orientationAsexual;
+
+  /// No description provided for @orientationQueer.
+  ///
+  /// In en, this message translates to:
+  /// **'Queer'**
+  String get orientationQueer;
+
+  /// No description provided for @orientationQuestioning.
+  ///
+  /// In en, this message translates to:
+  /// **'Questioning'**
+  String get orientationQuestioning;
+
+  /// No description provided for @orientationPreferNotToSay.
+  ///
+  /// In en, this message translates to:
+  /// **'Prefer not to say'**
+  String get orientationPreferNotToSay;
+
   /// No description provided for @wordMan.
   ///
   /// In en, this message translates to:
@@ -7949,6 +10847,12 @@ abstract class AppLocalizations {
   /// **'Reports are anonymous and reviewed by our team.'**
   String get reportsAreAnonymousAndReviewed;
 
+  /// No description provided for @chatReportLastMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Last match: {matchId}'**
+  String chatReportLastMatch(String matchId);
+
   /// No description provided for @signInAgainToManage.
   ///
   /// In en, this message translates to:
@@ -7966,6 +10870,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report user'**
   String get reportUser;
+
+  /// No description provided for @chatReportReasonSpamScams.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam or scams'**
+  String get chatReportReasonSpamScams;
+
+  /// No description provided for @chatReportReasonHarassmentHate.
+  ///
+  /// In en, this message translates to:
+  /// **'Harassment or hate'**
+  String get chatReportReasonHarassmentHate;
+
+  /// No description provided for @chatReportReasonInappropriateContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate content'**
+  String get chatReportReasonInappropriateContent;
+
+  /// No description provided for @chatReportReasonFakeProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Fake profile'**
+  String get chatReportReasonFakeProfile;
+
+  /// No description provided for @chatReportReasonOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get chatReportReasonOther;
+
+  /// No description provided for @chatReportSubmittedReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Report submitted: {reason}'**
+  String chatReportSubmittedReason(String reason);
+
+  /// No description provided for @chatReportSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Report submitted'**
+  String get chatReportSubmitted;
+
+  /// No description provided for @chatReportDetailsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what happened'**
+  String get chatReportDetailsHint;
+
+  /// No description provided for @chatSafetyBlockedUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked {name}.'**
+  String chatSafetyBlockedUser(String name);
+
+  /// No description provided for @chatSafetyUnblockedUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblocked {name}.'**
+  String chatSafetyUnblockedUser(String name);
 
   /// No description provided for @iFeltSafe.
   ///
@@ -8008,6 +10972,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View safety guidelines'**
   String get viewSafetyGuidelines;
+
+  /// No description provided for @callSafetyTipFallbackPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'this person'**
+  String get callSafetyTipFallbackPerson;
+
+  /// No description provided for @callSafetyTipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety reminder'**
+  String get callSafetyTipTitle;
+
+  /// No description provided for @callSafetyTipDismissTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss safety tip'**
+  String get callSafetyTipDismissTooltip;
+
+  /// No description provided for @callSafetyTipBody.
+  ///
+  /// In en, this message translates to:
+  /// **'On your first call with {name}, avoid sharing private details. If anything feels unsafe, report or block immediately.'**
+  String callSafetyTipBody(String name);
+
+  /// No description provided for @callSafetyActionReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported'**
+  String get callSafetyActionReported;
+
+  /// No description provided for @callSafetyPostCallPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you feel safe on this call?'**
+  String get callSafetyPostCallPromptTitle;
+
+  /// No description provided for @callSafetyPostCallPromptSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If anything felt off, report or block now.'**
+  String get callSafetyPostCallPromptSubtitle;
 
   /// No description provided for @later.
   ///
@@ -9070,6 +12076,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Report'**
   String get report;
+
+  /// No description provided for @profileReportSheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Why are you reporting this profile?'**
+  String get profileReportSheetTitle;
+
+  /// No description provided for @profileReportReasonInappropriatePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Inappropriate photos'**
+  String get profileReportReasonInappropriatePhotos;
+
+  /// No description provided for @profileReportReasonScamOrSpam.
+  ///
+  /// In en, this message translates to:
+  /// **'Scam or spam'**
+  String get profileReportReasonScamOrSpam;
+
+  /// No description provided for @profileReportReasonUnderageUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Underage user'**
+  String get profileReportReasonUnderageUser;
 
   /// No description provided for @messageRequestSent.
   ///

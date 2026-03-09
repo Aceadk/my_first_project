@@ -6,7 +6,6 @@ import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class PrivacySettingsScreen extends StatelessWidget {
   const PrivacySettingsScreen({super.key});
@@ -14,10 +13,11 @@ class PrivacySettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.settingsPrivacy),
+        title: Text(l10n.settingsPrivacy),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -26,15 +26,18 @@ class PrivacySettingsScreen extends StatelessWidget {
               switch (value) {
                 case 'public':
                   cubit.setAllPublic();
-                  _showSnackBar(context, 'All information set to public');
+                  _showSnackBar(context, l10n.settingsPrivacySnackAllPublic);
                   break;
                 case 'private':
                   cubit.setAllPrivate();
-                  _showSnackBar(context, 'All information set to private');
+                  _showSnackBar(context, l10n.settingsPrivacySnackAllPrivate);
                   break;
                 case 'reset':
                   cubit.resetToDefaults();
-                  _showSnackBar(context, 'Privacy settings reset to defaults');
+                  _showSnackBar(
+                    context,
+                    l10n.settingsPrivacySnackResetDefaults,
+                  );
                   break;
               }
             },
@@ -45,7 +48,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.public, size: 20),
                     const SizedBox(width: 12),
-                    Text(AppLocalizations.of(context).makeAllPublic),
+                    Text(context.l10n.makeAllPublic),
                   ],
                 ),
               ),
@@ -55,7 +58,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.lock, size: 20),
                     const SizedBox(width: 12),
-                    Text(AppLocalizations.of(context).makeAllPrivate),
+                    Text(context.l10n.makeAllPrivate),
                   ],
                 ),
               ),
@@ -65,7 +68,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.refresh, size: 20),
                     const SizedBox(width: 12),
-                    Text(AppLocalizations.of(context).resetToDefaults),
+                    Text(context.l10n.resetToDefaults),
                   ],
                 ),
               ),
@@ -82,6 +85,7 @@ class PrivacySettingsScreen extends StatelessWidget {
             child: BlocBuilder<PrivacySettingsCubit, ProfilePrivacySettings>(
               builder: (context, state) {
                 final cubit = context.read<PrivacySettingsCubit>();
+                final l10n = context.l10n;
                 return ListView(
                   children: [
                     // Header
@@ -119,13 +123,13 @@ class PrivacySettingsScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Control Your Privacy',
+                                  l10n.settingsPrivacyHeaderTitle,
                                   style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                                 DsGap.xs,
                                 Text(
-                                  'Choose what others can see when they view your profile.',
+                                  l10n.settingsPrivacyHeaderSubtitle,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: isDark
@@ -141,273 +145,277 @@ class PrivacySettingsScreen extends StatelessWidget {
                     ),
 
                     // Name Visibility Section
-                    const _SectionHeader(
-                      title: 'Name Visibility',
-                      subtitle: 'Control how your name appears',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionNameVisibilityTitle,
+                      subtitle:
+                          l10n.settingsPrivacySectionNameVisibilitySubtitle,
                       icon: Icons.badge_outlined,
                       color: DsColors.primary,
                     ),
                     _PrivacyTile(
                       icon: Icons.person_outline,
-                      title: 'First Name',
-                      subtitle: 'Show your first name on your profile',
+                      title: l10n.settingsPrivacyFirstNameTitle,
+                      subtitle: l10n.settingsPrivacyFirstNameSubtitle,
                       value: state.showFirstName,
                       onChanged: cubit.toggleShowFirstName,
                     ),
                     _PrivacyTile(
                       icon: Icons.person,
-                      title: 'Last Name',
-                      subtitle: 'Show your last name on your profile',
+                      title: l10n.settingsPrivacyLastNameTitle,
+                      subtitle: l10n.settingsPrivacyLastNameSubtitle,
                       value: state.showLastName,
                       onChanged: cubit.toggleShowLastName,
                     ),
 
                     // Sensitive Information Section
-                    const _SectionHeader(
-                      title: 'Sensitive Information',
-                      subtitle: 'These are private by default',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionSensitiveInfoTitle,
+                      subtitle:
+                          l10n.settingsPrivacySectionSensitiveInfoSubtitle,
                       icon: Icons.security,
                       color: DsColors.error,
                     ),
                     _PrivacyTile(
                       icon: Icons.cake_outlined,
-                      title: 'Age',
-                      subtitle: 'Show your age on your profile',
+                      title: l10n.settingsPrivacyAgeTitle,
+                      subtitle: l10n.settingsPrivacyAgeSubtitle,
                       value: state.showAge,
                       onChanged: cubit.toggleShowAge,
                     ),
                     _PrivacyTile(
                       icon: Icons.calendar_today_outlined,
-                      title: 'Date of Birth',
-                      subtitle: 'Show your exact birth date',
+                      title: l10n.settingsPrivacyDateOfBirthTitle,
+                      subtitle: l10n.settingsPrivacyDateOfBirthSubtitle,
                       value: state.showDateOfBirth,
                       onChanged: cubit.toggleShowDateOfBirth,
                       isSensitive: true,
                     ),
                     _PrivacyTile(
                       icon: Icons.email_outlined,
-                      title: 'Email',
-                      subtitle: 'Show your email address',
+                      title: l10n.settingsPrivacyEmailTitle,
+                      subtitle: l10n.settingsPrivacyEmailSubtitle,
                       value: state.showEmail,
                       onChanged: cubit.toggleShowEmail,
                       isSensitive: true,
                     ),
                     _PrivacyTile(
                       icon: Icons.phone_outlined,
-                      title: 'Phone Number',
-                      subtitle: 'Show your phone number',
+                      title: l10n.settingsPrivacyPhoneNumberTitle,
+                      subtitle: l10n.settingsPrivacyPhoneNumberSubtitle,
                       value: state.showPhoneNumber,
                       onChanged: cubit.toggleShowPhoneNumber,
                       isSensitive: true,
                     ),
                     _PrivacyTile(
                       icon: Icons.location_on_outlined,
-                      title: 'Exact Location',
-                      subtitle: 'Show exact location instead of city only',
+                      title: l10n.settingsPrivacyExactLocationTitle,
+                      subtitle: l10n.settingsPrivacyExactLocationSubtitle,
                       value: state.showExactLocation,
                       onChanged: cubit.toggleShowExactLocation,
                       isSensitive: true,
                     ),
 
                     // Dating Basics Section
-                    const _SectionHeader(
-                      title: 'Dating Basics',
-                      subtitle: 'Basic dating profile information',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionDatingBasicsTitle,
+                      subtitle: l10n.settingsPrivacySectionDatingBasicsSubtitle,
                       icon: Icons.favorite_outline,
                       color: DsColors.primary,
                     ),
                     _PrivacyTile(
                       icon: Icons.height,
-                      title: 'Height',
-                      subtitle: 'Show your height',
+                      title: l10n.settingsPrivacyHeightTitle,
+                      subtitle: l10n.settingsPrivacyHeightSubtitle,
                       value: state.showHeight,
                       onChanged: cubit.toggleShowHeight,
                     ),
                     _PrivacyTile(
                       icon: Icons.favorite,
-                      title: 'Relationship Goals',
-                      subtitle: 'Show what you\'re looking for',
+                      title: l10n.settingsPrivacyRelationshipGoalsTitle,
+                      subtitle: l10n.settingsPrivacyRelationshipGoalsSubtitle,
                       value: state.showRelationshipGoals,
                       onChanged: cubit.toggleShowRelationshipGoals,
                     ),
                     _PrivacyTile(
                       icon: Icons.auto_awesome,
-                      title: 'Zodiac Sign',
-                      subtitle: 'Show your zodiac sign',
+                      title: l10n.settingsPrivacyZodiacSignTitle,
+                      subtitle: l10n.settingsPrivacyZodiacSignSubtitle,
                       value: state.showZodiacSign,
                       onChanged: cubit.toggleShowZodiacSign,
                     ),
 
                     // Personal Details Section
-                    const _SectionHeader(
-                      title: 'About Me',
-                      subtitle: 'Personal characteristics',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionAboutMeTitle,
+                      subtitle: l10n.settingsPrivacySectionAboutMeSubtitle,
                       icon: Icons.person_outline,
                       color: DsColors.info,
                     ),
                     _PrivacyTile(
                       icon: Icons.school_outlined,
-                      title: 'Education',
-                      subtitle: 'Show your education level',
+                      title: l10n.settingsPrivacyEducationTitle,
+                      subtitle: l10n.settingsPrivacyEducationSubtitle,
                       value: state.showEducation,
                       onChanged: cubit.toggleShowEducation,
                     ),
                     _PrivacyTile(
                       icon: Icons.family_restroom,
-                      title: 'Family Plans',
-                      subtitle: 'Show your family plans',
+                      title: l10n.settingsPrivacyFamilyPlansTitle,
+                      subtitle: l10n.settingsPrivacyFamilyPlansSubtitle,
                       value: state.showFamilyPlans,
                       onChanged: cubit.toggleShowFamilyPlans,
                     ),
                     _PrivacyTile(
                       icon: Icons.psychology_outlined,
-                      title: 'Personality Type',
-                      subtitle: 'Show your MBTI or personality',
+                      title: l10n.settingsPrivacyPersonalityTypeTitle,
+                      subtitle: l10n.settingsPrivacyPersonalityTypeSubtitle,
                       value: state.showPersonality,
                       onChanged: cubit.toggleShowPersonality,
                     ),
 
                     // Lifestyle Section
-                    const _SectionHeader(
-                      title: 'Lifestyle',
-                      subtitle: 'Your habits and preferences',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionLifestyleTitle,
+                      subtitle: l10n.settingsPrivacySectionLifestyleSubtitle,
                       icon: Icons.spa_outlined,
                       color: DsColors.success,
                     ),
                     _PrivacyTile(
                       icon: Icons.fitness_center,
-                      title: 'Workout',
-                      subtitle: 'Show your exercise habits',
+                      title: l10n.settingsPrivacyWorkoutTitle,
+                      subtitle: l10n.settingsPrivacyWorkoutSubtitle,
                       value: state.showWorkout,
                       onChanged: cubit.toggleShowWorkout,
                     ),
                     _PrivacyTile(
                       icon: Icons.smoking_rooms,
-                      title: 'Smoking',
-                      subtitle: 'Show your smoking habits',
+                      title: l10n.settingsPrivacySmokingTitle,
+                      subtitle: l10n.settingsPrivacySmokingSubtitle,
                       value: state.showSmoking,
                       onChanged: cubit.toggleShowSmoking,
                     ),
                     _PrivacyTile(
                       icon: Icons.local_bar,
-                      title: 'Drinking',
-                      subtitle: 'Show your drinking habits',
+                      title: l10n.settingsPrivacyDrinkingTitle,
+                      subtitle: l10n.settingsPrivacyDrinkingSubtitle,
                       value: state.showDrinking,
                       onChanged: cubit.toggleShowDrinking,
                     ),
                     _PrivacyTile(
                       icon: Icons.restaurant_outlined,
-                      title: 'Diet',
-                      subtitle: 'Show your dietary preferences',
+                      title: l10n.settingsPrivacyDietTitle,
+                      subtitle: l10n.settingsPrivacyDietSubtitle,
                       value: state.showDiet,
                       onChanged: cubit.toggleShowDiet,
                     ),
                     _PrivacyTile(
                       icon: Icons.bedtime_outlined,
-                      title: 'Sleeping Habits',
-                      subtitle: 'Show your sleep schedule',
+                      title: l10n.settingsPrivacySleepingHabitsTitle,
+                      subtitle: l10n.settingsPrivacySleepingHabitsSubtitle,
                       value: state.showSleepingHabits,
                       onChanged: cubit.toggleShowSleepingHabits,
                     ),
                     _PrivacyTile(
                       icon: Icons.pets,
-                      title: 'Pets',
-                      subtitle: 'Show your pet preferences',
+                      title: l10n.settingsPrivacyPetsTitle,
+                      subtitle: l10n.settingsPrivacyPetsSubtitle,
                       value: state.showPets,
                       onChanged: cubit.toggleShowPets,
                     ),
 
                     // Work Section
-                    const _SectionHeader(
-                      title: 'Work & Education',
-                      subtitle: 'Professional information',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionWorkEducationTitle,
+                      subtitle:
+                          l10n.settingsPrivacySectionWorkEducationSubtitle,
                       icon: Icons.work_outline,
                       color: DsColors.warning,
                     ),
                     _PrivacyTile(
                       icon: Icons.badge_outlined,
-                      title: 'Job Title',
-                      subtitle: 'Show your job title',
+                      title: l10n.settingsPrivacyJobTitleTitle,
+                      subtitle: l10n.settingsPrivacyJobTitleSubtitle,
                       value: state.showJobTitle,
                       onChanged: cubit.toggleShowJobTitle,
                     ),
                     _PrivacyTile(
                       icon: Icons.business_outlined,
-                      title: 'Company',
-                      subtitle: 'Show where you work',
+                      title: l10n.settingsPrivacyCompanyTitle,
+                      subtitle: l10n.settingsPrivacyCompanySubtitle,
                       value: state.showCompany,
                       onChanged: cubit.toggleShowCompany,
                     ),
                     _PrivacyTile(
                       icon: Icons.school,
-                      title: 'School',
-                      subtitle: 'Show your school or university',
+                      title: l10n.settingsPrivacySchoolTitle,
+                      subtitle: l10n.settingsPrivacySchoolSubtitle,
                       value: state.showSchool,
                       onChanged: cubit.toggleShowSchool,
                     ),
 
                     // Music Section
-                    const _SectionHeader(
-                      title: 'Music',
-                      subtitle: 'Your music taste',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionMusicTitle,
+                      subtitle: l10n.settingsPrivacySectionMusicSubtitle,
                       icon: Icons.music_note_outlined,
                       color: DsColors.secondary,
                     ),
                     _PrivacyTile(
                       icon: Icons.mic_outlined,
-                      title: 'Favorite Singer',
-                      subtitle: 'Show your favorite artist',
+                      title: l10n.settingsPrivacyFavoriteSingerTitle,
+                      subtitle: l10n.settingsPrivacyFavoriteSingerSubtitle,
                       value: state.showFavoriteSinger,
                       onChanged: cubit.toggleShowFavoriteSinger,
                     ),
                     _PrivacyTile(
                       icon: Icons.queue_music,
-                      title: 'Favorite Songs',
-                      subtitle: 'Show your favorite songs',
+                      title: l10n.settingsPrivacyFavoriteSongsTitle,
+                      subtitle: l10n.settingsPrivacyFavoriteSongsSubtitle,
                       value: state.showFavoriteSongs,
                       onChanged: cubit.toggleShowFavoriteSongs,
                     ),
 
                     // Social Section
-                    const _SectionHeader(
-                      title: 'Social',
-                      subtitle: 'Social information',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionSocialTitle,
+                      subtitle: l10n.settingsPrivacySectionSocialSubtitle,
                       icon: Icons.people_outline,
                       color: DsColors.accent,
                     ),
                     _PrivacyTile(
                       icon: Icons.language,
-                      title: 'Languages',
-                      subtitle: 'Show languages you speak',
+                      title: l10n.settingsPrivacyLanguagesTitle,
+                      subtitle: l10n.settingsPrivacyLanguagesSubtitle,
                       value: state.showLanguages,
                       onChanged: cubit.toggleShowLanguages,
                     ),
                     _PrivacyTile(
                       icon: Icons.share_outlined,
-                      title: 'Social Media',
-                      subtitle: 'Show your social media links',
+                      title: l10n.settingsPrivacySocialMediaTitle,
+                      subtitle: l10n.settingsPrivacySocialMediaSubtitle,
                       value: state.showSocialMedia,
                       onChanged: cubit.toggleShowSocialMedia,
                     ),
 
                     // Activity Section
-                    const _SectionHeader(
-                      title: 'Activity Status',
-                      subtitle: 'Online presence',
+                    _SectionHeader(
+                      title: l10n.settingsPrivacySectionActivityStatusTitle,
+                      subtitle:
+                          l10n.settingsPrivacySectionActivityStatusSubtitle,
                       icon: Icons.circle,
                       color: DsColors.success,
                     ),
                     _PrivacyTile(
                       icon: Icons.circle,
-                      title: 'Online Status',
-                      subtitle: 'Show when you\'re online',
+                      title: l10n.settingsPrivacyOnlineStatusTitle,
+                      subtitle: l10n.settingsPrivacyOnlineStatusSubtitle,
                       value: state.showOnlineStatus,
                       onChanged: cubit.toggleShowOnlineStatus,
                     ),
                     _PrivacyTile(
                       icon: Icons.access_time,
-                      title: 'Last Active',
-                      subtitle: 'Show when you were last active',
+                      title: l10n.settingsPrivacyLastActiveTitle,
+                      subtitle: l10n.settingsPrivacyLastActiveSubtitle,
                       value: state.showLastActive,
                       onChanged: cubit.toggleShowLastActive,
                     ),
@@ -442,7 +450,7 @@ class PrivacySettingsScreen extends StatelessWidget {
                             DsGap.mdH,
                             Expanded(
                               child: Text(
-                                'Hidden information will only be visible to you. Matches can see public information.',
+                                l10n.settingsPrivacyInfoNote,
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: isDark
@@ -565,9 +573,9 @@ class _PrivacyTile extends StatelessWidget {
                 color: DsColors.warning.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
-                'Sensitive',
-                style: TextStyle(
+              child: Text(
+                context.l10n.settingsPrivacySensitiveBadge,
+                style: const TextStyle(
                   fontSize: 10,
                   color: DsColors.warning,
                   fontWeight: FontWeight.bold,

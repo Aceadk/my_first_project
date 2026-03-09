@@ -62,9 +62,15 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
       child: Scaffold(
         appBar: AppBar(
           title: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             children: [
-              Text("$displayName's media"),
+              Expanded(
+                child: Text(
+                  "$displayName's media",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               if (widget.profile.isVerified) ...[
                 const SizedBox(width: 6),
                 const Icon(Icons.verified, color: DsColors.info),
@@ -80,9 +86,10 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
-            final maxWidth = DsBreakpoints.contentMaxWidth(
-              constraints.maxWidth,
-            );
+            final maxWidth =
+                constraints.maxWidth > DsBreakpoints.contentMaxLargeDesktop
+                ? DsBreakpoints.contentMaxLargeDesktop
+                : constraints.maxWidth;
             return Center(
               child: ConstrainedBox(
                 constraints: BoxConstraints(maxWidth: maxWidth),
@@ -93,37 +100,34 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
                         child: Text(AppLocalizations.of(context).noPhotosYet),
                       )
                     else
-                      Column(
-                        children: [
-                          Expanded(
-                            child: PageView.builder(
-                              itemCount: photos.length,
-                              itemBuilder: (context, index) {
-                                final url = photos[index];
-                                return InteractiveViewer(
-                                  child: CachedNetworkImage(
-                                    imageUrl: url,
-                                    fit: BoxFit.contain,
-                                    errorWidget: Center(
-                                      child: Text(
-                                        AppLocalizations.of(
-                                          context,
-                                        ).photoUnavailable,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            AppLocalizations.of(
-                              context,
-                            ).photoCount(photos.length),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
+                      LayoutBuilder(
+                        builder: (context, photoConstraints) {
+                          final columns = _photoColumnsForWidth(
+                            photoConstraints.maxWidth,
+                          );
+                          return GridView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: photos.length,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: columns,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 0.78,
+                                ),
+                            itemBuilder: (context, index) {
+                              final url = photos[index];
+                              return _PhotoGridTile(
+                                imageUrl: url,
+                                onTap: () => _showPhotoPreview(
+                                  context,
+                                  url,
+                                  displayName,
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                     if (videos.isEmpty)
                       Center(
@@ -174,6 +178,91 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  int _photoColumnsForWidth(double width) {
+    if (width >= 1100) return 4;
+    if (width >= 760) return 3;
+    return 2;
+  }
+
+  void _showPhotoPreview(
+    BuildContext context,
+    String imageUrl,
+    String displayName,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        "$displayName's photo",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 420,
+                child: InteractiveViewer(
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.contain,
+                    errorWidget: Center(
+                      child: Text(
+                        AppLocalizations.of(context).photoUnavailable,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PhotoGridTile extends StatelessWidget {
+  const _PhotoGridTile({required this.imageUrl, required this.onTap});
+
+  final String imageUrl;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: CachedNetworkImage(
+            imageUrl: imageUrl,
+            fit: BoxFit.cover,
+            errorWidget: Center(
+              child: Text(AppLocalizations.of(context).photoUnavailable),
+            ),
+          ),
         ),
       ),
     );

@@ -14,3 +14,4 @@ export 'data/repositories/impl/stub_subscription_repository.dart';
 // Data (Services)
 export 'data/services/subscription_service.dart';
 export 'data/services/checkout_service.dart';
+export 'data/services/native_billing_service.dart';

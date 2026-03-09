@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/subscription.dart';
@@ -59,8 +60,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emits(
-            isA<SubscriptionState>()
-                .having((s) => s.plan, 'plan', SubscriptionPlan.plus),
+            isA<SubscriptionState>().having(
+              (s) => s.plan,
+              'plan',
+              SubscriptionPlan.plus,
+            ),
           ),
         );
 
@@ -81,8 +85,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            isA<SubscriptionState>()
-                .having((s) => s.isCheckoutInProgress, 'progress', true),
+            isA<SubscriptionState>().having(
+              (s) => s.isCheckoutInProgress,
+              'progress',
+              true,
+            ),
             isA<SubscriptionState>()
                 .having((s) => s.isCheckoutInProgress, 'progress', false)
                 .having((s) => s.errorMessage, 'error', isNull),
@@ -149,8 +156,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emits(
-            isA<SubscriptionState>()
-                .having((s) => s.plan, 'plan', SubscriptionPlan.plus),
+            isA<SubscriptionState>().having(
+              (s) => s.plan,
+              'plan',
+              SubscriptionPlan.plus,
+            ),
           ),
         );
 
@@ -201,13 +211,43 @@ void main() {
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            isA<SubscriptionState>()
-                .having((s) => s.isRestoring, 'restoring', true),
+            isA<SubscriptionState>().having(
+              (s) => s.isRestoring,
+              'restoring',
+              true,
+            ),
             isA<SubscriptionState>()
                 .having((s) => s.isRestoring, 'restoring', false)
                 .having((s) => s.plan, 'plan', SubscriptionPlan.plus)
                 .having((s) => s.statusLabel, 'status', 'active'),
           ]),
+        );
+
+        await bloc.close();
+      });
+
+      test('emits no-purchase restore state for free users', () async {
+        final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
+          subscriptionRepository: _StubSubscriptionRepository(
+            statusToRestore: SubscriptionStatus(
+              plan: SubscriptionPlan.free,
+              status: 'none',
+            ),
+          ),
+        );
+
+        bloc.add(SubscriptionRestoreRequested());
+
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<SubscriptionState>()
+                .having((s) => s.isRestoring, 'restoring', false)
+                .having((s) => s.plan, 'plan', SubscriptionPlan.free)
+                .having((s) => s.statusLabel, 'status', 'none')
+                .having((s) => s.errorMessage, 'error', isNull),
+          ),
         );
 
         await bloc.close();
@@ -228,7 +268,11 @@ void main() {
           emitsThrough(
             isA<SubscriptionState>()
                 .having((s) => s.isRestoring, 'restoring', false)
-                .having((s) => s.errorMessage, 'error', isNotNull),
+                .having(
+                  (s) => s.errorMessage,
+                  'error',
+                  ErrorMessages.restorePurchasesFailed,
+                ),
           ),
         );
 
@@ -244,12 +288,16 @@ void main() {
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
-        bloc.add(SubscriptionStatusUpdated(SubscriptionStatus(
-          plan: SubscriptionPlan.plus,
-          status: 'active',
-          nextRenewal: nextRenewal,
-          cancelAtPeriodEnd: false,
-        )));
+        bloc.add(
+          SubscriptionStatusUpdated(
+            SubscriptionStatus(
+              plan: SubscriptionPlan.plus,
+              status: 'active',
+              nextRenewal: nextRenewal,
+              cancelAtPeriodEnd: false,
+            ),
+          ),
+        );
 
         await expectLater(
           bloc.stream,
@@ -271,11 +319,15 @@ void main() {
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
-        bloc.add(SubscriptionStatusUpdated(SubscriptionStatus(
-          plan: SubscriptionPlan.plus,
-          status: 'canceled',
-          cancelAtPeriodEnd: true,
-        )));
+        bloc.add(
+          SubscriptionStatusUpdated(
+            SubscriptionStatus(
+              plan: SubscriptionPlan.plus,
+              status: 'canceled',
+              cancelAtPeriodEnd: true,
+            ),
+          ),
+        );
 
         await expectLater(
           bloc.stream,
@@ -359,7 +411,14 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchasePlusPlan() async {
+    if (shouldFailCheckout) {
+      throw Exception('Checkout failed');
+    }
+    if (shouldFailLaunch) {
+      throw Exception('Failed to launch URL');
+    }
+  }
 
   @override
   Future<SubscriptionStatus> refreshStatus() async {

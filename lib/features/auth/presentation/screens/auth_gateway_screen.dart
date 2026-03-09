@@ -3,10 +3,11 @@ import 'dart:math' as math;
 import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/design_system/theme/theme_extensions.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/usecases/auth_flow_use_cases.dart';
+import 'package:crushhour/features/auth/presentation/widgets/google_logo_icon.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -28,6 +29,10 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
   late Animation<double> _fadeAnimation;
   bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
+
+  AuthFlowUseCases _authFlowUseCases() {
+    return AuthFlowUseCases(context.read<AuthRepository>());
+  }
 
   @override
   void initState() {
@@ -62,8 +67,15 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
       builder: (context) => const _AgeGateDialog(),
     );
 
-    if (confirmed == true && mounted) {
+    if (!mounted) return;
+
+    if (confirmed == true) {
       context.push(CrushRoutes.signUp);
+      return;
+    }
+
+    if (confirmed == false) {
+      showErrorSnackBar(context, context.l10n.authGatewayAgeUnderageError);
     }
   }
 
@@ -71,12 +83,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
     if (_isAppleLoading) return;
 
     setState(() => _isAppleLoading = true);
-    final authRepo = context.read<AuthRepository>();
-    final result = await Result.guard(
-      () => authRepo.signInWithApple(),
-      logLabel: 'AuthRepository.signInWithApple',
-      fallbackError: 'Apple Sign-In failed. Please try again.',
-    );
+    final result = await _authFlowUseCases().signInWithApple();
 
     if (!mounted) return;
     setState(() => _isAppleLoading = false);
@@ -103,12 +110,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
     if (_isGoogleLoading) return;
 
     setState(() => _isGoogleLoading = true);
-    final authRepo = context.read<AuthRepository>();
-    final result = await Result.guard(
-      () => authRepo.signInWithGoogle(),
-      logLabel: 'AuthRepository.signInWithGoogle',
-      fallbackError: 'Google Sign-In failed. Please try again.',
-    );
+    final result = await _authFlowUseCases().signInWithGoogle();
 
     if (!mounted) return;
     setState(() => _isGoogleLoading = false);
@@ -134,15 +136,16 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final brandGradient =
         Theme.of(context).extension<CrushThemeEffects>()?.primaryGradient ??
         DsGradients.primaryHorizontal;
-    final authRepo = context.read<AuthRepository>();
-    final showGoogleButton = authRepo.supportsGoogleSignIn;
+    final authFlowUseCases = _authFlowUseCases();
+    final showGoogleButton = authFlowUseCases.supportsGoogleSignIn;
     final showAppleButton =
         !kIsWeb &&
         defaultTargetPlatform == TargetPlatform.iOS &&
-        authRepo.supportsAppleSignIn;
+        authFlowUseCases.supportsAppleSignIn;
 
     return Scaffold(
       body: SafeArea(
@@ -192,7 +195,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                     ),
                     DsGap.sm,
                     Text(
-                      'Find your Perfect Match',
+                      l10n.authGatewayTagline,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: isDark
                             ? DsColors.textMutedDark
@@ -206,19 +209,19 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
               // Features highlights
               _FeatureRow(
                 icon: Icons.verified_user_outlined,
-                text: 'Verified profiles for safety',
+                text: l10n.authGatewayFeatureVerifiedProfiles,
                 isDark: isDark,
               ),
               DsGap.md,
               _FeatureRow(
                 icon: Icons.chat_bubble_outline,
-                text: 'Send messages before matching',
+                text: l10n.authGatewayFeatureSendMessages,
                 isDark: isDark,
               ),
               DsGap.md,
               _FeatureRow(
                 icon: Icons.location_on_outlined,
-                text: 'Meet people near you',
+                text: l10n.authGatewayFeatureMeetNearby,
                 isDark: isDark,
               ),
               const Spacer(flex: 2),
@@ -264,7 +267,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                 DsGap.md,
                 Semantics(
                   button: true,
-                  label: 'Continue with Google',
+                  label: l10n.authContinueWithGoogle,
                   child: SizedBox(
                     width: double.infinity,
                     child: GlassOutlinedButton(
@@ -273,18 +276,14 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                       borderColor: const Color(0xFFDADCE0),
                       isExpanded: true,
                       isLoading: _isGoogleLoading,
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.g_mobiledata,
-                            color: Color(0xFF4285F4),
-                            size: 24,
-                          ),
-                          SizedBox(width: 8),
+                          const GoogleLogoIcon(size: 20),
+                          const SizedBox(width: 8),
                           Text(
-                            'Continue with Google',
-                            style: TextStyle(
+                            l10n.authContinueWithGoogle,
+                            style: const TextStyle(
                               color: Color(0xFF1F1F1F),
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -300,7 +299,7 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                 DsGap.md,
                 Semantics(
                   button: true,
-                  label: 'Continue with Apple',
+                  label: l10n.authContinueWithApple,
                   child: SizedBox(
                     width: double.infinity,
                     child: GlassOutlinedButton(
@@ -309,14 +308,18 @@ class _AuthGatewayScreenState extends State<AuthGatewayScreen>
                       borderColor: Colors.black,
                       isExpanded: true,
                       isLoading: _isAppleLoading,
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.apple, color: Colors.white, size: 20),
-                          SizedBox(width: 10),
+                          const Icon(
+                            Icons.apple,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
                           Text(
-                            'Continue with Apple',
-                            style: TextStyle(
+                            l10n.authContinueWithApple,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -419,12 +422,26 @@ class _FeatureRow extends StatelessWidget {
 
 /// Age Gate Dialog - Required for dating app store compliance
 /// Shows before signup to confirm user is 18 or older
-class _AgeGateDialog extends StatelessWidget {
+class _AgeGateDialog extends StatefulWidget {
   const _AgeGateDialog();
+
+  @override
+  State<_AgeGateDialog> createState() => _AgeGateDialogState();
+}
+
+class _AgeGateDialogState extends State<_AgeGateDialog> {
+  bool _isSubmitting = false;
+
+  void _submitChoice(bool isEligible) {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+    Navigator.of(context).pop(isEligible);
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -450,7 +467,7 @@ class _AgeGateDialog extends StatelessWidget {
             DsGap.xl,
             // Title
             Text(
-              'Age Verification',
+              l10n.authGatewayAgeVerificationTitle,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -459,7 +476,7 @@ class _AgeGateDialog extends StatelessWidget {
             DsGap.md,
             // Description
             Text(
-              'Crush is a dating app for adults only. You must be at least 18 years old to create an account.',
+              l10n.authGatewayAgeVerificationDescription,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: isDark
                     ? DsColors.textMutedDark
@@ -470,7 +487,7 @@ class _AgeGateDialog extends StatelessWidget {
             DsGap.xxl,
             // Question
             Text(
-              'Are you 18 years or older?',
+              l10n.authGatewayAgeVerificationQuestion,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -482,19 +499,11 @@ class _AgeGateDialog extends StatelessWidget {
               children: [
                 Expanded(
                   child: GlassOutlinedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'You must be at least 18 years old to use Crush.',
-                          ),
-                          duration: Duration(seconds: 3),
-                        ),
-                      );
-                    },
+                    onPressed: _isSubmitting
+                        ? null
+                        : () => _submitChoice(false),
                     child: Text(
-                      'No',
+                      l10n.commonNo,
                       style: TextStyle(
                         color: isDark
                             ? DsColors.textPrimaryDark
@@ -506,8 +515,8 @@ class _AgeGateDialog extends StatelessWidget {
                 DsGap.mdH,
                 Expanded(
                   child: GlassPrimaryButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text(AppLocalizations.of(context).yesIAm18),
+                    onPressed: _isSubmitting ? null : () => _submitChoice(true),
+                    child: Text(l10n.yesIAm18),
                   ),
                 ),
               ],
@@ -515,7 +524,7 @@ class _AgeGateDialog extends StatelessWidget {
             DsGap.lg,
             // Legal notice
             Text(
-              'By continuing, you confirm that you are at least 18 years old and agree to our Terms of Service.',
+              l10n.authGatewayAgeVerificationLegalNotice,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: isDark
                     ? DsColors.textMutedDark

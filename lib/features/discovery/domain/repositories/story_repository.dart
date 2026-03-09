@@ -1,7 +1,24 @@
 import 'dart:async';
 
 import 'package:crushhour/data/models/profile_story.dart';
-import 'package:crushhour/features/discovery/data/services/story_service.dart';
+
+/// Types of story updates emitted by story repositories.
+enum StoryUpdateType { added, removed, expired, viewed }
+
+/// Domain event emitted when a story changes.
+class StoryUpdate {
+  const StoryUpdate({
+    required this.type,
+    required this.userId,
+    required this.story,
+    this.viewerId,
+  });
+
+  final StoryUpdateType type;
+  final String userId;
+  final ProfileStory story;
+  final String? viewerId;
+}
 
 abstract class StoryRepository {
   Stream<StoryUpdate> get storyUpdates;

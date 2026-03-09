@@ -63,6 +63,12 @@ service firebase.storage {
                    && request.resource.size < 50 * 1024 * 1024;
     }
 
+    // Legacy profile photo path used by Cloud Functions backend upload endpoint.
+    // Objects are server-managed and should not be directly accessed by clients.
+    match /photos/{uid}/{fileName} {
+      allow read, write: if false;
+    }
+
     // User story media (24h stories)
     match /users/{uid}/stories/{storyId} {
       allow read: if isSignedIn();

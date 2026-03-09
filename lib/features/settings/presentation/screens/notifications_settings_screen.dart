@@ -5,8 +5,6 @@ import 'package:crushhour/features/settings/presentation/bloc/notification_setti
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/core/services/push_notification_service.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class NotificationsSettingsScreen extends StatelessWidget {
   const NotificationsSettingsScreen({super.key});
@@ -14,9 +12,10 @@ class NotificationsSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = context.l10n;
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.settingsNotifications)),
+      appBar: AppBar(title: Text(l10n.settingsNotifications)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -63,13 +62,13 @@ class NotificationsSettingsScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Stay Connected',
+                                  l10n.settingsNotificationsHeaderTitle,
                                   style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                                 DsGap.xs,
                                 Text(
-                                  'Get notified about matches, messages, and more.',
+                                  l10n.settingsNotificationsHeaderSubtitle,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: isDark
@@ -86,22 +85,19 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     // Push notifications
                     _SettingsTile(
                       icon: Icons.smartphone_outlined,
-                      title: 'Push notifications',
-                      subtitle: 'Messages, matches, and app updates',
+                      title: l10n.settingsPushNotifications,
+                      subtitle: l10n.settingsNotificationsPushSubtitle,
                       trailing: Switch(
                         value: notifState.push,
                         onChanged: (value) async {
                           await notifier.togglePush(value);
-                          // Sync with Firestore so backend respects the setting
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(push: value);
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
                                 value
-                                    ? 'Push notifications enabled.'
-                                    : 'Push notifications disabled.',
+                                    ? l10n.settingsNotificationsPushEnabled
+                                    : l10n.settingsNotificationsPushDisabled,
                               ),
                             ),
                           );
@@ -112,15 +108,12 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     // Email notifications
                     _SettingsTile(
                       icon: Icons.email_outlined,
-                      title: 'Email notifications',
-                      subtitle: 'Updates sent to your inbox',
+                      title: l10n.settingsEmailNotifications,
+                      subtitle: l10n.settingsNotificationsEmailSubtitle,
                       trailing: Switch(
                         value: notifState.email,
                         onChanged: (value) async {
                           await notifier.toggleEmail(value);
-                          // Sync with Firestore so backend can send/skip emails
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(email: value);
                         },
                       ),
                     ),
@@ -128,15 +121,12 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     // Sound
                     _SettingsTile(
                       icon: Icons.volume_up_outlined,
-                      title: 'Sound',
-                      subtitle: 'Play sounds for alerts',
+                      title: l10n.settingsSound,
+                      subtitle: l10n.settingsNotificationsSoundSubtitle,
                       trailing: Switch(
                         value: notifState.sound,
                         onChanged: (value) async {
                           await notifier.toggleSound(value);
-                          // Sync with Firestore for backend awareness
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(sound: value);
                         },
                       ),
                     ),
@@ -144,15 +134,12 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     // Vibration
                     _SettingsTile(
                       icon: Icons.vibration_outlined,
-                      title: 'Vibration',
-                      subtitle: 'Vibrate on new messages or matches',
+                      title: l10n.settingsVibration,
+                      subtitle: l10n.settingsNotificationsVibrationSubtitle,
                       trailing: Switch(
                         value: notifState.vibration,
                         onChanged: (value) async {
                           await notifier.toggleVibration(value);
-                          // Sync with Firestore for backend awareness
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(vibration: value);
                         },
                       ),
                     ),
@@ -161,7 +148,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     Padding(
                       padding: DsEdgeInsets.horizontalLg,
                       child: Text(
-                        'Notification Categories',
+                        l10n.settingsNotificationCategoriesTitle,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isDark
@@ -173,7 +160,10 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     Padding(
                       padding: DsEdgeInsets.horizontalLg,
                       child: Text(
-                        '${notifState.enabledCategoryCount} of 6 enabled',
+                        l10n.settingsNotificationCategoriesEnabledCount(
+                          notifState.enabledCategoryCount,
+                          6,
+                        ),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: isDark
                               ? DsColors.textMutedDark
@@ -184,81 +174,74 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     DsGap.md,
                     _SettingsTile(
                       icon: Icons.favorite_outline,
-                      title: 'Matches',
-                      subtitle: 'New match notifications',
+                      title: l10n.settingsNotificationCategoryMatchesTitle,
+                      subtitle:
+                          l10n.settingsNotificationCategoryMatchesSubtitle,
                       trailing: Switch(
                         value: notifState.catMatches,
                         onChanged: (value) async {
                           await notifier.toggleCatMatches(value);
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(matches: value);
                         },
                       ),
                     ),
                     const Divider(indent: 72),
                     _SettingsTile(
                       icon: Icons.chat_bubble_outline,
-                      title: 'Messages',
-                      subtitle: 'New message notifications',
+                      title: l10n.settingsNotificationCategoryMessagesTitle,
+                      subtitle:
+                          l10n.settingsNotificationCategoryMessagesSubtitle,
                       trailing: Switch(
                         value: notifState.catMessages,
                         onChanged: (value) async {
                           await notifier.toggleCatMessages(value);
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(messages: value);
                         },
                       ),
                     ),
                     const Divider(indent: 72),
                     _SettingsTile(
                       icon: Icons.thumb_up_outlined,
-                      title: 'Likes',
-                      subtitle: 'When someone likes your profile',
+                      title: l10n.settingsNotificationCategoryLikesTitle,
+                      subtitle: l10n.settingsNotificationCategoryLikesSubtitle,
                       trailing: Switch(
                         value: notifState.catLikes,
                         onChanged: (value) async {
                           await notifier.toggleCatLikes(value);
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(likes: value);
                         },
                       ),
                     ),
                     const Divider(indent: 72),
                     _SettingsTile(
                       icon: Icons.visibility_outlined,
-                      title: 'Profile Views',
-                      subtitle: 'When someone views your profile',
+                      title: l10n.settingsNotificationCategoryProfileViewsTitle,
+                      subtitle:
+                          l10n.settingsNotificationCategoryProfileViewsSubtitle,
                       trailing: Switch(
                         value: notifState.catProfileViews,
                         onChanged: (value) async {
                           await notifier.toggleCatProfileViews(value);
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(
-                                profileViews: value,
-                              );
                         },
                       ),
                     ),
                     const Divider(indent: 72),
                     _SettingsTile(
                       icon: Icons.local_offer_outlined,
-                      title: 'Promotions',
-                      subtitle: 'Special offers and features',
+                      title: l10n.settingsNotificationCategoryPromotionsTitle,
+                      subtitle:
+                          l10n.settingsNotificationCategoryPromotionsSubtitle,
                       trailing: Switch(
                         value: notifState.catPromotions,
                         onChanged: (value) async {
                           await notifier.toggleCatPromotions(value);
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences(promotions: value);
                         },
                       ),
                     ),
                     const Divider(indent: 72),
-                    const _SettingsTile(
+                    _SettingsTile(
                       icon: Icons.shield_outlined,
-                      title: 'Safety Alerts',
-                      subtitle: 'Always on — cannot be disabled',
-                      trailing: Switch(
+                      title: l10n.settingsNotificationCategorySafetyAlertsTitle,
+                      subtitle:
+                          l10n.settingsNotificationCategorySafetyAlertsSubtitle,
+                      trailing: const Switch(
                         value: true,
                         onChanged: null, // Safety alerts are always on
                       ),
@@ -268,7 +251,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     Padding(
                       padding: DsEdgeInsets.horizontalLg,
                       child: Text(
-                        'Quiet Hours',
+                        l10n.settingsNotificationQuietHoursTitle,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: isDark
@@ -280,16 +263,14 @@ class NotificationsSettingsScreen extends StatelessWidget {
                     DsGap.md,
                     _SettingsTile(
                       icon: Icons.nightlight_outlined,
-                      title: 'Quiet hours',
+                      title: l10n.settingsNotificationQuietHoursTileTitle,
                       subtitle: notifState.quietHoursEnabled
-                          ? '${_formatHour(notifState.quietHoursStart)} – ${_formatHour(notifState.quietHoursEnd)}'
-                          : 'Disabled',
+                          ? '${_formatHour(context, notifState.quietHoursStart)} – ${_formatHour(context, notifState.quietHoursEnd)}'
+                          : l10n.settingsNotificationDisabled,
                       trailing: Switch(
                         value: notifState.quietHoursEnabled,
                         onChanged: (value) async {
                           await notifier.toggleQuietHours(value);
-                          await PushNotificationService.instance
-                              .updateNotificationPreferences();
                         },
                       ),
                     ),
@@ -297,8 +278,10 @@ class NotificationsSettingsScreen extends StatelessWidget {
                       const Divider(indent: 72),
                       ListTile(
                         leading: const Icon(Icons.access_time),
-                        title: Text(AppLocalizations.of(context).startTime),
-                        subtitle: Text(_formatHour(notifState.quietHoursStart)),
+                        title: Text(l10n.startTime),
+                        subtitle: Text(
+                          _formatHour(context, notifState.quietHoursStart),
+                        ),
                         onTap: () async {
                           final picked = await showTimePicker(
                             context: context,
@@ -315,8 +298,10 @@ class NotificationsSettingsScreen extends StatelessWidget {
                       const Divider(indent: 72),
                       ListTile(
                         leading: const Icon(Icons.access_time),
-                        title: Text(AppLocalizations.of(context).endTime),
-                        subtitle: Text(_formatHour(notifState.quietHoursEnd)),
+                        title: Text(l10n.endTime),
+                        subtitle: Text(
+                          _formatHour(context, notifState.quietHoursEnd),
+                        ),
                         onTap: () async {
                           final picked = await showTimePicker(
                             context: context,
@@ -360,7 +345,7 @@ class NotificationsSettingsScreen extends StatelessWidget {
                             DsGap.mdH,
                             Expanded(
                               child: Text(
-                                'You can also manage notifications in your device settings.',
+                                l10n.settingsNotificationsDeviceSettingsInfo,
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: isDark
@@ -384,11 +369,13 @@ class NotificationsSettingsScreen extends StatelessWidget {
   }
 }
 
-String _formatHour(int hour) {
-  if (hour == 0) return '12:00 AM';
-  if (hour == 12) return '12:00 PM';
-  if (hour < 12) return '$hour:00 AM';
-  return '${hour - 12}:00 PM';
+String _formatHour(BuildContext context, int hour) {
+  final locale = MaterialLocalizations.of(context);
+  final use24Hour = MediaQuery.of(context).alwaysUse24HourFormat;
+  return locale.formatTimeOfDay(
+    TimeOfDay(hour: hour, minute: 0),
+    alwaysUse24HourFormat: use24Hour,
+  );
 }
 
 class _SettingsTile extends StatelessWidget {

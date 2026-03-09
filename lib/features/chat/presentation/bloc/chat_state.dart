@@ -39,8 +39,8 @@ class ChatState extends Equatable {
   /// decrypted when received. Media URLs are not encrypted.
   final bool isE2eeEnabled;
 
-  const ChatState({
-    this.messages = const [],
+  ChatState({
+    List<Message> messages = const [],
     this.sendStatus = SendStatus.idle,
     this.isUnsendInProgress = false,
     this.isEditInProgress = false,
@@ -49,7 +49,7 @@ class ChatState extends Equatable {
     this.canEdit = false,
     this.canSeeReadReceipts = false,
     this.uploadingAttachmentName,
-    this.typingUserIds = const {},
+    Set<String> typingUserIds = const {},
     this.otherUserOnline = false,
     this.otherUserPhotoUrl,
     this.mediaSendingEnabled = true,
@@ -58,9 +58,11 @@ class ChatState extends Equatable {
     this.isInitialLoading = false,
     this.isLoadingMore = false,
     this.hasMoreMessages = true,
-    this.failedMessages = const {},
+    Map<String, Message> failedMessages = const {},
     this.isE2eeEnabled = true,
-  });
+  }) : messages = List<Message>.unmodifiable(messages),
+       typingUserIds = Set<String>.unmodifiable(typingUserIds),
+       failedMessages = Map<String, Message>.unmodifiable(failedMessages);
 
   /// Combined list of messages including failed ones for display.
   List<Message> get allMessages {

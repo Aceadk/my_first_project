@@ -90,33 +90,101 @@ void main() {
       service = ProfileValidationService();
     });
 
-    test('validate returns permissive default when callable fails', () async {
-      final result = await service.validate(minimum: 'messaging');
+    test(
+      'validate throws explicit timeout unavailable error when no cache exists',
+      () async {
+        service = ProfileValidationService(
+          fetchCompletenessOverride: (_) async {
+            throw TimeoutException('Profile validation timed out');
+          },
+        );
 
-      expect(result.minimum, 'messaging');
-      expect(result.score, 1.0);
-      expect(result.threshold, 1.0);
-      expect(result.meetsMinimum, isTrue);
-      expect(result.meetsSwipeMinimum, isTrue);
-      expect(result.meetsMessagingMinimum, isTrue);
-      expect(result.meetsRequiredFields, isTrue);
-      expect(result.missing, isEmpty);
-      expect(result.requiredMissing, isEmpty);
-    });
+        await expectLater(
+          () => service.validate(minimum: 'messaging'),
+          throwsA(
+            isA<ProfileValidationUnavailableException>()
+                .having((e) => e.minimum, 'minimum', 'messaging')
+                .having((e) => e.toString(), 'message', contains('timed out')),
+          ),
+        );
+      },
+    );
 
-    test('validate keeps requested minimum value in fallback', () async {
-      final swipeResult = await service.validate(minimum: 'swipe');
-      final messagingResult = await service.validate(minimum: 'messaging');
+    test(
+      'validate throws explicit network unavailable error when no cache exists',
+      () async {
+        service = ProfileValidationService(
+          fetchCompletenessOverride: (_) async {
+            throw Exception('network unavailable');
+          },
+        );
 
-      expect(swipeResult.minimum, 'swipe');
-      expect(messagingResult.minimum, 'messaging');
-    });
+        await expectLater(
+          () => service.validate(minimum: 'swipe'),
+          throwsA(
+            isA<ProfileValidationUnavailableException>()
+                .having((e) => e.minimum, 'minimum', 'swipe')
+                .having(
+                  (e) => e.toString(),
+                  'message',
+                  contains('Could not verify profile completeness'),
+                ),
+          ),
+        );
+      },
+    );
+
+    test(
+      'validate returns cached last-known result on timeout after success',
+      () async {
+        var shouldFail = false;
+        service = ProfileValidationService(
+          fetchCompletenessOverride: (_) async {
+            if (shouldFail) {
+              throw TimeoutException('Profile validation timed out');
+            }
+            return {
+              'score': 0.82,
+              'breakdown': {'photos': 0.30, 'bio': 0.22, 'interests': 0.20},
+              'missing': [],
+              'requiredMissing': [],
+              'meetsSwipeMinimum': true,
+              'meetsMessagingMinimum': true,
+              'meetsRequiredFields': true,
+              'meetsMinimum': true,
+              'minimum': 'messaging',
+              'threshold': 0.8,
+            };
+          },
+        );
+
+        final initial = await service.validate(minimum: 'messaging');
+        shouldFail = true;
+        final cached = await service.validate(minimum: 'messaging');
+
+        expect(initial.score, 0.82);
+        expect(cached.score, initial.score);
+        expect(cached.minimum, initial.minimum);
+        expect(cached.meetsMinimum, isTrue);
+      },
+    );
   });
 
   group('TimeoutException', () {
     test('toString returns message', () {
       final ex = TimeoutException('timeout!');
       expect(ex.toString(), 'timeout!');
+    });
+  });
+
+  group('ProfileValidationUnavailableException', () {
+    test('toString returns message', () {
+      final ex = ProfileValidationUnavailableException(
+        'fallback to local checks',
+        minimum: 'swipe',
+      );
+      expect(ex.toString(), 'fallback to local checks');
+      expect(ex.minimum, 'swipe');
     });
   });
 }

@@ -2,4 +2,5 @@
 library;
 
 export 'fetch_discovery_deck.dart';
+export 'matching_decision_engine.dart';
 export 'swipe_right.dart';

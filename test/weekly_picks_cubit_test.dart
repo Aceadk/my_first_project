@@ -162,7 +162,7 @@ class MockAuthRepository implements AuthRepository {
   Future<void> verifyPassword(String password) async {}
 
   @override
-@override
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -820,6 +820,23 @@ void main() {
 
       // State should NOT have been reset
       expect(cubit.state.picks, isNotNull);
+    });
+
+    test('switching to a different authenticated user resets state', () async {
+      await cubit.loadPicks(_testUserId);
+      await Future.delayed(const Duration(milliseconds: 700));
+      expect(cubit.state.picks, isNotNull);
+
+      // Establish current auth identity
+      authRepo.pushUser(_makeUser(id: 'user-a'));
+      await Future.delayed(const Duration(milliseconds: 20));
+      expect(cubit.state.picks, isNotNull);
+
+      // Different authenticated user should trigger reset
+      authRepo.pushUser(_makeUser(id: 'user-b'));
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      expect(cubit.state, const WeeklyPicksState());
     });
 
     // ── close() / lifecycle ──

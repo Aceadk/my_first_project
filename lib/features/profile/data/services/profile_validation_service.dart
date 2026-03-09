@@ -87,7 +87,17 @@ class RemoteProfileCompleteness {
 /// Service to validate profile completeness via Firebase Functions.
 
 class ProfileValidationService implements ProfileValidationRepository {
-  final FirebaseFunctions _functions = FirebaseFunctions.instance;
+  ProfileValidationService({
+    FirebaseFunctions? functions,
+    Future<Map<String, dynamic>> Function(String minimum)?
+    fetchCompletenessOverride,
+  }) : _functions = functions ?? FirebaseFunctions.instance,
+       _fetchCompletenessOverride = fetchCompletenessOverride;
+
+  final FirebaseFunctions _functions;
+  final Future<Map<String, dynamic>> Function(String minimum)?
+  _fetchCompletenessOverride;
+  final Map<String, RemoteProfileCompleteness> _lastKnownByMinimum = {};
 
   /// Timeout for Firebase function calls to prevent hanging
   static const Duration _callTimeout = Duration(seconds: 5);
@@ -95,42 +105,57 @@ class ProfileValidationService implements ProfileValidationRepository {
   @override
   Future<RemoteProfileCompleteness> validate({String minimum = 'swipe'}) async {
     try {
-      final callable = _functions.httpsCallable(
-        'checkProfileCompleteness',
-        options: HttpsCallableOptions(timeout: _callTimeout),
-      );
-      final result = await callable
-          .call<Map<String, dynamic>>({'minimum': minimum})
-          .timeout(
-            _callTimeout,
-            onTimeout: () {
-              AppLogger.error(
-                'ProfileValidationService.validate: timeout after $_callTimeout',
-              );
-              throw TimeoutException('Profile validation timed out');
-            },
-          );
-
-      return RemoteProfileCompleteness.fromMap(
-        Map<String, dynamic>.from(result.data),
-      );
+      final data = _fetchCompletenessOverride != null
+          ? await _fetchCompletenessOverride(minimum)
+          : await _fetchRemoteCompleteness(minimum);
+      final completeness = RemoteProfileCompleteness.fromMap(data);
+      _lastKnownByMinimum[minimum] = completeness;
+      return completeness;
     } catch (e) {
       AppLogger.error('ProfileValidationService.validate error: $e');
-      // Return a permissive default on error to not block the user
-      // Score 1.0 = 100% complete (normalized 0.0-1.0 range)
-      return RemoteProfileCompleteness(
-        score: 1.0,
-        breakdown: {},
-        missing: [],
-        requiredMissing: [],
-        meetsSwipeMinimum: true,
-        meetsMessagingMinimum: true,
-        meetsRequiredFields: true,
-        meetsMinimum: true,
+
+      final cached = _lastKnownByMinimum[minimum];
+      if (cached != null) {
+        AppLogger.warning(
+          'ProfileValidationService.validate: using cached result for minimum=$minimum',
+        );
+        return cached;
+      }
+
+      if (e is TimeoutException) {
+        throw ProfileValidationUnavailableException(
+          'Profile validation timed out. Using local checks.',
+          minimum: minimum,
+          cause: e,
+        );
+      }
+
+      throw ProfileValidationUnavailableException(
+        'Could not verify profile completeness with the server. Using local checks.',
         minimum: minimum,
-        threshold: 1.0,
+        cause: e,
       );
     }
+  }
+
+  Future<Map<String, dynamic>> _fetchRemoteCompleteness(String minimum) async {
+    final callable = _functions.httpsCallable(
+      'checkProfileCompleteness',
+      options: HttpsCallableOptions(timeout: _callTimeout),
+    );
+    final result = await callable
+        .call<Map<String, dynamic>>({'minimum': minimum})
+        .timeout(
+          _callTimeout,
+          onTimeout: () {
+            AppLogger.error(
+              'ProfileValidationService.validate: timeout after $_callTimeout',
+            );
+            throw TimeoutException('Profile validation timed out');
+          },
+        );
+
+    return Map<String, dynamic>.from(result.data);
   }
 }
 
@@ -138,6 +163,22 @@ class ProfileValidationService implements ProfileValidationRepository {
 class TimeoutException implements Exception {
   final String message;
   TimeoutException(this.message);
+  @override
+  String toString() => message;
+}
+
+/// Exception thrown when remote profile validation is unavailable and no cache exists.
+class ProfileValidationUnavailableException implements Exception {
+  ProfileValidationUnavailableException(
+    this.message, {
+    required this.minimum,
+    this.cause,
+  });
+
+  final String message;
+  final String minimum;
+  final Object? cause;
+
   @override
   String toString() => message;
 }

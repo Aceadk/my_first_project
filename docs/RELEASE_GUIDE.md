@@ -78,16 +78,35 @@ bundletool build-apks \
 bundletool install-apks --apks=build/app/outputs/bundle/release/app-release.apks
 ```
 
-### 3. Upload to Google Play Console
+### 3. Upload to Internal Testing First
 
 1. Go to [Google Play Console](https://play.google.com/console)
 2. Select CrushHour app
-3. Go to **Release > Production > Create new release**
-4. Upload the AAB file
-5. Add release notes
-6. Submit for review
+3. Open **Release > Testing > Internal testing**
+4. Create a release and upload the AAB
+5. Add release notes and save
+6. Add/confirm internal testers (up to 100)
+7. Roll out to internal testing and verify install + purchase/restore flows
 
-### 4. Google Play Store Listing Requirements
+### 4. Complete Play Console App Content Declarations
+
+Before production submission, verify **Policy and programs > App content** is current:
+- Ads declaration
+- App access (reviewer login instructions)
+- Data safety
+- Content rating
+- Target audience and content
+- Sensitive permissions declarations (if used)
+
+### 5. Add Reviewer App Access Instructions
+
+In **App content > App access**, provide working credentials and exact steps:
+- Demo account email/password
+- Navigation path to core features (Discovery, Matches, Chat)
+- Navigation path to subscription screen and restore action
+- Any environment/test constraints (for example, license tester account for billing tests)
+
+### 6. Google Play Store Listing Requirements
 
 | Asset | Dimensions | Format |
 |-------|-----------|--------|
@@ -101,6 +120,26 @@ Required text:
 - Short Description (max 80 chars)
 - Full Description (max 4000 chars)
 - Privacy Policy URL: https://crushhour.app/privacy
+
+### 7. Subscription Compliance Check (Google Play)
+
+Ensure recurring billing disclosures are aligned between listing and in-app checkout:
+- Product name: `CrushHour Plus`
+- Price: `$9.99/month` baseline (localized price may vary in Play)
+- Recurrence: monthly auto-renewing subscription
+- Cancellation path: Google Play Subscriptions management
+- Terms URL: https://crushhour.app/terms
+- Privacy URL: https://crushhour.app/privacy
+
+Pricing shown in app must match the billed Play price configuration for the same product period.
+
+### 8. Production Rollout
+
+1. Open **Release > Production > Create new release**
+2. Promote the validated build from testing (or upload the final AAB)
+3. Confirm release notes + country/track configuration
+4. Submit for review
+5. Plan for review time (some updates may take up to 7 days)
 
 ## iOS Release (App Store)
 
@@ -140,8 +179,9 @@ flutter build ios --release --dart-define=FLAVOR=production
 3. Configure:
    - App Information (name, category, privacy)
    - Pricing and Availability
+   - In-App Purchases and Subscriptions (group, products, pricing)
    - App Store listing (screenshots, description)
-   - Review Information
+   - Review Information (demo credentials + reviewer notes)
 
 ### 5. App Store Asset Requirements
 
@@ -156,6 +196,24 @@ Required:
 - Support URL
 - Age Rating questionnaire
 - Sign in with Apple (if social login offered)
+
+### 6. Subscription Compliance Check (App Store)
+
+For auto-renewable subscriptions, verify in-app and metadata consistency:
+- Product title, length, and price are clearly displayed in paywall/checkout UI
+- Auto-renewal behavior and cancellation path are disclosed before purchase
+- Terms of Service and Privacy Policy links are visible before purchase
+- In-app price text matches current App Store Connect subscription pricing
+- Subscription review screenshot and review notes are provided in App Store Connect
+
+### 7. App Review Submission Checklist (iOS)
+
+Before sending to review:
+- App Review demo account credentials work and do not expire
+- Review Notes include exact path to subscription screen and restore flow
+- First subscription/new subscription type is attached to an app version submission
+- Subscription status in App Store Connect is `Ready to Submit`
+- Any gated/test-only behavior is explained in Review Notes
 
 ## Version Management
 
@@ -196,6 +254,12 @@ version: 1.0.0+1  # version+buildNumber
 - [ ] Store description written
 - [ ] Support email configured
 - [ ] Privacy Policy URL provided
+- [ ] App Store subscription title/length/price and legal links are shown in-app
+- [ ] App Store Review Notes include test account + subscription test steps
+- [ ] App Store subscription metadata is `Ready to Submit` with review screenshot
+- [ ] Play App content declarations are complete and current
+- [ ] Reviewer app-access instructions are valid and tested
+- [ ] Subscription disclosure copy matches in-app checkout wording
 
 ## Troubleshooting
 

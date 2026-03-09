@@ -47,16 +47,21 @@ class ProfileMediaService implements ProfileMediaRepository {
   /// Whether to use local file fallback when Firebase Storage fails (debug only)
   static bool useFallbackInDebug = true;
 
-  /// Upload a photo to Firebase Storage and return the download URL.
-  /// In debug mode with fallback enabled, returns local path if upload fails.
+  /// Upload a photo to Firebase Storage.
+  /// Returns an explicit typed result for success/failure/fallback paths.
   @override
-  Future<String> uploadPhoto({
+  Future<ProfileMediaUploadResult> uploadPhoto({
     required String userId,
     required String filePath,
   }) async {
     var file = File(filePath);
     if (!await file.exists()) {
-      throw Exception('Photo file not found: $filePath');
+      return ProfileMediaUploadResult.failure(
+        error: ProfileMediaError(
+          code: ProfileMediaErrorCode.fileNotFound,
+          message: 'Photo file not found: $filePath',
+        ),
+      );
     }
 
     try {
@@ -100,8 +105,8 @@ class ProfileMediaService implements ProfileMediaRepository {
       );
 
       AppLogger.debug('ProfileMediaService: Photo uploaded - $downloadUrl');
-      return downloadUrl;
-    } on FirebaseException catch (e) {
+      return ProfileMediaUploadResult.success(url: downloadUrl);
+    } on FirebaseException catch (e, st) {
       AppLogger.debug(
         'ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}',
       );
@@ -120,38 +125,45 @@ class ProfileMediaService implements ProfileMediaRepository {
       AppLogger.debug('    }');
       AppLogger.debug('  }');
 
-      // In debug mode, fall back to local path
-      if (_isDebugMode() && useFallbackInDebug) {
-        AppLogger.debug(
-          'ProfileMediaService: Using local file fallback for development',
-        );
-        return filePath;
-      }
-      rethrow;
-    } catch (e) {
+      return _uploadFailureWithOptionalFallback(
+        localPath: filePath,
+        error: ProfileMediaError(
+          code: ProfileMediaErrorCode.uploadFailed,
+          message: 'Photo upload failed: ${e.message ?? e.code}',
+          cause: e,
+          stackTrace: st,
+        ),
+      );
+    } catch (e, st) {
       AppLogger.error('ProfileMediaService: Photo upload failed - $e');
 
-      // In debug mode, fall back to local path
-      if (_isDebugMode() && useFallbackInDebug) {
-        AppLogger.debug(
-          'ProfileMediaService: Using local file fallback for development',
-        );
-        return filePath;
-      }
-      rethrow;
+      return _uploadFailureWithOptionalFallback(
+        localPath: filePath,
+        error: ProfileMediaError(
+          code: ProfileMediaErrorCode.uploadFailed,
+          message: 'Photo upload failed: $e',
+          cause: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
-  /// Upload a video to Firebase Storage and return the download URL.
-  /// In debug mode with fallback enabled, returns local path if upload fails.
+  /// Upload a video to Firebase Storage.
+  /// Returns an explicit typed result for success/failure/fallback paths.
   @override
-  Future<String> uploadVideo({
+  Future<ProfileMediaUploadResult> uploadVideo({
     required String userId,
     required String filePath,
   }) async {
     final file = File(filePath);
     if (!await file.exists()) {
-      throw Exception('Video file not found: $filePath');
+      return ProfileMediaUploadResult.failure(
+        error: ProfileMediaError(
+          code: ProfileMediaErrorCode.fileNotFound,
+          message: 'Video file not found: $filePath',
+        ),
+      );
     }
 
     try {
@@ -174,48 +186,57 @@ class ProfileMediaService implements ProfileMediaRepository {
       );
 
       AppLogger.debug('ProfileMediaService: Video uploaded - $downloadUrl');
-      return downloadUrl;
-    } on FirebaseException catch (e) {
+      return ProfileMediaUploadResult.success(url: downloadUrl);
+    } on FirebaseException catch (e, st) {
       AppLogger.debug(
         'ProfileMediaService: Firebase Storage error - ${e.code}: ${e.message}',
       );
 
-      // In debug mode, fall back to local path
-      if (_isDebugMode() && useFallbackInDebug) {
-        AppLogger.debug(
-          'ProfileMediaService: Using local file fallback for development',
-        );
-        return filePath;
-      }
-      rethrow;
-    } catch (e) {
+      return _uploadFailureWithOptionalFallback(
+        localPath: filePath,
+        error: ProfileMediaError(
+          code: ProfileMediaErrorCode.uploadFailed,
+          message: 'Video upload failed: ${e.message ?? e.code}',
+          cause: e,
+          stackTrace: st,
+        ),
+      );
+    } catch (e, st) {
       AppLogger.error('ProfileMediaService: Video upload failed - $e');
 
-      // In debug mode, fall back to local path
-      if (_isDebugMode() && useFallbackInDebug) {
-        AppLogger.debug(
-          'ProfileMediaService: Using local file fallback for development',
-        );
-        return filePath;
-      }
-      rethrow;
+      return _uploadFailureWithOptionalFallback(
+        localPath: filePath,
+        error: ProfileMediaError(
+          code: ProfileMediaErrorCode.uploadFailed,
+          message: 'Video upload failed: $e',
+          cause: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
   /// Delete a media file from Firebase Storage.
   @override
-  Future<void> deleteMedia(String url) async {
+  Future<ProfileMediaDeleteResult> deleteMedia(String url) async {
     try {
       if (!url.startsWith('https://firebasestorage.googleapis.com')) {
-        // Not a Firebase Storage URL, skip
-        return;
+        return ProfileMediaDeleteResult.skipped();
       }
 
       await _deleteHandler(url);
       AppLogger.debug('ProfileMediaService: Media deleted - $url');
-    } catch (e) {
+      return ProfileMediaDeleteResult.deleted();
+    } catch (e, st) {
       AppLogger.error('ProfileMediaService: Media delete failed - $e');
-      // Don't rethrow - deletion failures shouldn't block user operations
+      return ProfileMediaDeleteResult.failure(
+        error: ProfileMediaError(
+          code: ProfileMediaErrorCode.deleteFailed,
+          message: 'Media delete failed: $e',
+          cause: e,
+          stackTrace: st,
+        ),
+      );
     }
   }
 
@@ -225,16 +246,17 @@ class ProfileMediaService implements ProfileMediaRepository {
     return !path.startsWith('http://') && !path.startsWith('https://');
   }
 
-  /// Upload local files and return list of URLs (local files get uploaded, remote URLs pass through).
-  /// Skips local files that no longer exist (e.g., temp files that were cleaned up).
+  /// Upload local files and normalize all media paths to remote/local-usable URLs.
+  /// Returns explicit issue details for all recoverable/non-recoverable branches.
   @override
-  Future<({List<String> photoUrls, List<String> videoUrls})> ensureRemoteUrls({
+  Future<ProfileMediaEnsureResult> ensureRemoteUrls({
     required String userId,
     required List<String> photoPaths,
     required List<String> videoPaths,
   }) async {
     final photoUrls = <String>[];
     final videoUrls = <String>[];
+    final issues = <ProfileMediaMigrationIssue>[];
 
     for (final filePath in photoPaths) {
       if (isLocalFile(filePath)) {
@@ -244,20 +266,35 @@ class ProfileMediaService implements ProfileMediaRepository {
           AppLogger.debug(
             'ProfileMediaService: Skipping missing local photo: $filePath',
           );
-          continue; // Skip missing files instead of failing
-        }
-        try {
-          final url = await uploadPhoto(userId: userId, filePath: filePath);
-          photoUrls.add(url);
-        } catch (e) {
-          AppLogger.debug(
-            'ProfileMediaService: Failed to upload photo, skipping: $e',
+          issues.add(
+            ProfileMediaMigrationIssue(
+              mediaType: ProfileMediaType.photo,
+              path: filePath,
+              kind: ProfileMediaMigrationIssueKind.missingLocalFile,
+              error: ProfileMediaError(
+                code: ProfileMediaErrorCode.missingLocalFile,
+                message: 'Missing local photo file: $filePath',
+              ),
+              recoveredWithFallback: false,
+            ),
           );
-          // In debug mode with fallback, still add the local path
-          if (_isDebugMode() && useFallbackInDebug) {
-            photoUrls.add(filePath);
-          }
-          // In release mode, skip the failed photo rather than failing entire save
+          continue;
+        }
+
+        final result = await uploadPhoto(userId: userId, filePath: filePath);
+        if (result.isSuccess && result.url != null) {
+          photoUrls.add(result.url!);
+        }
+        if (result.error != null) {
+          issues.add(
+            ProfileMediaMigrationIssue(
+              mediaType: ProfileMediaType.photo,
+              path: filePath,
+              kind: ProfileMediaMigrationIssueKind.uploadFailed,
+              error: result.error!,
+              recoveredWithFallback: result.usedLocalFallback,
+            ),
+          );
         }
       } else {
         photoUrls.add(filePath);
@@ -272,27 +309,46 @@ class ProfileMediaService implements ProfileMediaRepository {
           AppLogger.debug(
             'ProfileMediaService: Skipping missing local video: $filePath',
           );
-          continue; // Skip missing files instead of failing
-        }
-        try {
-          final url = await uploadVideo(userId: userId, filePath: filePath);
-          videoUrls.add(url);
-        } catch (e) {
-          AppLogger.debug(
-            'ProfileMediaService: Failed to upload video, skipping: $e',
+          issues.add(
+            ProfileMediaMigrationIssue(
+              mediaType: ProfileMediaType.video,
+              path: filePath,
+              kind: ProfileMediaMigrationIssueKind.missingLocalFile,
+              error: ProfileMediaError(
+                code: ProfileMediaErrorCode.missingLocalFile,
+                message: 'Missing local video file: $filePath',
+              ),
+              recoveredWithFallback: false,
+            ),
           );
-          // In debug mode with fallback, still add the local path
-          if (_isDebugMode() && useFallbackInDebug) {
-            videoUrls.add(filePath);
-          }
-          // In release mode, skip the failed video rather than failing entire save
+          continue;
+        }
+
+        final result = await uploadVideo(userId: userId, filePath: filePath);
+        if (result.isSuccess && result.url != null) {
+          videoUrls.add(result.url!);
+        }
+        if (result.error != null) {
+          issues.add(
+            ProfileMediaMigrationIssue(
+              mediaType: ProfileMediaType.video,
+              path: filePath,
+              kind: ProfileMediaMigrationIssueKind.uploadFailed,
+              error: result.error!,
+              recoveredWithFallback: result.usedLocalFallback,
+            ),
+          );
         }
       } else {
         videoUrls.add(filePath);
       }
     }
 
-    return (photoUrls: photoUrls, videoUrls: videoUrls);
+    return ProfileMediaEnsureResult(
+      photoUrls: photoUrls,
+      videoUrls: videoUrls,
+      issues: issues,
+    );
   }
 
   String _getContentType(String extension) {
@@ -342,5 +398,22 @@ class ProfileMediaService implements ProfileMediaRepository {
   Future<void> _deleteWithFirebase(String url) async {
     final ref = _storageInstance.refFromURL(url);
     await ref.delete();
+  }
+
+  ProfileMediaUploadResult _uploadFailureWithOptionalFallback({
+    required String localPath,
+    required ProfileMediaError error,
+  }) {
+    if (_isDebugMode() && useFallbackInDebug) {
+      AppLogger.debug(
+        'ProfileMediaService: Using local file fallback for development',
+      );
+      return ProfileMediaUploadResult.success(
+        url: localPath,
+        usedLocalFallback: true,
+        error: error,
+      );
+    }
+    return ProfileMediaUploadResult.failure(error: error);
   }
 }

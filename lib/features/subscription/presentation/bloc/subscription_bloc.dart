@@ -51,33 +51,23 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     // Track checkout started
     AnalyticsService.instance.logCheckoutStarted(plan: 'plus');
 
-    final startResult = await Result.guard(
-      () => subscriptionRepository.startPlusCheckout(),
-      logLabel: 'SubscriptionRepository.startPlusCheckout',
+    final purchaseResult = await Result.guard(
+      () => subscriptionRepository.purchasePlusPlan(),
+      logLabel: 'SubscriptionRepository.purchasePlusPlan',
       fallbackError: ErrorMessages.checkoutFailed,
     );
-    final url = startResult.data;
-    if (!startResult.isSuccess || url == null) {
+
+    if (!purchaseResult.isSuccess) {
       emit(
         state.copyWith(
           isCheckoutInProgress: false,
-          errorMessage: startResult.errorMessage,
+          errorMessage: purchaseResult.errorMessage,
         ),
       );
       return;
     }
 
-    final launchResult = await Result.guard(
-      () => subscriptionRepository.launchCheckoutUrl(url),
-      logLabel: 'SubscriptionRepository.launchCheckoutUrl',
-      fallbackError: ErrorMessages.checkoutFailed,
-    );
-    emit(
-      state.copyWith(
-        isCheckoutInProgress: false,
-        errorMessage: launchResult.errorMessage,
-      ),
-    );
+    emit(state.copyWith(isCheckoutInProgress: false, errorMessage: null));
   }
 
   void _onPlanUpdated(
@@ -112,7 +102,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     final result = await Result.guard(
       () => subscriptionRepository.refreshStatus(),
       logLabel: 'SubscriptionRepository.refreshStatus',
-      fallbackError: ErrorMessages.loadSubscriptionFailed,
+      fallbackError: ErrorMessages.restorePurchasesFailed,
     );
     if (!result.isSuccess || result.data == null) {
       emit(

@@ -11,6 +11,8 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
+enum _MediaPickType { photo, video }
+
 class ProfileMediaSelection {
   final List<String> photos;
   final List<String> videos;
@@ -50,6 +52,8 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
   late List<String> _videos;
   late int _primaryPhotoIndex;
   final _picker = ImagePicker();
+  final _addPhotoTileKey = GlobalKey();
+  final _addVideoTileKey = GlobalKey();
   bool _isPickingMedia = false; // Prevent concurrent picker operations
 
   @override
@@ -153,11 +157,13 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
 
     _isPickingMedia = true;
     try {
-      final files = await _picker.pickMultiImage(
-        imageQuality: 72,
-        maxWidth: 1440,
-        requestFullMetadata: false,
+      final source = await _pickMediaSource(
+        type: _MediaPickType.photo,
+        anchorKey: _addPhotoTileKey,
       );
+      if (source == null) return;
+
+      final files = await _pickPhotoFiles(source: source, remaining: remaining);
       if (files.isEmpty) return;
 
       final selected = files.take(remaining).toList();
@@ -193,6 +199,9 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully
       AppLogger.error('Image picker error: ${e.code} - ${e.message}');
+      if (e.code != 'already_active') {
+        _showError('Unable to open photo picker. Please try again.');
+      }
     } finally {
       _isPickingMedia = false;
     }
@@ -208,8 +217,14 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
 
     _isPickingMedia = true;
     try {
+      final source = await _pickMediaSource(
+        type: _MediaPickType.video,
+        anchorKey: _addVideoTileKey,
+      );
+      if (source == null) return;
+
       final picked = await _picker.pickVideo(
-        source: ImageSource.gallery,
+        source: source,
         maxDuration: ProfileMediaLimits.maxVideoDuration,
       );
       if (picked == null) return;
@@ -220,9 +235,138 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     } on PlatformException catch (e) {
       // Handle "already_active" error gracefully
       AppLogger.error('Video picker error: ${e.code} - ${e.message}');
+      if (e.code != 'already_active') {
+        _showError('Unable to open video picker. Please try again.');
+      }
     } finally {
       _isPickingMedia = false;
     }
+  }
+
+  Future<List<XFile>> _pickPhotoFiles({
+    required ImageSource source,
+    required int remaining,
+  }) async {
+    if (source == ImageSource.camera) {
+      final captured = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 72,
+        maxWidth: 1440,
+        requestFullMetadata: false,
+      );
+      return captured == null ? const [] : [captured];
+    }
+
+    return _picker.pickMultiImage(
+      imageQuality: 72,
+      maxWidth: 1440,
+      requestFullMetadata: false,
+      limit: remaining,
+    );
+  }
+
+  Future<ImageSource?> _pickMediaSource({
+    required _MediaPickType type,
+    required GlobalKey anchorKey,
+  }) {
+    if (_shouldUseAnchoredPicker()) {
+      return _showAnchoredSourceMenu(type: type, anchorKey: anchorKey);
+    }
+    return _showBottomSheetSourceMenu(type: type);
+  }
+
+  bool _shouldUseAnchoredPicker() {
+    final mediaQuery = MediaQuery.maybeOf(context);
+    if (mediaQuery == null) return false;
+    final isIOS = Theme.of(context).platform == TargetPlatform.iOS;
+    return isIOS && mediaQuery.size.shortestSide >= 600;
+  }
+
+  String _cameraLabel(_MediaPickType type) {
+    final l10n = AppLocalizations.of(context);
+    if (type == _MediaPickType.photo) {
+      return l10n.takePhoto;
+    }
+    return 'Record Video';
+  }
+
+  String _galleryLabel() => AppLocalizations.of(context).chooseFromGallery;
+
+  Future<ImageSource?> _showBottomSheetSourceMenu({
+    required _MediaPickType type,
+  }) {
+    final cameraLabel = _cameraLabel(type);
+    final galleryLabel = _galleryLabel();
+    final cameraIcon = type == _MediaPickType.photo
+        ? Icons.photo_camera_outlined
+        : Icons.videocam_outlined;
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(cameraIcon),
+                title: Text(cameraLabel),
+                onTap: () {
+                  Navigator.of(sheetContext).pop(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(galleryLabel),
+                onTap: () {
+                  Navigator.of(sheetContext).pop(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<ImageSource?> _showAnchoredSourceMenu({
+    required _MediaPickType type,
+    required GlobalKey anchorKey,
+  }) {
+    final anchorContext = anchorKey.currentContext;
+    final overlayBox =
+        Overlay.maybeOf(context)?.context.findRenderObject() as RenderBox?;
+    final buttonBox = anchorContext?.findRenderObject() as RenderBox?;
+
+    if (overlayBox == null || buttonBox == null) {
+      return _showBottomSheetSourceMenu(type: type);
+    }
+
+    final targetRect = buttonBox.localToGlobal(
+          Offset.zero,
+          ancestor: overlayBox,
+        ) &
+        buttonBox.size;
+    final position = RelativeRect.fromRect(
+      targetRect,
+      Offset.zero & overlayBox.size,
+    );
+    final cameraLabel = _cameraLabel(type);
+    final galleryLabel = _galleryLabel();
+
+    return showMenu<ImageSource>(
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem<ImageSource>(
+          value: ImageSource.camera,
+          child: Text(cameraLabel, overflow: TextOverflow.ellipsis),
+        ),
+        PopupMenuItem<ImageSource>(
+          value: ImageSource.gallery,
+          child: Text(galleryLabel, overflow: TextOverflow.ellipsis),
+        ),
+      ],
+    );
   }
 
   void _removePhoto(int index) {
@@ -275,11 +419,13 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
               ),
             ),
             _AddTile(
+              key: _addPhotoTileKey,
               icon: Icons.add_a_photo_outlined,
               enabled: widget.enabled,
               onTap: _addPhotos,
             ),
             _AddTile(
+              key: _addVideoTileKey,
               icon: Icons.videocam_outlined,
               enabled: widget.enabled,
               onTap: _addVideo,
@@ -439,6 +585,7 @@ class _MediaTile extends StatelessWidget {
 
 class _AddTile extends StatelessWidget {
   const _AddTile({
+    super.key,
     required this.icon,
     required this.enabled,
     required this.onTap,

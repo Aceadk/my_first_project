@@ -3,6 +3,7 @@ import 'package:crushhour/core/connectivity/connectivity_cubit.dart';
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/services/badge_counter_service.dart';
+import 'package:crushhour/core/services/push_notification_service.dart';
 import 'package:crushhour/features/analytics/data/services/profile_insights_service.dart';
 import 'package:crushhour/features/analytics/domain/repositories/profile_insights_repository.dart';
 import 'package:crushhour/features/analytics/presentation/bloc/profile_insights_cubit.dart';
@@ -77,6 +78,7 @@ import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_c
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
+import 'package:crushhour/features/settings/data/preferences/notification_preference_sync_service.dart';
 import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
 import 'package:crushhour/features/social/data/services/date_idea_service.dart';
 import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
@@ -336,7 +338,13 @@ class CrushDI {
         ),
       ),
       BlocProvider<NotificationSettingsCubit>(
-        create: (_) => NotificationSettingsCubit(preferences: preferences),
+        create: (_) => NotificationSettingsCubit(
+          preferences: preferences,
+          syncService: NotificationPreferenceSyncService.withPushService(
+            preferences: preferences,
+            pushService: PushNotificationService.instance,
+          ),
+        ),
       ),
       BlocProvider<DiscoverySettingsCubit>(
         create: (_) => DiscoverySettingsCubit(preferences: preferences),

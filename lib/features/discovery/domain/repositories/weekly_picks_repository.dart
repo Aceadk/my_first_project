@@ -1,4 +1,4 @@
-import 'package:crushhour/features/discovery/data/models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
 
 abstract class WeeklyPicksRepository {
   Stream<WeeklyPicks> get picksStream;

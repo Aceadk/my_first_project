@@ -8,6 +8,14 @@ import 'package:crushhour/features/social/domain/models/date_idea.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Screen displaying date ideas for matches.
+const Key dateIdeasContentConstraintKey = ValueKey<String>(
+  'date_ideas_content_constraint',
+);
+
+double dateIdeasContentMaxWidthFor(double screenWidth) {
+  return DsBreakpoints.contentMaxWidth(screenWidth);
+}
+
 class DateIdeasScreen extends StatefulWidget {
   const DateIdeasScreen({super.key, this.matchId});
 
@@ -77,141 +85,167 @@ class _DateIdeasScreenState extends State<DateIdeasScreen> {
           ),
           // Content
           SafeArea(
-            child: Column(
-              children: [
-                // Search and filters
-                Padding(
-                  padding: const EdgeInsets.all(DsSpacing.lg),
-                  child: Column(
-                    children: [
-                      // Search bar
-                      BlocBuilder<DateIdeasCubit, DateIdeasState>(
-                        buildWhen: (previous, current) =>
-                            previous.searchQuery != current.searchQuery,
-                        builder: (context, state) {
-                          return GlassTextField(
-                            hintText: 'Search date ideas...',
-                            prefixIcon: Icons.search,
-                            onChanged: (value) {
-                              context.read<DateIdeasCubit>().search(value);
-                            },
-                          );
-                        },
-                      ),
-                      DsGap.md,
-
-                      // Category filters
-                      BlocBuilder<DateIdeasCubit, DateIdeasState>(
-                        buildWhen: (previous, current) =>
-                            previous.selectedCategory !=
-                            current.selectedCategory,
-                        builder: (context, state) {
-                          return SizedBox(
-                            height: 40,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                _buildFilterChip(
-                                  label: 'All',
-                                  isSelected: state.selectedCategory == null,
-                                  onTap: () {
-                                    context
-                                        .read<DateIdeasCubit>()
-                                        .filterByCategory(null);
-                                  },
-                                ),
-                                ...DateCategory.values.map((category) {
-                                  return _buildFilterChip(
-                                    label: category.displayName,
-                                    icon: category.emoji,
-                                    isSelected:
-                                        state.selectedCategory == category,
-                                    onTap: () {
-                                      context
-                                          .read<DateIdeasCubit>()
-                                          .filterByCategory(category);
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final maxContentWidth = dateIdeasContentMaxWidthFor(
+                  constraints.maxWidth,
+                );
+                return Align(
+                  alignment: AlignmentDirectional.topCenter,
+                  child: ConstrainedBox(
+                    key: dateIdeasContentConstraintKey,
+                    constraints: BoxConstraints(
+                      maxWidth: maxContentWidth,
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Column(
+                      children: [
+                        // Search and filters
+                        Padding(
+                          padding: const EdgeInsets.all(DsSpacing.lg),
+                          child: Column(
+                            children: [
+                              // Search bar
+                              BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                                buildWhen: (previous, current) =>
+                                    previous.searchQuery != current.searchQuery,
+                                builder: (context, state) {
+                                  return GlassTextField(
+                                    hintText: 'Search date ideas...',
+                                    prefixIcon: Icons.search,
+                                    onChanged: (value) {
+                                      context.read<DateIdeasCubit>().search(
+                                        value,
+                                      );
                                     },
                                   );
-                                }),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                      DsGap.sm,
+                                },
+                              ),
+                              DsGap.md,
 
-                      // Cost filters
-                      BlocBuilder<DateIdeasCubit, DateIdeasState>(
-                        buildWhen: (previous, current) =>
-                            previous.selectedCostLevel !=
-                            current.selectedCostLevel,
-                        builder: (context, state) {
-                          return SizedBox(
-                            height: 32,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                _buildCostChip(
-                                  cost: null,
-                                  isSelected: state.selectedCostLevel == null,
-                                  onTap: () {
-                                    context
-                                        .read<DateIdeasCubit>()
-                                        .filterByCostLevel(null);
-                                  },
-                                ),
-                                ...DateCostLevel.values.map(
-                                  (cost) => _buildCostChip(
-                                    cost: cost,
-                                    isSelected: state.selectedCostLevel == cost,
-                                    onTap: () {
-                                      context
-                                          .read<DateIdeasCubit>()
-                                          .filterByCostLevel(cost);
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                              // Category filters
+                              BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                                buildWhen: (previous, current) =>
+                                    previous.selectedCategory !=
+                                    current.selectedCategory,
+                                builder: (context, state) {
+                                  return SizedBox(
+                                    height: 40,
+                                    child: ListView(
+                                      scrollDirection: Axis.horizontal,
+                                      children: [
+                                        _buildFilterChip(
+                                          label: 'All',
+                                          isSelected:
+                                              state.selectedCategory == null,
+                                          onTap: () {
+                                            context
+                                                .read<DateIdeasCubit>()
+                                                .filterByCategory(null);
+                                          },
+                                        ),
+                                        ...DateCategory.values.map((category) {
+                                          return _buildFilterChip(
+                                            label: category.displayName,
+                                            icon: category.emoji,
+                                            isSelected:
+                                                state.selectedCategory ==
+                                                category,
+                                            onTap: () {
+                                              context
+                                                  .read<DateIdeasCubit>()
+                                                  .filterByCategory(category);
+                                            },
+                                          );
+                                        }),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                              DsGap.sm,
 
-                // Ideas list
-                Expanded(
-                  child: BlocBuilder<DateIdeasCubit, DateIdeasState>(
-                    builder: (context, state) {
-                      if (state.isLoading) {
-                        return _buildLoadingState();
-                      }
-
-                      if (state.errorMessage != null) {
-                        return _buildErrorState(textColor, state.errorMessage!);
-                      }
-
-                      if (state.filteredIdeas.isEmpty) {
-                        return _buildEmptyState(textColor);
-                      }
-
-                      return ListView.builder(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: DsSpacing.lg,
+                              // Cost filters
+                              BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                                buildWhen: (previous, current) =>
+                                    previous.selectedCostLevel !=
+                                    current.selectedCostLevel,
+                                builder: (context, state) {
+                                  return SizedBox(
+                                    height: 32,
+                                    child: ListView(
+                                      scrollDirection: Axis.horizontal,
+                                      children: [
+                                        _buildCostChip(
+                                          cost: null,
+                                          isSelected:
+                                              state.selectedCostLevel == null,
+                                          onTap: () {
+                                            context
+                                                .read<DateIdeasCubit>()
+                                                .filterByCostLevel(null);
+                                          },
+                                        ),
+                                        ...DateCostLevel.values.map(
+                                          (cost) => _buildCostChip(
+                                            cost: cost,
+                                            isSelected:
+                                                state.selectedCostLevel == cost,
+                                            onTap: () {
+                                              context
+                                                  .read<DateIdeasCubit>()
+                                                  .filterByCostLevel(cost);
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                        itemCount: state.filteredIdeas.length,
-                        itemBuilder: (context, index) {
-                          return _buildIdeaCard(
-                            state.filteredIdeas[index],
-                            textColor,
-                          );
-                        },
-                      );
-                    },
+
+                        // Ideas list
+                        Expanded(
+                          child: BlocBuilder<DateIdeasCubit, DateIdeasState>(
+                            builder: (context, state) {
+                              if (state.isLoading) {
+                                return _buildLoadingState();
+                              }
+
+                              if (state.errorMessage != null) {
+                                return _buildErrorState(
+                                  textColor,
+                                  state.errorMessage!,
+                                );
+                              }
+
+                              if (state.filteredIdeas.isEmpty) {
+                                return _buildEmptyState(textColor);
+                              }
+
+                              return ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: DsSpacing.lg,
+                                ),
+                                itemCount: state.filteredIdeas.length,
+                                itemBuilder: (context, index) {
+                                  return _buildIdeaCard(
+                                    state.filteredIdeas[index],
+                                    textColor,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                );
+              },
             ),
           ),
         ],

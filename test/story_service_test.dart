@@ -1,5 +1,6 @@
 import 'package:crushhour/data/models/profile_story.dart';
 import 'package:crushhour/features/discovery/data/services/story_service.dart';
+import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Future<void> _clearStories(StoryService service) async {

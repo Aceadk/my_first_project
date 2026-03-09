@@ -3,12 +3,21 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/usecases/auth_flow_use_cases.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+const Key termsConditionsContentConstraintKey = ValueKey<String>(
+  'terms_conditions_content_constraint',
+);
+
+double termsConditionsContentMaxWidthFor(double screenWidth) {
+  return DsBreakpoints.contentMaxWidth(screenWidth);
+}
 
 class TermsConditionsScreen extends StatefulWidget {
   const TermsConditionsScreen({super.key});
@@ -22,6 +31,10 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
   bool _hasScrolledToEnd = false;
   bool _isAgreed = false;
   bool _isLoading = false;
+
+  AuthFlowUseCases _authFlowUseCases() {
+    return AuthFlowUseCases(context.read<AuthRepository>());
+  }
 
   @override
   void initState() {
@@ -48,24 +61,26 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
   Future<void> _acceptTerms() async {
     setState(() => _isLoading = true);
 
-    try {
-      final authRepo = context.read<AuthRepository>();
-      await authRepo.acceptTermsAndConditions();
-      final refreshedUser = await authRepo.refreshCurrentUser();
+    final acceptResult = await _authFlowUseCases().acceptTermsAndConditions();
+    if (!acceptResult.isSuccess) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      showErrorSnackBar(
+        context,
+        acceptResult.errorMessage ??
+            AppLocalizations.of(context).onboardingTermsSaveFailed,
+      );
+      return;
+    }
 
-      if (mounted) {
-        // Refresh auth state so router has updated user data
-        context.read<AuthBloc>().add(AuthUserRefreshRequested());
-        _routeAfterTerms(refreshedUser);
-      }
-    } catch (e) {
-      if (mounted) {
-        showErrorSnackBar(context, 'Failed to save. Please try again.');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    final refreshedUserResult = await _authFlowUseCases().refreshCurrentUser();
+    if (mounted) {
+      // Refresh auth state so router has updated user data
+      context.read<AuthBloc>().add(AuthUserRefreshRequested());
+      _routeAfterTerms(refreshedUserResult.data ?? acceptResult.data);
+    }
+    if (mounted) {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -102,10 +117,11 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context).termsConditions),
+        title: Text(l10n.termsConditions),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -114,7 +130,12 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
+            key: termsConditionsContentConstraintKey,
+            constraints: BoxConstraints(
+              maxWidth: termsConditionsContentMaxWidthFor(
+                MediaQuery.sizeOf(context).width,
+              ),
+            ),
             child: Column(
               children: [
                 // Progress indicator
@@ -126,7 +147,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                       Row(
                         children: [
                           Text(
-                            'Please read and accept',
+                            l10n.onboardingTermsReadAndAccept,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: DsColors.primary,
@@ -136,7 +157,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                           const Spacer(),
                           if (!_hasScrolledToEnd)
                             Text(
-                              'Scroll to continue',
+                              l10n.onboardingTermsScrollToContinue,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: isDark
@@ -189,76 +210,58 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                           children: [
                             _buildSection(
                               context,
-                              'Welcome to Crush',
-                              'By using our dating app, you agree to these Terms and Conditions. '
-                                  'Please read them carefully before proceeding.',
+                              l10n.onboardingTermsWelcomeTitle,
+                              l10n.onboardingTermsWelcomeBody,
                             ),
                             _buildSection(
                               context,
-                              '1. Eligibility',
-                              'You must be at least 18 years old to use Crush. By creating an account, '
-                                  'you confirm that you are of legal age and have the right to enter into this agreement.',
+                              l10n.onboardingTermsEligibilityTitle,
+                              l10n.onboardingTermsEligibilityBody,
                             ),
                             _buildSection(
                               context,
-                              '2. Account Security',
-                              'You are responsible for maintaining the confidentiality of your account credentials. '
-                                  'Notify us immediately if you suspect unauthorized access to your account.',
+                              l10n.onboardingTermsAccountSecurityTitle,
+                              l10n.onboardingTermsAccountSecurityBody,
                             ),
                             _buildSection(
                               context,
-                              '3. User Conduct',
-                              'You agree to:\n'
-                                  '• Provide accurate information\n'
-                                  '• Treat other users with respect\n'
-                                  '• Not engage in harassment, hate speech, or illegal activities\n'
-                                  '• Not impersonate others or create fake profiles\n'
-                                  '• Not share inappropriate or explicit content',
+                              l10n.onboardingTermsUserConductTitle,
+                              l10n.onboardingTermsUserConductBody,
                             ),
                             _buildSection(
                               context,
-                              '4. Privacy',
-                              'Your privacy is important to us. We collect and process your personal data '
-                                  'in accordance with our Privacy Policy. By using Crush, you consent to our '
-                                  'data practices as described in the Privacy Policy.',
+                              l10n.onboardingTermsPrivacyTitle,
+                              l10n.onboardingTermsPrivacyBody,
                             ),
                             _buildSection(
                               context,
-                              '5. Content Ownership',
-                              'You retain ownership of content you post. However, you grant Crush a '
-                                  'non-exclusive license to use, display, and distribute your content '
-                                  'within the app for the purpose of providing our services.',
+                              l10n.onboardingTermsContentOwnershipTitle,
+                              l10n.onboardingTermsContentOwnershipBody,
                             ),
                             _buildSection(
                               context,
-                              '6. Safety',
-                              'While we implement safety measures, you are responsible for your own safety '
-                                  'when meeting people from the app. We recommend meeting in public places '
-                                  'and informing someone you trust about your plans.',
+                              l10n.onboardingTermsSafetyTitle,
+                              l10n.onboardingTermsSafetyBody,
                             ),
                             _buildSection(
                               context,
-                              '7. Termination',
-                              'We reserve the right to suspend or terminate your account if you violate '
-                                  'these terms. You may also delete your account at any time through the app settings.',
+                              l10n.onboardingTermsTerminationTitle,
+                              l10n.onboardingTermsTerminationBody,
                             ),
                             _buildSection(
                               context,
-                              '8. Disclaimer',
-                              'Crush is provided "as is" without warranties. We do not guarantee '
-                                  'that you will find a match or that other users\' information is accurate.',
+                              l10n.onboardingTermsDisclaimerTitle,
+                              l10n.onboardingTermsDisclaimerBody,
                             ),
                             _buildSection(
                               context,
-                              '9. Changes to Terms',
-                              'We may update these terms from time to time. Continued use of the app '
-                                  'after changes constitutes acceptance of the new terms.',
+                              l10n.onboardingTermsChangesTitle,
+                              l10n.onboardingTermsChangesBody,
                             ),
                             _buildSection(
                               context,
-                              '10. Contact',
-                              'If you have questions about these terms, please contact us through '
-                                  'the app\'s support feature or email support@crushhour.app.',
+                              l10n.onboardingTermsContactTitle,
+                              l10n.onboardingTermsContactBody,
                             ),
                             DsGap.xl,
                             // End marker
@@ -274,18 +277,18 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                                   ),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Icons.check_circle_outline,
                                       size: 18,
                                       color: DsColors.success,
                                     ),
-                                    SizedBox(width: 8),
+                                    const SizedBox(width: 8),
                                     Text(
-                                      'End of Terms',
-                                      style: TextStyle(
+                                      l10n.onboardingTermsEndLabel,
+                                      style: const TextStyle(
                                         color: DsColors.success,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -309,10 +312,18 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                     children: [
                       // Checkbox
                       Semantics(
+                        container: true,
+                        enabled: _hasScrolledToEnd,
                         checked: _isAgreed,
-                        label:
-                            'I have read and agree to the Terms and Conditions and Privacy Policy',
+                        label: l10n.onboardingTermsAgreementLabel,
+                        hint: _hasScrolledToEnd
+                            ? l10n.onboardingTermsAgreementToggleHint
+                            : l10n.onboardingTermsScrollHint,
+                        onTap: _hasScrolledToEnd
+                            ? () => setState(() => _isAgreed = !_isAgreed)
+                            : null,
                         child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: _hasScrolledToEnd
                               ? () => setState(() => _isAgreed = !_isAgreed)
                               : null,
@@ -370,7 +381,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'I have read and agree to the Terms and Conditions and Privacy Policy',
+                                    l10n.onboardingTermsAgreementLabel,
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
@@ -394,7 +405,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                       // Continue button
                       Semantics(
                         button: true,
-                        label: 'Continue',
+                        label: l10n.onboardingTermsContinueSemantics,
                         child: SizedBox(
                           width: double.infinity,
                           child: GlassPrimaryButton(
@@ -411,9 +422,9 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                                       color: DsColors.backgroundLight,
                                     ),
                                   )
-                                : const Text(
-                                    'Continue',
-                                    style: TextStyle(
+                                : Text(
+                                    l10n.commonContinue,
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -425,7 +436,7 @@ class _TermsConditionsScreenState extends State<TermsConditionsScreen> {
                       // Hint text
                       if (!_hasScrolledToEnd)
                         Text(
-                          'Please scroll down to read all terms before agreeing',
+                          l10n.onboardingTermsScrollHint,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(
                                 color: isDark

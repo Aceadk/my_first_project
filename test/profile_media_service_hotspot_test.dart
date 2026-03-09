@@ -1,10 +1,17 @@
 import 'dart:io';
 
 import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
+
+const _pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('ProfileMediaService hotspot branches', () {
     late Directory tempDir;
 
@@ -12,11 +19,20 @@ void main() {
       tempDir = await Directory.systemTemp.createTemp(
         'profile_media_hotspot_test_',
       );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(_pathProviderChannel, (call) async {
+            if (call.method == 'getTemporaryDirectory') {
+              return tempDir.path;
+            }
+            return null;
+          });
       ProfileMediaService.useFallbackInDebug = true;
     });
 
     tearDown(() async {
       ProfileMediaService.useFallbackInDebug = true;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(_pathProviderChannel, null);
       if (await tempDir.exists()) {
         await tempDir.delete(recursive: true);
       }
@@ -48,11 +64,12 @@ void main() {
 
       for (final entry in matrix.entries) {
         final file = await _createFile(tempDir, 'photo${entry.key}');
-        final url = await service.uploadPhoto(
+        final result = await service.uploadPhoto(
           userId: 'user-1',
           filePath: file.path,
         );
-        expect(url, contains(file.path.split('/').last));
+        expect(result.isSuccess, isTrue);
+        expect(result.url, contains(file.path.split('/').last));
       }
 
       expect(capturedTypes, matrix.values.toList());
@@ -62,6 +79,42 @@ void main() {
         ),
         isTrue,
       );
+    });
+
+    test('uploadPhoto strips EXIF metadata before upload', () async {
+      final sourceBytes = _createJpegWithExif();
+      final sourceExif = img.decodeJpgExif(sourceBytes);
+      expect(sourceExif, isNotNull);
+      expect(sourceExif!.gpsIfd.hasGPSLatitude, isTrue);
+      expect(sourceExif.gpsIfd.hasGPSLongitude, isTrue);
+      expect(sourceExif.imageIfd.hasMake, isTrue);
+      expect(_containsExifSignature(sourceBytes), isTrue);
+
+      final sourceFile = File('${tempDir.path}/source_with_exif.jpg');
+      await sourceFile.writeAsBytes(sourceBytes);
+
+      Uint8List? uploadedBytes;
+      final service = ProfileMediaService(
+        uploadHandler:
+            ({required storagePath, required file, required metadata}) async {
+              uploadedBytes = await file.readAsBytes();
+              expect(metadata.contentType, 'image/jpeg');
+              expect(storagePath, 'users/user-1/photos/fixed-id.jpg');
+              return 'https://cdn.example.com/uploaded.jpg';
+            },
+        uuidGenerator: () => 'fixed-id',
+      );
+
+      final result = await service.uploadPhoto(
+        userId: 'user-1',
+        filePath: sourceFile.path,
+      );
+
+      expect(result.isSuccess, isTrue);
+      expect(result.url, 'https://cdn.example.com/uploaded.jpg');
+      expect(uploadedBytes, isNotNull);
+      expect(_containsExifSignature(uploadedBytes!), isFalse);
+      expect(img.decodeJpgExif(uploadedBytes!), isNull);
     });
 
     test('uploadVideo maps all supported video content types', () async {
@@ -87,11 +140,12 @@ void main() {
 
       for (final entry in matrix.entries) {
         final file = await _createFile(tempDir, 'video${entry.key}');
-        final url = await service.uploadVideo(
+        final result = await service.uploadVideo(
           userId: 'user-1',
           filePath: file.path,
         );
-        expect(url, contains(file.path.split('/').last));
+        expect(result.isSuccess, isTrue);
+        expect(result.url, contains(file.path.split('/').last));
       }
 
       expect(capturedTypes, matrix.values.toList());
@@ -121,7 +175,10 @@ void main() {
         userId: 'user-1',
         filePath: file.path,
       );
-      expect(result, file.path);
+      expect(result.isSuccess, isTrue);
+      expect(result.url, file.path);
+      expect(result.usedLocalFallback, isTrue);
+      expect(result.error?.code, ProfileMediaErrorCode.uploadFailed);
     });
 
     test('uploadVideo falls back on generic exception in debug', () async {
@@ -138,11 +195,14 @@ void main() {
         userId: 'user-1',
         filePath: file.path,
       );
-      expect(result, file.path);
+      expect(result.isSuccess, isTrue);
+      expect(result.url, file.path);
+      expect(result.usedLocalFallback, isTrue);
+      expect(result.error?.code, ProfileMediaErrorCode.uploadFailed);
     });
 
     test(
-      'upload methods rethrow when fallback is disabled or non-debug',
+      'upload methods return explicit failure when fallback is disabled or non-debug',
       () async {
         final photo = await _createFile(tempDir, 'photo.jpg');
         final video = await _createFile(tempDir, 'video.mp4');
@@ -159,11 +219,12 @@ void main() {
               },
         );
 
-        await expectLater(
-          () =>
-              debugService.uploadPhoto(userId: 'user-1', filePath: photo.path),
-          throwsA(isA<FirebaseException>()),
+        final photoResult = await debugService.uploadPhoto(
+          userId: 'user-1',
+          filePath: photo.path,
         );
+        expect(photoResult.isSuccess, isFalse);
+        expect(photoResult.error?.code, ProfileMediaErrorCode.uploadFailed);
 
         final releaseService = ProfileMediaService(
           isDebugMode: () => false,
@@ -173,13 +234,12 @@ void main() {
               },
         );
 
-        await expectLater(
-          () => releaseService.uploadVideo(
-            userId: 'user-1',
-            filePath: video.path,
-          ),
-          throwsA(isA<Exception>()),
+        final videoResult = await releaseService.uploadVideo(
+          userId: 'user-1',
+          filePath: video.path,
         );
+        expect(videoResult.isSuccess, isFalse);
+        expect(videoResult.error?.code, ProfileMediaErrorCode.uploadFailed);
       },
     );
 
@@ -194,13 +254,19 @@ void main() {
           },
         );
 
-        await service.deleteMedia('https://example.com/not-firebase');
-        await service.deleteMedia('/local/path.jpg');
-        await service.deleteMedia(
+        final nonFirebase = await service.deleteMedia(
+          'https://example.com/not-firebase',
+        );
+        final localPath = await service.deleteMedia('/local/path.jpg');
+        final firebaseUrl = await service.deleteMedia(
           'https://firebasestorage.googleapis.com/v0/b/demo/o/users%2F1%2Fphoto.jpg',
         );
 
         expect(deleteCalls, 1);
+        expect(nonFirebase.skipped, isTrue);
+        expect(localPath.skipped, isTrue);
+        expect(firebaseUrl.isSuccess, isFalse);
+        expect(firebaseUrl.error?.code, ProfileMediaErrorCode.deleteFailed);
       },
     );
 
@@ -266,6 +332,18 @@ void main() {
           debugResult.videoUrls,
           contains('https://cdn.example.com/already_remote.mp4'),
         );
+        expect(
+          debugResult.issues.any(
+            (i) => i.path == failPhoto.path && i.recoveredWithFallback == true,
+          ),
+          isTrue,
+        );
+        expect(
+          debugResult.issues.any(
+            (i) => i.path == failVideo.path && i.recoveredWithFallback == true,
+          ),
+          isTrue,
+        );
 
         final releaseService = ProfileMediaService(
           isDebugMode: () => false,
@@ -283,6 +361,7 @@ void main() {
 
         expect(releaseResult.photoUrls, isEmpty);
         expect(releaseResult.videoUrls, isEmpty);
+        expect(releaseResult.hasBlockingFailures, isTrue);
       },
     );
   });
@@ -292,4 +371,30 @@ Future<File> _createFile(Directory dir, String name) async {
   final file = File('${dir.path}/$name');
   await file.writeAsString('bytes:$name');
   return file;
+}
+
+Uint8List _createJpegWithExif() {
+  final image = img.Image(width: 32, height: 32);
+  img.fill(image, color: img.ColorRgb8(64, 128, 200));
+  image.exif.imageIfd
+    ..make = 'TestCam'
+    ..model = 'TestModel'
+    ..software = 'profile-media-test';
+  image.exif.gpsIfd.setGpsLocation(latitude: 37.7749, longitude: -122.4194);
+
+  final bytes = img.encodeJpg(image, quality: 92);
+  return Uint8List.fromList(bytes);
+}
+
+bool _containsExifSignature(Uint8List bytes) {
+  const signature = [0x45, 0x78, 0x69, 0x66]; // "Exif"
+  for (var i = 0; i <= bytes.length - signature.length; i++) {
+    if (bytes[i] == signature[0] &&
+        bytes[i + 1] == signature[1] &&
+        bytes[i + 2] == signature[2] &&
+        bytes[i + 3] == signature[3]) {
+      return true;
+    }
+  }
+  return false;
 }

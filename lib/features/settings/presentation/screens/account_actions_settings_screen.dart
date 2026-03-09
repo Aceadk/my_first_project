@@ -1,10 +1,7 @@
 import 'package:crushhour/core/router.dart';
-import 'package:crushhour/core/services/data_export_request_service.dart';
-import 'package:crushhour/core/services/data_export_service.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/core/utils/date_time_formatter.dart';
 import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
@@ -18,11 +15,12 @@ import 'package:crushhour/features/discovery/presentation/bloc/discovery_setting
 import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
+import 'package:crushhour/features/settings/data/commands/default_account_action_commands.dart';
+import 'package:crushhour/features/settings/domain/commands/account_action_commands.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountActionsSettingsScreen extends StatefulWidget {
   const AccountActionsSettingsScreen({super.key});
@@ -34,12 +32,12 @@ class AccountActionsSettingsScreen extends StatefulWidget {
 
 class _AccountActionsSettingsScreenState
     extends State<AccountActionsSettingsScreen> {
-  static const _lastExportRequestedAtKey = 'settings_last_export_request_at';
   static const _exportCooldownDays = 7;
   bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = context.select<AuthBloc, dynamic>((bloc) => bloc.state.user);
     final phoneVerified = user?.isPhoneVerified ?? false;
@@ -49,7 +47,7 @@ class _AccountActionsSettingsScreenState
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context).accountActions)),
+      appBar: AppBar(title: Text(l10n.accountActions)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -97,7 +95,7 @@ class _AccountActionsSettingsScreenState
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Manage Your Account',
+                                    l10n.accountActionsHeaderTitle,
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -105,7 +103,7 @@ class _AccountActionsSettingsScreenState
                                   ),
                                   DsGap.xs,
                                   Text(
-                                    'Manage security, password, and account status.',
+                                    l10n.accountActionsHeaderSubtitle,
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: isDark
@@ -124,7 +122,7 @@ class _AccountActionsSettingsScreenState
                       Padding(
                         padding: DsEdgeInsets.horizontalLg,
                         child: Text(
-                          'Security',
+                          l10n.accountActionsSectionSecurity,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
@@ -140,13 +138,13 @@ class _AccountActionsSettingsScreenState
                             ? DsColors.success
                             : DsColors.info,
                         title: phoneVerified
-                            ? 'Phone verified'
+                            ? l10n.accountActionsPhoneVerifiedTitle
                             : (hasPhone
-                                  ? 'Verify phone number'
-                                  : 'Add phone number'),
+                                  ? l10n.accountActionsPhoneVerifyTitle
+                                  : l10n.accountActionsPhoneAddTitle),
                         subtitle: phoneVerified
-                            ? 'Your phone is verified and secured'
-                            : 'Verify your phone for account security',
+                            ? l10n.accountActionsPhoneVerifiedSubtitle
+                            : l10n.accountActionsPhoneVerifySubtitle,
                         trailing: phoneVerified
                             ? const Icon(
                                 Icons.lock_outline,
@@ -161,8 +159,8 @@ class _AccountActionsSettingsScreenState
                       _ActionTile(
                         icon: Icons.lock_reset_outlined,
                         iconColor: DsColors.secondary,
-                        title: 'Change password',
-                        subtitle: 'Update your account password',
+                        title: l10n.changePassword,
+                        subtitle: l10n.accountActionsChangePasswordSubtitle,
                         onTap: () => _showChangePasswordDialog(context),
                       ),
                       const Divider(indent: 72),
@@ -171,8 +169,8 @@ class _AccountActionsSettingsScreenState
                       _ActionTile(
                         icon: Icons.shield_outlined,
                         iconColor: DsColors.accent,
-                        title: 'Account security',
-                        subtitle: 'Email and phone verification settings',
+                        title: l10n.accountSecurity,
+                        subtitle: l10n.settingsAccountSecuritySubtitle,
                         onTap: () => context.push(CrushRoutes.securitySettings),
                       ),
 
@@ -182,7 +180,7 @@ class _AccountActionsSettingsScreenState
                       Padding(
                         padding: DsEdgeInsets.horizontalLg,
                         child: Text(
-                          'Account Status',
+                          l10n.accountActionsSectionAccountStatus,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
@@ -203,9 +201,9 @@ class _AccountActionsSettingsScreenState
                             size: 22,
                           ),
                         ),
-                        title: const Text('Snooze profile'),
-                        subtitle: const Text(
-                          'Hide profile but keep messaging active matches',
+                        title: Text(l10n.accountActionsSnoozeProfileTitle),
+                        subtitle: Text(
+                          l10n.accountActionsSnoozeProfileSubtitle,
                         ),
                         value: isSnoozed,
                         onChanged: (value) async {
@@ -234,8 +232,8 @@ class _AccountActionsSettingsScreenState
                       _ActionTile(
                         icon: Icons.pause_circle_outline,
                         iconColor: DsColors.warning,
-                        title: 'Deactivate account',
-                        subtitle: 'Hide your profile temporarily',
+                        title: l10n.settingsDeactivateAccount,
+                        subtitle: l10n.accountActionsDeactivateSubtitle,
                         onTap: () => _showDeactivateFlow(context),
                       ),
 
@@ -245,7 +243,7 @@ class _AccountActionsSettingsScreenState
                       Padding(
                         padding: DsEdgeInsets.horizontalLg,
                         child: Text(
-                          'Data & Privacy',
+                          l10n.accountActionsSectionDataPrivacy,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
@@ -256,8 +254,8 @@ class _AccountActionsSettingsScreenState
                       _ActionTile(
                         icon: Icons.download_outlined,
                         iconColor: DsColors.info,
-                        title: 'Export your data',
-                        subtitle: 'Download a copy of your personal data',
+                        title: l10n.accountActionsExportDataTitle,
+                        subtitle: l10n.accountActionsExportDataSubtitle,
                         onTap: () => _showExportDataDialog(context),
                       ),
 
@@ -267,7 +265,7 @@ class _AccountActionsSettingsScreenState
                       Padding(
                         padding: DsEdgeInsets.horizontalLg,
                         child: Text(
-                          'Danger zone',
+                          l10n.accountActionsSectionDangerZone,
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
                                 fontWeight: FontWeight.bold,
@@ -303,9 +301,9 @@ class _AccountActionsSettingsScreenState
                                     size: 22,
                                   ),
                                 ),
-                                title: const Text(
-                                  'Delete account',
-                                  style: TextStyle(color: DsColors.error),
+                                title: Text(
+                                  l10n.settingsDeleteAccount,
+                                  style: const TextStyle(color: DsColors.error),
                                 ),
                                 subtitle: Text(
                                   AppLocalizations.of(
@@ -330,11 +328,8 @@ class _AccountActionsSettingsScreenState
                         child: _InfoBox(
                           icon: Icons.pause_circle_outline,
                           iconColor: DsColors.warning,
-                          title: 'About Deactivation',
-                          description:
-                              'When you deactivate your account, your profile will be hidden. '
-                              'You can reactivate anytime by signing back in. '
-                              'If you don\'t sign in for 6 months, your account will be permanently deleted.',
+                          title: l10n.accountActionsAboutDeactivationTitle,
+                          description: l10n.accountActionsAboutDeactivationBody,
                           isDark: isDark,
                         ),
                       ),
@@ -344,11 +339,8 @@ class _AccountActionsSettingsScreenState
                         child: _InfoBox(
                           icon: Icons.delete_forever_outlined,
                           iconColor: DsColors.error,
-                          title: 'About Deletion',
-                          description:
-                              'When you delete your account, you have 14 days to change your mind. '
-                              'Simply sign in within 14 days to recover your account. '
-                              'After 14 days, all your data will be permanently deleted.',
+                          title: l10n.accountActionsAboutDeletionTitle,
+                          description: l10n.accountActionsAboutDeletionBody,
                           isDark: isDark,
                         ),
                       ),
@@ -362,31 +354,14 @@ class _AccountActionsSettingsScreenState
   }
 
   Future<void> _showExportDataDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final user = context.read<AuthBloc>().state.user;
     if (user == null || user.id.isEmpty) {
-      showErrorSnackBar(this.context, 'Please sign in again to export data.');
+      showErrorSnackBar(this.context, l10n.accountActionsExportSignInRequired);
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    final now = DateTime.now();
-    final lastRequestMs = prefs.getInt(_lastExportRequestedAtKey);
-    if (lastRequestMs != null) {
-      final lastRequest = DateTime.fromMillisecondsSinceEpoch(lastRequestMs);
-      final nextAllowed = lastRequest.add(
-        const Duration(days: _exportCooldownDays),
-      );
-      if (now.isBefore(nextAllowed)) {
-        showErrorSnackBar(
-          this.context,
-          'You can request your next export on ${_formatDate(nextAllowed)}.',
-        );
-        return;
-      }
-    }
-
-    final email = user.email ?? 'your email';
+    final email = user.email ?? l10n.accountActionsExportFallbackEmail;
     final confirmed = await AdaptiveDialog.show<bool>(
       context: this.context,
       builder: (dialogContext) {
@@ -401,34 +376,32 @@ class _AccountActionsSettingsScreenState
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                AppLocalizations.of(context).yourExportIncludesProfilePhotos,
-              ),
+              Text(l10n.yourExportIncludesProfilePhotos),
               DsGap.md,
-              const _BulletPoint(
-                text: 'Profile, photos, and media',
+              _BulletPoint(
+                text: l10n.accountActionsExportItemProfileMedia,
                 icon: Icons.person_outline,
               ),
-              const _BulletPoint(
-                text: 'Likes and matches',
+              _BulletPoint(
+                text: l10n.accountActionsExportItemLikesMatches,
                 icon: Icons.favorite_outline,
               ),
-              const _BulletPoint(
-                text: 'Messages and chat metadata',
+              _BulletPoint(
+                text: l10n.accountActionsExportItemMessagesMetadata,
                 icon: Icons.chat_bubble_outline,
               ),
-              const _BulletPoint(
-                text: 'Preferences and account settings',
+              _BulletPoint(
+                text: l10n.accountActionsExportItemPreferences,
                 icon: Icons.settings_outlined,
               ),
               DsGap.md,
               Text(
-                'This request is rate-limited to once every $_exportCooldownDays days. We will notify you when export generation completes.',
+                l10n.accountActionsExportRateLimitNotice(_exportCooldownDays),
                 style: Theme.of(dialogContext).textTheme.bodySmall,
               ),
               DsGap.sm,
               Text(
-                'Primary contact: $email',
+                l10n.accountActionsExportPrimaryContact(email),
                 style: Theme.of(
                   dialogContext,
                 ).textTheme.bodySmall?.copyWith(color: DsColors.info),
@@ -438,11 +411,11 @@ class _AccountActionsSettingsScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(AppLocalizations.of(context).cancel),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(AppLocalizations.of(context).requestExport),
+              child: Text(l10n.requestExport),
             ),
           ],
         );
@@ -451,149 +424,127 @@ class _AccountActionsSettingsScreenState
 
     if (confirmed != true || !mounted) return;
 
-    final exportRequestService = DataExportRequestService();
-    final requestResult = await exportRequestService.requestExport();
-    if (!mounted) return;
+    // Capture repositories before async gap.
+    final commands = DefaultAccountActionCommands(
+      authRepository: this.context.read<AuthRepository>(),
+      profileRepository: this.context.read<ProfileRepository>(),
+      discoveryRepository: this.context.read<DiscoveryRepository>(),
+      chatRepository: this.context.read<ChatRepository>(),
+    );
 
-    if (requestResult.isSuccess) {
-      await prefs.setInt(_lastExportRequestedAtKey, now.millisecondsSinceEpoch);
+    ValueNotifier<_ExportProgress>? progress;
+    Future<void>? progressDialog;
+
+    void onProgress(String status, double value) {
       if (!mounted) return;
-      showSuccessSnackBar(
-        this.context,
-        'Data export requested. We will send a push notification when it is ready.',
-      );
-      return;
-    }
-
-    final shouldFallbackToLocal = switch (requestResult.code) {
-      'not-found' => true,
-      'unimplemented' => true,
-      'unavailable' => true,
-      _ => false,
-    };
-
-    if (!shouldFallbackToLocal) {
-      final maybeDate = DateTime.tryParse(requestResult.nextAllowedAtIso ?? '');
-      if (maybeDate != null) {
-        showErrorSnackBar(
-          this.context,
-          'You can request your next export on ${_formatDate(maybeDate)}.',
-        );
-        return;
-      }
-      showErrorSnackBar(
-        this.context,
-        requestResult.message ?? 'Could not request data export.',
-      );
-      return;
-    }
-
-    showSuccessSnackBar(
-      this.context,
-      'Cloud export is not available in this environment. Generating local export now.',
-    );
-
-    final profileRepository = this.context.read<ProfileRepository>();
-    final discoveryRepository = this.context.read<DiscoveryRepository>();
-    final chatRepository = this.context.read<ChatRepository>();
-    final fallbackProfile = user.profile;
-
-    final progress = ValueNotifier<_ExportProgress>(
-      const _ExportProgress(status: 'Starting export...', progress: 0),
-    );
-
-    final progressDialog = AdaptiveDialog.show<void>(
-      context: this.context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return ValueListenableBuilder<_ExportProgress>(
-          valueListenable: progress,
-          builder: (context, value, _) {
-            final pct = (value.progress * 100).clamp(0, 100).round();
-            return AlertDialog(
-              title: Text(AppLocalizations.of(context).preparingYourExport),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  LinearProgressIndicator(value: value.progress),
-                  DsGap.sm,
-                  Text(value.status),
-                  DsGap.xs,
-                  Text(
-                    '$pct% complete',
-                    style: Theme.of(context).textTheme.bodySmall,
+      final nextProgress = _ExportProgress(status: status, progress: value);
+      if (progress == null) {
+        progress = ValueNotifier<_ExportProgress>(nextProgress);
+        progressDialog = AdaptiveDialog.show<void>(
+          context: this.context,
+          barrierDismissible: false,
+          builder: (dialogContext) {
+            return ValueListenableBuilder<_ExportProgress>(
+              valueListenable: progress!,
+              builder: (context, progressValue, _) {
+                final pct = (progressValue.progress * 100)
+                    .clamp(0, 100)
+                    .round();
+                return AlertDialog(
+                  title: Text(l10n.preparingYourExport),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      LinearProgressIndicator(value: progressValue.progress),
+                      DsGap.sm,
+                      Text(progressValue.status),
+                      DsGap.xs,
+                      Text(
+                        l10n.accountActionsExportProgressPercentComplete(pct),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
-      },
-    );
-
-    setState(() => _isLoading = true);
-
-    final exportService = DataExportService(
-      currentUserId: user.id,
-      getUserData: () async => user,
-      getProfileData: () async {
-        final refreshedUser = await profileRepository.getCurrentUser();
-        return refreshedUser?.profile ?? fallbackProfile;
-      },
-      getMatchesData: () => discoveryRepository.fetchMatches(user.id),
-      getLikesData: () => discoveryRepository.fetchLikesYou(user.id),
-      getMessagesData: () =>
-          _collectAllMessages(chatRepository: chatRepository, userId: user.id),
-      getPreferencesData: () async {
-        final refreshedUser = await profileRepository.getCurrentUser();
-        final profile = refreshedUser?.profile ?? fallbackProfile;
-        return profile?.preferences;
-      },
-    );
-
-    final result = await exportService.exportData(
-      onProgress: (status, value) {
-        progress.value = _ExportProgress(status: status, progress: value);
-      },
-    );
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (Navigator.of(this.context, rootNavigator: true).canPop()) {
-        Navigator.of(this.context, rootNavigator: true).pop();
+      } else {
+        progress!.value = nextProgress;
       }
     }
-    await progressDialog;
+
+    setState(() => _isLoading = true);
+    final result = await commands.requestDataExport(
+      user: user,
+      onProgress: onProgress,
+    );
+
+    if (!mounted) {
+      progress?.dispose();
+      return;
+    }
+
+    setState(() => _isLoading = false);
+
+    if (progressDialog != null &&
+        Navigator.of(this.context, rootNavigator: true).canPop()) {
+      Navigator.of(this.context, rootNavigator: true).pop();
+    }
+    if (progressDialog != null) {
+      await progressDialog;
+    }
+    progress?.dispose();
 
     if (!mounted) return;
 
-    if (!result.isSuccess || result.filePath == null) {
+    if (result.isFailure || result.data == null) {
       showErrorSnackBar(
         this.context,
-        result.error ?? 'Could not generate data export. Please try again.',
+        _exportFailureMessage(l10n: l10n, failure: result.failure),
       );
       return;
     }
 
-    await prefs.setInt(_lastExportRequestedAtKey, now.millisecondsSinceEpoch);
-    if (!mounted) return;
+    final outcome = result.data!;
+    if (outcome.mode == AccountDataExportMode.remoteRequestQueued) {
+      showSuccessSnackBar(
+        this.context,
+        l10n.accountActionsExportRequestedSuccess,
+      );
+      return;
+    }
+
+    if (outcome.usedFallback) {
+      showSuccessSnackBar(
+        this.context,
+        l10n.accountActionsExportCloudUnavailable,
+      );
+    }
+
+    final filePath = outcome.filePath;
+    if (filePath == null || filePath.trim().isEmpty) {
+      showErrorSnackBar(this.context, l10n.accountActionsExportGenerateFailed);
+      return;
+    }
 
     final shareNow = await AdaptiveDialog.show<bool>(
       context: this.context,
       builder: (dialogContext) {
         return AlertDialog(
           icon: const Icon(Icons.check_circle_outline, color: DsColors.success),
-          title: Text(AppLocalizations.of(context).exportReady),
-          content: Text(AppLocalizations.of(context).yourDataExportHasBeen),
+          title: Text(l10n.exportReady),
+          content: Text(l10n.yourDataExportHasBeen),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(AppLocalizations.of(context).later),
+              child: Text(l10n.later),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(AppLocalizations.of(context).shareExport),
+              child: Text(l10n.shareExport),
             ),
           ],
         );
@@ -603,15 +554,23 @@ class _AccountActionsSettingsScreenState
 
     showSuccessSnackBar(
       this.context,
-      'Data export request completed. Next request available in $_exportCooldownDays days.',
+      l10n.accountActionsExportCompletedNextRequest(_exportCooldownDays),
     );
 
     if (shareNow == true) {
-      await exportService.shareExport(result.filePath!);
+      final shareResult = await commands.shareDataExport(filePath: filePath);
+      if (shareResult.isFailure && mounted) {
+        showErrorSnackBar(
+          this.context,
+          shareResult.failure?.message ??
+              l10n.accountActionsExportGenerateFailed,
+        );
+      }
     }
   }
 
   Future<void> _showChangePasswordDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final currentPasswordController = TextEditingController();
     final newPasswordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
@@ -634,15 +593,15 @@ class _AccountActionsSettingsScreenState
                 color: DsColors.secondary,
                 size: 48,
               ),
-              title: Text(AppLocalizations.of(context).changePassword),
+              title: Text(l10n.changePassword),
               content: Form(
                 key: formKey,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Enter your current password and choose a new one.',
+                      Text(
+                        l10n.accountActionsChangePasswordPrompt,
                         textAlign: TextAlign.center,
                       ),
                       DsGap.lg,
@@ -650,7 +609,7 @@ class _AccountActionsSettingsScreenState
                         controller: currentPasswordController,
                         obscureText: obscureCurrent,
                         decoration: InputDecoration(
-                          labelText: 'Current password',
+                          labelText: l10n.accountActionsCurrentPasswordLabel,
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -665,7 +624,7 @@ class _AccountActionsSettingsScreenState
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Enter your current password';
+                            return l10n.accountActionsCurrentPasswordRequired;
                           }
                           return null;
                         },
@@ -675,7 +634,7 @@ class _AccountActionsSettingsScreenState
                         controller: newPasswordController,
                         obscureText: obscureNew,
                         decoration: InputDecoration(
-                          labelText: 'New password',
+                          labelText: l10n.accountActionsNewPasswordLabel,
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -689,13 +648,13 @@ class _AccountActionsSettingsScreenState
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Enter a new password';
+                            return l10n.accountActionsNewPasswordRequired;
                           }
                           if (value.length < 8) {
-                            return 'Password must be at least 8 characters';
+                            return l10n.accountActionsNewPasswordMinLength;
                           }
                           if (value == currentPasswordController.text) {
-                            return 'New password must be different from current password';
+                            return l10n.accountActionsNewPasswordMustDiffer;
                           }
                           return null;
                         },
@@ -705,7 +664,7 @@ class _AccountActionsSettingsScreenState
                         controller: confirmPasswordController,
                         obscureText: obscureConfirm,
                         decoration: InputDecoration(
-                          labelText: 'Confirm new password',
+                          labelText: l10n.accountActionsConfirmNewPasswordLabel,
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -720,10 +679,11 @@ class _AccountActionsSettingsScreenState
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Confirm your new password';
+                            return l10n
+                                .accountActionsConfirmNewPasswordRequired;
                           }
                           if (value != newPasswordController.text) {
-                            return 'Passwords do not match';
+                            return l10n.accountActionsPasswordsDoNotMatch;
                           }
                           return null;
                         },
@@ -735,7 +695,7 @@ class _AccountActionsSettingsScreenState
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: Text(AppLocalizations.of(context).cancel),
+                  child: Text(l10n.cancel),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -743,7 +703,7 @@ class _AccountActionsSettingsScreenState
                       Navigator.of(dialogContext).pop(true);
                     }
                   },
-                  child: Text(AppLocalizations.of(context).changePassword),
+                  child: Text(l10n.changePassword),
                 ),
               ],
             );
@@ -762,7 +722,7 @@ class _AccountActionsSettingsScreenState
             newPassword: newPasswordController.text,
           ),
           logLabel: 'AuthRepository.changePassword',
-          fallbackError: 'Could not change password. Please try again.',
+          fallbackError: l10n.accountActionsPasswordChangeFallbackError,
         );
 
         if (!mounted) {
@@ -774,7 +734,10 @@ class _AccountActionsSettingsScreenState
         setState(() => _isLoading = false);
 
         if (result.isSuccess) {
-          showSuccessSnackBar(this.context, 'Password changed successfully!');
+          showSuccessSnackBar(
+            this.context,
+            l10n.accountActionsPasswordChangedSuccess,
+          );
           // Navigate to deck after successful password change
           if (mounted) {
             this.context.go(CrushRoutes.home);
@@ -782,7 +745,7 @@ class _AccountActionsSettingsScreenState
         } else {
           showErrorSnackBar(
             this.context,
-            result.errorMessage ?? 'Password change failed.',
+            result.errorMessage ?? l10n.accountActionsPasswordChangeFailed,
           );
         }
       } catch (e) {
@@ -790,7 +753,7 @@ class _AccountActionsSettingsScreenState
           setState(() => _isLoading = false);
           showErrorSnackBar(
             this.context,
-            'An error occurred. Please try again.',
+            l10n.accountActionsGenericErrorTryAgain,
           );
         }
       }
@@ -802,23 +765,26 @@ class _AccountActionsSettingsScreenState
   }
 
   Future<void> _showDeactivateFlow(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     // Capture dependencies before async gaps
-    final authRepository = context.read<AuthRepository>();
     final authBloc = context.read<AuthBloc>();
+    final accountCommands = DefaultAccountActionCommands(
+      authRepository: context.read<AuthRepository>(),
+    );
 
     // Step 1: Ask reason
     final reason = await _showReasonDialog(
       context: context,
-      title: 'Why are you leaving?',
+      title: l10n.accountActionsDeactivateReasonTitle,
       icon: Icons.pause_circle_outline,
       iconColor: DsColors.warning,
       reasons: [
-        'Taking a break from dating',
-        'Found someone special',
-        'Too many notifications',
-        'Not finding good matches',
-        'Privacy concerns',
-        'Other reason',
+        l10n.accountActionsReasonTakingBreakFromDating,
+        l10n.accountActionsReasonFoundSomeoneSpecial,
+        l10n.accountActionsReasonTooManyNotifications,
+        l10n.accountActionsReasonNotFindingGoodMatches,
+        l10n.accountActionsReasonPrivacyConcerns,
+        l10n.accountActionsReasonOther,
       ],
     );
 
@@ -834,27 +800,27 @@ class _AccountActionsSettingsScreenState
             color: DsColors.warning,
             size: 48,
           ),
-          title: Text(AppLocalizations.of(context).deactivateAccount),
+          title: Text(l10n.deactivateAccount),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(AppLocalizations.of(context).whenYouDeactivateYourAccount),
+              Text(l10n.whenYouDeactivateYourAccount),
               DsGap.md,
-              const _BulletPoint(
-                text: 'Your profile will be hidden from discovery',
+              _BulletPoint(
+                text: l10n.accountActionsDeactivateBulletHiddenFromDiscovery,
                 icon: Icons.visibility_off_outlined,
               ),
-              const _BulletPoint(
-                text: 'You won\'t receive new matches',
+              _BulletPoint(
+                text: l10n.accountActionsDeactivateBulletNoNewMatches,
                 icon: Icons.favorite_outline,
               ),
-              const _BulletPoint(
-                text: 'Your existing matches and messages are preserved',
+              _BulletPoint(
+                text: l10n.accountActionsDeactivateBulletKeepMatchesMessages,
                 icon: Icons.chat_bubble_outline,
               ),
-              const _BulletPoint(
-                text: 'You can reactivate anytime by signing in',
+              _BulletPoint(
+                text: l10n.accountActionsDeactivateBulletReactivateAnytime,
                 icon: Icons.login_outlined,
               ),
               DsGap.md,
@@ -867,18 +833,21 @@ class _AccountActionsSettingsScreenState
                     color: DsColors.error.withValues(alpha: 0.3),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.warning_amber_outlined,
                       color: DsColors.error,
                       size: 20,
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'If you don\'t sign in for 6 months, your account will be permanently deleted.',
-                        style: TextStyle(fontSize: 12, color: DsColors.error),
+                        l10n.accountActionsDeactivateAutoDeleteWarning,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: DsColors.error,
+                        ),
                       ),
                     ),
                   ],
@@ -889,12 +858,12 @@ class _AccountActionsSettingsScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(AppLocalizations.of(context).cancel),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               style: FilledButton.styleFrom(backgroundColor: DsColors.warning),
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(AppLocalizations.of(context).deactivate),
+              child: Text(l10n.deactivate),
             ),
           ],
         );
@@ -904,38 +873,34 @@ class _AccountActionsSettingsScreenState
     if (confirmed == true && mounted) {
       setState(() => _isLoading = true);
 
-      final result = await Result.guard(
-        () => authRepository.deactivateAccount(reason: reason),
-        logLabel: 'AuthRepository.deactivateAccount',
-        fallbackError: 'Could not deactivate account. Please try again.',
-      );
+      final result = await accountCommands.deactivateAccount(reason: reason);
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
       if (result.isSuccess) {
-        showSuccessSnackBar(
-          this.context,
-          'Your account has been deactivated. Sign in anytime to reactivate.',
-        );
+        showSuccessSnackBar(this.context, l10n.accountActionsDeactivateSuccess);
         authBloc.add(AuthSignedOut());
         this.context.go(CrushRoutes.authGateway);
       } else {
         showErrorSnackBar(
           this.context,
-          result.errorMessage ?? 'Deactivation failed.',
+          _deactivateFailureMessage(l10n: l10n, failure: result.failure),
         );
       }
     }
   }
 
   Future<void> _showDeleteFlow(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     // Capture dependencies before async gaps
-    final authRepository = context.read<AuthRepository>();
     final authBloc = context.read<AuthBloc>();
+    final accountCommands = DefaultAccountActionCommands(
+      authRepository: context.read<AuthRepository>(),
+    );
     final user = authBloc.state.user;
     if (user == null) {
-      showErrorSnackBar(this.context, 'Please sign in again to continue.');
+      showErrorSnackBar(this.context, l10n.accountActionsDeleteSignInRequired);
       return;
     }
     final confirmationValue = (user.username?.trim().isNotEmpty ?? false)
@@ -960,10 +925,14 @@ class _AccountActionsSettingsScreenState
             children: [
               Text(AppLocalizations.of(context).youWillLose),
               DsGap.md,
-              const _DeleteWarningItem(text: 'All your matches'),
-              const _DeleteWarningItem(text: 'All your messages'),
-              const _DeleteWarningItem(text: 'Your profile and photos'),
-              const _DeleteWarningItem(text: 'Your subscription (if any)'),
+              _DeleteWarningItem(text: l10n.accountActionsDeleteWarningMatches),
+              _DeleteWarningItem(
+                text: l10n.accountActionsDeleteWarningMessages,
+              ),
+              _DeleteWarningItem(text: l10n.accountActionsDeleteWarningProfile),
+              _DeleteWarningItem(
+                text: l10n.accountActionsDeleteWarningSubscription,
+              ),
               DsGap.md,
               Container(
                 padding: const EdgeInsets.all(12),
@@ -984,7 +953,9 @@ class _AccountActionsSettingsScreenState
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Deleted on ${_formatDate(graceDate)}. Sign back in within 14 days to cancel.',
+                        l10n.accountActionsDeleteScheduledOn(
+                          _formatDate(graceDate),
+                        ),
                         style: const TextStyle(
                           fontSize: 12,
                           color: DsColors.success,
@@ -1058,22 +1029,22 @@ class _AccountActionsSettingsScreenState
     // Step 3: Optional reason selector for analytics.
     final reason = await _showReasonDialog(
       context: this.context,
-      title: 'Optional: Why are you deleting your account?',
+      title: l10n.accountActionsDeleteReasonTitle,
       icon: Icons.insights_outlined,
       iconColor: DsColors.warning,
       reasons: [
-        'Found a relationship',
-        'Not happy with the app',
-        'Privacy concerns',
-        'Too expensive',
-        'Creating a new account',
-        'Other reason',
+        l10n.accountActionsReasonFoundRelationship,
+        l10n.accountActionsReasonNotHappyWithApp,
+        l10n.accountActionsReasonPrivacyConcerns,
+        l10n.accountActionsReasonTooExpensive,
+        l10n.accountActionsReasonCreatingNewAccount,
+        l10n.accountActionsReasonOther,
       ],
       requiredSelection: false,
     );
     if (reason == null || !mounted) return;
     final analyticsReason = reason.trim().isEmpty
-        ? 'No reason provided'
+        ? l10n.accountActionsDeleteNoReasonProvided
         : reason.trim();
 
     // Step 4: Type-to-confirm + password.
@@ -1101,15 +1072,15 @@ class _AccountActionsSettingsScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Type "$confirmationValue" to confirm account deletion.',
+                    l10n.accountActionsDeleteTypeToConfirm(confirmationValue),
                   ),
                   DsGap.sm,
                   TextField(
                     controller: usernameController,
                     onChanged: (_) => setDialogState(() {}),
-                    decoration: const InputDecoration(
-                      labelText: 'Type username',
-                      prefixIcon: Icon(Icons.alternate_email),
+                    decoration: InputDecoration(
+                      labelText: l10n.accountActionsDeleteTypeUsernameLabel,
+                      prefixIcon: const Icon(Icons.alternate_email),
                     ),
                   ),
                   DsGap.md,
@@ -1118,7 +1089,7 @@ class _AccountActionsSettingsScreenState
                     obscureText: obscurePassword,
                     onChanged: (_) => setDialogState(() {}),
                     decoration: InputDecoration(
-                      labelText: 'Password',
+                      labelText: l10n.accountActionsDeletePasswordLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -1134,7 +1105,9 @@ class _AccountActionsSettingsScreenState
                   ),
                   DsGap.md,
                   Text(
-                    'Deleted on ${_formatDate(graceDate)}. Sign back in within 14 days to cancel.',
+                    l10n.accountActionsDeleteScheduledOn(
+                      _formatDate(graceDate),
+                    ),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: DsColors.warning),
@@ -1165,13 +1138,9 @@ class _AccountActionsSettingsScreenState
     if (confirmed == true && mounted) {
       setState(() => _isLoading = true);
 
-      final result = await Result.guard(
-        () => authRepository.deleteAccount(
-          password: passwordController.text,
-          reason: analyticsReason,
-        ),
-        logLabel: 'AuthRepository.deleteAccount',
-        fallbackError: 'Could not delete account. Please check your password.',
+      final result = await accountCommands.deleteAccount(
+        password: passwordController.text,
+        reason: analyticsReason,
       );
 
       if (!mounted) {
@@ -1184,14 +1153,14 @@ class _AccountActionsSettingsScreenState
       if (result.isSuccess) {
         showSuccessSnackBar(
           this.context,
-          'Your account is scheduled for deletion on ${_formatDate(graceDate)}. Sign in within 14 days to recover it.',
+          l10n.accountActionsDeleteScheduledSuccess(_formatDate(graceDate)),
         );
         authBloc.add(AuthSignedOut());
         this.context.go(CrushRoutes.authGateway);
       } else {
         showErrorSnackBar(
           this.context,
-          result.errorMessage ?? 'Deletion failed.',
+          _deleteFailureMessage(l10n: l10n, failure: result.failure),
         );
       }
     }
@@ -1200,42 +1169,79 @@ class _AccountActionsSettingsScreenState
     passwordController.dispose();
   }
 
-  Future<List<Message>> _collectAllMessages({
-    required ChatRepository chatRepository,
-    required String userId,
-  }) async {
-    final allMessages = <Message>[];
-    final matches = await chatRepository.fetchUserMatches(userId);
-
-    for (final match in matches) {
-      DateTime? cursor;
-      bool hasMore = true;
-
-      while (hasMore) {
-        final page = await chatRepository.fetchMessagesPaginated(
-          match.id,
-          limit: 100,
-          beforeTimestamp: cursor,
-        );
-
-        if (page.items.isEmpty) break;
-        allMessages.addAll(page.items);
-
-        final nextCursor = page.items.last.sentAt;
-        if (!page.hasMore || (cursor != null && !nextCursor.isBefore(cursor))) {
-          hasMore = false;
-        } else {
-          cursor = nextCursor;
-        }
-      }
-    }
-
-    return allMessages;
-  }
-
   String _formatDate(DateTime date) {
     final locale = Localizations.localeOf(context).toString();
     return DateTimeFormatter.formatDate(date, locale: locale);
+  }
+
+  String _exportFailureMessage({
+    required AppLocalizations l10n,
+    required AccountActionFailure? failure,
+  }) {
+    if (failure == null) return l10n.accountActionsExportRequestFailed;
+    switch (failure.type) {
+      case AccountActionFailureType.sessionMissing:
+        return l10n.accountActionsExportSignInRequired;
+      case AccountActionFailureType.cooldownActive:
+      case AccountActionFailureType.rateLimited:
+        final nextAllowedAt = failure.nextAllowedAt;
+        if (nextAllowedAt != null) {
+          return l10n.accountActionsExportNextAvailableOn(
+            _formatDate(nextAllowedAt),
+          );
+        }
+        return l10n.accountActionsExportRequestFailed;
+      case AccountActionFailureType.network:
+        return l10n.accountActionsExportRequestFailed;
+      case AccountActionFailureType.invalidCredentials:
+      case AccountActionFailureType.unsupported:
+      case AccountActionFailureType.unknown:
+        return failure.message.trim().isNotEmpty
+            ? failure.message
+            : l10n.accountActionsExportRequestFailed;
+    }
+  }
+
+  String _deactivateFailureMessage({
+    required AppLocalizations l10n,
+    required AccountActionFailure? failure,
+  }) {
+    if (failure == null) return l10n.accountActionsDeactivationFailed;
+    switch (failure.type) {
+      case AccountActionFailureType.rateLimited:
+      case AccountActionFailureType.network:
+      case AccountActionFailureType.cooldownActive:
+        return l10n.accountActionsDeactivateFailedTryAgain;
+      case AccountActionFailureType.sessionMissing:
+      case AccountActionFailureType.invalidCredentials:
+      case AccountActionFailureType.unsupported:
+      case AccountActionFailureType.unknown:
+        return failure.message.trim().isNotEmpty
+            ? failure.message
+            : l10n.accountActionsDeactivationFailed;
+    }
+  }
+
+  String _deleteFailureMessage({
+    required AppLocalizations l10n,
+    required AccountActionFailure? failure,
+  }) {
+    if (failure == null) return l10n.accountActionsDeletionFailed;
+    switch (failure.type) {
+      case AccountActionFailureType.invalidCredentials:
+        return l10n.accountActionsDeleteFailedCheckPassword;
+      case AccountActionFailureType.sessionMissing:
+        return l10n.accountActionsDeleteSignInRequired;
+      case AccountActionFailureType.rateLimited:
+      case AccountActionFailureType.network:
+      case AccountActionFailureType.cooldownActive:
+        return l10n.accountActionsDeletionFailed;
+      case AccountActionFailureType.unsupported:
+      case AccountActionFailureType.unknown:
+        return failure.message.trim().isNotEmpty
+            ? failure.message
+            : l10n.accountActionsDeletionFailed;
+    }
   }
 
   Future<String?> _showReasonDialog({
@@ -1246,8 +1252,10 @@ class _AccountActionsSettingsScreenState
     required List<String> reasons,
     bool requiredSelection = true,
   }) async {
+    final l10n = AppLocalizations.of(context);
     String? selectedReason;
     final otherController = TextEditingController();
+    final otherReasonLabel = l10n.accountActionsReasonOther;
 
     final result = await AdaptiveDialog.show<String>(
       context: context,
@@ -1267,7 +1275,7 @@ class _AccountActionsSettingsScreenState
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ...reasons.map((reason) {
-                        final isOther = reason == 'Other reason';
+                        final isOther = reason == otherReasonLabel;
                         return Column(
                           children: [
                             RadioListTile<String>(
@@ -1276,7 +1284,7 @@ class _AccountActionsSettingsScreenState
                               contentPadding: EdgeInsets.zero,
                               dense: true,
                             ),
-                            if (isOther && selectedReason == 'Other reason')
+                            if (isOther && selectedReason == otherReasonLabel)
                               Padding(
                                 padding: const EdgeInsetsDirectional.only(
                                   start: 16,
@@ -1284,8 +1292,9 @@ class _AccountActionsSettingsScreenState
                                 ),
                                 child: TextField(
                                   controller: otherController,
-                                  decoration: const InputDecoration(
-                                    hintText: 'Please tell us more...',
+                                  decoration: InputDecoration(
+                                    hintText:
+                                        l10n.accountActionsReasonOtherHint,
                                     isDense: true,
                                   ),
                                   maxLines: 2,
@@ -1301,23 +1310,23 @@ class _AccountActionsSettingsScreenState
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(null),
-                  child: Text(AppLocalizations.of(context).cancel),
+                  child: Text(l10n.cancel),
                 ),
                 if (!requiredSelection)
                   TextButton(
                     onPressed: () => Navigator.of(dialogContext).pop(''),
-                    child: Text(AppLocalizations.of(context).skip),
+                    child: Text(l10n.skip),
                   ),
                 FilledButton(
                   onPressed: selectedReason == null
                       ? null
                       : () {
-                          final finalReason = selectedReason == 'Other reason'
-                              ? 'Other: ${otherController.text}'
+                          final finalReason = selectedReason == otherReasonLabel
+                              ? '${l10n.accountActionsReasonOtherPrefix}${otherController.text}'
                               : selectedReason;
                           Navigator.of(dialogContext).pop(finalReason);
                         },
-                  child: Text(AppLocalizations.of(context).continueLabel),
+                  child: Text(l10n.continueLabel),
                 ),
               ],
             );

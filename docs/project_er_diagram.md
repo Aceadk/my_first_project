@@ -1,6 +1,6 @@
 # Project ER Diagram — CrushHour Dating App
 
-*Last updated: 2026-02-18*
+*Last updated: 2026-03-08*
 
 ---
 
@@ -52,6 +52,7 @@ Total Entities: 26
 
 Note: Date plan email notifications are sent via Resend and are not persisted as a separate entity.
 Note: Likes You previews are derived from Like records and do not introduce new entities.
+Note: `ChatTransportAdapter` is an application-layer abstraction for chat transport swapability; it does not add new persisted entities.
 
 ---
 
@@ -1586,3 +1587,14 @@ service cloud.firestore {
 - **Timestamps**: All use `serverTimestamp()` for consistency across time zones
 - **Protected Fields**: `plan` and `isIdVerified` can only be modified by Cloud Functions
 - **2026-02-23 Web update**: Discovery profile stories are represented as user-owned story documents with per-viewer view subdocuments for deduplicated view counts.
+- **2026-03-08 Discovery refactor**: Story update lifecycle event types are domain-contract artifacts (`StoryRepository`) and no longer defined in discovery data service classes.
+- **2026-03-08 Discovery refactor (matching engine):** No schema changes; discovery filtering/ranking rules are now implemented in a shared domain decision utility (`MatchingDecisionEngine`) instead of repository-local logic.
+- **2026-03-08 Settings refactor (account commands):** No schema changes; account action orchestration (delete/deactivate/export/cancel-delete) moved behind typed settings command contracts for consistent failure handling.
+- **2026-03-08 Settings refactor (preference sync):** Added additive notification preference metadata fields on user records (`notificationPrefs.quietHoursEnabled`, `notificationPrefsUpdatedAtMs`) to support timestamp-aware local/remote preference sync and explicit quiet-hours enablement.
+- **2026-03-08 Store mobile checkout routing:** No schema changes; checkout entrypoint moved to repository-owned `purchasePlusPlan()` with native billing paths on iOS/Android and Stripe URL path disabled on mobile.
+- **2026-03-08 Store Google server validation:** Added additive user subscription metadata maps (`googlePlayPurchase`, `subscriptionLifecycle`) to persist validated Google Play token/order linkage and lifecycle reconciliation snapshots.
+- **2026-03-08 Store Google RTDN lifecycle:** No schema changes beyond additive metadata updates; RTDN events now refresh existing `googlePlayPurchase` and `subscriptionLifecycle` maps with notification type and lifecycle timestamps.
+- **2026-03-08 Store Google restore + acknowledgement:** No schema changes; restore flow reuses existing `googlePlayPurchase`/`subscriptionLifecycle` fields while adding client-side acknowledgement completion and restored-token verification orchestration.
+- **2026-03-08 Store Apple server validation:** Added additive user subscription metadata map (`applePurchase`) and provider-aware `subscriptionLifecycle` updates for App Store transaction validation (`verifyAppleTransaction`) while preserving existing `plan` compatibility.
+- **2026-03-08 Store Apple restore compliance:** No schema changes; iOS restore now requires transaction-ID-backed validation through `verifyAppleTransaction`, reusing existing `applePurchase`/`subscriptionLifecycle` metadata fields for restored entitlement reconciliation.
+- **2026-03-08 Store Apple S2S lifecycle:** No schema changes; App Store Server Notification events now update existing `applePurchase` and `subscriptionLifecycle` metadata fields with notification identifiers and lifecycle timestamps.

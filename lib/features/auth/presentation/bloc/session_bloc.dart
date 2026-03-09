@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/core/session/session_bootstrap_service.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/usecases/auth_flow_use_cases.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/security/session_manager.dart';
@@ -71,6 +73,7 @@ class SessionState extends Equatable {
 // Bloc
 class SessionBloc extends Bloc<SessionEvent, SessionState> {
   final AuthRepository authRepository;
+  final SessionBootstrapService _sessionBootstrapService;
   final SessionManager _sessionManager = SessionManager.instance;
   StreamSubscription<CrushUser?>? _authSubscription;
 
@@ -80,8 +83,14 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
 
   SessionBloc({
     required this.authRepository,
+    SessionBootstrapService? sessionBootstrapService,
     this.sessionTimeout = const Duration(minutes: 30),
-  }) : super(SessionState.unknown()) {
+  }) : _sessionBootstrapService =
+           sessionBootstrapService ??
+           SessionBootstrapService(
+             authFlowUseCases: AuthFlowUseCases(authRepository),
+           ),
+       super(SessionState.unknown()) {
     on<SessionStarted>(_onStarted);
     on<SessionUserChanged>(_onUserChanged);
     on<SessionSignOutRequested>(_onSignOutRequested);
@@ -95,33 +104,37 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
   ) async {
     emit(state.copyWith(isLoading: true, clearError: true));
 
-    final result = await Result.guard(
-      () async {
-        await _authSubscription?.cancel();
-        await authRepository.bootstrapSession();
-
-        _authSubscription = authRepository.authStateChanges().listen((user) {
-          add(SessionUserChanged(user));
-        });
-
-        // Initialize session manager for inactivity timeout
-        await _sessionManager.initialize(
-          timeout: sessionTimeout,
-          onExpired: () => add(SessionTimeoutOccurred()),
-        );
-
-        return true;
-      },
-      logLabel: 'SessionBloc.bootstrap',
-      fallbackError: 'Could not connect to authentication. Please try again.',
+    final bootstrapResult = await _sessionBootstrapService.bootstrap(
+      existingSubscription: _authSubscription,
+      onUserChanged: (user) => add(SessionUserChanged(user)),
     );
-
-    if (!result.isSuccess) {
+    if (!bootstrapResult.isSuccess) {
       emit(
         state.copyWith(
           status: SessionStatus.unauthenticated,
           isLoading: false,
-          errorMessage: result.errorMessage,
+          errorMessage: bootstrapResult.errorMessage,
+        ),
+      );
+      return;
+    }
+
+    _authSubscription = bootstrapResult.data;
+
+    final sessionInitResult = await Result.guard(
+      () => _sessionManager.initialize(
+        timeout: sessionTimeout,
+        onExpired: () => add(SessionTimeoutOccurred()),
+      ),
+      logLabel: 'SessionBloc.bootstrap',
+      fallbackError: 'Could not connect to authentication. Please try again.',
+    );
+    if (!sessionInitResult.isSuccess) {
+      emit(
+        state.copyWith(
+          status: SessionStatus.unauthenticated,
+          isLoading: false,
+          errorMessage: sessionInitResult.errorMessage,
         ),
       );
     }

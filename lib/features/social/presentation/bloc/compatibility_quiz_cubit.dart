@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/utils/auth_state_reset_policy.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
@@ -79,7 +80,7 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
        _service = quizRepository,
        super(const CompatibilityQuizState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
-      if (user == null) {
+      if (_authResetPolicy.shouldResetFor(user)) {
         _resetState();
       }
     });
@@ -87,8 +88,13 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
 
   final AuthRepository _authRepository;
   final CompatibilityQuizRepository _service;
+  final AuthStateResetPolicy _authResetPolicy = AuthStateResetPolicy();
   String? _currentMatchId;
   StreamSubscription<CrushUser?>? _authSubscription;
+  int _asyncEpoch = 0;
+
+  int _beginAsyncEpoch() => ++_asyncEpoch;
+  bool _isAsyncEpochStale(int epoch) => isClosed || epoch != _asyncEpoch;
 
   /// Get all available quizzes.
   List<CompatibilityQuiz> getAllQuizzes() => _service.getAllQuizzes();
@@ -98,11 +104,13 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
     required String quizId,
     required String matchId,
   }) async {
+    final epoch = _beginAsyncEpoch();
     emit(state.copyWith(isLoading: true, errorMessage: null));
 
     try {
       _currentMatchId = matchId;
       final quiz = await _service.startQuiz(quizId: quizId, matchId: matchId);
+      if (_isAsyncEpochStale(epoch)) return;
 
       emit(
         state.copyWith(
@@ -114,6 +122,7 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
         ),
       );
     } catch (e) {
+      if (_isAsyncEpochStale(epoch)) return;
       emit(
         state.copyWith(isLoading: false, errorMessage: ErrorMessages.generic),
       );
@@ -181,6 +190,7 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
     required Map<String, String> user2Answers,
   }) async {
     if (state.quiz == null || _currentMatchId == null) return;
+    final epoch = _beginAsyncEpoch();
 
     emit(state.copyWith(isSubmitting: true, errorMessage: null));
 
@@ -193,9 +203,11 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
         user1Answers: state.answers,
         user2Answers: user2Answers,
       );
+      if (_isAsyncEpochStale(epoch)) return;
 
       emit(state.copyWith(result: result, isSubmitting: false));
     } catch (e) {
+      if (_isAsyncEpochStale(epoch)) return;
       emit(
         state.copyWith(
           isSubmitting: false,
@@ -212,11 +224,13 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
 
   /// Reset quiz state.
   void reset() {
+    _beginAsyncEpoch();
     _currentMatchId = null;
     emit(const CompatibilityQuizState());
   }
 
   void _resetState() {
+    _beginAsyncEpoch();
     _service.clearUserData();
     _currentMatchId = null;
     if (!isClosed) {
@@ -226,6 +240,7 @@ class CompatibilityQuizCubit extends Cubit<CompatibilityQuizState> {
 
   @override
   Future<void> close() {
+    _beginAsyncEpoch();
     _authSubscription?.cancel();
     return super.close();
   }

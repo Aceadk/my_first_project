@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/domain/repositories/linked_accounts_repository.dart';
@@ -9,7 +10,6 @@ import 'package:crushhour/features/auth/presentation/bloc/biometric_cubit.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 class AccountSecuritySettingsScreen extends StatefulWidget {
   const AccountSecuritySettingsScreen({super.key});
@@ -71,9 +71,12 @@ class _AccountSecuritySettingsScreenState
   }
 
   Future<void> _handleLinkProvider(LinkedAuthProvider provider) async {
+    final l10n = context.l10n;
     final repo = _linkedRepo();
     if (repo == null) {
-      _showSnack('${provider.displayName} linking is not available.');
+      _showSnack(
+        l10n.settingsSecurityProviderLinkUnavailable(provider.displayName),
+      );
       return;
     }
 
@@ -84,7 +87,9 @@ class _AccountSecuritySettingsScreenState
       await repo.linkProvider(provider);
       await _refreshLinkedProviders();
       if (!mounted) return;
-      _showSnack('${provider.displayName} linked successfully.');
+      _showSnack(
+        l10n.settingsSecurityProviderLinkedSuccess(provider.displayName),
+      );
     } catch (error) {
       if (!mounted) return;
       _showSnack(_friendlyLinkingError(error.toString(), provider.displayName));
@@ -99,16 +104,17 @@ class _AccountSecuritySettingsScreenState
     LinkedAuthProvider provider, {
     required int linkedRecoveryCount,
   }) async {
+    final l10n = context.l10n;
     if (linkedRecoveryCount <= 1) {
-      _showSnack(
-        'Cannot unlink the last recovery method. Add another provider first.',
-      );
+      _showSnack(l10n.cannotUnlinkTheLastRecovery);
       return;
     }
 
     final repo = _linkedRepo();
     if (repo == null) {
-      _showSnack('${provider.displayName} unlink is not available.');
+      _showSnack(
+        l10n.settingsSecurityProviderUnlinkUnavailable(provider.displayName),
+      );
       return;
     }
 
@@ -119,7 +125,9 @@ class _AccountSecuritySettingsScreenState
       await repo.unlinkProvider(provider);
       await _refreshLinkedProviders();
       if (!mounted) return;
-      _showSnack('${provider.displayName} unlinked successfully.');
+      _showSnack(
+        l10n.settingsSecurityProviderUnlinkedSuccess(provider.displayName),
+      );
     } catch (error) {
       if (!mounted) return;
       _showSnack(_friendlyLinkingError(error.toString(), provider.displayName));
@@ -131,21 +139,24 @@ class _AccountSecuritySettingsScreenState
   }
 
   String _friendlyLinkingError(String raw, String providerName) {
+    final l10n = context.l10n;
     final normalized = raw.toLowerCase();
     if (normalized.contains('already linked')) {
-      return '$providerName is already linked.';
+      return l10n.settingsSecurityProviderAlreadyLinked(providerName);
     }
     if (normalized.contains('credential-already-in-use')) {
-      return '$providerName is already linked to another account.';
+      return l10n.settingsSecurityProviderLinkedAnotherAccount(providerName);
     }
     if (normalized.contains('operation-not-allowed')) {
-      return '$providerName is not enabled for this environment.';
+      return l10n.settingsSecurityProviderNotEnabledEnvironment(providerName);
     }
     if (normalized.contains('cancel')) {
-      return '$providerName linking was canceled.';
+      return l10n.settingsSecurityProviderLinkCanceled(providerName);
     }
     final message = raw.replaceFirst('Exception: ', '').trim();
-    return message.isEmpty ? 'Could not update linked account.' : message;
+    return message.isEmpty
+        ? l10n.settingsSecurityProviderUpdateFailed
+        : message;
   }
 
   void _showSnack(String message) {
@@ -156,6 +167,7 @@ class _AccountSecuritySettingsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentEmail = context.select<AuthBloc, String?>(
       (bloc) => bloc.state.user?.email,
@@ -182,7 +194,7 @@ class _AccountSecuritySettingsScreenState
     ].where((v) => v).length;
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context).accountSecurity)),
+      appBar: AppBar(title: Text(l10n.accountSecurity)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -226,13 +238,13 @@ class _AccountSecuritySettingsScreenState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Protect Your Account',
+                              l10n.settingsSecurityHeaderTitle,
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             DsGap.xs,
                             Text(
-                              'Add extra layers of security to keep your account safe.',
+                              l10n.settingsSecurityHeaderSubtitle,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: isDark
@@ -288,9 +300,9 @@ class _AccountSecuritySettingsScreenState
                               Text(
                                 hasEmail
                                     ? (emailVerified
-                                          ? 'Email verified'
-                                          : 'Email not verified')
-                                    : 'No email added',
+                                          ? l10n.settingsAccountEmailVerified
+                                          : l10n.settingsAccountEmailNotVerified)
+                                    : l10n.settingsAccountNoEmail,
                                 style: Theme.of(context).textTheme.titleSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w600,
@@ -363,9 +375,9 @@ class _AccountSecuritySettingsScreenState
                               Text(
                                 hasPhone
                                     ? (phoneVerified
-                                          ? 'Phone verified'
-                                          : 'Phone not verified')
-                                    : 'No phone added',
+                                          ? l10n.accountActionsPhoneVerifiedTitle
+                                          : l10n.settingsSecurityPhoneNotVerified)
+                                    : l10n.settingsSecurityNoPhoneAdded,
                                 style: Theme.of(context).textTheme.titleSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w600,
@@ -403,13 +415,13 @@ class _AccountSecuritySettingsScreenState
                       : Icons.email_outlined,
                   iconColor: emailVerified ? DsColors.success : DsColors.info,
                   title: emailVerified
-                      ? 'Email protection (Locked)'
-                      : 'Email protection',
+                      ? l10n.settingsSecurityEmailProtectionLocked
+                      : l10n.settingsSecurityEmailProtection,
                   subtitle: hasEmail
                       ? (emailVerified
-                            ? 'Verified and locked'
-                            : 'Verify your email')
-                      : 'Add an email for recovery and OTP',
+                            ? l10n.settingsSecurityVerifiedAndLocked
+                            : l10n.settingsSecurityVerifyYourEmail)
+                      : l10n.settingsSecurityAddEmailRecoveryOtp,
                   locked: emailVerified,
                   onTap: () => context.push(CrushRoutes.emailProtection),
                 ),
@@ -419,13 +431,13 @@ class _AccountSecuritySettingsScreenState
                       : Icons.phone_outlined,
                   iconColor: phoneVerified ? DsColors.success : DsColors.info,
                   title: phoneVerified
-                      ? 'Phone protection (Locked)'
-                      : 'Phone protection',
+                      ? l10n.settingsSecurityPhoneProtectionLocked
+                      : l10n.settingsSecurityPhoneProtection,
                   subtitle: hasPhone
                       ? (phoneVerified
-                            ? 'Verified and locked'
-                            : 'Verify your phone')
-                      : 'Add a phone number for security',
+                            ? l10n.settingsSecurityVerifiedAndLocked
+                            : l10n.settingsSecurityVerifyYourPhone)
+                      : l10n.settingsSecurityAddPhoneForSecurity,
                   locked: phoneVerified,
                   onTap: () => context.push(CrushRoutes.phoneProtection),
                 ),
@@ -458,10 +470,16 @@ class _AccountSecuritySettingsScreenState
                           ? Icons.face
                           : Icons.fingerprint,
                       iconColor: isEnabled ? DsColors.success : DsColors.info,
-                      title: '${biometricState.biometricTypeName} Lock',
+                      title: l10n.settingsSecurityBiometricLockTitle(
+                        biometricState.biometricTypeName,
+                      ),
                       subtitle: isEnabled
-                          ? 'Unlock Crush with ${biometricState.biometricTypeName}'
-                          : 'Require ${biometricState.biometricTypeName} to open Crush',
+                          ? l10n.settingsSecurityBiometricUnlockWith(
+                              biometricState.biometricTypeName,
+                            )
+                          : l10n.settingsSecurityBiometricRequireToOpen(
+                              biometricState.biometricTypeName,
+                            ),
                       trailing: Switch.adaptive(
                         value: isEnabled,
                         activeTrackColor: DsColors.primary,
@@ -480,7 +498,7 @@ class _AccountSecuritySettingsScreenState
                 Padding(
                   padding: DsEdgeInsets.horizontalLg,
                   child: Text(
-                    'Linked Accounts',
+                    l10n.settingsSecurityLinkedAccounts,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -489,31 +507,29 @@ class _AccountSecuritySettingsScreenState
                 DsGap.sm,
                 _LinkedAccountTile(
                   icon: Icons.email_outlined,
-                  provider: 'Email',
+                  provider: l10n.settingsSecurityProviderEmail,
                   status: hasEmail
                       ? (emailVerified
-                            ? 'Linked · Verified'
-                            : 'Linked · Unverified')
-                      : 'Not linked',
+                            ? l10n.settingsSecurityLinkedVerified
+                            : l10n.settingsSecurityLinkedUnverified)
+                      : l10n.settingsSecurityNotLinked,
                   isLinked: hasEmail,
-                  actionLabel: hasEmail ? 'Manage' : 'Link',
+                  actionLabel: hasEmail
+                      ? l10n.settingsSecurityActionManage
+                      : l10n.settingsSecurityActionLink,
                   onAction: () {
                     if (hasEmail) {
                       context.push(CrushRoutes.emailProtection);
                       return;
                     }
-                    _showSnack('Add and verify an email in Email Protection.');
+                    _showSnack(l10n.settingsSecurityAddVerifyEmailHint);
                   },
                   onUnlink: hasEmail
                       ? () {
                           if (linkedRecoveryCount <= 1) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  ).cannotUnlinkTheLastRecovery,
-                                ),
+                                content: Text(l10n.cannotUnlinkTheLastRecovery),
                               ),
                             );
                             return;
@@ -524,31 +540,29 @@ class _AccountSecuritySettingsScreenState
                 ),
                 _LinkedAccountTile(
                   icon: Icons.phone_outlined,
-                  provider: 'Phone',
+                  provider: l10n.settingsSecurityProviderPhone,
                   status: hasPhone
                       ? (phoneVerified
-                            ? 'Linked · Verified'
-                            : 'Linked · Unverified')
-                      : 'Not linked',
+                            ? l10n.settingsSecurityLinkedVerified
+                            : l10n.settingsSecurityLinkedUnverified)
+                      : l10n.settingsSecurityNotLinked,
                   isLinked: hasPhone,
-                  actionLabel: hasPhone ? 'Manage' : 'Link',
+                  actionLabel: hasPhone
+                      ? l10n.settingsSecurityActionManage
+                      : l10n.settingsSecurityActionLink,
                   onAction: () {
                     if (hasPhone) {
                       context.push(CrushRoutes.phoneProtection);
                       return;
                     }
-                    _showSnack('Add and verify a phone in Phone Protection.');
+                    _showSnack(l10n.settingsSecurityAddVerifyPhoneHint);
                   },
                   onUnlink: hasPhone
                       ? () {
                           if (linkedRecoveryCount <= 1) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  ).cannotUnlinkTheLastRecovery,
-                                ),
+                                content: Text(l10n.cannotUnlinkTheLastRecovery),
                               ),
                             );
                             return;
@@ -559,16 +573,24 @@ class _AccountSecuritySettingsScreenState
                 ),
                 _LinkedAccountTile(
                   icon: Icons.g_mobiledata,
-                  provider: 'Google',
+                  provider: l10n.settingsSecurityProviderGoogle,
                   status: _isLoadingLinkedProviders
-                      ? 'Checking...'
-                      : (googleLinked ? 'Linked' : 'Not linked'),
+                      ? l10n.settingsSecurityChecking
+                      : (googleLinked
+                            ? l10n.settingsSecurityActionLinked
+                            : l10n.settingsSecurityNotLinked),
                   isLinked: googleLinked,
-                  actionLabel: googleLinked ? 'Linked' : 'Link',
+                  actionLabel: googleLinked
+                      ? l10n.settingsSecurityActionLinked
+                      : l10n.settingsSecurityActionLink,
                   isBusy:
                       _busyProviderId == LinkedAuthProvider.google.providerId,
                   onAction: googleLinked
-                      ? () => _showSnack('Google is already linked.')
+                      ? () => _showSnack(
+                          l10n.settingsSecurityProviderAlreadyLinked(
+                            l10n.settingsSecurityProviderGoogle,
+                          ),
+                        )
                       : () => _handleLinkProvider(LinkedAuthProvider.google),
                   onUnlink: googleLinked
                       ? () => _handleUnlinkProvider(
@@ -579,16 +601,24 @@ class _AccountSecuritySettingsScreenState
                 ),
                 _LinkedAccountTile(
                   icon: Icons.apple,
-                  provider: 'Apple',
+                  provider: l10n.settingsSecurityProviderApple,
                   status: _isLoadingLinkedProviders
-                      ? 'Checking...'
-                      : (appleLinked ? 'Linked' : 'Not linked'),
+                      ? l10n.settingsSecurityChecking
+                      : (appleLinked
+                            ? l10n.settingsSecurityActionLinked
+                            : l10n.settingsSecurityNotLinked),
                   isLinked: appleLinked,
-                  actionLabel: appleLinked ? 'Linked' : 'Link',
+                  actionLabel: appleLinked
+                      ? l10n.settingsSecurityActionLinked
+                      : l10n.settingsSecurityActionLink,
                   isBusy:
                       _busyProviderId == LinkedAuthProvider.apple.providerId,
                   onAction: appleLinked
-                      ? () => _showSnack('Apple is already linked.')
+                      ? () => _showSnack(
+                          l10n.settingsSecurityProviderAlreadyLinked(
+                            l10n.settingsSecurityProviderApple,
+                          ),
+                        )
                       : () => _handleLinkProvider(LinkedAuthProvider.apple),
                   onUnlink: appleLinked
                       ? () => _handleUnlinkProvider(
@@ -626,7 +656,7 @@ class _AccountSecuritySettingsScreenState
                             ),
                             DsGap.mdH,
                             Text(
-                              'Security tips',
+                              l10n.settingsSecurityTipsTitle,
                               style: Theme.of(context).textTheme.titleSmall
                                   ?.copyWith(fontWeight: FontWeight.w600),
                             ),
@@ -634,18 +664,17 @@ class _AccountSecuritySettingsScreenState
                         ),
                         DsGap.md,
                         _TipItem(
-                          text: 'Use a unique password for this app',
+                          text: l10n.settingsSecurityTipsUniquePassword,
                           isDark: isDark,
                         ),
                         DsGap.sm,
                         _TipItem(
-                          text:
-                              'Enable email verification for account recovery',
+                          text: l10n.settingsSecurityTipsEnableEmailRecovery,
                           isDark: isDark,
                         ),
                         DsGap.sm,
                         _TipItem(
-                          text: 'Never share your verification codes',
+                          text: l10n.settingsSecurityTipsNeverShareCodes,
                           isDark: isDark,
                         ),
                       ],
@@ -747,7 +776,7 @@ class _LinkedAccountTile extends StatelessWidget {
           if (isLinked && onUnlink != null)
             TextButton(
               onPressed: isBusy ? null : onUnlink,
-              child: Text(AppLocalizations.of(context).unlink),
+              child: Text(context.l10n.unlink),
             ),
         ],
       ),

@@ -5,3 +5,4 @@ export 'sign_in_with_password.dart';
 export 'send_phone_otp.dart';
 export 'verify_phone_otp.dart';
 export 'sign_out.dart';
+export 'auth_flow_use_cases.dart';

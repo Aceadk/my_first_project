@@ -1,32 +1,27 @@
 import 'dart:async';
-import 'dart:ui';
 
-import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/location_service.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
-import 'package:crushhour/design_system/tokens/gradients.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
-import 'package:crushhour/design_system/widgets/glass_button.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
-import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
-import 'package:crushhour/features/discovery/presentation/widgets/boost_button.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/deck_card_stack.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/deck_error_state_view.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/deck_out_of_people_view.dart';
+import 'package:crushhour/features/discovery/presentation/widgets/deck_screen_app_bar.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/deck_skeleton.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/deck_ui_helpers.dart';
-import 'package:crushhour/features/discovery/presentation/widgets/empty_deck_animations.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/explore_grid_view.dart';
 import 'package:crushhour/design_system/widgets/match_celebration.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/swipeable_card.dart';
@@ -337,29 +332,44 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
         final backendSwipeReady =
             _backendCompleteness?.allowsSwipe ??
             (_backendBlocked ? false : _completenessError != null);
+        final refreshDeck = userId == null
+            ? null
+            : () => context.read<DiscoveryBloc>().add(
+                DiscoveryDeckRequested(userId),
+              );
+        final appBar = DeckScreenAppBar(
+          exploreMode: _exploreMode,
+          onToggleExploreMode: () =>
+              setState(() => _exploreMode = !_exploreMode),
+          onRefresh: () {
+            if (refreshDeck == null) return;
+            refreshDeck();
+          },
+          canRefresh: refreshDeck != null,
+        );
 
         return AsyncStateScaffold(
-          appBar: _buildAppBar(context, userId),
+          appBar: appBar,
           isLoading: isLoading && state.deck.isEmpty,
           errorMessage: status == DeckStatus.error ? state.errorMessage : null,
           error: status == DeckStatus.error && state.deck.isEmpty
-              ? _buildErrorState(
-                  context,
-                  userId,
-                  retryInSeconds,
+              ? DeckErrorStateView(
+                  appBar: appBar,
+                  retryInSeconds: retryInSeconds,
                   isPlus: isPlus,
                   locationLabel: locationLabel,
                   radiusKm: radiusKm,
+                  onRetry: refreshDeck,
+                  onShowPassportUpsell: () => _showPassportUpsell(context),
                 )
               : null,
           empty: isEmptyDeck
-              ? _buildOutOfPeople(
-                  context,
-                  userId,
+              ? DeckOutOfPeopleView(
                   discoveryState: state,
                   isPlus: isPlus,
                   locationLabel: locationLabel,
-                  radiusKm: radiusKm,
+                  onRefresh: refreshDeck,
+                  onShowPassportUpsell: () => _showPassportUpsell(context),
                 )
               : null,
           showErrorSnackBar: true,
@@ -1298,271 +1308,6 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     return 'Could not verify profile completeness. Check your connection.';
   }
 
-  Widget _buildErrorState(
-    BuildContext context,
-    String? userId,
-    int? retryInSeconds, {
-    required bool isPlus,
-    String? locationLabel,
-    double? radiusKm,
-  }) {
-    final radiusLabel = radiusKm?.toStringAsFixed(0);
-    return Scaffold(
-      appBar: _buildAppBar(context, userId),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.wifi_off, size: 72),
-              DsGap.md,
-              const Text(
-                'Trouble loading people',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              DsGap.sm,
-              Text(
-                'Check your connection and try again.'
-                '${locationLabel != null ? '\nLooking near $locationLabel${radiusLabel != null ? ' within ~$radiusLabel km' : ''}.' : ''}',
-                textAlign: TextAlign.center,
-              ),
-              DsGap.lg,
-              if (retryInSeconds != null)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(bottom: 8),
-                  child: Text(
-                    'Retrying automatically in ~${retryInSeconds}s',
-                    style: const TextStyle(fontSize: 13),
-                  ),
-                ),
-              ElevatedButton.icon(
-                icon: const Icon(Icons.refresh),
-                label: Text(AppLocalizations.of(context).retry),
-                onPressed: userId == null
-                    ? null
-                    : () => context.read<DiscoveryBloc>().add(
-                        DiscoveryDeckRequested(userId),
-                      ),
-              ),
-              if (retryInSeconds != null)
-                TextButton.icon(
-                  icon: const Icon(Icons.timer),
-                  label: Text('Auto-retrying in ~${retryInSeconds}s'),
-                  onPressed: userId == null
-                      ? null
-                      : () => context.read<DiscoveryBloc>().add(
-                          DiscoveryDeckRequested(userId),
-                        ),
-                ),
-              if (!isPlus) ...[
-                DsGap.lg,
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.flight_takeoff),
-                  label: Text(AppLocalizations.of(context).tryPassportWithPlus),
-                  onPressed: () => _showPassportUpsell(context),
-                ),
-                DsGap.sm,
-                const UpgradeNudgeCard(
-                  title: 'Try Plus while we fix this',
-                  subtitle:
-                      'Unlock offline likes, queue retries, and Passport so you never miss a match.',
-                  bullets: [
-                    'Intro offer: 50% off your first month',
-                    'Unlimited likes & rewinds',
-                    'Passport to swipe anywhere',
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOutOfPeople(
-    BuildContext context,
-    String? userId, {
-    required DiscoveryState discoveryState,
-    required bool isPlus,
-    String? locationLabel,
-    double? radiusKm,
-  }) {
-    final localDeckExhausted = discoveryState.localDeckExhausted;
-    final passportModeActive = discoveryState.passportModeActive;
-    final currentDistanceKm = discoveryState.currentDistanceLimitKm;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Context-aware messaging
-    String title;
-    String subtitle;
-    IconData icon;
-    Color? iconColor;
-
-    if (passportModeActive) {
-      title = 'No one in this city yet';
-      subtitle = 'Try exploring a different destination or check back later.';
-      icon = Icons.flight_takeoff;
-      iconColor = DsColors.info;
-    } else if (localDeckExhausted) {
-      title = 'Explored far and wide';
-      subtitle =
-          'You\'ve seen everyone up to ${currentDistanceKm.round()} km away.\n'
-          'Try Passport mode to explore globally!';
-      icon = Icons.explore;
-      iconColor = DsColors.secondary;
-    } else {
-      title = context.l10n.discoveryAllCaughtUp;
-      subtitle = context.l10n.discoveryNoMorePeople;
-      icon = Icons.people_outline;
-      iconColor = null;
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight - 48),
-            child: IntrinsicHeight(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Animated pulsing icon container
-                  PulsingIconContainer(
-                    icon: icon,
-                    iconSize: 56,
-                    iconColor:
-                        iconColor ??
-                        (isDark
-                            ? DsColors.surfaceLight.withValues(alpha: 0.7)
-                            : DsColors.ink900.withValues(alpha: 0.54)),
-                  ),
-                  DsGap.lg,
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  DsGap.sm,
-                  Text(
-                    subtitle,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
-                  ),
-                  if (locationLabel != null) ...[
-                    DsGap.md,
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? DsColors.surfaceLight.withValues(alpha: 0.1)
-                            : DsColors.ink900.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.location_on_outlined,
-                            size: 14,
-                            color: isDark
-                                ? DsColors.textMutedDark
-                                : DsColors.textMutedLight,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            passportModeActive
-                                ? locationLabel
-                                : '$locationLabel • ${currentDistanceKm.round()} km',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: isDark
-                                      ? DsColors.textMutedDark
-                                      : DsColors.textMutedLight,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  DsGap.xxl,
-                  BlocBuilder<DiscoverySettingsCubit, DiscoverySettingsState>(
-                    builder: (context, filterState) {
-                      final activeCount = filterState.activeAdvancedFilterCount;
-                      return FilledButton.icon(
-                        icon: activeCount > 0
-                            ? Badge(
-                                label: Text('$activeCount'),
-                                backgroundColor: DsColors.secondary,
-                                child: const Icon(Icons.tune, size: 18),
-                              )
-                            : const Icon(Icons.tune, size: 18),
-                        onPressed: () =>
-                            context.push(CrushRoutes.discoverySettings),
-                        label: Text(
-                          activeCount > 0 ? 'Filters active' : 'Adjust filters',
-                        ),
-                      );
-                    },
-                  ),
-                  DsGap.md,
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.refresh, size: 18),
-                    label: Text(AppLocalizations.of(context).refreshDeck),
-                    onPressed: userId == null
-                        ? null
-                        : () => context.read<DiscoveryBloc>().add(
-                            DiscoveryDeckRequested(userId),
-                          ),
-                  ),
-                  if (!passportModeActive) ...[
-                    DsGap.md,
-                    // Animated passport button with plane takeoff effect
-                    AnimatedPassportButton(
-                      onPressed: isPlus
-                          ? () => context.push(CrushRoutes.discoverySettings)
-                          : () => _showPassportUpsell(context),
-                      label: isPlus
-                          ? 'Enable Passport mode'
-                          : 'Try Passport with Plus',
-                      isPlus: isPlus,
-                    ),
-                  ],
-                  if (!isPlus) ...[
-                    DsGap.lg,
-                    const UpgradeNudgeCard(
-                      title: 'Unlock Passport Mode',
-                      subtitle:
-                          'Go global with Passport and explore people from anywhere.',
-                      bullets: [
-                        'Passport to any city',
-                        'Unlimited likes & rewinds',
-                        'See who likes you first',
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   // ═══════════════════════════════════════════════════════════════════════════
   // KEYBOARD SHORTCUT HANDLERS
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1744,117 +1489,6 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
             child: Text(AppLocalizations.of(context).completeProfile),
           ),
         ],
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar(BuildContext context, String? userId) {
-    final baseSurface = DsGlassColors.surfaceFor(context);
-
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(kToolbarHeight),
-      child: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: AlignmentDirectional.topStart,
-                end: AlignmentDirectional.bottomEnd,
-                colors: [
-                  baseSurface.withValues(alpha: 0.8),
-                  baseSurface.withValues(alpha: 0.6),
-                ],
-              ),
-              border: Border(
-                bottom: BorderSide(
-                  color: DsGlassColors.borderFor(context),
-                  width: 0.5,
-                ),
-              ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: SizedBox(
-                height: kToolbarHeight,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // Centered title
-                    Center(
-                      child: ShaderMask(
-                        shaderCallback: (bounds) =>
-                            DsGradients.primaryHorizontal.createShader(
-                              bounds,
-                              textDirection: Directionality.of(context),
-                            ),
-                        child: Text(
-                          'Crush',
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: DsColors.surfaceLight,
-                              ),
-                        ),
-                      ),
-                    ),
-                    // Boost indicator and weekly picks on the left
-                    PositionedDirectional(
-                      start: DsSpacing.sm,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const BoostButton(),
-                          const SizedBox(width: DsSpacing.xs),
-                          GlassIconButton(
-                            icon: Icons.auto_awesome,
-                            onPressed: () =>
-                                context.push(CrushRoutes.weeklyPicks),
-                            size: 40,
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Actions on the right
-                    PositionedDirectional(
-                      end: DsSpacing.sm,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Explore/Swipe toggle (tablet/desktop only)
-                          if (!DsBreakpoints.isMobile(
-                            MediaQuery.sizeOf(context).width,
-                          ))
-                            GlassIconButton(
-                              icon: _exploreMode
-                                  ? Icons.view_carousel
-                                  : Icons.grid_view_rounded,
-                              onPressed: () =>
-                                  setState(() => _exploreMode = !_exploreMode),
-                              size: 40,
-                            ),
-                          if (!DsBreakpoints.isMobile(
-                            MediaQuery.sizeOf(context).width,
-                          ))
-                            const SizedBox(width: DsSpacing.xs),
-                          GlassIconButton(
-                            icon: Icons.refresh,
-                            onPressed: userId == null
-                                ? () {}
-                                : () => context.read<DiscoveryBloc>().add(
-                                    DiscoveryDeckRequested(userId),
-                                  ),
-                            size: 40,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

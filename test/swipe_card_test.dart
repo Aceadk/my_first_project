@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/features/discovery/data/services/story_service.dart';
 import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
 import 'package:crushhour/features/discovery/presentation/widgets/swipe_card.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -49,9 +48,7 @@ void main() {
     await tester.pumpWidget(
       RepositoryProvider<StoryRepository>.value(
         value: storyRepository,
-        child: const MaterialApp(
-          home: SwipeCard(profile: profile),
-        ),
+        child: const MaterialApp(home: SwipeCard(profile: profile)),
       ),
     );
 
@@ -84,9 +81,7 @@ void main() {
     await tester.pumpWidget(
       RepositoryProvider<StoryRepository>.value(
         value: storyRepository,
-        child: const MaterialApp(
-          home: SwipeCard(profile: profile),
-        ),
+        child: const MaterialApp(home: SwipeCard(profile: profile)),
       ),
     );
 
@@ -138,10 +133,16 @@ class _EmptyStoryRepository implements StoryRepository {
   }
 
   @override
-  Future<void> removeStory({required String userId, required String storyId}) async {}
+  Future<void> removeStory({
+    required String userId,
+    required String storyId,
+  }) async {}
 
   @override
-  Future<void> viewStory({required String storyId, required String viewerId}) async {}
+  Future<void> viewStory({
+    required String storyId,
+    required String viewerId,
+  }) async {}
 
   @override
   List<String> getUsersWithActiveStories() => const [];

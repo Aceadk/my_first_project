@@ -116,10 +116,7 @@ ProfileCompletenessSummary evaluateProfileCompleteness(Profile? profile) {
   }
 
   // Prompts: Optional (not counted in score, just recommended)
-  final promptCount = profile.profilePrompts.isNotEmpty
-      ? profile.profilePrompts.length
-      // ignore: deprecated_member_use_from_same_package
-      : profile.prompts.length;
+  final promptCount = profile.profilePrompts.length;
   breakdown['prompts'] = promptCount > 0 ? 1.0 : 0.0; // Just for tracking
   if (promptCount < kRecommendedPrompts) {
     recommended.add('Answer prompts to stand out');

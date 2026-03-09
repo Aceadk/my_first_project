@@ -7,6 +7,7 @@ import express, { NextFunction, Request, Response } from "express";
 import * as admin from "firebase-admin";
 import { defineString } from "firebase-functions/params";
 import * as functions from "firebase-functions/v1";
+import { GoogleAuth } from "google-auth-library";
 import multer from "multer";
 import Stripe from "stripe";
 import {
@@ -63,6 +64,17 @@ const stripeSecretParam = defineString("STRIPE_SECRET", { default: "" });
 const stripeWebhookSecretParam = defineString("STRIPE_WEBHOOK_SECRET", {
   default: "",
 });
+const googlePlayPackageNameParam = defineString("GOOGLE_PLAY_PACKAGE_NAME", {
+  default: "",
+});
+const appleIssuerIdParam = defineString("APPLE_ISSUER_ID", { default: "" });
+const appleKeyIdParam = defineString("APPLE_KEY_ID", { default: "" });
+const applePrivateKeyParam = defineString("APPLE_PRIVATE_KEY", { default: "" });
+const appleBundleIdParam = defineString("APPLE_BUNDLE_ID", { default: "" });
+const googleRtdnVerificationTokenParam = defineString(
+  "GOOGLE_RTDN_VERIFICATION_TOKEN",
+  { default: "" }
+);
 const agoraAppIdParam = defineString("AGORA_APP_ID", { default: "" });
 const agoraCertificateParam = defineString("AGORA_APP_CERTIFICATE", {
   default: "",
@@ -80,6 +92,13 @@ const getCorsAllowedOrigins = () =>
     .filter(Boolean);
 const getStripeSecret = () => stripeSecretParam.value();
 const getStripeWebhookSecret = () => stripeWebhookSecretParam.value();
+const getGooglePlayPackageName = () => googlePlayPackageNameParam.value();
+const getAppleIssuerId = () => appleIssuerIdParam.value();
+const getAppleKeyId = () => appleKeyIdParam.value();
+const getApplePrivateKey = () => applePrivateKeyParam.value();
+const getAppleBundleId = () => appleBundleIdParam.value();
+const getGoogleRtdnVerificationToken = () =>
+  googleRtdnVerificationTokenParam.value();
 const getAgoraAppId = () => agoraAppIdParam.value();
 const getAgoraCertificate = () => agoraCertificateParam.value();
 const getOtpSecret = () => otpSecretParam.value();
@@ -166,6 +185,133 @@ interface CheckoutSessionRequest {
   priceId?: string;
   successUrl?: string;
   cancelUrl?: string;
+}
+
+interface VerifyGooglePurchaseTokenRequest {
+  packageName?: string;
+  productId?: string;
+  purchaseToken?: string;
+}
+
+interface VerifyAppleTransactionRequest {
+  productId?: string;
+  transactionId?: string;
+}
+
+interface GoogleSubscriptionPurchaseResponse {
+  orderId?: string;
+  expiryTimeMillis?: string;
+  autoRenewing?: boolean;
+  acknowledgementState?: number;
+  paymentState?: number;
+  cancelReason?: number;
+  linkedPurchaseToken?: string;
+}
+
+interface GoogleSubscriptionEntitlement {
+  plan: "free" | "plus";
+  status: string;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: number | null;
+  expiryTimeMillis: number | null;
+}
+
+type AppleServerEnvironment = "PRODUCTION" | "SANDBOX";
+
+interface AppleServerApiConfig {
+  issuerId: string;
+  keyId: string;
+  privateKey: string;
+  bundleId: string;
+}
+
+interface AppleTransactionLookupResponse {
+  signedTransactionInfo?: string;
+  environment?: string;
+}
+
+interface AppleTransactionInfoPayload {
+  transactionId?: string;
+  originalTransactionId?: string;
+  webOrderLineItemId?: string;
+  bundleId?: string;
+  productId?: string;
+  purchaseDate?: number | string;
+  expiresDate?: number | string;
+  revocationDate?: number | string;
+  inAppOwnershipType?: string;
+  transactionReason?: string;
+}
+
+interface AppleTransactionValidationResult {
+  environment: AppleServerEnvironment;
+  signedTransactionInfo: string;
+  transaction: AppleTransactionInfoPayload;
+}
+
+interface AppleSubscriptionEntitlement {
+  plan: "free" | "plus";
+  status: string;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: number | null;
+  expiryTimeMillis: number | null;
+}
+
+interface AppleServerNotificationData {
+  appAppleId?: number;
+  bundleId?: string;
+  bundleVersion?: string;
+  environment?: string;
+  signedRenewalInfo?: string;
+  signedTransactionInfo?: string;
+}
+
+interface AppleServerNotificationPayload {
+  notificationType?: string;
+  subtype?: string;
+  notificationUUID?: string;
+  version?: string;
+  signedDate?: number | string;
+  data?: AppleServerNotificationData;
+}
+
+interface AppleServerNotificationMapping {
+  status: string;
+  forceFree: boolean;
+}
+
+interface GoogleRtdnSubscriptionNotification {
+  version?: string;
+  notificationType?: number;
+  purchaseToken?: string;
+  subscriptionId?: string;
+}
+
+interface GoogleRtdnPayload {
+  version?: string;
+  packageName?: string;
+  eventTimeMillis?: string;
+  subscriptionNotification?: GoogleRtdnSubscriptionNotification;
+}
+
+interface GooglePubSubPushEnvelope {
+  message?: {
+    data?: string;
+    messageId?: string;
+    publishTime?: string;
+    attributes?: Record<string, string>;
+  };
+  subscription?: string;
+}
+
+interface GoogleRtdnDecodeResult {
+  payload: GoogleRtdnPayload;
+  messageId?: string;
+}
+
+interface GoogleRtdnNotificationMapping {
+  status: string;
+  forceFree: boolean;
 }
 
 interface UnsendRequest {
@@ -369,6 +515,78 @@ function callable<TData>(handler: CallableHandler<TData>) {
   });
 }
 
+type RestAppCheckOutcome = "valid" | "missing" | "invalid";
+
+interface RestAppCheckEvaluation {
+  allowed: boolean;
+  outcome: RestAppCheckOutcome;
+}
+
+function getRestAppCheckToken(req: Request): string | undefined {
+  const headerValue = req.header("X-Firebase-AppCheck");
+  if (typeof headerValue !== "string") return undefined;
+  const token = headerValue.trim();
+  return token.length > 0 ? token : undefined;
+}
+
+async function evaluateRestAppCheck(
+  token: string | undefined,
+  action: string,
+  options?: {
+    enforce?: boolean;
+    verifyToken?: (value: string) => Promise<unknown>;
+  }
+): Promise<RestAppCheckEvaluation> {
+  const enforce = options?.enforce ?? ENFORCE_APP_CHECK;
+  const verifyToken =
+    options?.verifyToken ??
+    ((value: string) => admin.appCheck().verifyToken(value));
+
+  if (!token) {
+    if (enforce) {
+      console.warn("App Check REST: Rejected request without token", { action });
+      return { allowed: false, outcome: "missing" };
+    }
+    console.info("App Check REST: Request without token (enforcement disabled)", {
+      action,
+    });
+    return { allowed: true, outcome: "missing" };
+  }
+
+  try {
+    await verifyToken(token);
+    return { allowed: true, outcome: "valid" };
+  } catch {
+    if (enforce) {
+      console.warn("App Check REST: Rejected request with invalid token", {
+        action,
+      });
+      return { allowed: false, outcome: "invalid" };
+    }
+    console.info("App Check REST: Invalid token (enforcement disabled)", {
+      action,
+    });
+    return { allowed: true, outcome: "invalid" };
+  }
+}
+
+function appCheckRestMiddleware(action: string) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const evaluation = await evaluateRestAppCheck(
+      getRestAppCheckToken(req),
+      action
+    );
+    if (evaluation.allowed) {
+      next();
+      return;
+    }
+    res.status(412).json({
+      error: "App Check verification failed. Please update your app.",
+      code: "failed-precondition",
+    });
+  };
+}
+
 function requireAuth(context: CallableContext, action: string): string {
   const uid = context.auth?.uid;
   if (!uid) {
@@ -507,6 +725,511 @@ function validateAge(age: unknown): number {
   return Math.floor(num);
 }
 
+function requireObjectRecord(
+  value: unknown,
+  field: string
+): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} must be an object.`
+    );
+  }
+  return value as Record<string, unknown>;
+}
+
+function validateProfileTextField(
+  value: unknown,
+  field: string,
+  options: { maxLength: number; allowEmpty?: boolean; lowerCase?: boolean }
+): string {
+  if (typeof value !== "string") {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} must be a string.`
+    );
+  }
+
+  const allowEmpty = options.allowEmpty ?? true;
+  const sanitized = stripHtml(value.trim());
+  if (!allowEmpty && sanitized.length === 0) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} cannot be empty.`
+    );
+  }
+  if (sanitized.length > options.maxLength) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} exceeds maximum length of ${options.maxLength} characters.`
+    );
+  }
+  return options.lowerCase ? sanitized.toLowerCase() : sanitized;
+}
+
+function validateProfileInterests(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "interests must be an array of strings."
+    );
+  }
+  if (value.length > 20) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "interests cannot contain more than 20 items."
+    );
+  }
+
+  const normalized: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Each interest must be a string."
+      );
+    }
+    const cleaned = stripHtml(item.trim());
+    if (!cleaned) continue;
+    if (cleaned.length > 40) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Each interest must be 40 characters or fewer."
+      );
+    }
+    normalized.push(cleaned);
+  }
+
+  return normalized;
+}
+
+const PROFILE_PATCH_ALLOWED_FIELDS = new Set([
+  "display_name",
+  "bio",
+  "birth_date",
+  "gender",
+  "job_title",
+  "company",
+  "education",
+  "city",
+  "country",
+  "interests",
+]);
+
+function validateProfilePatchPayload(
+  payload: unknown
+): Record<string, unknown> {
+  const body = requireObjectRecord(payload, "body");
+  const keys = Object.keys(body);
+
+  if (keys.length === 0) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Request body must include at least one updatable profile field."
+    );
+  }
+
+  for (const key of keys) {
+    if (!PROFILE_PATCH_ALLOWED_FIELDS.has(key)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        `Unsupported profile field: ${key}.`
+      );
+    }
+  }
+
+  const updates: Record<string, unknown> = {};
+
+  if (body.display_name !== undefined) {
+    updates["profile.name"] = validateProfileName(
+      body.display_name,
+      "display_name"
+    );
+  }
+  if (body.bio !== undefined) {
+    updates["profile.bio"] = validateBio(body.bio);
+  }
+  if (body.birth_date !== undefined) {
+    const birthDate = validateProfileTextField(body.birth_date, "birth_date", {
+      maxLength: 64,
+      allowEmpty: false,
+    });
+    validateMinimumAge(birthDate);
+    const normalizedBirthDate = new Date(birthDate).toISOString();
+    updates["profile.birthDate"] = normalizedBirthDate;
+  }
+  if (body.gender !== undefined) {
+    updates["profile.gender"] = validateProfileTextField(body.gender, "gender", {
+      maxLength: 32,
+      allowEmpty: false,
+      lowerCase: true,
+    });
+  }
+  if (body.job_title !== undefined) {
+    updates["profile.jobTitle"] = validateProfileTextField(
+      body.job_title,
+      "job_title",
+      { maxLength: 100 }
+    );
+  }
+  if (body.company !== undefined) {
+    updates["profile.company"] = validateProfileTextField(
+      body.company,
+      "company",
+      { maxLength: 100 }
+    );
+  }
+  if (body.education !== undefined) {
+    updates["profile.education"] = validateProfileTextField(
+      body.education,
+      "education",
+      { maxLength: 120 }
+    );
+  }
+  if (body.city !== undefined) {
+    updates["profile.city"] = validateProfileTextField(body.city, "city", {
+      maxLength: 100,
+    });
+  }
+  if (body.country !== undefined) {
+    updates["profile.country"] = validateProfileTextField(
+      body.country,
+      "country",
+      { maxLength: 100 }
+    );
+  }
+  if (body.interests !== undefined) {
+    updates["profile.interests"] = validateProfileInterests(body.interests);
+  }
+
+  if (Object.keys(updates).length === 0) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "No valid profile updates were provided."
+    );
+  }
+
+  return updates;
+}
+
+const PROFILE_PREFERENCES_ALLOWED_FIELDS = new Set([
+  "minAge",
+  "maxAge",
+  "maxDistanceKm",
+  "showMeGenders",
+  "showMyDistance",
+  "showMyAge",
+  "hideFromDiscovery",
+  "incognitoMode",
+  "country",
+  "city",
+  "genderPreference",
+]);
+
+function validateBooleanField(value: unknown, field: string): boolean {
+  if (typeof value !== "boolean") {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} must be a boolean.`
+    );
+  }
+  return value;
+}
+
+function validatePreferenceNumber(
+  value: unknown,
+  field: string,
+  min: number,
+  max: number
+): number {
+  const parsed = toNumber(value);
+  if (parsed === undefined || !Number.isFinite(parsed)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} must be a number.`
+    );
+  }
+  if (parsed < min || parsed > max) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      `${field} must be between ${min} and ${max}.`
+    );
+  }
+  return Math.round(parsed);
+}
+
+function validateShowMeGenders(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "showMeGenders must be an array of strings."
+    );
+  }
+  if (value.length > 10) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "showMeGenders cannot contain more than 10 values."
+    );
+  }
+
+  return value.map((item) => {
+    if (typeof item !== "string") {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "showMeGenders entries must be strings."
+      );
+    }
+    const normalized = stripHtml(item.trim().toLowerCase());
+    if (!normalized) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "showMeGenders entries cannot be empty."
+      );
+    }
+    if (normalized.length > 30) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "showMeGenders entries must be 30 characters or fewer."
+      );
+    }
+    return normalized;
+  });
+}
+
+function validateProfilePreferencesPayload(
+  payload: unknown
+): Record<string, unknown> {
+  const preferences = requireObjectRecord(payload, "preferences");
+  const keys = Object.keys(preferences);
+
+  if (keys.length === 0) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "preferences payload cannot be empty."
+    );
+  }
+
+  for (const key of keys) {
+    if (!PROFILE_PREFERENCES_ALLOWED_FIELDS.has(key)) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        `Unsupported preferences field: ${key}.`
+      );
+    }
+  }
+
+  const normalized: Record<string, unknown> = {};
+  let minAge: number | undefined;
+  let maxAge: number | undefined;
+
+  if (preferences.minAge !== undefined) {
+    minAge = validatePreferenceNumber(preferences.minAge, "minAge", 18, 100);
+    normalized.minAge = minAge;
+  }
+  if (preferences.maxAge !== undefined) {
+    maxAge = validatePreferenceNumber(preferences.maxAge, "maxAge", 18, 100);
+    normalized.maxAge = maxAge;
+  }
+  if (minAge !== undefined && maxAge !== undefined && minAge > maxAge) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "minAge cannot be greater than maxAge."
+    );
+  }
+
+  if (preferences.maxDistanceKm !== undefined) {
+    normalized.maxDistanceKm = validatePreferenceNumber(
+      preferences.maxDistanceKm,
+      "maxDistanceKm",
+      1,
+      1000
+    );
+  }
+  if (preferences.showMeGenders !== undefined) {
+    normalized.showMeGenders = validateShowMeGenders(preferences.showMeGenders);
+  }
+  if (preferences.showMyDistance !== undefined) {
+    normalized.showMyDistance = validateBooleanField(
+      preferences.showMyDistance,
+      "showMyDistance"
+    );
+  }
+  if (preferences.showMyAge !== undefined) {
+    normalized.showMyAge = validateBooleanField(
+      preferences.showMyAge,
+      "showMyAge"
+    );
+  }
+  if (preferences.hideFromDiscovery !== undefined) {
+    normalized.hideFromDiscovery = validateBooleanField(
+      preferences.hideFromDiscovery,
+      "hideFromDiscovery"
+    );
+  }
+  if (preferences.incognitoMode !== undefined) {
+    normalized.incognitoMode = validateBooleanField(
+      preferences.incognitoMode,
+      "incognitoMode"
+    );
+  }
+  if (preferences.country !== undefined) {
+    normalized.country = validateProfileTextField(
+      preferences.country,
+      "country",
+      { maxLength: 100 }
+    );
+  }
+  if (preferences.city !== undefined) {
+    normalized.city = validateProfileTextField(preferences.city, "city", {
+      maxLength: 100,
+    });
+  }
+  if (preferences.genderPreference !== undefined) {
+    const value = validateProfileTextField(
+      preferences.genderPreference,
+      "genderPreference",
+      { maxLength: 30, allowEmpty: false, lowerCase: true }
+    );
+    normalized.genderPreference = value;
+  }
+
+  if (Object.keys(normalized).length === 0) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "No valid preferences updates were provided."
+    );
+  }
+
+  return normalized;
+}
+
+function getCanonicalProfilePreferences(
+  userData: Record<string, unknown>
+): Record<string, unknown> {
+  const profile = asRecord(userData.profile);
+  const nestedPreferences = asRecord(profile.preferences);
+  if (Object.keys(nestedPreferences).length > 0) {
+    return nestedPreferences;
+  }
+  return asRecord(userData.preferences);
+}
+
+function httpStatusFromHttpsErrorCode(code: string): number {
+  switch (code) {
+    case "invalid-argument":
+      return 400;
+    case "unauthenticated":
+      return 401;
+    case "permission-denied":
+      return 403;
+    case "not-found":
+      return 404;
+    case "already-exists":
+      return 409;
+    case "failed-precondition":
+      return 412;
+    case "resource-exhausted":
+      return 429;
+    default:
+      return 500;
+  }
+}
+
+interface StorageObjectLocation {
+  bucketName: string;
+  objectPath: string;
+}
+
+function parseProfilePhotoIndex(photoId: string): number | null {
+  const match = /^photo_(\d+)$/.exec(photoId);
+  if (!match) return null;
+  const parsed = Number(match[1]);
+  if (!Number.isInteger(parsed) || parsed < 0) return null;
+  return parsed;
+}
+
+function safeDecodeUriComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function parseStorageObjectLocationFromUrl(
+  photoUrl: string
+): StorageObjectLocation | null {
+  const trimmed = typeof photoUrl === "string" ? photoUrl.trim() : "";
+  if (!trimmed) return null;
+
+  if (trimmed.startsWith("gs://")) {
+    const withoutPrefix = trimmed.slice("gs://".length);
+    const slashIndex = withoutPrefix.indexOf("/");
+    if (slashIndex <= 0) return null;
+    const bucketName = withoutPrefix.slice(0, slashIndex);
+    const objectPath = withoutPrefix.slice(slashIndex + 1);
+    if (!bucketName || !objectPath) return null;
+    return { bucketName, objectPath };
+  }
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(trimmed);
+  } catch {
+    return null;
+  }
+
+  if (parsedUrl.hostname === "storage.googleapis.com") {
+    const normalizedPath = parsedUrl.pathname.replace(/^\/+/, "");
+    const slashIndex = normalizedPath.indexOf("/");
+    if (slashIndex <= 0) return null;
+    const bucketName = normalizedPath.slice(0, slashIndex);
+    const objectPath = safeDecodeUriComponent(
+      normalizedPath.slice(slashIndex + 1)
+    );
+    if (!bucketName || !objectPath) return null;
+    return { bucketName, objectPath };
+  }
+
+  if (parsedUrl.hostname === "firebasestorage.googleapis.com") {
+    const match = /^\/v0\/b\/([^/]+)\/o\/(.+)$/.exec(parsedUrl.pathname);
+    if (!match) return null;
+    const bucketName = match[1];
+    const objectPath = safeDecodeUriComponent(match[2]);
+    if (!bucketName || !objectPath) return null;
+    return { bucketName, objectPath };
+  }
+
+  return null;
+}
+
+function isStorageNotFoundError(error: unknown): boolean {
+  const code = (error as { code?: unknown })?.code;
+  if (code === 404 || code === "404" || code === "ENOENT" || code === "storage/object-not-found") {
+    return true;
+  }
+  const message = (error as { message?: unknown })?.message;
+  return typeof message === "string" && message.toLowerCase().includes("no such object");
+}
+
+async function deleteProfilePhotoStorageObject(photoUrl: string): Promise<void> {
+  const location = parseStorageObjectLocationFromUrl(photoUrl);
+  if (!location) {
+    // Legacy/external URLs may not map to Firebase Storage object paths.
+    console.warn("Skipping storage delete for unmanaged profile photo URL", {
+      photoUrl,
+    });
+    return;
+  }
+
+  try {
+    await admin.storage().bucket(location.bucketName).file(location.objectPath).delete();
+  } catch (error) {
+    if (isStorageNotFoundError(error)) return;
+    throw error;
+  }
+}
+
 /** Valid report reason categories. */
 const VALID_REPORT_CATEGORIES = [
   "harassment",
@@ -521,16 +1244,73 @@ const VALID_REPORT_CATEGORIES = [
   "other",
 ] as const;
 
-/** Validate report reason: 10-1000 chars, valid category. */
-function validateReportReason(reason: unknown, field = "reason"): string {
-  const str = requireString(reason, field, 1000);
-  if (str.length < 10) {
+type ReportCategory = typeof VALID_REPORT_CATEGORIES[number];
+
+function normalizeReportReasonToken(reason: string): string {
+  return reason
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function inferReportCategoryFromReason(reason: string): ReportCategory {
+  const normalized = normalizeReportReasonToken(reason);
+  if (!normalized) return "other";
+  if (normalized.includes("underage")) return "underage";
+  if (normalized.includes("impersonat")) return "impersonation";
+  if (normalized.includes("threat")) return "threatening";
+  if (normalized.includes("hate")) return "hate_speech";
+  if (normalized.includes("harass")) return "harassment";
+  if (normalized.includes("fake profile") || normalized.includes("catfish") || normalized.includes("fake")) {
+    return "fake_profile";
+  }
+  if (
+    normalized.includes("inappropriate") ||
+    normalized.includes("explicit") ||
+    normalized.includes("nudity") ||
+    normalized.includes("photo")
+  ) {
+    return "inappropriate_content";
+  }
+  if (
+    normalized.includes("scam") ||
+    normalized.includes("fraud") ||
+    normalized.includes("phish")
+  ) {
+    return "scam";
+  }
+  if (normalized.includes("spam")) return "spam";
+  return "other";
+}
+
+function canonicalizeSafetyReportReason(
+  reason: unknown,
+  options?: { field?: string; maxLength?: number; minLength?: number }
+): { reasonText: string; reasonCategory: ReportCategory } {
+  const field = options?.field ?? "reason";
+  const maxLength = options?.maxLength ?? 1000;
+  const minLength = options?.minLength ?? 1;
+  const str = requireString(reason, field, maxLength);
+  const reasonText = stripHtml(str);
+  if (reasonText.length < minLength) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      `${field} must be at least 10 characters.`
+      `${field} must be at least ${minLength} characters.`
     );
   }
-  return stripHtml(str);
+  return {
+    reasonText,
+    reasonCategory: inferReportCategoryFromReason(reasonText),
+  };
+}
+
+/** Validate report reason: 10-1000 chars, valid category. */
+function validateReportReason(reason: unknown, field = "reason"): string {
+  return canonicalizeSafetyReportReason(reason, {
+    field,
+    maxLength: 1000,
+    minLength: 10,
+  }).reasonText;
 }
 
 /** Validate report category enum. */
@@ -543,6 +1323,128 @@ function validateReportCategory(category: unknown): string {
     );
   }
   return str;
+}
+
+type SafetySelfAction = "block" | "unblock" | "report";
+type SafetyRestAuditOutcome = "success" | "rate_limited" | "invalid" | "error";
+
+interface SafetyRestAuditLogParams {
+  action: SafetySelfAction;
+  actorUid?: string;
+  targetUid?: string;
+  route: string;
+  method?: string;
+  statusCode: number;
+  errorCode?: string | null;
+  reasonCategory?: ReportCategory | null;
+  metadata?: Record<string, unknown>;
+  ip?: string | null;
+  userAgent?: string | null;
+}
+
+type SafetyRestAuditWriter = (entry: Record<string, unknown>) => Promise<unknown>;
+
+function getRestClientIp(req: Request): string | null {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (Array.isArray(forwarded)) {
+    const first = forwarded[0]?.split(",")[0]?.trim();
+    return first || null;
+  }
+  if (typeof forwarded === "string") {
+    const first = forwarded.split(",")[0]?.trim();
+    return first || null;
+  }
+  const ip = typeof req.ip === "string" ? req.ip.trim() : "";
+  return ip.length > 0 ? ip : null;
+}
+
+function safetyAuditOutcomeFromStatusCode(
+  statusCode: number
+): SafetyRestAuditOutcome {
+  if (statusCode >= 500) return "error";
+  if (statusCode === 429) return "rate_limited";
+  if (statusCode >= 400) return "invalid";
+  return "success";
+}
+
+async function logSafetyRestAudit(
+  params: SafetyRestAuditLogParams,
+  options?: {
+    writer?: SafetyRestAuditWriter;
+    timestampFactory?: () => unknown;
+  }
+): Promise<void> {
+  const writer =
+    options?.writer ??
+    ((entry: Record<string, unknown>) =>
+      db.collection("safety_rest_audit_logs").add(entry));
+  const timestampFactory = options?.timestampFactory ?? serverTimestamp;
+  const entry = {
+    action: params.action,
+    actorUid: params.actorUid ?? null,
+    targetUid: params.targetUid ?? null,
+    outcome: safetyAuditOutcomeFromStatusCode(params.statusCode),
+    route: params.route,
+    method: (params.method ?? "POST").toUpperCase(),
+    statusCode: params.statusCode,
+    errorCode: params.errorCode ?? null,
+    reasonCategory: params.reasonCategory ?? null,
+    metadata: params.metadata ?? {},
+    ip: params.ip ?? null,
+    userAgent: params.userAgent ?? null,
+    createdAt: timestampFactory(),
+  };
+
+  try {
+    await writer(entry);
+  } catch (err) {
+    console.error("Safety audit log write failed", {
+      action: params.action,
+      route: params.route,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+/** Validate target user IDs for safety REST endpoints. */
+function validateSafetyTargetId(value: unknown, field: string): string {
+  return requireString(value, field, 128);
+}
+
+/** Prevent users from applying safety actions against themselves. */
+function assertNotSelfSafetyAction(
+  actorId: string,
+  targetId: string,
+  action: SafetySelfAction
+): void {
+  if (actorId !== targetId) return;
+  throw new functions.https.HttpsError(
+    "invalid-argument",
+    `You cannot ${action} yourself.`
+  );
+}
+
+/** Validate and sanitize REST safety report reason text. */
+function validateSafetyReportReason(reason: unknown): string {
+  return canonicalizeSafetyReportReason(reason, {
+    field: "reason",
+    maxLength: 280,
+    minLength: 3,
+  }).reasonText;
+}
+
+/** Validate and sanitize optional REST safety report description text. */
+function validateOptionalSafetyDescription(description: unknown): string | null {
+  const raw = optionalString(description);
+  if (!raw) return null;
+  if (raw.length > 2000) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "description exceeds maximum length of 2000 characters."
+    );
+  }
+  const sanitized = stripHtml(raw);
+  return sanitized.length > 0 ? sanitized : null;
 }
 
 /** Validate email format. */
@@ -659,6 +1561,53 @@ function validateMinimumAge(dobString: string | undefined | null): void {
       `You must be ${MIN_AGE_YEARS} or older to use Crush.`
     );
   }
+}
+
+function profileBirthDate(profile: Record<string, unknown>): Date | null {
+  const dobRaw = profile.birthDate ?? profile.dateOfBirth;
+  return normalizeDate(dobRaw);
+}
+
+function profileBirthDateIso(profile: Record<string, unknown>): string | null {
+  const dob = profileBirthDate(profile);
+  return dob ? dob.toISOString() : null;
+}
+
+function deriveProfileAge(profile: Record<string, unknown>): number | null {
+  const dob = profileBirthDate(profile);
+  if (dob) {
+    const age = calculateAgeFromDob(dob.toISOString());
+    if (age !== null && age >= 0 && age <= 120) {
+      return age;
+    }
+  }
+
+  const fallbackAge = toNumber(profile.age);
+  if (fallbackAge === undefined || fallbackAge < 0 || fallbackAge > 120) {
+    return null;
+  }
+  return Math.floor(fallbackAge);
+}
+
+function profilePromptAnswers(profile: Record<string, unknown>): string[] {
+  const structuredPrompts = profile.profilePrompts;
+  if (Array.isArray(structuredPrompts)) {
+    const answers = structuredPrompts
+      .map((entry) => {
+        if (typeof entry === "string") {
+          return stripHtml(entry.trim());
+        }
+        const promptData = asRecord(entry);
+        const answer = promptData.answer;
+        if (typeof answer !== "string") return "";
+        return stripHtml(answer.trim());
+      })
+      .filter((answer) => answer.length > 0);
+    if (answers.length > 0) {
+      return answers;
+    }
+  }
+  return toStringArray(profile.prompts);
 }
 // OTP secret is required - never fall back to a predictable value
 const getOtpSecretChecked = () => {
@@ -2597,8 +3546,11 @@ type ProfileData = {
   name?: string;
   lastName?: string;
   bio?: unknown;
+  birthDate?: unknown;
+  dateOfBirth?: unknown; // Legacy fallback
   photoUrls?: unknown;
   prompts?: unknown;
+  profilePrompts?: unknown; // Canonical structured prompts
   interests?: unknown;
   jobTitle?: unknown;
   company?: unknown;
@@ -2689,8 +3641,9 @@ function evaluateProfileCompleteness(
     };
   }
 
+  const normalizedProfile = profile as unknown as Record<string, unknown>;
   const photos = toStringArray(profile.photoUrls);
-  const prompts = toStringArray(profile.prompts);
+  const prompts = profilePromptAnswers(normalizedProfile);
   const interests = toStringArray(profile.interests);
   const bio = typeof profile.bio === "string" ? profile.bio.trim() : "";
   const country = typeof profile.country === "string" ? profile.country.trim() : "";
@@ -2767,8 +3720,9 @@ function evaluateProfileCompleteness(
 }
 
 function ensureProfileQuality(profile: ProfileData | null, action: string) {
+  const normalizedProfile = (profile ?? {}) as Record<string, unknown>;
   const photos = toStringArray(profile?.photoUrls);
-  const prompts = toStringArray(profile?.prompts);
+  const prompts = profilePromptAnswers(normalizedProfile);
   const interests = toStringArray(profile?.interests);
   const bio =
     typeof profile?.bio === "string" ? (profile?.bio as string).trim() : "";
@@ -2833,6 +3787,821 @@ async function setUserPlan(
   // Premium users get: presence visibility, typing indicators, read receipts, last seen
   const isPremium = plan === "plus";
   await rtdb.ref(`premium_users/${uid}`).set(isPremium ? true : null);
+}
+
+const ANDROID_PUBLISHER_SCOPE =
+  "https://www.googleapis.com/auth/androidpublisher";
+
+function normalizeGooglePlayPackageName(
+  packageName: string | null | undefined
+): string | null {
+  const normalized = packageName?.trim();
+  return normalized ? normalized : null;
+}
+
+function hashPurchaseToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+const APPLE_SERVER_AUDIENCE = "appstoreconnect-v1";
+const APPLE_SERVER_BASE_URL = "https://api.storekit.itunes.apple.com";
+const APPLE_SERVER_SANDBOX_BASE_URL =
+  "https://api.storekit-sandbox.itunes.apple.com";
+
+function normalizeApplePrivateKey(
+  value: string | null | undefined
+): string | null {
+  const normalized = value?.trim();
+  if (!normalized) return null;
+  return normalized.includes("\\n")
+    ? normalized.replace(/\\n/g, "\n")
+    : normalized;
+}
+
+function normalizeAppleServerEnvironment(
+  value: string | undefined
+): AppleServerEnvironment | null {
+  const normalized = value?.trim().toUpperCase();
+  if (normalized === "PRODUCTION") return "PRODUCTION";
+  if (normalized === "SANDBOX") return "SANDBOX";
+  return null;
+}
+
+function getAppleServerApiConfig(): AppleServerApiConfig {
+  const issuerId = optionalString(getAppleIssuerId());
+  const keyId = optionalString(getAppleKeyId());
+  const privateKey = normalizeApplePrivateKey(getApplePrivateKey());
+  const bundleId = optionalString(getAppleBundleId());
+
+  if (!issuerId || !keyId || !privateKey || !bundleId) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Apple server API credentials are not fully configured."
+    );
+  }
+
+  return { issuerId, keyId, privateKey, bundleId };
+}
+
+function base64UrlEncode(value: Buffer | string): string {
+  const buffer = Buffer.isBuffer(value) ? value : Buffer.from(value, "utf8");
+  return buffer
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function base64UrlDecode(value: string): Buffer {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = normalized.length % 4;
+  const padded =
+    padding === 0 ? normalized : normalized + "=".repeat(4 - padding);
+  return Buffer.from(padded, "base64");
+}
+
+function createAppleServerAuthToken(
+  config: AppleServerApiConfig,
+  nowMs = Date.now()
+): string {
+  const issuedAt = Math.floor(nowMs / 1000);
+  const expiresAt = issuedAt + 15 * 60;
+  const header = base64UrlEncode(
+    JSON.stringify({
+      alg: "ES256",
+      kid: config.keyId,
+      typ: "JWT",
+    })
+  );
+  const payload = base64UrlEncode(
+    JSON.stringify({
+      iss: config.issuerId,
+      iat: issuedAt,
+      exp: expiresAt,
+      aud: APPLE_SERVER_AUDIENCE,
+      bid: config.bundleId,
+    })
+  );
+  const unsignedToken = `${header}.${payload}`;
+  const signature = crypto.sign("sha256", Buffer.from(unsignedToken, "utf8"), {
+    key: config.privateKey,
+    dsaEncoding: "ieee-p1363",
+  });
+
+  return `${unsignedToken}.${base64UrlEncode(signature)}`;
+}
+
+function buildAppleTransactionLookupUrl(
+  transactionId: string,
+  environment: AppleServerEnvironment
+): string {
+  const encodedTransactionId = encodeURIComponent(transactionId);
+  const baseUrl = environment === "SANDBOX"
+    ? APPLE_SERVER_SANDBOX_BASE_URL
+    : APPLE_SERVER_BASE_URL;
+  return `${baseUrl}/inApps/v1/transactions/${encodedTransactionId}`;
+}
+
+function decodeAppleSignedTransactionInfo(
+  signedTransactionInfo: string
+): AppleTransactionInfoPayload {
+  const parts = signedTransactionInfo.split(".");
+  if (parts.length < 2) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid signed transaction payload."
+    );
+  }
+
+  try {
+    const payloadJson = base64UrlDecode(parts[1]).toString("utf8");
+    return JSON.parse(payloadJson) as AppleTransactionInfoPayload;
+  } catch {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Could not decode Apple transaction payload."
+    );
+  }
+}
+
+function certificateDerToPem(base64Der: string): string {
+  const lines = base64Der.match(/.{1,64}/g) ?? [base64Der];
+  return [
+    "-----BEGIN CERTIFICATE-----",
+    ...lines,
+    "-----END CERTIFICATE-----",
+  ].join("\n");
+}
+
+function verifyAppleSignedPayloadSignature(signedPayload: string): void {
+  const parts = signedPayload.split(".");
+  if (parts.length !== 3) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid Apple signed payload format."
+    );
+  }
+
+  let header: Record<string, unknown>;
+  try {
+    const headerJson = base64UrlDecode(parts[0]).toString("utf8");
+    header = JSON.parse(headerJson) as Record<string, unknown>;
+  } catch {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid Apple signed payload header."
+    );
+  }
+
+  if (header.alg !== "ES256") {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Unsupported Apple payload signing algorithm."
+    );
+  }
+
+  const x5c = Array.isArray(header.x5c)
+    ? header.x5c.filter((item): item is string => typeof item === "string")
+    : [];
+  if (x5c.length === 0) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Apple payload certificate chain is missing."
+    );
+  }
+
+  const signingInput = `${parts[0]}.${parts[1]}`;
+  const signature = base64UrlDecode(parts[2]);
+  const certificatePem = certificateDerToPem(x5c[0]);
+  const isValid = crypto.verify(
+    "sha256",
+    Buffer.from(signingInput, "utf8"),
+    { key: certificatePem, dsaEncoding: "ieee-p1363" },
+    signature
+  );
+
+  if (!isValid) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Apple payload signature verification failed."
+    );
+  }
+}
+
+function decodeAppleServerNotificationPayload(
+  signedPayload: string,
+  deps?: { verifySignature?: (payload: string) => void }
+): AppleServerNotificationPayload {
+  try {
+    (deps?.verifySignature ?? verifyAppleSignedPayloadSignature)(signedPayload);
+  } catch (err) {
+    if (err instanceof functions.https.HttpsError) {
+      throw err;
+    }
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Apple payload signature verification failed."
+    );
+  }
+
+  const parts = signedPayload.split(".");
+  if (parts.length < 2) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid Apple signed payload."
+    );
+  }
+
+  try {
+    const payloadJson = base64UrlDecode(parts[1]).toString("utf8");
+    return JSON.parse(payloadJson) as AppleServerNotificationPayload;
+  } catch {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Could not decode Apple notification payload."
+    );
+  }
+}
+
+function parseAppleMillis(value: number | string | undefined): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function deriveAppleSubscriptionEntitlement(
+  payload: AppleTransactionInfoPayload,
+  nowMs: number
+): AppleSubscriptionEntitlement {
+  const expiryTimeMillis = parseAppleMillis(payload.expiresDate);
+  const revocationDateMillis = parseAppleMillis(payload.revocationDate);
+
+  if (revocationDateMillis != null && revocationDateMillis <= nowMs) {
+    return {
+      plan: "free",
+      status: "revoked",
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: null,
+      expiryTimeMillis: null,
+    };
+  }
+
+  if (expiryTimeMillis == null) {
+    return {
+      plan: "free",
+      status: "unknown",
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: null,
+      expiryTimeMillis: null,
+    };
+  }
+
+  if (expiryTimeMillis <= nowMs) {
+    return {
+      plan: "free",
+      status: "expired",
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: Math.floor(expiryTimeMillis / 1000),
+      expiryTimeMillis,
+    };
+  }
+
+  return {
+    plan: "plus",
+    status: "active",
+    cancelAtPeriodEnd: false,
+    currentPeriodEnd: Math.floor(expiryTimeMillis / 1000),
+    expiryTimeMillis,
+  };
+}
+
+async function fetchAppleTransactionValidation(
+  params: { transactionId: string },
+  deps?: {
+    fetchImpl?: typeof fetch;
+    authTokenProvider?: (config: AppleServerApiConfig) => Promise<string>;
+    config?: AppleServerApiConfig;
+  }
+): Promise<AppleTransactionValidationResult> {
+  const fetchImpl = deps?.fetchImpl ?? fetch;
+  const config = deps?.config ?? getAppleServerApiConfig();
+  const authTokenProvider =
+    deps?.authTokenProvider ??
+    (async (resolvedConfig: AppleServerApiConfig) =>
+      createAppleServerAuthToken(resolvedConfig));
+  const authToken = await authTokenProvider(config);
+  const environments: AppleServerEnvironment[] = ["PRODUCTION", "SANDBOX"];
+
+  for (const environment of environments) {
+    const url = buildAppleTransactionLookupUrl(
+      params.transactionId,
+      environment
+    );
+    const response = await fetchImpl(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (response.status === 404) {
+      continue;
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Apple server validation permission denied."
+      );
+    }
+
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => "");
+      console.error("apple_transaction_validation_failed", {
+        status: response.status,
+        environment,
+        bodyText,
+      });
+      throw new functions.https.HttpsError(
+        "internal",
+        "Apple transaction validation failed."
+      );
+    }
+
+    const body = (await response.json()) as AppleTransactionLookupResponse;
+    const signedTransactionInfo = optionalString(body.signedTransactionInfo);
+    if (!signedTransactionInfo) {
+      throw new functions.https.HttpsError(
+        "internal",
+        "Apple validation response missing transaction info."
+      );
+    }
+
+    const transaction = decodeAppleSignedTransactionInfo(signedTransactionInfo);
+    if (transaction.bundleId && transaction.bundleId !== config.bundleId) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Apple purchase bundle identifier does not match this app."
+      );
+    }
+
+    return {
+      environment:
+        normalizeAppleServerEnvironment(body.environment) ?? environment,
+      signedTransactionInfo,
+      transaction,
+    };
+  }
+
+  throw new functions.https.HttpsError(
+    "not-found",
+    "Apple transaction not found."
+  );
+}
+
+function buildGoogleSubscriptionValidationUrl(params: {
+  packageName: string;
+  productId: string;
+  purchaseToken: string;
+}): string {
+  const encodedPackageName = encodeURIComponent(params.packageName);
+  const encodedProductId = encodeURIComponent(params.productId);
+  const encodedPurchaseToken = encodeURIComponent(params.purchaseToken);
+  return (
+    "https://androidpublisher.googleapis.com/androidpublisher/v3/" +
+    `applications/${encodedPackageName}/purchases/subscriptions/` +
+    `${encodedProductId}/tokens/${encodedPurchaseToken}`
+  );
+}
+
+async function getAndroidPublisherAccessToken(
+  authFactory: () => GoogleAuth = () =>
+    new GoogleAuth({ scopes: [ANDROID_PUBLISHER_SCOPE] })
+): Promise<string> {
+  const auth = authFactory();
+  const client = await auth.getClient();
+  const tokenValue = await client.getAccessToken();
+  const token = typeof tokenValue === "string" ? tokenValue : tokenValue?.token;
+  if (!token) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Could not obtain Google Play access token."
+    );
+  }
+  return token;
+}
+
+async function fetchGoogleSubscriptionValidation(
+  params: { packageName: string; productId: string; purchaseToken: string },
+  deps?: {
+    fetchImpl?: typeof fetch;
+    accessTokenProvider?: () => Promise<string>;
+  }
+): Promise<GoogleSubscriptionPurchaseResponse> {
+  const fetchImpl = deps?.fetchImpl ?? fetch;
+  const accessTokenProvider =
+    deps?.accessTokenProvider ?? (() => getAndroidPublisherAccessToken());
+
+  const url = buildGoogleSubscriptionValidationUrl(params);
+  const accessToken = await accessTokenProvider();
+  const response = await fetchImpl(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (response.status === 404) {
+    throw new functions.https.HttpsError(
+      "not-found",
+      "Google Play purchase token not found."
+    );
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "Google Play validation permission denied."
+    );
+  }
+
+  if (!response.ok) {
+    const bodyText = await response.text().catch(() => "");
+    console.error("google_play_validation_failed", {
+      status: response.status,
+      bodyText,
+    });
+    throw new functions.https.HttpsError(
+      "internal",
+      "Google Play validation failed."
+    );
+  }
+
+  return (await response.json()) as GoogleSubscriptionPurchaseResponse;
+}
+
+function parseMillisString(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return null;
+  return parsed;
+}
+
+function deriveGoogleSubscriptionEntitlement(
+  payload: GoogleSubscriptionPurchaseResponse,
+  nowMs: number
+): GoogleSubscriptionEntitlement {
+  const expiryTimeMillis = parseMillisString(payload.expiryTimeMillis);
+  const hasFutureAccess = expiryTimeMillis != null && expiryTimeMillis > nowMs;
+  const paymentState =
+    typeof payload.paymentState === "number" ? payload.paymentState : null;
+  const isPendingPayment = paymentState === 0;
+  const cancelAtPeriodEnd = payload.autoRenewing === false && hasFutureAccess;
+
+  let status = "unknown";
+  if (expiryTimeMillis == null) {
+    status = "unknown";
+  } else if (expiryTimeMillis <= nowMs) {
+    status = "expired";
+  } else if (isPendingPayment) {
+    status = "pending";
+  } else if (paymentState === 2) {
+    status = "trialing";
+  } else if (cancelAtPeriodEnd) {
+    status = "active_until_period_end";
+  } else {
+    status = "active";
+  }
+
+  const plan: "free" | "plus" = hasFutureAccess && !isPendingPayment
+    ? "plus"
+    : "free";
+
+  return {
+    plan,
+    status,
+    cancelAtPeriodEnd,
+    currentPeriodEnd:
+      expiryTimeMillis == null ? null : Math.floor(expiryTimeMillis / 1000),
+    expiryTimeMillis,
+  };
+}
+
+async function ensureGooglePurchaseNotAlreadyLinked(
+  uid: string,
+  purchaseTokenHash: string,
+  orderId?: string
+): Promise<void> {
+  const tokenSnap = await db
+    .collection("users")
+    .where("googlePlayPurchase.purchaseTokenHash", "==", purchaseTokenHash)
+    .limit(1)
+    .get();
+
+  if (!tokenSnap.empty && tokenSnap.docs[0].id !== uid) {
+    throw new functions.https.HttpsError(
+      "already-exists",
+      "Purchase token is already linked to another account."
+    );
+  }
+
+  const normalizedOrderId = orderId?.trim();
+  if (!normalizedOrderId) return;
+
+  const orderSnap = await db
+    .collection("users")
+    .where("googlePlayPurchase.orderId", "==", normalizedOrderId)
+    .limit(1)
+    .get();
+
+  if (!orderSnap.empty && orderSnap.docs[0].id !== uid) {
+    throw new functions.https.HttpsError(
+      "already-exists",
+      "Purchase order is already linked to another account."
+    );
+  }
+}
+
+async function ensureAppleTransactionNotAlreadyLinked(
+  uid: string,
+  identifiers: {
+    originalTransactionId?: string;
+    latestTransactionId?: string;
+    webOrderLineItemId?: string;
+  }
+): Promise<void> {
+  const checks = [
+    {
+      field: "applePurchase.originalTransactionId",
+      value: optionalString(identifiers.originalTransactionId),
+      message: "Apple original transaction is already linked to another account.",
+    },
+    {
+      field: "applePurchase.latestTransactionId",
+      value: optionalString(identifiers.latestTransactionId),
+      message: "Apple transaction is already linked to another account.",
+    },
+    {
+      field: "applePurchase.webOrderLineItemId",
+      value: optionalString(identifiers.webOrderLineItemId),
+      message: "Apple order line item is already linked to another account.",
+    },
+  ];
+
+  for (const check of checks) {
+    if (!check.value) continue;
+
+    const snapshot = await db
+      .collection("users")
+      .where(check.field, "==", check.value)
+      .limit(1)
+      .get();
+
+    if (!snapshot.empty && snapshot.docs[0].id !== uid) {
+      throw new functions.https.HttpsError("already-exists", check.message);
+    }
+  }
+}
+
+async function findUserByAppleTransactionIdentifiers(identifiers: {
+  originalTransactionId?: string;
+  latestTransactionId?: string;
+  webOrderLineItemId?: string;
+}): Promise<FirebaseFirestore.QueryDocumentSnapshot | null> {
+  const checks = [
+    {
+      field: "applePurchase.originalTransactionId",
+      value: optionalString(identifiers.originalTransactionId),
+    },
+    {
+      field: "applePurchase.latestTransactionId",
+      value: optionalString(identifiers.latestTransactionId),
+    },
+    {
+      field: "applePurchase.webOrderLineItemId",
+      value: optionalString(identifiers.webOrderLineItemId),
+    },
+  ];
+
+  for (const check of checks) {
+    if (!check.value) continue;
+
+    const snapshot = await db
+      .collection("users")
+      .where(check.field, "==", check.value)
+      .limit(1)
+      .get();
+    if (!snapshot.empty) {
+      return snapshot.docs[0];
+    }
+  }
+
+  return null;
+}
+
+function mapAppleServerNotificationType(
+  notificationType: string,
+  subtype?: string
+): AppleServerNotificationMapping {
+  const normalizedType = notificationType.trim().toUpperCase();
+  const normalizedSubtype = subtype?.trim().toUpperCase();
+
+  switch (normalizedType) {
+    case "SUBSCRIBED":
+    case "DID_RENEW":
+    case "DID_RECOVER":
+    case "OFFER_REDEEMED":
+    case "RENEWAL_EXTENDED":
+      return { status: "active", forceFree: false };
+    case "DID_FAIL_TO_RENEW":
+      return { status: "billing_retry", forceFree: false };
+    case "DID_CHANGE_RENEWAL_STATUS":
+      return {
+        status:
+          normalizedSubtype === "AUTO_RENEW_DISABLED"
+            ? "canceled"
+            : "renewal_status_changed",
+        forceFree: false,
+      };
+    case "GRACE_PERIOD_EXPIRED":
+      return { status: "grace_period_expired", forceFree: true };
+    case "EXPIRED":
+      return { status: "expired", forceFree: true };
+    case "REFUND":
+      return { status: "refunded", forceFree: true };
+    case "REVOKE":
+      return { status: "revoked", forceFree: true };
+    default:
+      return { status: "unknown", forceFree: false };
+  }
+}
+
+function applyAppleServerNotificationEntitlementOverride(
+  entitlement: AppleSubscriptionEntitlement,
+  mapping: AppleServerNotificationMapping,
+  nowMs: number
+): AppleSubscriptionEntitlement {
+  const hasFutureExpiry =
+    entitlement.expiryTimeMillis != null && entitlement.expiryTimeMillis > nowMs;
+  const shouldForceFree =
+    mapping.forceFree || mapping.status === "expired" || mapping.status === "revoked";
+  const keepAccessUntilPeriodEnd =
+    (mapping.status === "canceled" || mapping.status === "billing_retry") &&
+    hasFutureExpiry;
+
+  if (shouldForceFree) {
+    return {
+      plan: "free",
+      status: mapping.status,
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: null,
+      expiryTimeMillis: null,
+    };
+  }
+
+  if (keepAccessUntilPeriodEnd) {
+    return {
+      ...entitlement,
+      plan: "plus",
+      status: mapping.status,
+      cancelAtPeriodEnd: mapping.status === "canceled" || entitlement.cancelAtPeriodEnd,
+    };
+  }
+
+  return {
+    ...entitlement,
+    status: mapping.status,
+  };
+}
+
+function parseAppleNotificationSignedDate(
+  value: number | string | undefined,
+  fallbackNowMs: number
+): number {
+  const parsed = parseAppleMillis(value);
+  return parsed == null ? fallbackNowMs : parsed;
+}
+
+function mapGoogleRtdnNotificationType(
+  notificationType: number
+): GoogleRtdnNotificationMapping {
+  switch (notificationType) {
+    case 1: // SUBSCRIPTION_RECOVERED
+    case 2: // SUBSCRIPTION_RENEWED
+    case 4: // SUBSCRIPTION_PURCHASED
+    case 7: // SUBSCRIPTION_RESTARTED
+      return { status: "active", forceFree: false };
+    case 3: // SUBSCRIPTION_CANCELED
+      return { status: "canceled", forceFree: false };
+    case 5: // SUBSCRIPTION_ON_HOLD
+      return { status: "on_hold", forceFree: true };
+    case 6: // SUBSCRIPTION_IN_GRACE_PERIOD
+      return { status: "in_grace_period", forceFree: false };
+    case 8: // SUBSCRIPTION_PRICE_CHANGE_CONFIRMED
+      return { status: "price_change_confirmed", forceFree: false };
+    case 9: // SUBSCRIPTION_DEFERRED
+      return { status: "deferred", forceFree: false };
+    case 10: // SUBSCRIPTION_PAUSED
+      return { status: "paused", forceFree: true };
+    case 11: // SUBSCRIPTION_PAUSE_SCHEDULE_CHANGED
+      return { status: "pause_schedule_changed", forceFree: false };
+    case 12: // SUBSCRIPTION_REVOKED
+      return { status: "revoked", forceFree: true };
+    case 13: // SUBSCRIPTION_EXPIRED
+      return { status: "expired", forceFree: true };
+    default:
+      return { status: "unknown", forceFree: false };
+  }
+}
+
+function applyGoogleRtdnEntitlementOverride(
+  entitlement: GoogleSubscriptionEntitlement,
+  mapping: GoogleRtdnNotificationMapping,
+  nowMs: number
+): GoogleSubscriptionEntitlement {
+  const hasFutureExpiry =
+    entitlement.expiryTimeMillis != null && entitlement.expiryTimeMillis > nowMs;
+  const shouldForceFree =
+    mapping.forceFree || mapping.status === "expired" || mapping.status === "revoked";
+  const keepAccessUntilPeriodEnd =
+    (mapping.status === "canceled" || mapping.status === "in_grace_period") &&
+    hasFutureExpiry;
+
+  if (shouldForceFree) {
+    return {
+      plan: "free",
+      status: mapping.status,
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: null,
+      expiryTimeMillis: null,
+    };
+  }
+
+  if (keepAccessUntilPeriodEnd) {
+    return {
+      ...entitlement,
+      plan: "plus",
+      status: mapping.status,
+      cancelAtPeriodEnd: mapping.status === "canceled" || entitlement.cancelAtPeriodEnd,
+    };
+  }
+
+  return {
+    ...entitlement,
+    status: mapping.status,
+  };
+}
+
+function decodeGoogleRtdnEnvelope(body: unknown): GoogleRtdnDecodeResult {
+  const directPayload = body as GoogleRtdnPayload | null;
+  if (
+    directPayload &&
+    typeof directPayload === "object" &&
+    directPayload.subscriptionNotification
+  ) {
+    return { payload: directPayload };
+  }
+
+  const envelope = body as GooglePubSubPushEnvelope | null;
+  const base64Data = envelope?.message?.data;
+  if (!base64Data) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Missing Pub/Sub message data."
+    );
+  }
+
+  let parsed: unknown;
+  try {
+    const decoded = Buffer.from(base64Data, "base64").toString("utf8");
+    parsed = JSON.parse(decoded);
+  } catch (_err) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Invalid Pub/Sub message payload."
+    );
+  }
+
+  return {
+    payload: parsed as GoogleRtdnPayload,
+    messageId: envelope?.message?.messageId,
+  };
+}
+
+function parseGoogleRtdnEventTime(
+  value: string | undefined,
+  fallbackNowMs: number
+): number {
+  const parsed = parseMillisString(value);
+  if (parsed == null) return fallbackNowMs;
+  return parsed;
 }
 
 async function ensureUserExists(uid: string): Promise<UserDoc> {
@@ -2961,9 +4730,42 @@ interface NotificationPrefs {
   profileViews: boolean;
   promotions: boolean;
   safetyAlerts: boolean;
+  quietHoursEnabled: boolean;
   quietHoursStart: number; // hour 0-23, default 22
   quietHoursEnd: number;   // hour 0-23, default 8
   timezone: string;        // IANA timezone, default "UTC"
+}
+
+function normalizeNotificationPrefs(
+  rawPrefs: Record<string, unknown>,
+  timezoneFallback: string
+): NotificationPrefs {
+  const quietHoursStart =
+    typeof rawPrefs.quietHoursStart === "number" ? rawPrefs.quietHoursStart : 22;
+  const quietHoursEnd =
+    typeof rawPrefs.quietHoursEnd === "number" ? rawPrefs.quietHoursEnd : 8;
+  const quietHoursEnabled =
+    typeof rawPrefs.quietHoursEnabled === "boolean"
+      ? rawPrefs.quietHoursEnabled
+      : false;
+
+  return {
+    push: rawPrefs.push !== false,
+    messages: rawPrefs.messages !== false,
+    matches: rawPrefs.matches !== false,
+    subscriptions: rawPrefs.subscriptions !== false,
+    likes: rawPrefs.likes !== false,
+    profileViews: rawPrefs.profileViews !== false,
+    promotions: rawPrefs.promotions !== false,
+    safetyAlerts: true, // Always on — cannot be disabled
+    quietHoursEnabled,
+    quietHoursStart,
+    quietHoursEnd,
+    timezone:
+      typeof rawPrefs.timezone === "string"
+        ? rawPrefs.timezone
+        : timezoneFallback,
+  };
 }
 
 async function getNotificationPrefs(userId: string): Promise<NotificationPrefs> {
@@ -2971,26 +4773,12 @@ async function getNotificationPrefs(userId: string): Promise<NotificationPrefs> 
     const doc = await db.collection("users").doc(userId).get();
     const data = doc.data() ?? {};
     const prefs = (data.notificationPrefs as Record<string, unknown>) ?? {};
-    return {
-      push: prefs.push !== false,
-      messages: prefs.messages !== false,
-      matches: prefs.matches !== false,
-      subscriptions: prefs.subscriptions !== false,
-      likes: prefs.likes !== false,
-      profileViews: prefs.profileViews !== false,
-      promotions: prefs.promotions !== false,
-      safetyAlerts: true, // Always on — cannot be disabled
-      quietHoursStart: typeof prefs.quietHoursStart === "number" ? prefs.quietHoursStart : 22,
-      quietHoursEnd: typeof prefs.quietHoursEnd === "number" ? prefs.quietHoursEnd : 8,
-      timezone: typeof data.timezone === "string" ? data.timezone : "UTC",
-    };
+    const timezoneFallback =
+      typeof data.timezone === "string" ? data.timezone : "UTC";
+    return normalizeNotificationPrefs(prefs, timezoneFallback);
   } catch (err) {
     console.warn("Failed to load notification prefs", { userId, err });
-    return {
-      push: true, messages: true, matches: true, subscriptions: true,
-      likes: true, profileViews: true, promotions: true, safetyAlerts: true,
-      quietHoursStart: 22, quietHoursEnd: 8, timezone: "UTC",
-    };
+    return normalizeNotificationPrefs({}, "UTC");
   }
 }
 
@@ -3021,6 +4809,8 @@ async function getPushTokensFor(
 
 /** Check whether it's currently within the user's quiet hours. */
 function isInQuietHours(prefs: NotificationPrefs): boolean {
+  if (!prefs.quietHoursEnabled) return false;
+
   const now = new Date();
   // Get current hour in user's timezone
   let hour: number;
@@ -3413,7 +5203,10 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
   const reporterId = requireAuth(context, "report a user");
   requireEmailVerified(context, "report a user");
   const reportedId = requireString(data?.reportedId, "reportedId");
-  const reason = requireString(data?.reason, "reason");
+  const { reasonText: reason, reasonCategory } = canonicalizeSafetyReportReason(
+    data?.reason,
+    { field: "reason", maxLength: 1000, minLength: 1 }
+  );
   const matchId = optionalString(data?.matchId);
   const messageId = optionalString(data?.messageId);
   const source = optionalString(data?.source);
@@ -3443,6 +5236,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
     reporterId,
     reportedId,
     reason,
+    reasonCategory,
     matchId: matchId ?? null,
     messageId: messageId ?? null,
     source: source ?? null,
@@ -3469,6 +5263,7 @@ export const reportUser = callable<ReportRequest>(async (data, context) => {
           openReports: openReportsSnap.size,
           lastReportAt: serverTimestamp(),
           lastReason: reason,
+          lastReasonCategory: reasonCategory,
           status: openReportsSnap.size >= 3 ? "needs_review" : "watch",
         },
       },
@@ -3970,6 +5765,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       username?: string;
       score: number;
       distanceKm?: number;
+      age: number | null;
     }> = [];
 
     snap.forEach((doc) => {
@@ -3980,6 +5776,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       const candidateProfile = (data.profile as ProfileData | undefined)
         ?? (data.name && data.gender ? (data as unknown as ProfileData) : null);
       if (!candidateProfile) return;
+      const normalizedProfile = candidateProfile as unknown as Record<string, unknown>;
 
       // Filter out users who have explicitly opted out of discovery
       const prefs = candidateProfile.preferences as Record<string, unknown> | undefined;
@@ -3991,8 +5788,8 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
       // Users without photos will just have lower priority in the sorting
       // This helps new users see that there are people on the app
 
-      const age = toNumber(candidateProfile.age);
-      if (age && (age < minAge || age > maxAge)) return;
+      const age = deriveProfileAge(normalizedProfile);
+      if (age !== null && (age < minAge || age > maxAge)) return;
       const lat = toNumber(candidateProfile.latitude);
       const lon = toNumber(candidateProfile.longitude);
       const distanceKm = haversineDistanceKm(myLat, myLon, lat, lon);
@@ -4050,6 +5847,7 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
         username,
         score: baseScore,
         distanceKm,
+        age,
       });
     });
 
@@ -4058,14 +5856,20 @@ export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
     const limited = candidates.slice(0, limit);
     return {
       // Return as 'candidates' with flattened profile data (client expects this format)
-      candidates: limited.map((c) => ({
-        id: c.id,
-        userId: c.id, // Alternative key for compatibility
-        ...c.profile, // Flatten profile fields to top level
-        username: c.username, // Username from user document level
-        distanceKm: c.distanceKm,
-        score: c.score,
-      })),
+      candidates: limited.map((c) => {
+        const normalizedCandidateProfile =
+          c.profile as unknown as Record<string, unknown>;
+        return {
+          id: c.id,
+          userId: c.id, // Alternative key for compatibility
+          ...c.profile, // Flatten profile fields to top level
+          prompts: profilePromptAnswers(normalizedCandidateProfile),
+          age: c.age,
+          username: c.username, // Username from user document level
+          distanceKm: c.distanceKm,
+          score: c.score,
+        };
+      }),
       total: candidates.length,
     };
   }
@@ -4626,6 +6430,539 @@ export const createCheckoutSession = callable<CheckoutSessionRequest>(
   }
 );
 
+// Validate a Google Play subscription purchase token and sync plan state.
+export const verifyGooglePurchaseToken = callable<VerifyGooglePurchaseTokenRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "verify Google Play purchase");
+    requireEmailVerified(context, "verify Google Play purchase");
+
+    const productId = requireString(data?.productId, "productId");
+    const purchaseToken = requireString(data?.purchaseToken, "purchaseToken");
+    const packageName =
+      normalizeGooglePlayPackageName(optionalString(data?.packageName)) ??
+      normalizeGooglePlayPackageName(getGooglePlayPackageName());
+
+    if (!packageName) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "GOOGLE_PLAY_PACKAGE_NAME is not configured."
+      );
+    }
+
+    const validation = await fetchGoogleSubscriptionValidation({
+      packageName,
+      productId,
+      purchaseToken,
+    });
+
+    const purchaseTokenHash = hashPurchaseToken(purchaseToken);
+    await ensureGooglePurchaseNotAlreadyLinked(
+      uid,
+      purchaseTokenHash,
+      validation.orderId
+    );
+
+    const entitlement = deriveGoogleSubscriptionEntitlement(
+      validation,
+      Date.now()
+    );
+
+    await setUserPlan(uid, entitlement.plan);
+
+    const payload: Record<string, unknown> = {
+      googlePlayPurchase: {
+        packageName,
+        productId,
+        orderId: validation.orderId ?? null,
+        purchaseTokenHash,
+        linkedPurchaseToken: validation.linkedPurchaseToken ?? null,
+        paymentState:
+          typeof validation.paymentState === "number"
+            ? validation.paymentState
+            : null,
+        acknowledgementState:
+          typeof validation.acknowledgementState === "number"
+            ? validation.acknowledgementState
+            : null,
+        autoRenewing:
+          typeof validation.autoRenewing === "boolean"
+            ? validation.autoRenewing
+            : null,
+        cancelReason:
+          typeof validation.cancelReason === "number"
+            ? validation.cancelReason
+            : null,
+        expiryTimeMillis: entitlement.expiryTimeMillis,
+        lastValidatedAt: serverTimestamp(),
+      },
+      subscriptionLifecycle: {
+        provider: "google_play",
+        status: entitlement.status,
+        currentPeriodEnd: entitlement.currentPeriodEnd,
+        cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+        lastValidatedAt: serverTimestamp(),
+      },
+    };
+
+    if (entitlement.expiryTimeMillis != null) {
+      payload.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
+    } else if (entitlement.plan === "free") {
+      payload.subscriptionExpiresAt = deleteField();
+    }
+
+    await db.collection("users").doc(uid).set(payload, { merge: true });
+
+    return {
+      plan: entitlement.plan,
+      status: entitlement.status,
+      provider: "google_play",
+      orderId: validation.orderId ?? null,
+      currentPeriodEnd: entitlement.currentPeriodEnd,
+      cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+    };
+  }
+);
+
+// Validate an App Store transaction and sync plan state from Apple authoritative data.
+export const verifyAppleTransaction = callable<VerifyAppleTransactionRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "verify Apple purchase");
+    requireEmailVerified(context, "verify Apple purchase");
+
+    const transactionId = requireString(data?.transactionId, "transactionId");
+    const expectedProductId = optionalString(data?.productId);
+    const validation = await fetchAppleTransactionValidation({ transactionId });
+    const transaction = validation.transaction;
+
+    if (
+      expectedProductId &&
+      transaction.productId &&
+      transaction.productId !== expectedProductId
+    ) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Apple transaction product does not match requested product."
+      );
+    }
+
+    await ensureAppleTransactionNotAlreadyLinked(uid, {
+      originalTransactionId: transaction.originalTransactionId,
+      latestTransactionId: transaction.transactionId ?? transactionId,
+      webOrderLineItemId: transaction.webOrderLineItemId,
+    });
+
+    const entitlement = deriveAppleSubscriptionEntitlement(
+      transaction,
+      Date.now()
+    );
+    const purchaseDateMillis = parseAppleMillis(transaction.purchaseDate);
+    const revocationDateMillis = parseAppleMillis(transaction.revocationDate);
+
+    await setUserPlan(uid, entitlement.plan);
+
+    const payload: Record<string, unknown> = {
+      applePurchase: {
+        environment: validation.environment,
+        bundleId: transaction.bundleId ?? null,
+        productId: transaction.productId ?? expectedProductId ?? null,
+        originalTransactionId: transaction.originalTransactionId ?? null,
+        latestTransactionId: transaction.transactionId ?? transactionId,
+        webOrderLineItemId: transaction.webOrderLineItemId ?? null,
+        inAppOwnershipType: transaction.inAppOwnershipType ?? null,
+        transactionReason: transaction.transactionReason ?? null,
+        purchaseDateMillis,
+        expiresDateMillis: entitlement.expiryTimeMillis,
+        revocationDateMillis,
+        signedTransactionHash: hashPurchaseToken(
+          validation.signedTransactionInfo
+        ),
+        lastValidatedAt: serverTimestamp(),
+      },
+      subscriptionLifecycle: {
+        provider: "app_store",
+        status: entitlement.status,
+        currentPeriodEnd: entitlement.currentPeriodEnd,
+        cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+        lastValidatedAt: serverTimestamp(),
+      },
+    };
+
+    if (entitlement.expiryTimeMillis != null) {
+      payload.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
+    } else if (entitlement.plan === "free") {
+      payload.subscriptionExpiresAt = deleteField();
+    }
+
+    await db.collection("users").doc(uid).set(payload, { merge: true });
+
+    return {
+      plan: entitlement.plan,
+      status: entitlement.status,
+      provider: "app_store",
+      productId: transaction.productId ?? expectedProductId ?? null,
+      transactionId: transaction.transactionId ?? transactionId,
+      originalTransactionId: transaction.originalTransactionId ?? null,
+      currentPeriodEnd: entitlement.currentPeriodEnd,
+      cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+    };
+  }
+);
+
+// Handle Apple App Store Server Notifications (v2) for subscription lifecycle sync.
+export const appleSubscriptionWebhook = functions.https.onRequest(
+  async (req, res) => {
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      res.status(405).send("Method not allowed");
+      return;
+    }
+
+    let signedPayloadCandidate: string | undefined;
+    const bodyAsRecord = req.body as { signedPayload?: unknown } | null;
+    if (typeof bodyAsRecord?.signedPayload === "string") {
+      signedPayloadCandidate = bodyAsRecord.signedPayload;
+    } else if (typeof req.body === "string") {
+      const trimmedBody = req.body.trim();
+      if (trimmedBody.startsWith("{")) {
+        try {
+          const parsed = JSON.parse(trimmedBody) as {
+            signedPayload?: unknown;
+          };
+          if (typeof parsed.signedPayload === "string") {
+            signedPayloadCandidate = parsed.signedPayload;
+          }
+        } catch {
+          signedPayloadCandidate = undefined;
+        }
+      } else {
+        signedPayloadCandidate = trimmedBody;
+      }
+    }
+
+    const signedPayload = optionalString(signedPayloadCandidate);
+    if (!signedPayload) {
+      res.status(400).send("Missing Apple signed payload.");
+      return;
+    }
+
+    let payload: AppleServerNotificationPayload;
+    try {
+      payload = decodeAppleServerNotificationPayload(signedPayload);
+    } catch (err) {
+      if (err instanceof functions.https.HttpsError) {
+        const statusCode = err.code === "permission-denied" ? 401 : 400;
+        res.status(statusCode).send(err.message);
+        return;
+      }
+      res.status(400).send("Invalid Apple notification payload.");
+      return;
+    }
+
+    const notificationType = optionalString(payload.notificationType);
+    if (!notificationType) {
+      res.status(400).send("Missing Apple notification type.");
+      return;
+    }
+
+    const data = payload.data;
+    const signedTransactionInfo = optionalString(data?.signedTransactionInfo);
+    if (!signedTransactionInfo) {
+      res.status(200).json({
+        received: true,
+        ignored: "missing_transaction_info",
+        notificationType,
+      });
+      return;
+    }
+
+    let transaction: AppleTransactionInfoPayload;
+    try {
+      transaction = decodeAppleSignedTransactionInfo(signedTransactionInfo);
+    } catch (err) {
+      const message =
+        err instanceof functions.https.HttpsError
+          ? err.message
+          : "Invalid Apple transaction payload.";
+      res.status(400).send(message);
+      return;
+    }
+
+    const configuredBundleId = optionalString(getAppleBundleId());
+    if (
+      configuredBundleId &&
+      transaction.bundleId &&
+      transaction.bundleId !== configuredBundleId
+    ) {
+      res.status(403).send("Apple bundle identifier mismatch.");
+      return;
+    }
+
+    const userDoc = await findUserByAppleTransactionIdentifiers({
+      originalTransactionId: transaction.originalTransactionId,
+      latestTransactionId: transaction.transactionId,
+      webOrderLineItemId: transaction.webOrderLineItemId,
+    });
+
+    if (!userDoc) {
+      console.warn("apple_s2s_unknown_transaction", {
+        notificationType,
+        originalTransactionId: transaction.originalTransactionId ?? null,
+        transactionId: transaction.transactionId ?? null,
+      });
+      res.status(202).json({
+        received: true,
+        ignored: "unknown_transaction",
+        notificationType,
+      });
+      return;
+    }
+
+    const uid = userDoc.id;
+    const nowMs = Date.now();
+    const mapping = mapAppleServerNotificationType(
+      notificationType,
+      optionalString(payload.subtype)
+    );
+    const entitlement = applyAppleServerNotificationEntitlementOverride(
+      deriveAppleSubscriptionEntitlement(transaction, nowMs),
+      mapping,
+      nowMs
+    );
+
+    await setUserPlan(uid, entitlement.plan);
+
+    const signedDateMs = parseAppleNotificationSignedDate(
+      payload.signedDate,
+      nowMs
+    );
+    const purchaseDateMillis = parseAppleMillis(transaction.purchaseDate);
+    const revocationDateMillis = parseAppleMillis(transaction.revocationDate);
+    const environment = normalizeAppleServerEnvironment(data?.environment);
+    const payloadUpdate: Record<string, unknown> = {
+      applePurchase: {
+        environment: environment ?? null,
+        bundleId: transaction.bundleId ?? data?.bundleId ?? null,
+        productId: transaction.productId ?? null,
+        originalTransactionId: transaction.originalTransactionId ?? null,
+        latestTransactionId: transaction.transactionId ?? null,
+        webOrderLineItemId: transaction.webOrderLineItemId ?? null,
+        inAppOwnershipType: transaction.inAppOwnershipType ?? null,
+        transactionReason: transaction.transactionReason ?? null,
+        purchaseDateMillis,
+        expiresDateMillis: entitlement.expiryTimeMillis,
+        revocationDateMillis,
+        signedTransactionHash: hashPurchaseToken(signedTransactionInfo),
+        lastNotificationType: notificationType,
+        lastNotificationSubtype: optionalString(payload.subtype) ?? null,
+        lastNotificationUuid: optionalString(payload.notificationUUID) ?? null,
+        lastNotificationSignedDateMs: signedDateMs,
+        lastValidatedAt: serverTimestamp(),
+      },
+      subscriptionLifecycle: {
+        provider: "app_store",
+        status: entitlement.status,
+        currentPeriodEnd: entitlement.currentPeriodEnd,
+        cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+        lastNotificationType: notificationType,
+        lastNotificationSubtype: optionalString(payload.subtype) ?? null,
+        lastNotificationUuid: optionalString(payload.notificationUUID) ?? null,
+        lastNotificationSignedDateMs: signedDateMs,
+        lastNotificationReceivedAt: serverTimestamp(),
+      },
+    };
+
+    if (entitlement.expiryTimeMillis != null) {
+      payloadUpdate.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
+    } else if (entitlement.plan === "free") {
+      payloadUpdate.subscriptionExpiresAt = deleteField();
+    }
+
+    await db.collection("users").doc(uid).set(payloadUpdate, { merge: true });
+
+    res.status(200).json({
+      received: true,
+      uid,
+      status: entitlement.status,
+      plan: entitlement.plan,
+      notificationType,
+    });
+  }
+);
+
+// Handle Google Real-time Developer Notifications (RTDN) for subscriptions.
+export const googleRtdnWebhook = functions.https.onRequest(async (req, res) => {
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).send("Method not allowed");
+    return;
+  }
+
+  const expectedToken = optionalString(getGoogleRtdnVerificationToken());
+  if (expectedToken) {
+    const queryToken = optionalString(
+      typeof req.query.token === "string" ? req.query.token : undefined
+    );
+    const headerToken = optionalString(req.header("x-rtdn-token"));
+    const providedToken = headerToken ?? queryToken;
+    if (!providedToken || providedToken !== expectedToken) {
+      res.status(401).send("Unauthorized");
+      return;
+    }
+  }
+
+  let decoded: GoogleRtdnDecodeResult;
+  try {
+    decoded = decodeGoogleRtdnEnvelope(req.body);
+  } catch (err) {
+    const message =
+      err instanceof functions.https.HttpsError
+        ? err.message
+        : "Invalid RTDN payload.";
+    res.status(400).send(message);
+    return;
+  }
+
+  const payload = decoded.payload;
+  const notification = payload.subscriptionNotification;
+  if (!notification) {
+    res.status(200).json({ received: true, ignored: "missing_notification" });
+    return;
+  }
+
+  const purchaseToken = optionalString(notification.purchaseToken);
+  const productId = optionalString(notification.subscriptionId);
+  const notificationType = notification.notificationType;
+  const packageName =
+    normalizeGooglePlayPackageName(payload.packageName) ??
+    normalizeGooglePlayPackageName(getGooglePlayPackageName());
+
+  if (!packageName || !purchaseToken || !productId || notificationType == null) {
+    res.status(400).send("Invalid RTDN subscription payload.");
+    return;
+  }
+
+  const purchaseTokenHash = hashPurchaseToken(purchaseToken);
+  const userSnap = await db
+    .collection("users")
+    .where("googlePlayPurchase.purchaseTokenHash", "==", purchaseTokenHash)
+    .limit(1)
+    .get();
+
+  if (userSnap.empty) {
+    console.warn("google_rtdn_unknown_token", {
+      messageId: decoded.messageId,
+      notificationType,
+      productId,
+    });
+    res.status(202).json({ received: true, ignored: "unknown_purchase_token" });
+    return;
+  }
+
+  const uid = userSnap.docs[0].id;
+  const nowMs = Date.now();
+  const mapping = mapGoogleRtdnNotificationType(notificationType);
+  let entitlement: GoogleSubscriptionEntitlement;
+  let validation: GoogleSubscriptionPurchaseResponse | null = null;
+
+  try {
+    validation = await fetchGoogleSubscriptionValidation({
+      packageName,
+      productId,
+      purchaseToken,
+    });
+    entitlement = applyGoogleRtdnEntitlementOverride(
+      deriveGoogleSubscriptionEntitlement(validation, nowMs),
+      mapping,
+      nowMs
+    );
+  } catch (err) {
+    const isNotFoundErr =
+      err instanceof functions.https.HttpsError && err.code === "not-found";
+    if (!isNotFoundErr || !mapping.forceFree) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("google_rtdn_validation_failed", {
+        uid,
+        notificationType,
+        message,
+      });
+      res.status(500).send("RTDN validation failed");
+      return;
+    }
+
+    entitlement = {
+      plan: "free",
+      status: mapping.status,
+      cancelAtPeriodEnd: false,
+      currentPeriodEnd: null,
+      expiryTimeMillis: null,
+    };
+  }
+
+  await setUserPlan(uid, entitlement.plan);
+
+  const payloadUpdate: Record<string, unknown> = {
+    googlePlayPurchase: {
+      packageName,
+      productId,
+      purchaseTokenHash,
+      orderId: validation?.orderId ?? null,
+      linkedPurchaseToken: validation?.linkedPurchaseToken ?? null,
+      paymentState:
+        typeof validation?.paymentState === "number"
+          ? validation.paymentState
+          : null,
+      acknowledgementState:
+        typeof validation?.acknowledgementState === "number"
+          ? validation.acknowledgementState
+          : null,
+      autoRenewing:
+        typeof validation?.autoRenewing === "boolean"
+          ? validation.autoRenewing
+          : null,
+      cancelReason:
+        typeof validation?.cancelReason === "number"
+          ? validation.cancelReason
+          : null,
+      expiryTimeMillis: entitlement.expiryTimeMillis,
+      lastRtdnType: notificationType,
+      lastRtdnMessageId: decoded.messageId ?? null,
+      lastRtdnEventAt: serverTimestamp(),
+    },
+    subscriptionLifecycle: {
+      provider: "google_play",
+      status: entitlement.status,
+      currentPeriodEnd: entitlement.currentPeriodEnd,
+      cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+      lastRtdnType: notificationType,
+      lastRtdnEventTime: parseGoogleRtdnEventTime(payload.eventTimeMillis, nowMs),
+      lastRtdnUpdatedAt: serverTimestamp(),
+    },
+  };
+
+  if (entitlement.expiryTimeMillis != null) {
+    payloadUpdate.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
+  } else if (entitlement.plan === "free") {
+    payloadUpdate.subscriptionExpiresAt = deleteField();
+  }
+
+  await db.collection("users").doc(uid).set(payloadUpdate, { merge: true });
+
+  res.status(200).json({
+    received: true,
+    uid,
+    status: entitlement.status,
+    plan: entitlement.plan,
+  });
+});
+
 export const stripeWebhook = functions.https.onRequest(async (req, res) => {
   // Basic CORS handling for browser preflight and requests
   if (req.method === "OPTIONS") {
@@ -4786,8 +7123,47 @@ export const __test__helpers = {
   requireAuth,
   requireString,
   optionalString,
+  getRestAppCheckToken,
+  evaluateRestAppCheck,
+  inferReportCategoryFromReason,
+  canonicalizeSafetyReportReason,
+  getRestClientIp,
+  safetyAuditOutcomeFromStatusCode,
+  logSafetyRestAudit,
+  validateSafetyTargetId,
+  assertNotSelfSafetyAction,
+  validateSafetyReportReason,
+  validateOptionalSafetyDescription,
+  validateProfilePatchPayload,
+  validateProfilePreferencesPayload,
+  getCanonicalProfilePreferences,
+  normalizeNotificationPrefs,
+  isInQuietHours,
+  profileBirthDateIso,
+  deriveProfileAge,
+  profilePromptAnswers,
   evaluateProfileCompleteness,
   ensureProfileQuality,
+  normalizeGooglePlayPackageName,
+  hashPurchaseToken,
+  normalizeApplePrivateKey,
+  verifyAppleSignedPayloadSignature,
+  decodeAppleServerNotificationPayload,
+  mapAppleServerNotificationType,
+  applyAppleServerNotificationEntitlementOverride,
+  parseAppleNotificationSignedDate,
+  buildAppleTransactionLookupUrl,
+  createAppleServerAuthToken,
+  decodeAppleSignedTransactionInfo,
+  fetchAppleTransactionValidation,
+  deriveAppleSubscriptionEntitlement,
+  buildGoogleSubscriptionValidationUrl,
+  fetchGoogleSubscriptionValidation,
+  deriveGoogleSubscriptionEntitlement,
+  mapGoogleRtdnNotificationType,
+  applyGoogleRtdnEntitlementOverride,
+  decodeGoogleRtdnEnvelope,
+  parseGoogleRtdnEventTime,
   ...__callSignalingTestHelpers,
 };
 
@@ -4892,8 +7268,9 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
     const user = await getUser(uid);
     const profile = (user as unknown as { profile?: ProfileData }).profile;
 
+    const normalizedProfile = (profile ?? {}) as Record<string, unknown>;
     const photos = toStringArray(profile?.photoUrls);
-    const prompts = toStringArray(profile?.prompts);
+    const prompts = profilePromptAnswers(normalizedProfile);
     const interests = toStringArray(profile?.interests);
     const bio =
       typeof profile?.bio === "string" ? (profile.bio as string).trim() : "";
@@ -4994,6 +7371,48 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
+const PROFILE_PHOTO_MAX_BYTES = 10 * 1024 * 1024; // 10MB
+const PROFILE_PHOTO_ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
+const PROFILE_PHOTO_EXTENSION_BY_MIME: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/heic": "heic",
+  "image/heif": "heif",
+};
+const profilePhotoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: PROFILE_PHOTO_MAX_BYTES },
+});
+
+function profilePhotoUploadMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
+  profilePhotoUpload.single("photo")(req, res, (err: unknown) => {
+    if (!err) {
+      next();
+      return;
+    }
+
+    if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+      res.status(413).json({
+        error: `Photo exceeds maximum size of ${Math.round(PROFILE_PHOTO_MAX_BYTES / (1024 * 1024))}MB.`,
+      });
+      return;
+    }
+
+    console.error("Profile photo upload middleware error:", err);
+    res.status(400).json({ error: "Invalid photo upload payload." });
+  });
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // IN-MEMORY RATE LIMITER FOR EXPRESS ENDPOINTS
@@ -5135,7 +7554,11 @@ async function requireVerifiedEmail(
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Send OTP
-app.post("/v1/auth/otp/send", rateLimitAuth, async (req: Request, res: Response) => {
+app.post(
+  "/v1/auth/otp/send",
+  appCheckRestMiddleware("auth.otp.send"),
+  rateLimitAuth,
+  async (req: Request, res: Response) => {
   try {
     const { phone_number } = req.body;
     if (!phone_number) {
@@ -5167,10 +7590,15 @@ app.post("/v1/auth/otp/send", rateLimitAuth, async (req: Request, res: Response)
     console.error("Send OTP error:", err);
     return res.status(500).json({ error: "Failed to send OTP" });
   }
-});
+  }
+);
 
 // Verify OTP
-app.post("/v1/auth/otp/verify", rateLimitAuth, async (req: Request, res: Response) => {
+app.post(
+  "/v1/auth/otp/verify",
+  appCheckRestMiddleware("auth.otp.verify"),
+  rateLimitAuth,
+  async (req: Request, res: Response) => {
   try {
     const { phone_number, otp, verification_id } = req.body;
     if (!phone_number || !otp) {
@@ -5254,10 +7682,14 @@ app.post("/v1/auth/otp/verify", rateLimitAuth, async (req: Request, res: Respons
     console.error("Verify OTP error:", err);
     return res.status(500).json({ error: "Failed to verify OTP" });
   }
-});
+  }
+);
 
 // Refresh token
-app.post("/v1/auth/token/refresh", async (req: Request, res: Response) => {
+app.post(
+  "/v1/auth/token/refresh",
+  appCheckRestMiddleware("auth.token.refresh"),
+  async (req: Request, res: Response) => {
   try {
     const { refresh_token } = req.body;
     if (!refresh_token) {
@@ -5277,10 +7709,15 @@ app.post("/v1/auth/token/refresh", async (req: Request, res: Response) => {
     console.error("Refresh token error:", err);
     return res.status(401).json({ error: "Invalid refresh token" });
   }
-});
+  }
+);
 
 // Logout
-app.post("/v1/auth/logout", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.post(
+  "/v1/auth/logout",
+  appCheckRestMiddleware("auth.logout"),
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
   try {
     // Revoke refresh tokens
     await admin.auth().revokeRefreshTokens(req.uid!);
@@ -5289,10 +7726,15 @@ app.post("/v1/auth/logout", authMiddleware, async (req: AuthRequest, res: Respon
     console.error("Logout error:", err);
     return res.status(500).json({ error: "Failed to logout" });
   }
-});
+  }
+);
 
 // Change password
-app.post("/v1/auth/password/change", authMiddleware, async (req: AuthRequest, res: Response) => {
+app.post(
+  "/v1/auth/password/change",
+  appCheckRestMiddleware("auth.password.change"),
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
   try {
     const uid = req.uid!;
     const currentPassword =
@@ -5415,7 +7857,8 @@ app.post("/v1/auth/password/change", authMiddleware, async (req: AuthRequest, re
     console.error("Change password error:", err);
     return res.status(500).json({ error: "Failed to change password." });
   }
-});
+  }
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PROFILE ENDPOINTS
@@ -5431,9 +7874,16 @@ app.get("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response
 
     const data = userDoc.data() || {};
     const profile = data.profile || {};
+    const preferences = getCanonicalProfilePreferences(data);
+    const username =
+      (typeof data.username === "string" && data.username.trim()) ||
+      (typeof profile.username === "string" && profile.username.trim()) ||
+      (typeof data.usernameLower === "string" && data.usernameLower.trim()) ||
+      null;
 
     res.json({
       id: req.uid,
+      username,
       phone_number: data.phoneNumber,
       email: data.email,
       email_verified: data.emailVerified || false,
@@ -5441,7 +7891,7 @@ app.get("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response
       is_premium: data.plan === "plus",
       display_name: profile.name || profile.displayName,
       bio: profile.bio,
-      birth_date: profile.birthDate,
+      birth_date: profileBirthDateIso(profile as Record<string, unknown>),
       gender: profile.gender,
       job_title: profile.jobTitle,
       company: profile.company,
@@ -5455,8 +7905,8 @@ app.get("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response
         order: i,
       })),
       interests: profile.interests || [],
-      prompts: profile.prompts || [],
-      preferences: data.preferences || {},
+      prompts: profilePromptAnswers(profile as Record<string, unknown>),
+      preferences,
     });
   } catch (err) {
     console.error("Get profile error:", err);
@@ -5467,40 +7917,24 @@ app.get("/v1/profile/me", authMiddleware, async (req: AuthRequest, res: Response
 // Update profile
 app.patch("/v1/profile/me", authMiddleware, requireVerifiedEmail, async (req: AuthRequest, res: Response) => {
   try {
-    const updates: Record<string, unknown> = {};
-
-    // Map request fields to profile fields
-    const fieldMap: Record<string, string> = {
-      display_name: "profile.name",
-      bio: "profile.bio",
-      birth_date: "profile.birthDate",
-      gender: "profile.gender",
-      job_title: "profile.jobTitle",
-      company: "profile.company",
-      education: "profile.education",
-      city: "profile.city",
-      country: "profile.country",
-      interests: "profile.interests",
-    };
-
-    for (const [reqField, dbField] of Object.entries(fieldMap)) {
-      if (req.body[reqField] !== undefined) {
-        updates[dbField] = req.body[reqField];
-      }
-    }
-
-    // Enforce minimum age on DOB updates
-    if (req.body.birth_date) {
-      validateMinimumAge(req.body.birth_date as string);
-    }
-
+    const updates = validateProfilePatchPayload(req.body);
     updates["profile.updatedAt"] = serverTimestamp();
+    updates.updatedAt = serverTimestamp();
 
     await db.collection("users").doc(req.uid!).update(updates);
 
     res.json({ success: true, message: "Profile updated" });
   } catch (err) {
     console.error("Update profile error:", err);
+    if (isHttpsError(err)) {
+      return res
+        .status(httpStatusFromHttpsErrorCode(err.code))
+        .json({ error: err.message, code: err.code });
+    }
+    const firestoreCode = (err as { code?: unknown })?.code;
+    if (firestoreCode === 5 || firestoreCode === "not-found") {
+      return res.status(404).json({ error: "User not found", code: "not-found" });
+    }
     return res.status(500).json({ error: "Failed to update profile" });
   }
 });
@@ -5510,27 +7944,55 @@ app.post(
   "/v1/profile/photos",
   authMiddleware,
   requireVerifiedEmail,
-  upload.single("photo"),
+  profilePhotoUploadMiddleware,
   async (req: AuthRequest, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
+      const mimeType = (req.file.mimetype || "").toLowerCase();
+      if (!PROFILE_PHOTO_ALLOWED_MIME_TYPES.has(mimeType)) {
+        return res.status(415).json({
+          error: "Unsupported photo type. Allowed types: image/jpeg, image/png, image/webp, image/heic, image/heif.",
+        });
+      }
+      if (req.file.size > PROFILE_PHOTO_MAX_BYTES) {
+        return res.status(413).json({
+          error: `Photo exceeds maximum size of ${Math.round(PROFILE_PHOTO_MAX_BYTES / (1024 * 1024))}MB.`,
+        });
+      }
+
+      const extension = PROFILE_PHOTO_EXTENSION_BY_MIME[mimeType];
+      if (!extension) {
+        return res.status(415).json({ error: "Unsupported photo type." });
+      }
+
       const isPrimary = req.body.is_primary === "true";
       const bucket = admin.storage().bucket();
-      const fileName = `photos/${req.uid}/${Date.now()}_${req.file.originalname}`;
+      const fileName = `photos/${req.uid}/${Date.now()}_${crypto.randomUUID()}.${extension}`;
       const file = bucket.file(fileName);
+      const downloadToken = crypto.randomUUID();
 
       await file.save(req.file.buffer, {
-        metadata: { contentType: req.file.mimetype },
+        metadata: {
+          contentType: mimeType,
+          metadata: {
+            firebaseStorageDownloadTokens: downloadToken,
+          },
+        },
+        resumable: false,
       });
 
-      await file.makePublic();
-      const url = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      const encodedPath = encodeURIComponent(fileName);
+      const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
 
       // Update user's photo array
-      const userDoc = await db.collection("users").doc(req.uid!).get();
+      const userRef = db.collection("users").doc(req.uid!);
+      const userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: "User not found" });
+      }
       const userData = userDoc.data() || {};
       const profile = userData.profile || {};
       const photos = profile.photoUrls || [];
@@ -5541,7 +8003,7 @@ app.post(
         photos.push(url);
       }
 
-      await db.collection("users").doc(req.uid!).update({
+      await userRef.update({
         "profile.photoUrls": photos,
         "profile.updatedAt": serverTimestamp(),
       });
@@ -5565,19 +8027,45 @@ app.delete(
   async (req: AuthRequest, res: Response) => {
     try {
       const { photoId } = req.params;
-      const userDoc = await db.collection("users").doc(req.uid!).get();
+      const photoIndex = parseProfilePhotoIndex(photoId);
+      if (photoIndex === null) {
+        return res.status(400).json({
+          error: "Invalid photoId format. Use photo_<index>.",
+        });
+      }
+
+      const userRef = db.collection("users").doc(req.uid!);
+      const userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
       const userData = userDoc.data() || {};
       const profile = userData.profile || {};
       const photos: string[] = profile.photoUrls || [];
 
-      // Find and remove the photo (photoId format: photo_INDEX or contains URL)
-      const index = parseInt(photoId.replace("photo_", ""));
-      if (!isNaN(index) && index < photos.length) {
-        photos.splice(index, 1);
+      if (photoIndex >= photos.length) {
+        return res.status(404).json({ error: "Photo not found" });
       }
 
-      await db.collection("users").doc(req.uid!).update({
-        "profile.photoUrls": photos,
+      const photoUrl = photos[photoIndex];
+      try {
+        await deleteProfilePhotoStorageObject(photoUrl);
+      } catch (storageError) {
+        console.error("Delete photo storage error:", storageError, {
+          uid: req.uid,
+          photoId,
+          photoUrl,
+        });
+        return res.status(502).json({
+          error: "Failed to delete photo from storage",
+        });
+      }
+
+      const remainingPhotos = photos.filter((_, index) => index !== photoIndex);
+
+      await userRef.update({
+        "profile.photoUrls": remainingPhotos,
         "profile.updatedAt": serverTimestamp(),
       });
 
@@ -5595,14 +8083,48 @@ app.patch(
   authMiddleware,
   async (req: AuthRequest, res: Response) => {
     try {
-      await db.collection("users").doc(req.uid!).update({
-        preferences: req.body,
+      const normalizedPreferences = validateProfilePreferencesPayload(req.body);
+      const userRef = db.collection("users").doc(req.uid!);
+      const userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: "User not found", code: "not-found" });
+      }
+
+      const currentData = userDoc.data() || {};
+      const existingPreferences = getCanonicalProfilePreferences(currentData);
+      const mergedPreferences = {
+        ...existingPreferences,
+        ...normalizedPreferences,
+      };
+
+      const minAge = toNumber(mergedPreferences.minAge);
+      const maxAge = toNumber(mergedPreferences.maxAge);
+      if (minAge !== undefined && maxAge !== undefined && minAge > maxAge) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "minAge cannot be greater than maxAge."
+        );
+      }
+
+      await userRef.update({
+        "profile.preferences": mergedPreferences,
+        preferences: mergedPreferences, // Legacy mirror for backward compatibility.
+        "profile.updatedAt": serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
 
-      res.json({ success: true });
+      res.json({ success: true, preferences: mergedPreferences });
     } catch (err) {
       console.error("Update preferences error:", err);
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
+      const firestoreCode = (err as { code?: unknown })?.code;
+      if (firestoreCode === 5 || firestoreCode === "not-found") {
+        return res.status(404).json({ error: "User not found", code: "not-found" });
+      }
       return res.status(500).json({ error: "Failed to update preferences" });
     }
   }
@@ -5628,7 +8150,8 @@ app.get(
         id: userId,
         display_name: profile.name || profile.displayName,
         bio: profile.bio,
-        age: profile.age,
+        age: deriveProfileAge(profile as Record<string, unknown>),
+        birth_date: profileBirthDateIso(profile as Record<string, unknown>),
         gender: profile.gender,
         city: profile.city,
         photos: (profile.photoUrls || []).map((url: string, i: number) => ({
@@ -5637,7 +8160,7 @@ app.get(
           is_primary: i === 0,
         })),
         interests: profile.interests || [],
-        prompts: profile.prompts || [],
+        prompts: profilePromptAnswers(profile as Record<string, unknown>),
         is_verified: data.idVerified || false,
       });
     } catch (err) {
@@ -5656,7 +8179,7 @@ app.get("/v1/discovery/deck", authMiddleware, rateLimitDiscovery, async (req: Au
   try {
     const userDoc = await db.collection("users").doc(req.uid!).get();
     const userData = userDoc.data() || {};
-    const preferences = userData.preferences || {};
+    const preferences = getCanonicalProfilePreferences(userData);
 
     // Get users the current user has already swiped on
     const swipesSnap = await db.collection("swipes")
@@ -5671,8 +8194,23 @@ app.get("/v1/discovery/deck", authMiddleware, rateLimitDiscovery, async (req: Au
       .limit(DISCOVERY_PAGE_SIZE);
 
     // Apply gender filter if set
-    if (preferences.genderPreference && preferences.genderPreference !== "all") {
-      query = query.where("profile.gender", "==", preferences.genderPreference);
+    const explicitGenderPreference =
+      typeof preferences.genderPreference === "string"
+        ? preferences.genderPreference.trim().toLowerCase()
+        : "";
+    const normalizedShowMeGenders = Array.isArray(preferences.showMeGenders)
+      ? (preferences.showMeGenders as unknown[])
+          .filter((value) => typeof value === "string")
+          .map((value) => (value as string).trim().toLowerCase())
+          .filter((value) => value.length > 0 && value !== "all")
+      : [];
+
+    if (explicitGenderPreference && explicitGenderPreference !== "all") {
+      query = query.where("profile.gender", "==", explicitGenderPreference);
+    } else if (normalizedShowMeGenders.length === 1) {
+      query = query.where("profile.gender", "==", normalizedShowMeGenders[0]);
+    } else if (normalizedShowMeGenders.length > 1 && normalizedShowMeGenders.length <= 10) {
+      query = query.where("profile.gender", "in", normalizedShowMeGenders);
     }
 
     const usersSnap = await query.get();
@@ -5686,7 +8224,8 @@ app.get("/v1/discovery/deck", authMiddleware, rateLimitDiscovery, async (req: Au
         return {
           id: doc.id,
           display_name: profile.name || profile.displayName,
-          age: profile.age,
+          age: deriveProfileAge(profile as Record<string, unknown>),
+          birth_date: profileBirthDateIso(profile as Record<string, unknown>),
           bio: profile.bio,
           city: profile.city,
           photos: (profile.photoUrls || []).map((url: string, i: number) => ({
@@ -5694,7 +8233,7 @@ app.get("/v1/discovery/deck", authMiddleware, rateLimitDiscovery, async (req: Au
             is_primary: i === 0,
           })),
           interests: profile.interests || [],
-          prompts: profile.prompts || [],
+          prompts: profilePromptAnswers(profile as Record<string, unknown>),
           is_verified: data.idVerified || false,
           distance_km: null, // Would calculate based on location
         };
@@ -6190,21 +8729,39 @@ app.get(
 
 // Block user
 app.post("/v1/users/block", authMiddleware, requireVerifiedEmail, rateLimitReport, async (req: AuthRequest, res: Response) => {
+  const route = req.path || "/v1/users/block";
+  const method = req.method || "POST";
+  const actorUid = req.uid;
+  const ip = getRestClientIp(req);
+  const userAgent = req.header("user-agent") ?? null;
+  let blockedId: string | undefined;
+
   try {
-    const { blocked_id } = req.body;
-    if (!blocked_id) {
-      return res.status(400).json({ error: "blocked_id required" });
-    }
+    const blockerId = req.uid!;
+    blockedId = validateSafetyTargetId(req.body?.blocked_id, "blocked_id");
+    assertNotSelfSafetyAction(blockerId, blockedId, "block");
+    await ensureUserExists(blockedId);
 
     // Rate limiting
     const blockLimit = await applyRateLimit(
-      `block:uid:${req.uid}`,
+      `block:uid:${blockerId}`,
       BLOCK_LIMIT,
       BLOCK_WINDOW_MS,
       BLOCK_BLOCK_MS
     );
     if (!blockLimit.allowed) {
       const retryTime = formatRetryTime(blockLimit.retryAfterMs);
+      await logSafetyRestAudit({
+        action: "block",
+        actorUid: blockerId,
+        targetUid: blockedId,
+        route,
+        method,
+        statusCode: 429,
+        metadata: { retryAfterMs: blockLimit.retryAfterMs ?? null },
+        ip,
+        userAgent,
+      });
       return res.status(429).json({
         error: "Too many block requests",
         retry_after_ms: blockLimit.retryAfterMs,
@@ -6212,36 +8769,86 @@ app.post("/v1/users/block", authMiddleware, requireVerifiedEmail, rateLimitRepor
       });
     }
 
-    await db.collection("blocks").add({
-      blockerId: req.uid,
-      blockedId: blocked_id,
-      createdAt: serverTimestamp(),
-    });
+    const docId = `${blockerId}_${blockedId}`;
+    await db.collection("blocks").doc(docId).set(
+      {
+        blockerId,
+        blockedId,
+        createdAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
 
+    await logSafetyRestAudit({
+      action: "block",
+      actorUid: blockerId,
+      targetUid: blockedId,
+      route,
+      method,
+      statusCode: 200,
+      ip,
+      userAgent,
+    });
     res.json({ success: true });
   } catch (err) {
     console.error("Block error:", err);
+    const statusCode = isHttpsError(err) ?
+      httpStatusFromHttpsErrorCode(err.code) :
+      500;
+    await logSafetyRestAudit({
+      action: "block",
+      actorUid,
+      targetUid: blockedId,
+      route,
+      method,
+      statusCode,
+      errorCode: isHttpsError(err) ? err.code : "internal",
+      ip,
+      userAgent,
+    });
+    if (isHttpsError(err)) {
+      return res
+        .status(httpStatusFromHttpsErrorCode(err.code))
+        .json({ error: err.message, code: err.code });
+    }
     return res.status(500).json({ error: "Failed to block user" });
   }
 });
 
 // Unblock user
 app.post("/v1/users/unblock", authMiddleware, requireVerifiedEmail, async (req: AuthRequest, res: Response) => {
+  const route = req.path || "/v1/users/unblock";
+  const method = req.method || "POST";
+  const actorUid = req.uid;
+  const ip = getRestClientIp(req);
+  const userAgent = req.header("user-agent") ?? null;
+  let blockedId: string | undefined;
+
   try {
-    const { blocked_id } = req.body;
-    if (!blocked_id) {
-      return res.status(400).json({ error: "blocked_id required" });
-    }
+    const blockerId = req.uid!;
+    blockedId = validateSafetyTargetId(req.body?.blocked_id, "blocked_id");
+    assertNotSelfSafetyAction(blockerId, blockedId, "unblock");
 
     // Rate limiting
     const unblockLimit = await applyRateLimit(
-      `unblock:uid:${req.uid}`,
+      `unblock:uid:${blockerId}`,
       UNBLOCK_LIMIT,
       UNBLOCK_WINDOW_MS,
       UNBLOCK_BLOCK_MS
     );
     if (!unblockLimit.allowed) {
       const retryTime = formatRetryTime(unblockLimit.retryAfterMs);
+      await logSafetyRestAudit({
+        action: "unblock",
+        actorUid: blockerId,
+        targetUid: blockedId,
+        route,
+        method,
+        statusCode: 429,
+        metadata: { retryAfterMs: unblockLimit.retryAfterMs ?? null },
+        ip,
+        userAgent,
+      });
       return res.status(429).json({
         error: "Too many unblock requests",
         retry_after_ms: unblockLimit.retryAfterMs,
@@ -6249,40 +8856,101 @@ app.post("/v1/users/unblock", authMiddleware, requireVerifiedEmail, async (req: 
       });
     }
 
-    const blockSnap = await db.collection("blocks")
-      .where("blockerId", "==", req.uid)
-      .where("blockedId", "==", blocked_id)
-      .limit(1)
-      .get();
+    const docId = `${blockerId}_${blockedId}`;
+    await db.collection("blocks").doc(docId).delete();
 
-    if (!blockSnap.empty) {
-      await blockSnap.docs[0].ref.delete();
+    // Backward-compat cleanup for legacy random-id block documents.
+    const legacyBlocksSnap = await db
+      .collection("blocks")
+      .where("blockerId", "==", blockerId)
+      .where("blockedId", "==", blockedId)
+      .get();
+    if (!legacyBlocksSnap.empty) {
+      await Promise.all(legacyBlocksSnap.docs.map((doc) => doc.ref.delete()));
     }
 
+    await logSafetyRestAudit({
+      action: "unblock",
+      actorUid: blockerId,
+      targetUid: blockedId,
+      route,
+      method,
+      statusCode: 200,
+      ip,
+      userAgent,
+    });
     res.json({ success: true });
   } catch (err) {
     console.error("Unblock error:", err);
+    const statusCode = isHttpsError(err) ?
+      httpStatusFromHttpsErrorCode(err.code) :
+      500;
+    await logSafetyRestAudit({
+      action: "unblock",
+      actorUid,
+      targetUid: blockedId,
+      route,
+      method,
+      statusCode,
+      errorCode: isHttpsError(err) ? err.code : "internal",
+      ip,
+      userAgent,
+    });
+    if (isHttpsError(err)) {
+      return res
+        .status(httpStatusFromHttpsErrorCode(err.code))
+        .json({ error: err.message, code: err.code });
+    }
     return res.status(500).json({ error: "Failed to unblock user" });
   }
 });
 
 // Report user
 app.post("/v1/users/report", authMiddleware, requireVerifiedEmail, rateLimitReport, async (req: AuthRequest, res: Response) => {
+  const route = req.path || "/v1/users/report";
+  const method = req.method || "POST";
+  const actorUid = req.uid;
+  const ip = getRestClientIp(req);
+  const userAgent = req.header("user-agent") ?? null;
+  let reportedId: string | undefined;
+  let reasonCategory: ReportCategory | undefined;
+
   try {
-    const { reported_id, reason, description, match_id, message_id } = req.body;
-    if (!reported_id || !reason) {
-      return res.status(400).json({ error: "reported_id and reason required" });
-    }
+    const reporterId = req.uid!;
+    reportedId = validateSafetyTargetId(req.body?.reported_id, "reported_id");
+    assertNotSelfSafetyAction(reporterId, reportedId, "report");
+    const reasonParsed = canonicalizeSafetyReportReason(
+      req.body?.reason,
+      { field: "reason", maxLength: 280, minLength: 3 }
+    );
+    const reason = reasonParsed.reasonText;
+    reasonCategory = reasonParsed.reasonCategory;
+    const description = validateOptionalSafetyDescription(req.body?.description);
+    const matchId = optionalString(req.body?.match_id) ?? null;
+    const messageId = optionalString(req.body?.message_id) ?? null;
+    await ensureUserExists(reportedId);
 
     // Rate limiting
     const reportLimit = await applyRateLimit(
-      `report:uid:${req.uid}`,
+      `report:uid:${reporterId}`,
       REPORT_LIMIT,
       REPORT_WINDOW_MS,
       REPORT_BLOCK_MS
     );
     if (!reportLimit.allowed) {
       const retryTime = formatRetryTime(reportLimit.retryAfterMs);
+      await logSafetyRestAudit({
+        action: "report",
+        actorUid: reporterId,
+        targetUid: reportedId,
+        route,
+        method,
+        statusCode: 429,
+        reasonCategory: reasonCategory ?? null,
+        metadata: { retryAfterMs: reportLimit.retryAfterMs ?? null },
+        ip,
+        userAgent,
+      });
       return res.status(429).json({
         error: "Too many report requests",
         retry_after_ms: reportLimit.retryAfterMs,
@@ -6291,19 +8959,51 @@ app.post("/v1/users/report", authMiddleware, requireVerifiedEmail, rateLimitRepo
     }
 
     await db.collection("reports").add({
-      reporterId: req.uid,
-      reportedId: reported_id,
+      reporterId,
+      reportedId,
       reason,
-      description: description || null,
-      matchId: match_id || null,
-      messageId: message_id || null,
+      reasonCategory,
+      description,
+      matchId,
+      messageId,
       status: "pending",
       createdAt: serverTimestamp(),
     });
 
+    await logSafetyRestAudit({
+      action: "report",
+      actorUid: reporterId,
+      targetUid: reportedId,
+      route,
+      method,
+      statusCode: 200,
+      reasonCategory,
+      ip,
+      userAgent,
+    });
     res.json({ success: true });
   } catch (err) {
     console.error("Report error:", err);
+    const statusCode = isHttpsError(err) ?
+      httpStatusFromHttpsErrorCode(err.code) :
+      500;
+    await logSafetyRestAudit({
+      action: "report",
+      actorUid,
+      targetUid: reportedId,
+      route,
+      method,
+      statusCode,
+      errorCode: isHttpsError(err) ? err.code : "internal",
+      reasonCategory: reasonCategory ?? null,
+      ip,
+      userAgent,
+    });
+    if (isHttpsError(err)) {
+      return res
+        .status(httpStatusFromHttpsErrorCode(err.code))
+        .json({ error: err.message, code: err.code });
+    }
     return res.status(500).json({ error: "Failed to report user" });
   }
 });
@@ -7229,7 +9929,10 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function toIsoString(value: unknown): string | null {
   if (!value) return null;
-  if (value instanceof admin.firestore.Timestamp) {
+  const timestampCtor = (admin.firestore as unknown as {
+    Timestamp?: { new (...args: unknown[]): { toDate: () => Date } };
+  })?.Timestamp;
+  if (timestampCtor && value instanceof timestampCtor) {
     return value.toDate().toISOString();
   }
   if (value instanceof Date) {
@@ -7243,7 +9946,10 @@ function toIsoString(value: unknown): string | null {
 
 function normalizeDate(value: unknown): Date | null {
   if (!value) return null;
-  if (value instanceof admin.firestore.Timestamp) {
+  const timestampCtor = (admin.firestore as unknown as {
+    Timestamp?: { new (...args: unknown[]): { toDate: () => Date } };
+  })?.Timestamp;
+  if (timestampCtor && value instanceof timestampCtor) {
     return value.toDate();
   }
   if (value instanceof Date) return value;

@@ -50,6 +50,24 @@ describe('profile completeness helpers', () => {
     expect(result.meetsMessagingMinimum).to.be.true;
   });
 
+  it('uses canonical profilePrompts when legacy prompts list is missing', () => {
+    const profile = {
+      photoUrls: ['a.jpg'],
+      bio: 'This is a long enough bio that clears required thresholds.',
+      profilePrompts: [
+        { questionId: 'looking_for', answer: 'Someone adventurous' },
+        { questionId: 'perfect_date', answer: 'Hiking and coffee' },
+      ],
+      interests: ['music', 'travel', 'food'],
+      country: 'US',
+      city: 'Austin',
+    };
+
+    const result = evaluateProfileCompleteness(profile);
+    expect(result.recommended).to.be.empty;
+    expect(result.breakdown.prompts).to.equal(0.1);
+  });
+
   it('throws with a failed-precondition error when required pieces are missing', () => {
     const incomplete = {
       photoUrls: [],

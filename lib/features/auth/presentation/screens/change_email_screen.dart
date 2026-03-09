@@ -6,6 +6,7 @@ import 'package:crushhour/design_system/widgets/auth_scaffold.dart';
 import 'package:crushhour/design_system/widgets/primary_button.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/auth/presentation/widgets/auth_utility_layout_constraints.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,7 +45,10 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       title: 'Change email',
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 600),
+          key: authUtilityContentConstraintKey,
+          constraints: BoxConstraints(
+            maxWidth: authUtilityMaxWidthFor(MediaQuery.sizeOf(context).width),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

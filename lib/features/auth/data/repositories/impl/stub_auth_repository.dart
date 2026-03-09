@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:crushhour/core/errors/auth_failures.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/profile/data/repositories/impl/profile_prompt_migration.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -587,6 +589,11 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
     Profile? profile;
     if (json['profile'] != null) {
       final p = json['profile'] as Map<String, dynamic>;
+      final legacyPromptAnswers = parseLegacyPromptAnswers(p['prompts']);
+      final parsedProfilePrompts = parseProfilePrompts(
+        p['profilePrompts'],
+        legacyPromptAnswers: legacyPromptAnswers,
+      );
       profile = Profile(
         id: p['id'] ?? '',
         name: p['name'] ?? '',
@@ -605,7 +612,7 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
         videoUrls: List<String>.from(p['videoUrls'] ?? []),
         primaryPhotoIndex: p['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(p['interests'] ?? []),
-        prompts: List<String>.from(p['prompts'] ?? []),
+        profilePrompts: parsedProfilePrompts,
         country: p['country'] ?? '',
         city: p['city'] ?? '',
         livingIn: p['livingIn'],
@@ -689,8 +696,9 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
         'videoUrls': p.videoUrls,
         'primaryPhotoIndex': p.primaryPhotoIndex,
         'interests': p.interests,
-        // ignore: deprecated_member_use_from_same_package
-        'prompts': p.prompts, // Keep for backwards compatibility
+        'profilePrompts': p.profilePrompts
+            .map((prompt) => prompt.toJson())
+            .toList(),
         'country': p.country,
         'city': p.city,
         'livingIn': p.livingIn,
@@ -893,10 +901,11 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
     required String email,
     required String password,
   }) {
-    return Result.guard(
+    return _guardAuthResult(
       () => signInWithEmailPassword(email: email, password: password),
       logLabel: 'StubAuthRepository.signInWithEmailPasswordResult',
       fallbackError: 'Unable to sign in. Please check your credentials.',
+      fallbackType: AuthFailureType.invalidCredentials,
     );
   }
 
@@ -904,10 +913,11 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
     required String identifier,
     required String password,
   }) {
-    return Result.guard(
+    return _guardAuthResult(
       () => loginWithPassword(identifier: identifier, password: password),
       logLabel: 'StubAuthRepository.loginWithPasswordResult',
       fallbackError: 'Unable to sign in. Please check your credentials.',
+      fallbackType: AuthFailureType.invalidCredentials,
     );
   }
 
@@ -916,7 +926,7 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
     required String email,
     required String password,
   }) {
-    return Result.guard(
+    return _guardAuthResult(
       () => signUpWithPassword(
         username: username,
         email: email,
@@ -924,30 +934,57 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       ),
       logLabel: 'StubAuthRepository.signUpWithPasswordResult',
       fallbackError: 'Unable to create account. Please try again.',
+      fallbackType: AuthFailureType.unknown,
     );
   }
 
   Future<Result<void>> signOutResult() {
-    return Result.guard(
+    return _guardAuthResult(
       () => signOut(),
       logLabel: 'StubAuthRepository.signOutResult',
       fallbackError: 'Unable to sign out. Please try again.',
+      fallbackType: AuthFailureType.sessionMissing,
     );
   }
 
   Future<Result<CrushUser>> signInWithAppleResult() {
-    return Result.guard(
+    return _guardAuthResult(
       () => signInWithApple(),
       logLabel: 'StubAuthRepository.signInWithAppleResult',
       fallbackError: 'Apple Sign-In failed. Please try again.',
+      fallbackType: AuthFailureType.unsupportedProvider,
     );
   }
 
   Future<Result<CrushUser>> signInWithGoogleResult() {
-    return Result.guard(
+    return _guardAuthResult(
       () => signInWithGoogle(),
       logLabel: 'StubAuthRepository.signInWithGoogleResult',
       fallbackError: 'Google Sign-In failed. Please try again.',
+      fallbackType: AuthFailureType.unsupportedProvider,
+    );
+  }
+
+  Future<Result<T>> _guardAuthResult<T>(
+    Future<T> Function() run, {
+    required String logLabel,
+    required String fallbackError,
+    required AuthFailureType fallbackType,
+  }) {
+    return Result.guard(
+      () async {
+        try {
+          return await run();
+        } catch (error) {
+          throw AuthFailureMapper.from(
+            error,
+            fallbackType: fallbackType,
+            fallbackMessage: fallbackError,
+          );
+        }
+      },
+      logLabel: logLabel,
+      fallbackError: fallbackError,
     );
   }
 

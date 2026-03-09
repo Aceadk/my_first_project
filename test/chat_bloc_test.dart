@@ -36,7 +36,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -56,7 +58,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -65,10 +69,81 @@ void main() {
         await expectLater(
           bloc.stream,
           emitsThrough(
-            isA<ChatState>()
-                .having((s) => s.isInitialLoading, 'loading', false),
+            isA<ChatState>().having(
+              (s) => s.isInitialLoading,
+              'loading',
+              false,
+            ),
           ),
         );
+
+        await bloc.close();
+      });
+
+      test(
+        're-opening chat replaces realtime watchers without leaks',
+        () async {
+          final chatRepo = _FakeChatRepository();
+          final authRepo = _FakeAuthRepository();
+          addTearDown(authRepo.dispose);
+          final bloc = ChatBloc(
+            chatRepository: chatRepo,
+            subscriptionRepository: _FakeSubscriptionRepository(
+              SubscriptionPlan.free,
+            ),
+            authRepository: authRepo,
+          );
+
+          bloc.add(ChatOpened('match-1', 'user-1', 'user-2'));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          expect(chatRepo.typingWatchActiveListeners, 1);
+          expect(chatRepo.presenceWatchActiveListeners, 1);
+          expect(chatRepo.mediaWatchActiveListeners, 1);
+
+          bloc.add(ChatOpened('match-2', 'user-1', 'user-3'));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+
+          expect(chatRepo.typingWatchCalls, 2);
+          expect(chatRepo.presenceWatchCalls, 2);
+          expect(chatRepo.mediaWatchCalls, 2);
+          expect(chatRepo.typingWatchCancelCount, greaterThanOrEqualTo(1));
+          expect(chatRepo.presenceWatchCancelCount, greaterThanOrEqualTo(1));
+          expect(chatRepo.mediaWatchCancelCount, greaterThanOrEqualTo(1));
+          expect(chatRepo.typingWatchActiveListeners, 1);
+          expect(chatRepo.presenceWatchActiveListeners, 1);
+          expect(chatRepo.mediaWatchActiveListeners, 1);
+
+          await bloc.close();
+          expect(chatRepo.typingWatchActiveListeners, 0);
+          expect(chatRepo.presenceWatchActiveListeners, 0);
+          expect(chatRepo.mediaWatchActiveListeners, 0);
+        },
+      );
+
+      test('chat close cancels active realtime watchers', () async {
+        final chatRepo = _FakeChatRepository();
+        final authRepo = _FakeAuthRepository();
+        addTearDown(authRepo.dispose);
+        final bloc = ChatBloc(
+          chatRepository: chatRepo,
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
+          authRepository: authRepo,
+        );
+
+        bloc.add(ChatOpened('match-1', 'user-1', 'user-2'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(chatRepo.typingWatchActiveListeners, 1);
+        expect(chatRepo.presenceWatchActiveListeners, 1);
+        expect(chatRepo.mediaWatchActiveListeners, 1);
+
+        bloc.add(ChatClosed('match-1', 'user-1'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(chatRepo.typingWatchActiveListeners, 0);
+        expect(chatRepo.presenceWatchActiveListeners, 0);
+        expect(chatRepo.mediaWatchActiveListeners, 0);
 
         await bloc.close();
       });
@@ -78,12 +153,20 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
-        bloc.add(ChatOpened('match-1', 'user-1', 'user-2',
-            otherUserPhotoUrl: 'https://example.com/photo.jpg'));
+        bloc.add(
+          ChatOpened(
+            'match-1',
+            'user-1',
+            'user-2',
+            otherUserPhotoUrl: 'https://example.com/photo.jpg',
+          ),
+        );
 
         await expectLater(
           bloc.stream,
@@ -107,24 +190,34 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: chatRepo,
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
-        bloc.add(ChatMessageSent(
-          matchId: 'match-1',
-          fromUserId: 'user-1',
-          toUserId: 'user-2',
-          content: 'Hello!',
-        ));
+        bloc.add(
+          ChatMessageSent(
+            matchId: 'match-1',
+            fromUserId: 'user-1',
+            toUserId: 'user-2',
+            content: 'Hello!',
+          ),
+        );
 
         await expectLater(
           bloc.stream,
           emitsInOrder([
             isA<ChatState>().having(
-                (s) => s.sendStatus, 'status', SendStatus.sendingText),
-            isA<ChatState>()
-                .having((s) => s.sendStatus, 'status', SendStatus.idle),
+              (s) => s.sendStatus,
+              'status',
+              SendStatus.sendingText,
+            ),
+            isA<ChatState>().having(
+              (s) => s.sendStatus,
+              'status',
+              SendStatus.idle,
+            ),
           ]),
         );
 
@@ -140,16 +233,20 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: chatRepo,
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
-        bloc.add(ChatMessageSent(
-          matchId: 'match-1',
-          fromUserId: 'user-1',
-          toUserId: 'user-2',
-          content: '   ',
-        ));
+        bloc.add(
+          ChatMessageSent(
+            matchId: 'match-1',
+            fromUserId: 'user-1',
+            toUserId: 'user-2',
+            content: '   ',
+          ),
+        );
 
         await Future.delayed(const Duration(milliseconds: 100));
         expect(chatRepo.sent, isEmpty);
@@ -163,16 +260,20 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: chatRepo,
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
-        bloc.add(ChatMessageSent(
-          matchId: 'match-1',
-          fromUserId: 'user-1',
-          toUserId: 'user-2',
-          content: 'Hello!',
-        ));
+        bloc.add(
+          ChatMessageSent(
+            matchId: 'match-1',
+            fromUserId: 'user-1',
+            toUserId: 'user-2',
+            content: 'Hello!',
+          ),
+        );
 
         await expectLater(
           bloc.stream,
@@ -192,15 +293,19 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: chatRepo,
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
-        bloc.add(ChatTypingStatusChanged(
-          matchId: 'match-1',
-          userId: 'user-1',
-          isTyping: true,
-        ));
+        bloc.add(
+          ChatTypingStatusChanged(
+            matchId: 'match-1',
+            userId: 'user-1',
+            isTyping: true,
+          ),
+        );
 
         await Future.delayed(const Duration(milliseconds: 100));
         expect(chatRepo.typingCalls, 1);
@@ -215,7 +320,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -224,11 +331,10 @@ void main() {
         await expectLater(
           bloc.stream,
           emits(
-            isA<ChatState>().having(
-              (s) => s.typingUserIds,
-              'typingIds',
-              {'user-2', 'user-3'},
-            ),
+            isA<ChatState>().having((s) => s.typingUserIds, 'typingIds', {
+              'user-2',
+              'user-3',
+            }),
           ),
         );
 
@@ -242,7 +348,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -251,8 +359,7 @@ void main() {
         await expectLater(
           bloc.stream,
           emits(
-            isA<ChatState>()
-                .having((s) => s.otherUserOnline, 'online', true),
+            isA<ChatState>().having((s) => s.otherUserOnline, 'online', true),
           ),
         );
 
@@ -266,7 +373,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -292,7 +401,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: chatRepo,
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.plus),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.plus,
+          ),
           authRepository: authRepo,
         );
 
@@ -301,8 +412,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            isA<ChatState>()
-                .having((s) => s.isUnsendInProgress, 'progress', true),
+            isA<ChatState>().having(
+              (s) => s.isUnsendInProgress,
+              'progress',
+              true,
+            ),
             isA<ChatState>()
                 .having((s) => s.isUnsendInProgress, 'progress', false)
                 .having((s) => s.errorMessage, 'error', isNull),
@@ -320,15 +434,19 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
-        bloc.add(ChatMessageEditRequested(
-          matchId: 'match-1',
-          messageId: 'msg-1',
-          newContent: 'Edited content',
-        ));
+        bloc.add(
+          ChatMessageEditRequested(
+            matchId: 'match-1',
+            messageId: 'msg-1',
+            newContent: 'Edited content',
+          ),
+        );
 
         await expectLater(
           bloc.stream,
@@ -350,20 +468,28 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: chatRepo,
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.plus),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.plus,
+          ),
           authRepository: authRepo,
         );
 
-        bloc.add(ChatMessageEditRequested(
-          matchId: 'match-1',
-          messageId: 'msg-1',
-          newContent: 'Edited content',
-        ));
+        bloc.add(
+          ChatMessageEditRequested(
+            matchId: 'match-1',
+            messageId: 'msg-1',
+            newContent: 'Edited content',
+          ),
+        );
 
         await expectLater(
           bloc.stream,
           emitsInOrder([
-            isA<ChatState>().having((s) => s.isEditInProgress, 'progress', true),
+            isA<ChatState>().having(
+              (s) => s.isEditInProgress,
+              'progress',
+              true,
+            ),
             isA<ChatState>()
                 .having((s) => s.isEditInProgress, 'progress', false)
                 .having((s) => s.errorMessage, 'error', isNull),
@@ -382,7 +508,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: chatRepo,
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -409,7 +537,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -418,8 +548,11 @@ void main() {
         await expectLater(
           bloc.stream,
           emits(
-            isA<ChatState>()
-                .having((s) => s.mediaSendingEnabled, 'enabled', false),
+            isA<ChatState>().having(
+              (s) => s.mediaSendingEnabled,
+              'enabled',
+              false,
+            ),
           ),
         );
 
@@ -433,12 +566,16 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
         // First add some messages
-        bloc.add(ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.free));
+        bloc.add(
+          ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.free),
+        );
         await Future.delayed(const Duration(milliseconds: 100));
         expect(bloc.state.messages.isNotEmpty, true);
 
@@ -448,8 +585,7 @@ void main() {
         await expectLater(
           bloc.stream,
           emits(
-            isA<ChatState>()
-                .having((s) => s.messages, 'messages', isEmpty),
+            isA<ChatState>().having((s) => s.messages, 'messages', isEmpty),
           ),
         );
 
@@ -463,7 +599,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -471,20 +609,14 @@ void main() {
 
         await expectLater(
           bloc.stream,
-          emits(
-            isA<ChatState>()
-                .having((s) => s.isE2eeEnabled, 'e2ee', false),
-          ),
+          emits(isA<ChatState>().having((s) => s.isE2eeEnabled, 'e2ee', false)),
         );
 
         bloc.add(ChatE2eeToggled(true));
 
         await expectLater(
           bloc.stream,
-          emits(
-            isA<ChatState>()
-                .having((s) => s.isE2eeEnabled, 'e2ee', true),
-          ),
+          emits(isA<ChatState>().having((s) => s.isE2eeEnabled, 'e2ee', true)),
         );
 
         await bloc.close();
@@ -497,7 +629,9 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.free,
+          ),
           authRepository: authRepo,
         );
 
@@ -506,10 +640,7 @@ void main() {
 
         await expectLater(
           bloc.stream,
-          emits(
-            isA<ChatState>()
-                .having((s) => s.messages.length, 'count', 2),
-          ),
+          emits(isA<ChatState>().having((s) => s.messages.length, 'count', 2)),
         );
 
         await bloc.close();
@@ -520,11 +651,15 @@ void main() {
         addTearDown(authRepo.dispose);
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.plus),
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionPlan.plus,
+          ),
           authRepository: authRepo,
         );
 
-        bloc.add(ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.plus));
+        bloc.add(
+          ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.plus),
+        );
 
         await expectLater(
           bloc.stream,
@@ -541,32 +676,48 @@ void main() {
     });
 
     group('Auth State Changes', () {
-      test('resets state when user logs out', () async {
-        final authRepo = _FakeAuthRepository();
-        addTearDown(authRepo.dispose);
-        final bloc = ChatBloc(
-          chatRepository: _FakeChatRepository(),
-          subscriptionRepository: _FakeSubscriptionRepository(SubscriptionPlan.free),
-          authRepository: authRepo,
-        );
+      test(
+        'resets state and cancels realtime watchers when user logs out',
+        () async {
+          final chatRepo = _FakeChatRepository();
+          final authRepo = _FakeAuthRepository();
+          addTearDown(authRepo.dispose);
+          final bloc = ChatBloc(
+            chatRepository: chatRepo,
+            subscriptionRepository: _FakeSubscriptionRepository(
+              SubscriptionPlan.free,
+            ),
+            authRepository: authRepo,
+          );
 
-        // Add messages first
-        bloc.add(ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.free));
-        await Future.delayed(const Duration(milliseconds: 100));
+          bloc.add(ChatOpened('match-1', 'user-1', 'user-2'));
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          expect(chatRepo.typingWatchActiveListeners, 1);
+          expect(chatRepo.presenceWatchActiveListeners, 1);
+          expect(chatRepo.mediaWatchActiveListeners, 1);
 
-        // Trigger logout
-        authRepo.emitLogout();
+          // Add messages first
+          bloc.add(
+            ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.free),
+          );
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        await expectLater(
-          bloc.stream,
-          emits(
-            isA<ChatState>()
-                .having((s) => s.messages, 'messages', isEmpty),
-          ),
-        );
+          // Trigger logout
+          authRepo.emitLogout();
 
-        await bloc.close();
-      });
+          await expectLater(
+            bloc.stream,
+            emits(
+              isA<ChatState>().having((s) => s.messages, 'messages', isEmpty),
+            ),
+          );
+          expect(chatRepo.typingWatchActiveListeners, 0);
+          expect(chatRepo.presenceWatchActiveListeners, 0);
+          expect(chatRepo.mediaWatchActiveListeners, 0);
+
+          await bloc.close();
+        },
+      );
     });
   });
 }
@@ -576,23 +727,49 @@ void main() {
 // =============================================================================
 
 Message _testMessage(String id) => Message(
-      id: id,
-      matchId: 'match-1',
-      fromUserId: 'user-1',
-      toUserId: 'user-2',
-      content: 'Test message $id',
-      type: MessageType.text,
-      sentAt: DateTime.now(),
-      isRead: false,
-      isDeletedForSender: false,
-    );
+  id: id,
+  matchId: 'match-1',
+  fromUserId: 'user-1',
+  toUserId: 'user-2',
+  content: 'Test message $id',
+  type: MessageType.text,
+  sentAt: DateTime.now(),
+  isRead: false,
+  isDeletedForSender: false,
+);
 
 // =============================================================================
 // Stub Repositories
 // =============================================================================
 
 class _FakeChatRepository implements ChatRepository {
-  _FakeChatRepository({this.shouldFailSend = false});
+  _FakeChatRepository({this.shouldFailSend = false}) {
+    _typingController = StreamController<Set<String>>.broadcast(
+      onListen: () => typingWatchActiveListeners++,
+      onCancel: () {
+        typingWatchActiveListeners--;
+        typingWatchCancelCount++;
+      },
+    );
+    _presenceController = StreamController<bool>.broadcast(
+      onListen: () => presenceWatchActiveListeners++,
+      onCancel: () {
+        presenceWatchActiveListeners--;
+        presenceWatchCancelCount++;
+      },
+    );
+    _mediaController = StreamController<bool>.broadcast(
+      onListen: () => mediaWatchActiveListeners++,
+      onCancel: () {
+        mediaWatchActiveListeners--;
+        mediaWatchCancelCount++;
+      },
+    );
+
+    _typingController.add(const {});
+    _presenceController.add(false);
+    _mediaController.add(true);
+  }
 
   final bool shouldFailSend;
   final List<Message> sent = [];
@@ -601,10 +778,19 @@ class _FakeChatRepository implements ChatRepository {
   int unsendCalls = 0;
   int editCalls = 0;
   int unmatchCalls = 0;
+  int typingWatchCalls = 0;
+  int presenceWatchCalls = 0;
+  int mediaWatchCalls = 0;
+  int typingWatchActiveListeners = 0;
+  int presenceWatchActiveListeners = 0;
+  int mediaWatchActiveListeners = 0;
+  int typingWatchCancelCount = 0;
+  int presenceWatchCancelCount = 0;
+  int mediaWatchCancelCount = 0;
 
-  final _typingController = StreamController<Set<String>>.broadcast()..add(const {});
-  final _presenceController = StreamController<bool>.broadcast()..add(false);
-  final _mediaController = StreamController<bool>.broadcast()..add(true);
+  late final StreamController<Set<String>> _typingController;
+  late final StreamController<bool> _presenceController;
+  late final StreamController<bool> _mediaController;
 
   @override
   Stream<List<Message>> watchMessages(String matchId) async* {
@@ -612,7 +798,10 @@ class _FakeChatRepository implements ChatRepository {
   }
 
   @override
-  Stream<Set<String>> watchTyping(String matchId) => _typingController.stream;
+  Stream<Set<String>> watchTyping(String matchId) {
+    typingWatchCalls++;
+    return _typingController.stream;
+  }
 
   @override
   Future<void> setTyping({
@@ -624,7 +813,10 @@ class _FakeChatRepository implements ChatRepository {
   }
 
   @override
-  Stream<bool> watchPresence(String userId) => _presenceController.stream;
+  Stream<bool> watchPresence(String userId) {
+    presenceWatchCalls++;
+    return _presenceController.stream;
+  }
 
   @override
   Future<void> setPresence({
@@ -633,7 +825,10 @@ class _FakeChatRepository implements ChatRepository {
   }) async {}
 
   @override
-  Stream<bool> watchMediaSendingEnabled(String matchId) => _mediaController.stream;
+  Stream<bool> watchMediaSendingEnabled(String matchId) {
+    mediaWatchCalls++;
+    return _mediaController.stream;
+  }
 
   @override
   Future<void> setMediaSendingEnabled({
@@ -678,17 +873,19 @@ class _FakeChatRepository implements ChatRepository {
     if (shouldFailSend) {
       throw Exception('Failed to send message');
     }
-    sent.add(Message(
-      id: 'new',
-      matchId: matchId,
-      fromUserId: fromUserId,
-      toUserId: toUserId,
-      content: content,
-      type: type,
-      sentAt: DateTime.now(),
-      isRead: false,
-      isDeletedForSender: false,
-    ));
+    sent.add(
+      Message(
+        id: 'new',
+        matchId: matchId,
+        fromUserId: fromUserId,
+        toUserId: toUserId,
+        content: content,
+        type: type,
+        sentAt: DateTime.now(),
+        isRead: false,
+        isDeletedForSender: false,
+      ),
+    );
   }
 
   @override
@@ -757,8 +954,7 @@ class _FakeChatRepository implements ChatRepository {
     String userId, {
     int offset = 0,
     int limit = 20,
-  }) async =>
-      const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Future<String> uploadMedia({
@@ -775,8 +971,7 @@ class _FakeChatRepository implements ChatRepository {
     String matchId, {
     int limit = 30,
     DateTime? beforeTimestamp,
-  }) async =>
-      const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Stream<List<Message>> watchNewMessages(
@@ -796,25 +991,23 @@ class _FakeChatRepository implements ChatRepository {
     String? fromUserPhotoUrl,
     String? toUserName,
     String? toUserPhotoUrl,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
-  Future<List<MessageRequest>> fetchMessageRequests(String userId) async => const [];
+  Future<List<MessageRequest>> fetchMessageRequests(String userId) async =>
+      const [];
 
   @override
   Future<bool> hasPendingMessageRequest({
     required String userId,
     required String otherUserId,
-  }) async =>
-      false;
+  }) async => false;
 
   @override
   Future<int> migrateMessageRequestsForMatches({
     required String userId,
     required List<CrushMatch> matches,
-  }) async =>
-      0;
+  }) async => 0;
 
   // ── E2EE stubs ──
   @override
@@ -900,8 +1093,7 @@ class _FakeAuthRepository implements AuthRepository {
   Future<CrushUser> verifyOtp({
     required String phoneNumber,
     required String otp,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> sendEmailSignInLink(String email) async =>
@@ -911,15 +1103,13 @@ class _FakeAuthRepository implements AuthRepository {
   Future<CrushUser> signInWithEmailLink({
     required String email,
     required String emailLink,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithEmailPassword({
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithApple() async => throw UnimplementedError();
@@ -928,24 +1118,21 @@ class _FakeAuthRepository implements AuthRepository {
   Future<CrushUser> loginWithPassword({
     required String identifier,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signUpWithPassword({
     required String username,
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> requestEmailOtp({
     required String identifier,
     required EmailOtpPurpose purpose,
     String? email,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser?> verifyEmailOtp({
@@ -954,8 +1141,7 @@ class _FakeAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? newEmail,
     String? newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> requestPasswordReset({required String email}) async =>
@@ -965,16 +1151,14 @@ class _FakeAuthRepository implements AuthRepository {
   Future<String> verifyPasswordResetOtp({
     required String email,
     required String otp,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> resetPasswordWithToken({
     required String email,
     required String resetToken,
     required String newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> signOut() async {
@@ -992,15 +1176,14 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> schedulePhoneDeletion() async => throw UnimplementedError();
 
   @override
-@override
+  @override
   Future<void> verifyPassword(String password) async {}
 
   @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> deactivateAccount({required String reason}) async =>
@@ -1010,8 +1193,7 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> deleteAccount({
     required String password,
     required String reason,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<bool> isEmailRegistered(String email) async =>

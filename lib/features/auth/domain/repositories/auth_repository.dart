@@ -165,14 +165,17 @@ extension AuthRepositoryGoogleSignInX on AuthRepository {
   /// Whether Google Sign-In is supported by the current backend/platform.
   bool get supportsGoogleSignIn {
     final repo = this;
-    return repo is GoogleSignInAuthRepository && repo.supportsGoogleSignIn;
+    if (repo is GoogleSignInAuthRepository) {
+      return (repo as GoogleSignInAuthRepository).supportsGoogleSignIn;
+    }
+    return false;
   }
 
   /// Sign in with Google if supported.
   Future<CrushUser> signInWithGoogle() {
     final repo = this;
     if (repo is GoogleSignInAuthRepository) {
-      return repo.signInWithGoogle();
+      return (repo as GoogleSignInAuthRepository).signInWithGoogle();
     }
     throw UnimplementedError(
       'Google Sign-In is not supported by this auth repository.',

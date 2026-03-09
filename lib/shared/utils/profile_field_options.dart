@@ -343,6 +343,14 @@ class ProfileFieldOptions {
     (label: 'Prefer not to say', value: 'prefer_not_say'),
   ];
 
+  /// Curated gender values shown during onboarding basic info.
+  /// Kept narrow for UI clarity while remaining data-driven from shared config.
+  static const List<String> onboardingGenderValues = [
+    'female',
+    'male',
+    'non_binary',
+  ];
+
   // ═══════════════════════════════════════════════════════════════════════════
   // SEXUAL ORIENTATION OPTIONS
   // ═══════════════════════════════════════════════════════════════════════════
@@ -358,6 +366,19 @@ class ProfileFieldOptions {
     (label: 'Queer', value: 'queer'),
     (label: 'Questioning', value: 'questioning'),
     (label: 'Prefer not to say', value: 'prefer_not_say'),
+  ];
+
+  /// Curated sexual orientation values shown during onboarding basic info.
+  static const List<String> onboardingSexualOrientationValues = [
+    'straight',
+    'gay',
+    'lesbian',
+    'bisexual',
+    'pansexual',
+    'asexual',
+    'queer',
+    'questioning',
+    'prefer_not_say',
   ];
 
   // ═══════════════════════════════════════════════════════════════════════════

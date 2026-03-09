@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/errors/auth_failures.dart';
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/network/dto/auth_dto.dart';
@@ -791,10 +792,11 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
     required String email,
     required String password,
   }) {
-    return Result.guard(
+    return _guardAuthResult(
       () => signInWithEmailPassword(email: email, password: password),
       logLabel: 'HttpAuthRepository.signInWithEmailPasswordResult',
       fallbackError: 'Unable to sign in. Please check your credentials.',
+      fallbackType: AuthFailureType.invalidCredentials,
     );
   }
 
@@ -802,10 +804,11 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
     required String identifier,
     required String password,
   }) {
-    return Result.guard(
+    return _guardAuthResult(
       () => loginWithPassword(identifier: identifier, password: password),
       logLabel: 'HttpAuthRepository.loginWithPasswordResult',
       fallbackError: 'Unable to sign in. Please check your credentials.',
+      fallbackType: AuthFailureType.invalidCredentials,
     );
   }
 
@@ -814,7 +817,7 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
     required String email,
     required String password,
   }) {
-    return Result.guard(
+    return _guardAuthResult(
       () => signUpWithPassword(
         username: username,
         email: email,
@@ -822,30 +825,57 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       ),
       logLabel: 'HttpAuthRepository.signUpWithPasswordResult',
       fallbackError: 'Unable to create account. Please try again.',
+      fallbackType: AuthFailureType.unknown,
     );
   }
 
   Future<Result<void>> signOutResult() {
-    return Result.guard(
+    return _guardAuthResult(
       () => signOut(),
       logLabel: 'HttpAuthRepository.signOutResult',
       fallbackError: 'Unable to sign out. Please try again.',
+      fallbackType: AuthFailureType.sessionMissing,
     );
   }
 
   Future<Result<CrushUser>> signInWithAppleResult() {
-    return Result.guard(
+    return _guardAuthResult(
       () => signInWithApple(),
       logLabel: 'HttpAuthRepository.signInWithAppleResult',
       fallbackError: 'Apple Sign-In failed. Please try again.',
+      fallbackType: AuthFailureType.unsupportedProvider,
     );
   }
 
   Future<Result<CrushUser>> signInWithGoogleResult() {
-    return Result.guard(
+    return _guardAuthResult(
       () => signInWithGoogle(),
       logLabel: 'HttpAuthRepository.signInWithGoogleResult',
       fallbackError: 'Google Sign-In failed. Please try again.',
+      fallbackType: AuthFailureType.unsupportedProvider,
+    );
+  }
+
+  Future<Result<T>> _guardAuthResult<T>(
+    Future<T> Function() run, {
+    required String logLabel,
+    required String fallbackError,
+    required AuthFailureType fallbackType,
+  }) {
+    return Result.guard(
+      () async {
+        try {
+          return await run();
+        } catch (error) {
+          throw AuthFailureMapper.from(
+            error,
+            fallbackType: fallbackType,
+            fallbackMessage: fallbackError,
+          );
+        }
+      },
+      logLabel: logLabel,
+      fallbackError: fallbackError,
     );
   }
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/utils/auth_state_reset_policy.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/user.dart';
@@ -87,7 +88,7 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
        _service = dateIdeaRepository,
        super(const DateIdeasState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
-      if (user == null) {
+      if (_authResetPolicy.shouldResetFor(user)) {
         _resetState();
       }
     });
@@ -95,21 +96,30 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
 
   final AuthRepository _authRepository;
   final DateIdeaRepository _service;
+  final AuthStateResetPolicy _authResetPolicy = AuthStateResetPolicy();
   StreamSubscription<List<DateIdea>>? _ideasSubscription;
   StreamSubscription<CrushUser?>? _authSubscription;
+  int _asyncEpoch = 0;
+
+  int _beginAsyncEpoch() => ++_asyncEpoch;
+  bool _isAsyncEpochStale(int epoch) => isClosed || epoch != _asyncEpoch;
 
   /// Load all date ideas.
   Future<void> loadIdeas() async {
+    final epoch = _beginAsyncEpoch();
     emit(state.copyWith(isLoading: true, errorMessage: null));
 
     try {
       final ideas = _service.getAllIdeas();
+      if (_isAsyncEpochStale(epoch)) return;
 
       _ideasSubscription?.cancel();
       _ideasSubscription = _service.ideasStream.listen((suggestedIdeas) {
+        if (_isAsyncEpochStale(epoch)) return;
         emit(state.copyWith(suggestedIdeas: suggestedIdeas));
       });
 
+      if (_isAsyncEpochStale(epoch)) return;
       emit(
         state.copyWith(
           ideas: ideas,
@@ -119,6 +129,7 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
         ),
       );
     } catch (e) {
+      if (_isAsyncEpochStale(epoch)) return;
       emit(
         state.copyWith(
           isLoading: false,
@@ -135,6 +146,7 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
     List<DateCategory>? preferredCategories,
     int count = 5,
   }) async {
+    final epoch = _beginAsyncEpoch();
     emit(state.copyWith(isLoading: true));
 
     try {
@@ -145,9 +157,11 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
         currentSeason: _service.getCurrentSeason(),
         count: count,
       );
+      if (_isAsyncEpochStale(epoch)) return;
 
       emit(state.copyWith(suggestedIdeas: suggestions, isLoading: false));
     } catch (e) {
+      if (_isAsyncEpochStale(epoch)) return;
       emit(state.copyWith(isLoading: false));
     }
   }
@@ -228,13 +242,17 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
 
   /// Save an idea.
   Future<void> saveIdea(DateIdea idea) async {
+    final epoch = _asyncEpoch;
     await _service.saveIdea(idea);
+    if (_isAsyncEpochStale(epoch)) return;
     emit(state.copyWith(savedIdeas: _service.savedIdeas));
   }
 
   /// Remove a saved idea.
   Future<void> removeSavedIdea(String ideaId) async {
+    final epoch = _asyncEpoch;
     await _service.removeSavedIdea(ideaId);
+    if (_isAsyncEpochStale(epoch)) return;
     emit(state.copyWith(savedIdeas: _service.savedIdeas));
   }
 
@@ -257,14 +275,17 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
     required DateIdea idea,
     String? personalMessage,
   }) async {
+    final epoch = _asyncEpoch;
     await _service.sendIdeaToMatch(
       matchId: matchId,
       idea: idea,
       personalMessage: personalMessage,
     );
+    if (_isAsyncEpochStale(epoch)) return;
   }
 
   void _resetState() {
+    _beginAsyncEpoch();
     _ideasSubscription?.cancel();
     _ideasSubscription = null;
     _service.clearUserData();
@@ -275,6 +296,7 @@ class DateIdeasCubit extends Cubit<DateIdeasState> {
 
   @override
   Future<void> close() {
+    _beginAsyncEpoch();
     _ideasSubscription?.cancel();
     _authSubscription?.cancel();
     return super.close();

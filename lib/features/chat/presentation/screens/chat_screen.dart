@@ -1,6 +1,11 @@
 import 'package:crushhour/design_system/widgets/typing_indicator.dart';
 import 'dart:async';
-import 'dart:ui';
+export 'package:crushhour/features/chat/presentation/widgets/chat_report_sheet.dart'
+    show
+        ChatReportReasonOption,
+        chatReportReasonCode,
+        chatReportReasonLabelFor,
+        ChatReportSheetContent;
 
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
@@ -9,7 +14,7 @@ import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/design_system/tokens/blur.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -31,6 +36,7 @@ import 'package:crushhour/features/profile/presentation/screens/profile_edit_scr
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -50,6 +56,14 @@ class ChatScreenArgs {
     required this.otherName,
     this.otherPhotoUrl,
   });
+}
+
+const Key chatConversationConstraintKey = ValueKey<String>(
+  'chat_conversation_constraint',
+);
+
+double chatConversationMaxWidthFor(double screenWidth) {
+  return DsBreakpoints.contentMaxWidth(screenWidth);
 }
 
 class ChatScreen extends StatefulWidget {
@@ -522,43 +536,78 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   Expanded(
-                    child: showSkeleton
-                        ? const Center(child: CircularProgressIndicator())
-                        : ChatMessageList(
-                            state: state,
-                            scrollController: _scrollController,
-                            currentUserId: widget.args.currentUserId,
-                            otherName: widget.args.otherName,
-                            matchId: widget.args.otherUserId,
-                            onRefreshIceBreakers: _refreshIceBreakers,
-                            onIceBreakerTap: _onIceBreakerTap,
-                            iceBreakerSuggestions: _iceBreakerSuggestions,
+                    child: LayoutBuilder(
+                      builder: (context, conversationConstraints) {
+                        final maxConversationWidth =
+                            chatConversationMaxWidthFor(
+                              MediaQuery.sizeOf(context).width,
+                            );
+                        return Align(
+                          alignment: Alignment.topCenter,
+                          child: ConstrainedBox(
+                            key: chatConversationConstraintKey,
+                            constraints: BoxConstraints(
+                              maxWidth: maxConversationWidth,
+                              maxHeight: conversationConstraints.maxHeight,
+                            ),
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  child: showSkeleton
+                                      ? const Center(
+                                          child: CircularProgressIndicator(),
+                                        )
+                                      : ChatMessageList(
+                                          state: state,
+                                          scrollController: _scrollController,
+                                          currentUserId:
+                                              widget.args.currentUserId,
+                                          otherName: widget.args.otherName,
+                                          matchId: widget.args.otherUserId,
+                                          onRefreshIceBreakers:
+                                              _refreshIceBreakers,
+                                          onIceBreakerTap: _onIceBreakerTap,
+                                          iceBreakerSuggestions:
+                                              _iceBreakerSuggestions,
+                                        ),
+                                ),
+                                if (state.isUnsendInProgress)
+                                  const Padding(
+                                    padding: EdgeInsets.only(bottom: 4),
+                                    child: LinearProgressIndicator(
+                                      minHeight: 2,
+                                    ),
+                                  ),
+                                if (state.isUnmatching)
+                                  const Padding(
+                                    padding: EdgeInsets.only(bottom: 4),
+                                    child: LinearProgressIndicator(
+                                      minHeight: 2,
+                                    ),
+                                  ),
+                                ChatSendStatusBar(state: state),
+                                if (isOtherTyping) const TypingIndicator(),
+                                ChatInputBar(
+                                  state: state,
+                                  isBlocked: isBlocked,
+                                  canMessage: canMessage,
+                                  isUnmatched: state.isUnmatched,
+                                  completeness: completeness,
+                                  currentUserId: widget.args.currentUserId,
+                                  otherUserId: widget.args.otherUserId,
+                                  otherName: widget.args.otherName,
+                                  matchId: widget.args.matchId,
+                                  onEnsureMessagingAllowed:
+                                      _ensureBackendAllowsMessaging,
+                                  onShowMessagingIncomplete:
+                                      _showMessagingIncomplete,
+                                ),
+                              ],
+                            ),
                           ),
-                  ),
-                  if (state.isUnsendInProgress)
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: LinearProgressIndicator(minHeight: 2),
+                        );
+                      },
                     ),
-                  if (state.isUnmatching)
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: LinearProgressIndicator(minHeight: 2),
-                    ),
-                  ChatSendStatusBar(state: state),
-                  if (isOtherTyping) const TypingIndicator(),
-                  ChatInputBar(
-                    state: state,
-                    isBlocked: isBlocked,
-                    canMessage: canMessage,
-                    isUnmatched: state.isUnmatched,
-                    completeness: completeness,
-                    currentUserId: widget.args.currentUserId,
-                    otherUserId: widget.args.otherUserId,
-                    otherName: widget.args.otherName,
-                    matchId: widget.args.matchId,
-                    onEnsureMessagingAllowed: _ensureBackendAllowsMessaging,
-                    onShowMessagingIncomplete: _showMessagingIncomplete,
                   ),
                 ],
               ),
@@ -926,6 +975,7 @@ class _ChatScreenState extends State<ChatScreen> {
     SafetyCubit cubit, {
     required bool block,
   }) async {
+    final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     await cubit.toggleBlock(
       widget.args.otherUserId,
@@ -942,23 +992,16 @@ class _ChatScreenState extends State<ChatScreen> {
       SnackBar(
         content: Text(
           block
-              ? 'Blocked ${widget.args.otherName}.'
-              : 'Unblocked ${widget.args.otherName}.',
+              ? l10n.chatSafetyBlockedUser(widget.args.otherName)
+              : l10n.chatSafetyUnblockedUser(widget.args.otherName),
         ),
       ),
     );
   }
 
   void _showMatchChatSettings(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final baseSurface = DsGlassColors.surfaceFor(context);
-    final borderBase = DsGlassColors.borderFor(context);
-    // Get current user's premium status from auth
     final authState = context.read<AuthBloc>().state;
     final isPremium = authState.user?.plan.isPlus ?? false;
-
-    // Get existing match chat settings (default to false if not set)
-    // In production, you'd fetch this from Firestore via a repository
     const initialSettings = ChatSettings();
 
     showModalBottomSheet<void>(
@@ -971,454 +1014,48 @@ class _ChatScreenState extends State<ChatScreen> {
           initialSettings: initialSettings,
           isPremium: isPremium,
         ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: DsBlur.heavy,
-              sigmaY: DsBlur.heavy,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: baseSurface.withValues(alpha: isDark ? 0.95 : 0.98),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-                border: Border.all(color: borderBase, width: 0.5),
-              ),
-              child: SafeArea(
-                child: BlocConsumer<MatchChatSettingsCubit, MatchChatSettingsState>(
-                  listenWhen: (prev, curr) =>
-                      prev.errorMessage != curr.errorMessage &&
-                      curr.errorMessage != null,
-                  listener: (ctx, state) {
-                    if (state.errorMessage != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(state.errorMessage!),
-                          backgroundColor: DsColors.error,
-                        ),
-                      );
-                      ctx.read<MatchChatSettingsCubit>().clearError();
-                    }
-                  },
-                  builder: (ctx, state) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Handle bar
-                        Center(
-                          child: Container(
-                            margin: const EdgeInsets.only(top: 12, bottom: 8),
-                            width: 40,
-                            height: 4,
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? DsColors.surfaceLight.withValues(
-                                      alpha: 0.24,
-                                    )
-                                  : DsColors.ink900.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                        ),
-                        // Header
-                        Padding(
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                            20,
-                            8,
-                            20,
-                            16,
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: DsColors.primary.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(
-                                  Icons.settings_outlined,
-                                  color: DsColors.primary,
-                                  size: 22,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Chat Settings',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      'Conversation with ${widget.args.otherName}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: isDark
-                                                ? DsColors.textMutedDark
-                                                : DsColors.textMutedLight,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Close button
-                              IconButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                icon: Icon(
-                                  Icons.close,
-                                  color: isDark
-                                      ? DsColors.surfaceLight.withValues(
-                                          alpha: 0.54,
-                                        )
-                                      : DsColors.ink900.withValues(alpha: 0.45),
-                                  size: 22,
-                                ),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: isDark
-                                      ? DsColors.surfaceLight.withValues(
-                                          alpha: 0.05,
-                                        )
-                                      : DsColors.ink900.withValues(alpha: 0.05),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Divider
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Divider(
-                            height: 1,
-                            color: isDark
-                                ? DsColors.surfaceLight.withValues(alpha: 0.12)
-                                : DsColors.ink900.withValues(alpha: 0.12),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Privacy Section Header
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.shield_outlined,
-                                size: 16,
-                                color: isDark
-                                    ? DsColors.textMutedDark
-                                    : DsColors.textMutedLight,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'PRIVACY',
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: isDark
-                                          ? DsColors.textMutedDark
-                                          : DsColors.textMutedLight,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 1.2,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Message Retention Setting
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? DsColors.surfaceLight.withValues(
-                                      alpha: 0.05,
-                                    )
-                                  : DsColors.ink900.withValues(alpha: 0.03),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isDark
-                                    ? DsColors.surfaceLight.withValues(
-                                        alpha: 0.1,
-                                      )
-                                    : DsColors.ink900.withValues(alpha: 0.05),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: DsColors.primary.withValues(
-                                          alpha: 0.1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: const Icon(
-                                        Icons.timer_outlined,
-                                        color: DsColors.primary,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Message Retention',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleSmall
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            'Messages auto-delete after this time',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  color: isDark
-                                                      ? DsColors.textMutedDark
-                                                      : DsColors.textMutedLight,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                // Current retention status
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: DsColors.primary.withValues(
-                                      alpha: 0.08,
-                                    ),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.check_circle,
-                                        color: DsColors.primary,
-                                        size: 18,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Currently: ${state.retentionDisplay}',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color: DsColors.primary,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Toggle or Premium badge
-                                if (state.isPremium) ...[
-                                  const SizedBox(height: 12),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          DsColors.warning.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                          DsColors.warning.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.workspace_premium,
-                                          color: DsColors.warning,
-                                          size: 18,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'Plus: 7 days retention',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                color: DsColors.warning,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ] else ...[
-                                  const SizedBox(height: 16),
-                                  // Extended retention toggle
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          'Extended retention (24h)',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                        ),
-                                      ),
-                                      if (state.isLoading)
-                                        const SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        )
-                                      else
-                                        Switch.adaptive(
-                                          value:
-                                              state.settings.extendedRetention,
-                                          onChanged: (value) => ctx
-                                              .read<MatchChatSettingsCubit>()
-                                              .toggleExtendedRetention(value),
-                                          activeThumbColor: DsColors.primary,
-                                          activeTrackColor: DsColors.primary
-                                              .withValues(alpha: 0.4),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    state.settings.extendedRetention
-                                        ? 'Messages deleted 24 hours after being read'
-                                        : 'Messages deleted 1 hour after being read',
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: isDark
-                                              ? DsColors.textMutedDark
-                                              : DsColors.textMutedLight,
-                                        ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
+        child: ChatMatchSettingsSheet(otherName: widget.args.otherName),
       ),
     );
   }
 
   void _showReportSheet(BuildContext context, SafetyCubit cubit) {
-    const reasons = [
-      'Spam or scams',
-      'Harassment or hate',
-      'Inappropriate content',
-      'Fake profile',
-      'Other',
-    ];
-
+    final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
 
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) {
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text(
-                  'Report user',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  'Reports are anonymous and reviewed by our team. Last match: ${widget.args.matchId}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-              ...reasons.map(
-                (reason) => ListTile(
-                  title: Text(reason),
-                  onTap: () async {
-                    Navigator.of(sheetContext).pop();
-                    if (reason == 'Other') {
-                      _showCustomReportDialog(context, cubit);
-                    } else {
-                      await cubit.reportWithContext(
-                        reporterId: widget.args.currentUserId,
-                        reportedId: widget.args.otherUserId,
-                        reason: reason,
-                        matchId: widget.args.matchId,
-                        source: 'chat',
-                      );
-                      if (!mounted) return;
-                      final error = cubit.state.errorMessage;
-                      messenger.showSnackBar(
-                        SnackBar(
-                          content: Text(error ?? 'Report submitted: $reason'),
+          child: ChatReportSheetContent(
+            matchId: widget.args.matchId,
+            onReasonSelected: (reason) async {
+              Navigator.of(sheetContext).pop();
+              if (reason == ChatReportReasonOption.other) {
+                _showCustomReportDialog(context, cubit);
+                return;
+              }
+              await cubit.reportWithContext(
+                reporterId: widget.args.currentUserId,
+                reportedId: widget.args.otherUserId,
+                reason: chatReportReasonCode(reason),
+                matchId: widget.args.matchId,
+                source: 'chat',
+              );
+              if (!mounted) return;
+              final error = cubit.state.errorMessage;
+              messenger.showSnackBar(
+                SnackBar(
+                  content: Text(
+                    error ??
+                        l10n.chatReportSubmittedReason(
+                          chatReportReasonLabelFor(l10n, reason),
                         ),
-                      );
-                    }
-                  },
-                ),
-              ),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton.icon(
-                  onPressed: () => context.push(CrushRoutes.safetyGuidelines),
-                  icon: const Icon(Icons.shield_outlined),
-                  label: Text(
-                    AppLocalizations.of(context).viewCommunityGuidelines,
                   ),
                 ),
-              ),
-              const SizedBox(height: 4),
-            ],
+              );
+            },
+            onViewGuidelines: () => context.push(CrushRoutes.safetyGuidelines),
           ),
         );
       },
@@ -1426,6 +1063,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _showCustomReportDialog(BuildContext context, SafetyCubit cubit) {
+    final l10n = context.l10n;
     final controller = TextEditingController();
     final messenger = ScaffoldMessenger.of(context);
     showDialog<void>(
@@ -1433,19 +1071,17 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (dialogContext) {
         final navigator = Navigator.of(dialogContext);
         return AlertDialog(
-          title: Text(AppLocalizations.of(context).reportDetails),
+          title: Text(l10n.reportDetails),
           content: TextField(
             controller: controller,
             minLines: 2,
             maxLines: 4,
-            decoration: const InputDecoration(
-              hintText: 'Tell us what happened',
-            ),
+            decoration: InputDecoration(hintText: l10n.chatReportDetailsHint),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(AppLocalizations.of(context).cancel),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -1454,7 +1090,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   await cubit.reportWithContext(
                     reporterId: widget.args.currentUserId,
                     reportedId: widget.args.otherUserId,
-                    reason: 'Other',
+                    reason: chatReportReasonCode(ChatReportReasonOption.other),
                     description: details,
                     matchId: widget.args.matchId,
                     source: 'chat',
@@ -1462,12 +1098,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   if (!mounted) return;
                   final error = cubit.state.errorMessage;
                   messenger.showSnackBar(
-                    SnackBar(content: Text(error ?? 'Report submitted')),
+                    SnackBar(content: Text(error ?? l10n.chatReportSubmitted)),
                   );
                 }
                 navigator.pop();
               },
-              child: Text(AppLocalizations.of(context).submit),
+              child: Text(l10n.submit),
             ),
           ],
         );

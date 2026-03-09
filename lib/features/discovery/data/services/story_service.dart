@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:crushhour/data/models/profile_story.dart';
+import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
 import 'package:uuid/uuid.dart';
 
 /// Service for managing profile stories (24-hour expiring media).
-import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
-
 class StoryService implements StoryRepository {
   StoryService._();
 
@@ -204,22 +203,4 @@ class StoryService implements StoryRepository {
       }
     }
   }
-}
-
-/// Types of story updates.
-enum StoryUpdateType { added, removed, expired, viewed }
-
-/// A story update event.
-class StoryUpdate {
-  const StoryUpdate({
-    required this.type,
-    required this.userId,
-    required this.story,
-    this.viewerId,
-  });
-
-  final StoryUpdateType type;
-  final String userId;
-  final ProfileStory story;
-  final String? viewerId;
 }

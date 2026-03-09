@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/utils/auth_state_reset_policy.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
@@ -58,31 +59,41 @@ class WeeklyPicksCubit extends Cubit<WeeklyPicksState> {
        _authRepository = authRepository,
        super(const WeeklyPicksState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
-      if (user == null) {
+      if (_authResetPolicy.shouldResetFor(user)) {
         _resetState();
       }
     });
   }
 
   final AuthRepository _authRepository;
+  final AuthStateResetPolicy _authResetPolicy = AuthStateResetPolicy();
 
   StreamSubscription<WeeklyPicks>? _subscription;
   StreamSubscription<CrushUser?>? _authSubscription;
+  int _asyncEpoch = 0;
+
+  int _beginAsyncEpoch() => ++_asyncEpoch;
+  bool _isAsyncEpochStale(int epoch) => isClosed || epoch != _asyncEpoch;
 
   /// Load weekly picks for user.
   Future<void> loadPicks(String userId) async {
+    final epoch = _beginAsyncEpoch();
     emit(state.copyWith(isLoading: true, errorMessage: null));
 
     try {
       final picks = await _service.loadPicks(userId);
+      if (_isAsyncEpochStale(epoch)) return;
 
       _subscription?.cancel();
       _subscription = _service.picksStream.listen((updatedPicks) {
+        if (_isAsyncEpochStale(epoch)) return;
         emit(state.copyWith(picks: updatedPicks));
       });
 
+      if (_isAsyncEpochStale(epoch)) return;
       emit(state.copyWith(picks: picks, isLoading: false));
     } catch (e) {
+      if (_isAsyncEpochStale(epoch)) return;
       emit(
         state.copyWith(
           isLoading: false,
@@ -137,6 +148,7 @@ class WeeklyPicksCubit extends Cubit<WeeklyPicksState> {
   bool isPickLiked(String pickId) => _service.isPickLiked(pickId);
 
   void _resetState() {
+    _beginAsyncEpoch();
     _subscription?.cancel();
     _subscription = null;
     _service.clearUserData();
@@ -147,6 +159,7 @@ class WeeklyPicksCubit extends Cubit<WeeklyPicksState> {
 
   @override
   Future<void> close() {
+    _beginAsyncEpoch();
     _subscription?.cancel();
     _authSubscription?.cancel();
     return super.close();

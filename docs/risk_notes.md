@@ -1098,33 +1098,33 @@ Created: 2026-02-12
 ---
 
 
-### R-052 — Photos Uploaded Without EXIF Stripping — GPS Coordinates Exposed (was R-135)
+### R-052 — Photos Uploaded Without EXIF Stripping — GPS Coordinates Exposed (PARTIALLY MITIGATED) (was R-135)
 
 Category: Security & Privacy
 
 Description:
-Profile photos and chat media are uploaded to Firebase Storage without stripping EXIF metadata. EXIF data can contain GPS coordinates, device info, timestamps, and other sensitive metadata. This is a significant privacy risk for a dating app where user location safety is paramount.
+Profile uploads now pass through `ImageOptimizer` before upload, and a regression test verifies EXIF GPS/device metadata is removed from a fabricated JPEG prior to transmission. Chat image uploads also call the same optimizer path, but dedicated chat-path EXIF regression coverage is still pending.
 
-Impact: High (privacy violation, potential stalking risk)
+Impact: Medium (remaining risk is regression drift and missing direct chat-path proof coverage)
 
-Likelihood: High (confirmed — no EXIF stripping code found in upload paths)
+Likelihood: Low-Medium (current upload paths strip via re-encode; risk is primarily coverage/contract drift)
 
 Affected Areas:
 * lib/features/profile/data/services/profile_media_service.dart
 * lib/features/chat/data/repositories/impl/firebase_chat_repository.dart
-* Any photo upload path in the app
+* test/profile_media_service_hotspot_test.dart (profile EXIF regression coverage)
 
 Mitigation Plan:
-* See TODO_PROFILE_FRONTEND.md (PROF-FE-004) for EXIF stripping implementation
-* See TODO_CHAT_UI.md (CHAT-UI-006) for chat media EXIF stripping
-* Use `image` package or platform channels to strip EXIF before upload
-* Server-side backup: Cloud Function to strip EXIF on Storage trigger
+* Keep profile EXIF stripping regression test in CI (`PROF-FE-004`)
+* Add explicit chat upload EXIF regression test coverage (`TODO_CHAT_UI.md`, CHAT-UI-006)
+* Keep server-side backup option (Storage-triggered metadata scrub) for defense in depth
 
-Status: Open
+Status: Partially Mitigated
 
 Owner: AI
 
 Created: 2026-02-19
+Last Reviewed: 2026-03-07
 
 ---
 
@@ -1173,59 +1173,93 @@ Updated: 2026-02-19
 Category: iPad Compliance / UX
 
 Description:
-The design system has AdaptiveLayout, AdaptiveScaffold, AdaptiveGrid, and DsBreakpoints infrastructure, but the vast majority of the 48+ screens don't use it. Most screens use hardcoded widths, fixed layouts, and mobile-only assumptions. This will cause poor iPad experience (stretched layouts, wasted space, touch target issues) and may trigger App Store rejection for inadequate iPad support.
+Responsive coverage was previously incomplete, but all audited `presentation/screens` now use breakpoint-aware layout constraints.
 
 Impact: High (iPad UX, App Store rejection risk)
 
-Likelihood: High (confirmed — audit found most screens bypass adaptive infrastructure)
+Likelihood: Low (current responsive audit indicates full coverage; regression risk remains)
 
 Affected Areas:
-* All 48+ screens in lib/features/*/presentation/screens/
-* lib/design_system/layout/ (infrastructure exists but underutilized)
+* No remaining non-adaptive `presentation/screens` in 2026-03-07 audit (`54/54` responsive).
 
 Mitigation Plan:
-* See TODO_IPAD_COMPLIANCE.md (IPAD-001 through IPAD-011) for full screen-by-screen plan
-* See TODO_RESPONSIVE_DESIGN.md (RESP-001 through RESP-008) for responsive design tasks
-* Priority: Start with core flows (auth, discovery, chat, profile) then secondary screens
+* Keep responsive checks in follow-up UI changes.
+* Re-run coverage audit after each responsive or layout-heavy pass.
+* Re-open this risk if any non-adaptive screens reappear in audit results.
 
-Status: Partially Mitigated (RESP-001–008 complete, 21/56 screens responsive)
+Status: Mitigated (2026-03-07 audit: 54/54 responsive; 0 non-adaptive remaining)
 
 Owner: AI
 
 Created: 2026-02-19
+Last Reviewed: 2026-03-07
 
 ---
 
 
-### R-055 — CRITICAL: No In-App Purchase Package — Subscription Uses Mock Stripe (SHIP BLOCKER) (was R-134)
+### R-055 — CRITICAL: Native Billing Partially Integrated — Receipt Validation and Store Lifecycle Incomplete (SHIP BLOCKER) (was R-134)
 
 Category: Store Compliance / Revenue
 
 Description:
-No `in_app_purchase` or `in_app_purchase_storekit` package exists in pubspec.yaml. The subscription feature uses a mock Stripe checkout flow which is explicitly prohibited by both Apple (Guideline 3.1.1) and Google Play (Play Billing requirement). App Store and Play Store will reject the app on first review. This is the single most critical blocker for store submission.
+`in_app_purchase` dependencies and mobile native checkout routing are integrated in the client (`SubscriptionBloc -> purchasePlusPlan`, Firebase iOS/Android path -> `NativeBillingService`), and backend lifecycle coverage now includes Google token validation + RTDN sync and Apple transaction validation + Apple S2S webhook sync with iOS restore verification. End-to-end store-compliant billing is still incomplete because final App Store Connect and Play Console submission execution/reviewer configuration remain outstanding. Store submission remains blocked until those release-operations steps are complete.
 
 Impact: Critical (P0 — app cannot ship without this)
 
-Likelihood: Confirmed (verified — no IAP package in pubspec.yaml)
+Likelihood: Confirmed (verified — server-side receipt validation and full subscription lifecycle handling are not yet implemented end-to-end)
 
 Affected Areas:
-* pubspec.yaml (missing `in_app_purchase` package)
-* lib/features/subscription/data/services/native_billing_service.dart (needs creation)
-* lib/features/subscription/data/repositories/ (needs IAP integration)
-* functions/src/ (needs server-side receipt validation)
-* App Store Connect (subscription products not created)
-* Google Play Console (subscription products not created)
+* lib/features/subscription/data/services/checkout_service.dart (legacy web checkout helper remains in codebase)
+* lib/features/subscription/data/services/native_billing_service.dart (native purchase + restore/ack completion present; iOS transaction-id handoff now included for server verification)
+* lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart (Google + Apple restore verification paths present; remaining provider lifecycle sync work is webhook-side)
+* lib/features/subscription/presentation/bloc/subscription_bloc.dart (restore path surfaces no-purchase/error outcomes; deeper purchase-state UX still pending)
+* functions/src/ (Google + Apple validation and lifecycle webhooks implemented; requires production credential wiring and monitoring during rollout)
+* App Store Connect (review checklist docs are complete; subscription product/reviewer setup + submission execution still pending)
+* Google Play Console (release checklist documentation complete; reviewer setup + submission execution still pending)
 
 Mitigation Plan:
 * See TODO_SUBSCRIPTION.md (SUB-001 through SUB-010) for full implementation plan
-* See TODO_STORE_APPLE.md (STORE-APL-001) and TODO_STORE_GOOGLE.md (STORE-GPG-001)
-* Estimated effort: 40-60 hours across client + server + store console setup
+* See TODO_STORE_APPLE.md (STORE-APL-001 through STORE-APL-005) and TODO_STORE_GOOGLE.md
+* Estimated effort: 8-16 hours across store console/reviewer setup + release execution
 
 Status: Open (SHIP BLOCKER)
 
 Owner: Developer / AI
 
 Created: 2026-02-19
+Last Reviewed: 2026-03-08
+
+---
+
+
+### R-056 — Profile Completeness Backend Fallback Previously Granted Full Eligibility (MITIGATED)
+
+Category: Backend dependencies / Trust & Safety
+
+Description:
+`ProfileValidationService` previously returned a hardcoded permissive completeness response (`score=1.0`, all gates true) whenever `checkProfileCompleteness` failed. During backend outages, this silently bypassed messaging/swipe gating expectations.
+
+Impact: High (gating bypass during backend failure windows)
+
+Likelihood: Low (reduced — mitigated with explicit degraded-mode handling)
+
+Affected Areas:
+* lib/features/profile/data/services/profile_validation_service.dart
+* test/profile_validation_service_test.dart
+
+Mitigation Plan:
+* Cache last-known successful completeness per minimum (`swipe`/`messaging`)
+* On validation failures:
+  * use cached result when available
+  * otherwise throw explicit unavailable exception so callers fall back to local checks
+* Keep timeout/network degraded-mode behavior covered by unit tests
+
+Status: Mitigated (2026-03-07)
+
+Owner: AI
+
+Created: 2026-03-07
+Updated: 2026-03-07
 
 ---
 

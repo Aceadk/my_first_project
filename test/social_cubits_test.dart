@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/social/data/services/compatibility_quiz_service.dart';
@@ -105,7 +106,7 @@ class MockAuthRepository implements AuthRepository {
   Future<void> verifyPassword(String password) async {}
 
   @override
-@override
+  @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
@@ -124,6 +125,15 @@ class MockAuthRepository implements AuthRepository {
   @override
   Future<CrushUser?> refreshCurrentUser() async => null;
 }
+
+CrushUser _makeAuthUser(String id) => CrushUser(
+  id: id,
+  phoneNumber: '+10000000000',
+  isEmailVerified: true,
+  isPhoneVerified: true,
+  isIdVerified: false,
+  plan: SubscriptionPlan.free,
+);
 
 // ===========================================================================
 //  DATE IDEAS TESTS
@@ -528,6 +538,22 @@ void main() {
       expect(cubit.state.ideas, isEmpty);
       expect(cubit.state.savedIdeas, isEmpty);
       expect(cubit.state.isLoading, isFalse);
+    });
+
+    test('authenticated user switch resets date ideas state', () async {
+      await cubit.loadIdeas();
+      await cubit.saveIdea(cubit.state.ideas.first);
+      expect(cubit.state.ideas, isNotEmpty);
+      expect(cubit.state.savedIdeas, isNotEmpty);
+
+      authRepo.pushUser(_makeAuthUser('user-a'));
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.ideas, isNotEmpty);
+
+      authRepo.pushUser(_makeAuthUser('user-b'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state, const DateIdeasState());
     });
 
     test('getIdeasByCategory delegates to service', () async {
@@ -974,6 +1000,21 @@ void main() {
 
       expect(cubit.state.quiz, isNull);
       expect(cubit.state.answers, isEmpty);
+    });
+
+    test('authenticated user switch resets quiz state', () async {
+      await cubit.startQuiz(quizId: 'basic_compatibility', matchId: 'match-1');
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.quiz, isNotNull);
+
+      authRepo.pushUser(_makeAuthUser('user-a'));
+      await Future<void>.delayed(Duration.zero);
+      expect(cubit.state.quiz, isNotNull);
+
+      authRepo.pushUser(_makeAuthUser('user-b'));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cubit.state, const CompatibilityQuizState());
     });
 
     test('getResultsForMatch returns stored results', () async {

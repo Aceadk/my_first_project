@@ -17,7 +17,6 @@ import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
-import 'package:crushhour/features/discovery/data/services/story_service.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
 import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
@@ -344,7 +343,6 @@ class _StubProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -396,7 +394,6 @@ class _StubProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,

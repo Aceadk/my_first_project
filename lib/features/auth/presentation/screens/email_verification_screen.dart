@@ -4,6 +4,7 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/usecases/auth_flow_use_cases.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -36,8 +37,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
   bool _isSending = false;
   bool _isChecking = false;
   String? _message;
+  bool _isErrorMessage = false;
   int _resendCooldown = 0;
   Timer? _cooldownTimer;
+
+  AuthFlowUseCases _authFlowUseCases() {
+    return AuthFlowUseCases(context.read<AuthRepository>());
+  }
 
   @override
   void initState() {
@@ -82,10 +88,12 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
       if (_autoCheckCount >= _maxAutoCheckAttempts) {
         _checkTimer?.cancel();
         if (mounted) {
+          final l10n = AppLocalizations.of(context);
           setState(() {
-            _message =
-                'Auto-check stopped after ${_maxAutoCheckAttempts ~/ 20} minutes. '
-                'Tap "I\'ve Verified" to check manually.';
+            _message = l10n.onboardingEmailVerificationAutoCheckStopped(
+              _maxAutoCheckAttempts ~/ 20,
+            );
+            _isErrorMessage = false;
           });
         }
         return;
@@ -100,8 +108,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     setState(() => _isChecking = true);
 
     try {
-      final authRepo = context.read<AuthRepository>();
-      final user = await authRepo.checkEmailVerification();
+      final verificationResult = await _authFlowUseCases()
+          .checkEmailVerification();
+      final user = verificationResult.data;
 
       if (user != null && user.isEmailVerified) {
         AppLogger.info(
@@ -110,9 +119,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         _checkTimer?.cancel();
 
         if (mounted) {
+          final l10n = AppLocalizations.of(context);
           // Show success message
           setState(() {
-            _message = 'Email verified successfully! Redirecting...';
+            _message = l10n.onboardingEmailVerificationSuccessRedirecting;
+            _isErrorMessage = false;
           });
 
           // Give a brief moment for user to see success message, then navigate
@@ -143,16 +154,21 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
     setState(() {
       _isSending = true;
       _message = null;
+      _isErrorMessage = false;
     });
 
     try {
-      final authRepo = context.read<AuthRepository>();
-      await authRepo.sendEmailVerification();
+      final result = await _authFlowUseCases().sendEmailVerification();
+      if (!result.isSuccess) {
+        throw Exception(result.errorMessage);
+      }
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         setState(() {
-          _message = 'Verification email sent! Check your inbox.';
+          _message = l10n.onboardingEmailVerificationSent;
           _resendCooldown = _resendCooldownSeconds;
+          _isErrorMessage = false;
         });
         _startCooldownTimer();
       }
@@ -161,15 +177,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
         '[EmailVerificationScreen] Error sending verification',
         error: e,
       );
-      final message = e.toString().toLowerCase();
-      final errorMessage =
-          message.contains('too-many-requests') ||
-              message.contains('too many requests')
-          ? 'Too many attempts. Please wait about a minute and try again.'
-          : 'Failed to send email. Please try again.';
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        final message = e.toString().toLowerCase();
+        final errorMessage =
+            message.contains('too-many-requests') ||
+                message.contains('too many requests')
+            ? l10n.onboardingEmailVerificationTooManyAttempts
+            : l10n.onboardingEmailVerificationSendFailed;
         setState(() {
           _message = errorMessage;
+          _isErrorMessage = true;
         });
       }
     } finally {
@@ -192,8 +210,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
 
   Future<void> _signOut() async {
     try {
-      final authRepo = context.read<AuthRepository>();
-      await authRepo.signOut();
+      await _authFlowUseCases().signOut();
       if (mounted) {
         context.go(CrushRoutes.authGateway);
       }
@@ -204,6 +221,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final user = context.select<AuthBloc, String?>(
       (bloc) => bloc.state.user?.email,
     );
@@ -239,7 +257,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
 
                     // Title
                     Text(
-                      'Verify Your Email',
+                      l10n.onboardingEmailVerificationTitle,
                       style: Theme.of(context).textTheme.headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
@@ -247,7 +265,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
 
                     // Description
                     Text(
-                      'We\'ve sent a verification link to:',
+                      l10n.onboardingEmailVerificationSentTo,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Theme.of(context).textTheme.bodySmall?.color,
@@ -255,7 +273,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                     ),
                     DsGap.sm,
                     Text(
-                      user ?? 'your email',
+                      user ?? l10n.onboardingEmailVerificationFallbackEmail,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -263,7 +281,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                     ),
                     DsGap.md,
                     Text(
-                      'Click the link in the email to verify your account and continue.',
+                      l10n.onboardingEmailVerificationInstruction,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Theme.of(context).textTheme.bodySmall?.color,
@@ -279,7 +297,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                           vertical: DsSpacing.md,
                         ),
                         decoration: BoxDecoration(
-                          color: _message!.contains('Failed')
+                          color: _isErrorMessage
                               ? DsColors.error.withValues(alpha: 0.1)
                               : DsColors.success.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
@@ -288,10 +306,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              _message!.contains('Failed')
+                              _isErrorMessage
                                   ? Icons.error_outline
                                   : Icons.check_circle_outline,
-                              color: _message!.contains('Failed')
+                              color: _isErrorMessage
                                   ? DsColors.error
                                   : DsColors.success,
                               size: 20,
@@ -301,7 +319,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                               child: Text(
                                 _message!,
                                 style: TextStyle(
-                                  color: _message!.contains('Failed')
+                                  color: _isErrorMessage
                                       ? DsColors.error
                                       : DsColors.success,
                                 ),
@@ -330,7 +348,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Checking verification status...',
+                            l10n.onboardingEmailVerificationCheckingStatus,
                             style: TextStyle(
                               color: Theme.of(
                                 context,
@@ -346,7 +364,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                     // Resend button
                     Semantics(
                       button: true,
-                      label: 'Resend verification email',
+                      label: l10n.onboardingEmailVerificationResendSemantics,
                       child: SizedBox(
                         width: double.infinity,
                         child: GlassPrimaryButton(
@@ -364,8 +382,10 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                                 )
                               : Text(
                                   _resendCooldown > 0
-                                      ? 'Resend in ${_resendCooldown}s'
-                                      : 'Resend Verification Email',
+                                      ? l10n.onboardingEmailVerificationResendIn(
+                                          _resendCooldown,
+                                        )
+                                      : l10n.onboardingEmailVerificationResendButton,
                                 ),
                         ),
                       ),
@@ -375,12 +395,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                     // Check now button
                     Semantics(
                       button: true,
-                      label: 'I have verified, check now',
+                      label: l10n.onboardingEmailVerificationCheckNowSemantics,
                       child: SizedBox(
                         width: double.infinity,
                         child: GlassOutlinedButton(
                           onPressed: _isChecking ? null : _checkVerification,
-                          child: const Text('I\'ve Verified - Check Now'),
+                          child: Text(
+                            l10n.onboardingEmailVerificationCheckNowButton,
+                          ),
                         ),
                       ),
                     ),
@@ -393,17 +415,15 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen>
                       children: [
                         GlassSmallButton(
                           onPressed: _signOut,
-                          child: Text(AppLocalizations.of(context).signOut),
+                          child: Text(l10n.signOut),
                         ),
-                        Text(AppLocalizations.of(context).emptyString),
+                        Text(l10n.emptyString),
                         GlassSmallButton(
                           onPressed: () {
                             _checkTimer?.cancel();
                             context.go(CrushRoutes.changeEmail);
                           },
-                          child: Text(
-                            AppLocalizations.of(context).useDifferentEmail,
-                          ),
+                          child: Text(l10n.useDifferentEmail),
                         ),
                       ],
                     ),

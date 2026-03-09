@@ -42,7 +42,6 @@ import 'package:crushhour/features/chat/data/repositories/impl/stub_chat_reposit
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
-import 'package:crushhour/features/discovery/data/services/story_service.dart';
 import 'package:crushhour/features/discovery/domain/repositories/boost_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/story_repository.dart';
@@ -450,6 +449,51 @@ void main() {
         );
         explicitRouter.dispose();
         await authBloc.close();
+      },
+    );
+
+    test('router cannot be used after dispose', () async {
+      final authBloc = _TestAuthBloc(
+        buildState(status: AuthStatus.unauthenticated),
+      );
+      final router = createRouter(authBloc, initialRoute: CrushRoutes.splash);
+
+      router.dispose();
+      expect(() => router.go(CrushRoutes.login), throwsA(isA<FlutterError>()));
+
+      await authBloc.close();
+    });
+
+    testWidgets(
+      'chat deep-link async completion after unmount does not surface lifecycle exceptions',
+      (tester) async {
+        final authRepository = _NoopAuthRepository();
+        final authBloc = _TestAuthBloc(
+          buildState(status: AuthStatus.authenticated, user: buildUser()),
+        );
+        final chatMatchesCompleter = Completer<List<CrushMatch>>();
+        final discoveryRepository = _TestDiscoveryRepository(
+          fetchMatchesHandler: (_) => chatMatchesCompleter.future,
+          fetchProfileByIdHandler: (_) async => null,
+        );
+
+        await pumpRouterApp(
+          tester,
+          authBloc: authBloc,
+          authRepository: authRepository,
+          discoveryRepository: discoveryRepository,
+          initialRoute: '${CrushRoutes.chat}/lifecycle-match',
+          settle: false,
+        );
+
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Opening chat...'), findsOneWidget);
+
+        await disposePumpedTree(tester);
+        chatMatchesCompleter.complete(const []);
+        await tester.pumpAndSettle();
+
+        expect(drainRouterTestExceptions(tester), isNull);
       },
     );
 

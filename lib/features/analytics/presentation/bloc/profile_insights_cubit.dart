@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/utils/auth_state_reset_policy.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/analytics/domain/models/profile_insights.dart';
@@ -71,7 +72,7 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
        _service = insightsRepository,
        super(const ProfileInsightsState()) {
     _authSubscription = _authRepository.authStateChanges().listen((user) {
-      if (user == null) {
+      if (_authResetPolicy.shouldResetFor(user)) {
         _resetState();
       }
     });
@@ -79,6 +80,7 @@ class ProfileInsightsCubit extends Cubit<ProfileInsightsState> {
 
   final AuthRepository _authRepository;
   final ProfileInsightsRepository _service;
+  final AuthStateResetPolicy _authResetPolicy = AuthStateResetPolicy();
   StreamSubscription<ProfileInsights>? _subscription;
   StreamSubscription<CrushUser?>? _authSubscription;
 

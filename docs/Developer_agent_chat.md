@@ -5132,3 +5132,4244 @@ Continue with Phase 9 quality items (Lighthouse/Core Web Vitals/accessibility au
   - `pnpm -C /Users/ace/crush-web/apps/web build` (pass)
   - Lighthouse reruns (pass; final JSON saved)
 - **Next step:** Continue remaining Phase 9 quality items: bundle analysis/code splitting and image optimization audit; then expand accessibility audit coverage beyond marketing homepage.
+
+---
+
+### Task #083 — TODO_ONBOARDING_FLOW Start: OB-008 Username Availability Check
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start working on TODO_ONBOARDING_FLOW.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start onboarding TODO remediation by completing a concrete open item from `docs/TODO_ONBOARDING_FLOW.md`, prioritizing low-risk/high-impact fixes.
+- **Scope:** Implement `OB-008` in onboarding basic-info flow with a debounced username uniqueness check and submit-time guard; add repository capability support where available.
+- **Constraints:**
+  - Keep layering clean (UI -> repository abstraction).
+  - Avoid breaking non-supporting backends by making availability checks optional capability-based.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Basic info submission prevents already-taken usernames before save, users receive immediate feedback, and TODO/workboard/chat docs are updated with verification evidence.
+
+**Status Updates:**
+- **Received:** Reviewed `TODO_ONBOARDING_FLOW.md` and required docs; identified that several earlier findings were already mitigated in code.
+- **In Progress:** Implemented OB-008 across BasicInfoScreen + profile repository capability and Firebase/stub implementations.
+- **Completed:** Ran targeted analysis/tests, updated onboarding TODO entry, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/basic_info_screen.dart` (debounced username availability check, helper/error states, submit-time availability guard)
+  - `lib/features/profile/domain/repositories/profile_repository.dart` (optional `UsernameAvailabilityProfileRepository` capability + extension helpers)
+  - `lib/features/profile/data/repositories/impl/firebase_profile_repository.dart` (username availability lookup + normalized `usernameLower` writes)
+  - `lib/features/profile/data/repositories/impl/stub_profile_repository.dart` (username availability lookup in stub storage)
+  - `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart` (new-user doc writes normalized `usernameLower`)
+  - `docs/TODO_ONBOARDING_FLOW.md` (marked OB-008 completed with implementation notes)
+  - `docs/project_flowchart.md` (onboarding step-count labels synced to 6-step flow; update stamp)
+  - `docs/project_dfd.md` (update stamp after onboarding username data-flow change)
+  - `docs/project_er_diagram.md` (update stamp after onboarding username data-model change)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Onboarding basic-info now checks username uniqueness before submit (with debounce feedback and final blocking validation), reducing server-roundtrip failures for taken usernames.
+- **Verification:**
+  - `flutter analyze lib/features/profile/domain/repositories/profile_repository.dart lib/features/profile/data/repositories/impl/firebase_profile_repository.dart lib/features/profile/data/repositories/impl/stub_profile_repository.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/presentation/screens/basic_info_screen.dart` (pass)
+  - `flutter test test/stub_profile_repository_hotspot_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue TODO_ONBOARDING_FLOW with `OB-007` (data-driven + localized gender/orientation options) or `OB-005` localization extraction sweep.
+
+---
+
+### Task #084 — TODO_ONBOARDING_FLOW Continue: OB-007 Data-Driven + Localized Gender/Orientation Options
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue onboarding remediation by completing `OB-007` from `docs/TODO_ONBOARDING_FLOW.md`.
+- **Scope:** Replace hardcoded onboarding gender/orientation option arrays in `BasicInfoScreen` with shared data-driven options, and localize displayed labels.
+- **Constraints:**
+  - Keep behavior aligned with existing onboarding UX (same curated option set, no risky flow rewrites).
+  - Reuse shared utilities rather than introducing one-off constants in the screen.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Onboarding basic-info gender/orientation options are sourced from shared config and rendered with localization-backed labels; OB-007 marked complete.
+
+**Status Updates:**
+- **Received:** Re-read required collaboration docs and selected `OB-007` as the next concrete onboarding item.
+- **In Progress:** Refactored BasicInfoScreen option sources to shared constants and wired localized label mapping + localization keys.
+- **Completed:** Regenerated l10n outputs, ran targeted analyze/test checks, updated onboarding TODO + workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/shared/utils/profile_field_options.dart` (added `onboardingGenderValues` and `onboardingSexualOrientationValues`)
+  - `lib/features/auth/presentation/screens/basic_info_screen.dart` (replaced hardcoded option arrays with shared options; localized gender/orientation labels; value/icon helpers)
+  - `lib/l10n/app_en.arb` (added onboarding orientation prompt and orientation/gender label keys)
+  - `lib/l10n/app_en_XA.arb` (pseudo-locale entries for new keys)
+  - `lib/l10n/generated/*` (regenerated localization outputs)
+  - `docs/TODO_ONBOARDING_FLOW.md` (marked `OB-007` completed with implementation notes)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Basic-info onboarding options are now data-driven from shared config and shown with localization-backed labels instead of hardcoded English arrays.
+- **Verification:**
+  - `flutter gen-l10n` (pass; untranslated warnings expected)
+  - `flutter analyze lib/features/auth/presentation/screens/basic_info_screen.dart lib/shared/utils/profile_field_options.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/profile_field_options_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue TODO_ONBOARDING_FLOW with `OB-005` onboarding localization cleanup (remaining hardcoded strings across onboarding screens).
+
+---
+
+### Task #085 — TODO_ONBOARDING_FLOW Continue: OB-005 Localization Phase 1 (Basic Info + Email Verification)
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue onboarding TODO remediation by progressing `OB-005` (hardcoded onboarding strings not localized).
+- **Scope:** Localize high-traffic onboarding copy in `BasicInfoScreen` and `EmailVerificationScreen`, plus required ARB/generated localization updates.
+- **Constraints:**
+  - Keep onboarding behavior unchanged while replacing user-facing hardcoded strings.
+  - Reuse existing localization keys where available and add new ARB keys only where needed.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Two onboarding screens move to localization-backed copy, OB-005 status updates to in-progress with concrete completed scope, and verification evidence is recorded.
+
+**Status Updates:**
+- **Received:** Selected `OB-005` as next onboarding item after completing OB-007.
+- **In Progress:** Replaced hardcoded UI/validation/status strings in basic info + email verification with l10n keys; added missing ARB keys and regenerated localizations.
+- **Completed:** Verified analyze/tests, updated TODO status to phase-based progress, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/basic_info_screen.dart` (localized major labels, hints, helper/error strings, date-picker labels, age-warning copy)
+  - `lib/features/auth/presentation/screens/email_verification_screen.dart` (localized title/descriptions/status/buttons/semantics; explicit `_isErrorMessage` status flag)
+  - `lib/shared/utils/profile_field_options.dart` (reused for onboarding option sourcing from prior OB-007 pass)
+  - `lib/l10n/app_en.arb` (added onboarding basic-info and email-verification localization keys)
+  - `lib/l10n/app_en_XA.arb` (added pseudo-locale entries for new keys)
+  - `lib/l10n/generated/*` (regenerated localization outputs)
+  - `docs/TODO_ONBOARDING_FLOW.md` (OB-005 moved to in-progress with Phase 1 done + remaining scope)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Onboarding localization debt is reduced across two critical onboarding screens, and OB-005 now has explicit phased progress.
+- **Verification:**
+  - `flutter gen-l10n` (pass; untranslated warnings expected baseline)
+  - `flutter analyze lib/features/auth/presentation/screens/basic_info_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart lib/shared/utils/profile_field_options.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/profile_field_options_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files $(git diff --name-only)` (pass)
+- **Next step:** Continue OB-005 Phase 2 in `sign_up_screen.dart`, `terms_conditions_screen.dart`, and `profile_setup_screen.dart`.
+
+---
+
+### Task #086 — TODO_ONBOARDING_FLOW Continue: OB-005 Localization Phase 2 (Terms & Conditions)
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue onboarding localization remediation (`OB-005`) with a complete pass for Terms & Conditions onboarding screen.
+- **Scope:** Localize all hardcoded user-facing copy in `terms_conditions_screen.dart` (prompts, section content, agreement text, hints, snackbar) and add required ARB keys.
+- **Constraints:**
+  - Keep routing/business logic unchanged.
+  - Preserve existing terms content while moving it to localization resources.
+  - Update required workflow docs and pass docs sync guard.
+- **Expected Outcome:** Terms onboarding UI no longer depends on hardcoded English literals; OB-005 progress advances with updated remaining scope.
+
+**Status Updates:**
+- **Received:** Continued OB-005 after phase 1 and scoped this pass to `terms_conditions_screen.dart` for a full, low-risk localization extraction.
+- **In Progress:** Replaced all major hardcoded terms screen strings with localization keys and added ARB entries.
+- **Completed:** Regenerated localizations, ran targeted analyze/test checks, and updated TODO/workboard/chat docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/terms_conditions_screen.dart` (localized all terms/onboarding strings and agreement/semantics copy)
+  - `lib/l10n/app_en.arb` (added onboarding terms localization keys)
+  - `lib/l10n/app_en_XA.arb` (added pseudo-locale entries)
+  - `lib/l10n/generated/*` (regenerated localization outputs)
+  - `docs/TODO_ONBOARDING_FLOW.md` (OB-005 updated to Phases 1-2 complete; remaining scope narrowed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Terms & Conditions onboarding screen is now localization-backed end-to-end for its user-facing copy.
+- **Verification:**
+  - `flutter gen-l10n` (pass; untranslated warnings expected baseline)
+  - `flutter analyze lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files $(git diff --name-only)` (pass)
+- **Next step:** Continue OB-005 Phase 3 with `sign_up_screen.dart` and `profile_setup_screen.dart` localization extraction.
+
+---
+
+### Task #087 — TODO_ONBOARDING_FLOW Reconciliation: Close Already-Implemented Findings
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue onboarding TODO progression by reconciling outstanding OB items against the current codebase and closing findings already implemented.
+- **Scope:** Validate and update statuses for `OB-001`, `OB-002`, `OB-003`, `OB-004`, `OB-006`, `OB-009`, `OB-010`, `OB-011`, and `OB-012` in `docs/TODO_ONBOARDING_FLOW.md`.
+- **Constraints:**
+  - Do not claim completion without direct code evidence.
+  - Keep this pass documentation-only (no behavioral code edits).
+  - Update required workflow docs and pass docs sync guard.
+- **Expected Outcome:** Onboarding TODO reflects real implementation state, reducing stale backlog noise and clarifying remaining work (`OB-005` phase 3).
+
+**Status Updates:**
+- **Received:** Re-opened onboarding TODO and required collaboration docs; scoped reconciliation to open OB items with likely existing code fixes.
+- **In Progress:** Verified each item with targeted code inspection (`rg`/`sed`) across auth/profile/routing screens.
+- **Completed:** Updated TODO statuses with implementation notes, logged task/workboard entries, and ran docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_ONBOARDING_FLOW.md` (marked OB-001/2/3/4/6/9/10/11 completed; marked OB-012 mitigated with residual follow-up note)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The onboarding TODO now accurately matches current code state and isolates remaining implementation work to unresolved items (primarily `OB-005` phase 3).
+- **Verification:**
+  - `rg -n "_favouriteAthlete\\s*=\\s*null|_maxAutoCheckAttempts|void _goBack|onboardingStep\\(3, 6\\)|isAccountVerified|ColorScheme\\.light|_lastAutoSendTime|CrushRoutes\\.changeEmail|onboardingStartTime" lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart lib/features/auth/presentation/screens/basic_info_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/core/routing/route_redirect.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue with `OB-005` Phase 3 localization extraction in `sign_up_screen.dart` and `profile_setup_screen.dart`.
+
+---
+
+### Task #088 — TODO_ONBOARDING_FLOW Continue: OB-005 Localization Phase 3A (Sign Up Screen)
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue onboarding localization remediation by implementing Phase 3A of `OB-005` for `sign_up_screen.dart`.
+- **Scope:** Replace hardcoded user-facing onboarding strings in sign-up flow (email + phone + OTP + verification substeps), add required ARB keys, regenerate l10n outputs, and update required docs.
+- **Constraints:**
+  - Keep sign-up behavior/flow unchanged.
+  - Localize only user-facing copy (no architecture rewrites).
+  - Pass targeted verification and docs sync guard.
+- **Expected Outcome:** Sign-up onboarding UI/validation/snackbar copy is localization-backed; `OB-005` remaining scope narrows to `profile_setup_screen.dart`.
+
+**Status Updates:**
+- **Received:** Scoped next step to `OB-005` Phase 3 with sign-up screen first.
+- **In Progress:** Localized sign-up flow strings across state methods and step widgets; added new `onboardingSignUp*` ARB entries.
+- **Completed:** Regenerated localizations, ran targeted analyze/test checks, and updated TODO/workboard/chat docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/sign_up_screen.dart` (localized step labels, helper copy, validation/errors, snackbars, semantics labels, OTP/email instructions, password-strength labels)
+  - `lib/l10n/app_en.arb` (added `onboardingSignUp*` keys + placeholders)
+  - `lib/l10n/app_en_XA.arb` (added pseudo-locale entries for new keys)
+  - `lib/l10n/generated/*` (regenerated localization outputs)
+  - `docs/TODO_ONBOARDING_FLOW.md` (OB-005 updated: Phase 3A complete; remaining scope narrowed to `profile_setup_screen.dart`)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Sign-up onboarding is now largely localization-backed end-to-end; OB-005 remains open only for profile-setup localization.
+- **Verification:**
+  - `dart format lib/features/auth/presentation/screens/sign_up_screen.dart` (pass)
+  - `flutter gen-l10n` (pass; untranslated warnings expected baseline)
+  - `flutter analyze lib/features/auth/presentation/screens/sign_up_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `OB-005` Phase 3B by localizing remaining hardcoded onboarding copy in `profile_setup_screen.dart`.
+
+---
+
+### Task #089 — TODO_ONBOARDING_FLOW Continue: OB-005 Localization Phase 3B (Profile Setup Screen)
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue `OB-005` by localizing remaining onboarding/profile-setup copy in `profile_setup_screen.dart`.
+- **Scope:** Replace hardcoded user-facing strings in profile setup flow (section headers, helper/status/progress copy, username/favourites labels, skip/submit semantics, location rationale and upload/sign-in messaging), then update ARB/l10n outputs and required docs.
+- **Constraints:**
+  - Keep onboarding/profile behavior unchanged.
+  - Focus on user-facing text first; avoid risky data-model refactors.
+  - Pass targeted verification and docs sync guard.
+- **Expected Outcome:** Profile setup screen no longer depends on hardcoded English for its primary onboarding UI copy; OB-005 remaining scope narrows to option-catalog localization follow-up.
+
+**Status Updates:**
+- **Received:** Scoped next onboarding step to `OB-005` Phase 3B (`profile_setup_screen.dart`).
+- **In Progress:** Migrated profile setup UI/validation/status/action copy to `AppLocalizations` and added new `onboardingProfile*` keys.
+- **Completed:** Regenerated localizations, ran targeted analyze/test checks, and synced TODO/workboard/task docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/presentation/screens/profile_setup_screen.dart` (localized section headers, helper text, status/progress copy, username edit copy, favourites labels, skip/submit semantics, and error fallback messages)
+  - `lib/l10n/app_en.arb` (added `onboardingProfile*` keys + placeholders)
+  - `lib/l10n/app_en_XA.arb` (added pseudo-locale entries for new keys)
+  - `lib/l10n/generated/*` (regenerated localization outputs)
+  - `docs/TODO_ONBOARDING_FLOW.md` (OB-005 updated to Phases 1-3B complete with narrowed residual scope)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile setup onboarding UI copy is now localization-backed for core flow text; residual hardcoded English is limited to option-catalog datasets (interest/favourite values).
+- **Verification:**
+  - `dart format lib/features/profile/presentation/screens/profile_setup_screen.dart` (pass)
+  - `flutter gen-l10n` (pass; untranslated warnings expected baseline)
+  - `flutter analyze lib/features/profile/presentation/screens/profile_setup_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Complete OB-005 by localizing onboarding option catalogs (interest/favourite value labels) or moving them to data-driven localized key maps.
+
+---
+
+### Task #090 — TODO_ONBOARDING_UI Start: Reconcile Stale Items + Fix OBU-011/014 + Google Icon Parity
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TODO_ONBOARDING_UI.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start onboarding UI remediation by reconciling listed OBU findings against current code and implementing still-open, low-risk fixes.
+- **Scope:** Auth gateway/login/sign-up onboarding UI copy and visual fixes, onboarding l10n resources, and onboarding UI TODO/documentation updates.
+- **Constraints:**
+  - Keep auth/onboarding behavior unchanged.
+  - Prefer targeted fixes over broad refactors.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** `TODO_ONBOARDING_UI.md` reflects real status; open high-confidence items (`OBU-011`, `OBU-014`) are fixed; Google button icon parity is improved across auth flows.
+
+**Status Updates:**
+- **Received:** Opened onboarding UI TODO and required collaboration docs to begin first pass.
+- **In Progress:** Re-audited listed OBU items against current auth/terms screens; implemented targeted fixes in auth gateway/login/sign-up and localization resources.
+- **Completed:** Regenerated localizations, ran targeted analyze/tests, updated onboarding UI TODO statuses, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/auth_gateway_screen.dart` (localized auth gateway tagline + feature rows; localized Google/Apple CTA labels)
+  - `lib/features/auth/presentation/screens/login_screen.dart` (header icon color changed to `Colors.white`; localized Google/Apple CTA labels)
+  - `lib/features/auth/presentation/screens/sign_up_screen.dart` (added Google icon to CTA and unified label key usage)
+  - `lib/l10n/app_en.arb` (added auth gateway + social-CTA localization keys)
+  - `lib/l10n/app_en_XA.arb` (added pseudo-locale entries for new keys)
+  - `lib/l10n/generated/*` (regenerated localization outputs)
+  - `docs/TODO_ONBOARDING_UI.md` (added per-item status reconciliation: completed/mitigated/monitoring)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Onboarding UI TODO is now status-tracked and less stale; `OBU-011` and `OBU-014` are implemented; `OBU-006` improved to icon parity (with branded-asset follow-up noted).
+- **Verification:**
+  - `dart format lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart` (pass)
+  - `flutter gen-l10n` (pass; untranslated warnings expected baseline)
+  - `flutter analyze lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_UI.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue onboarding UI backlog with unresolved items (`OBU-004`, `OBU-006` branded asset follow-up, `OBU-008`, `OBU-012`).
+
+---
+
+### Task #091 — TODO_ONBOARDING_UI Continue: Close OBU-004 + OBU-008 (Accessibility + Age Gate Interaction)
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue onboarding UI remediation by completing the remaining accessibility/interaction items with clear implementation paths (`OBU-004`, `OBU-008`).
+- **Scope:** Terms checkbox semantics in `terms_conditions_screen.dart`, age-gate interaction behavior in `auth_gateway_screen.dart`, required l10n additions, and docs updates.
+- **Constraints:**
+  - Keep onboarding/auth routing behavior unchanged.
+  - Make focused, low-risk UI/accessibility updates only.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** T&C agreement control is announced and operable as a checkbox-like semantic control; age-gate actions have explicit disabled behavior and underage explanation flow.
+
+**Status Updates:**
+- **Received:** Scoped continuation to unresolved onboarding UI items in `TODO_ONBOARDING_UI.md`.
+- **In Progress:** Implemented age-gate action-state handling + parent-level underage feedback and hardened checkbox semantics with explicit toggle affordance.
+- **Completed:** Regenerated localizations, ran targeted analyze/tests, and synced TODO/workboard/chat docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/auth_gateway_screen.dart` (age-gate dialog changed to stateful action handling; parent flow now handles underage snackbar; age-gate copy moved to l10n keys)
+  - `lib/features/auth/presentation/screens/terms_conditions_screen.dart` (agreement row semantics now includes `checked`, `enabled`, `onTap`, and contextual hint)
+  - `lib/l10n/app_en.arb` (added `authGatewayAge*` and `onboardingTermsAgreementToggleHint` keys)
+  - `lib/l10n/app_en_XA.arb` (added pseudo-locale entries for new keys)
+  - `lib/l10n/generated/*` (regenerated localization outputs)
+  - `docs/TODO_ONBOARDING_UI.md` (`OBU-004` and `OBU-008` moved to completed with implementation notes)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Two previously mitigated onboarding UI items are now implemented and marked completed.
+- **Verification:**
+  - `dart format lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart` (pass)
+  - `flutter gen-l10n` (pass; untranslated warnings expected baseline)
+  - `flutter analyze lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_UI.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_ONBOARDING_UI` with remaining non-complete items (`OBU-006` branded Google asset follow-up and `OBU-012` contrast verification).
+
+---
+
+### Task #092 — TODO_ONBOARDING_UI Continue: Complete OBU-006 + OBU-012
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue onboarding UI backlog by closing the remaining open/monitoring items: `OBU-006` (branded Google icon asset) and `OBU-012` (email-link warning-panel dark/light contrast adaptation).
+- **Scope:** Google social CTA visuals in auth gateway/login/sign-up screens; `_EmailLinkStep` warning panel styling in sign-up; onboarding UI TODO + required collaboration docs.
+- **Constraints:**
+  - Keep auth/onboarding behavior unchanged.
+  - Use focused, low-risk UI changes only.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Google CTA uses branded asset icon consistently across screens; warning panel in email-link instructions uses explicit theme-adaptive contrast styling; TODO statuses advance accordingly.
+
+**Status Updates:**
+- **Received:** Selected next unresolved onboarding UI items from `TODO_ONBOARDING_UI.md`.
+- **In Progress:** Added branded Google icon asset + shared icon widget; replaced Google glyph usage in auth screens; improved warning notice colors in `_EmailLinkStep`.
+- **Completed:** Ran targeted format/analyze/tests, updated onboarding UI TODO statuses, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `assets/icons/google_logo.png` (added branded Google "G" logo asset)
+  - `lib/features/auth/presentation/widgets/google_logo_icon.dart` (new shared Google logo widget)
+  - `lib/features/auth/presentation/screens/auth_gateway_screen.dart` (Google CTA now uses shared branded asset icon)
+  - `lib/features/auth/presentation/screens/login_screen.dart` (Google CTA now uses shared branded asset icon)
+  - `lib/features/auth/presentation/screens/sign_up_screen.dart` (Google CTA uses shared branded asset icon; email-link warning panel now uses adaptive warning bg/border/text contrast styling)
+  - `docs/TODO_ONBOARDING_UI.md` (`OBU-006` and `OBU-012` moved to Completed with concrete implementation notes)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Onboarding UI remaining items were completed in code and documentation.
+- **Verification:**
+  - `dart format lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/widgets/google_logo_icon.dart` (pass)
+  - `flutter analyze lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/widgets/google_logo_icon.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_UI.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** If desired, do a quick visual QA pass on auth gateway/login/sign-up to confirm icon sizing/alignment on small and large devices.
+
+---
+
+### Task #093 — Onboarding UI Visual QA Follow-up: Google CTA Alignment Validation
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+yes do it
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute a quick visual QA pass for Google CTA icon/text alignment across auth gateway, login, and sign-up at small and large viewport sizes.
+- **Scope:** Auth onboarding UI verification workflow; no product-flow logic changes unless required to unblock QA.
+- **Constraints:**
+  - Keep fixes minimal and targeted.
+  - Report any environment limitation clearly.
+  - Update required workflow docs and pass docs sync guard.
+- **Expected Outcome:** Verified alignment confidence for Google CTA layout on phone/tablet widths, with reproducible evidence.
+
+**Status Updates:**
+- **Received:** Started manual visual QA attempt for auth screens.
+- **In Progress:** Attempted real screenshot-based run via web-server/headless Chrome and direct macOS/chrome harness runs; encountered rendering/runtime blockers in this environment.
+- **Completed:** Added deterministic widget-level QA coverage for viewport alignment and fixed a recursive auth extension path that surfaced during the QA harness run.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/domain/repositories/auth_repository.dart` (fixed recursive extension path by explicit `GoogleSignInAuthRepository` casting in `supportsGoogleSignIn` and `signInWithGoogle`)
+  - `test/onboarding_google_button_layout_test.dart` (new viewport alignment test coverage for Google CTA in auth gateway/login/sign-up at phone/tablet sizes)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Alignment verification was completed via deterministic widget-level QA after manual screenshot route was blocked; additional auth extension recursion bug was fixed.
+- **Verification:**
+  - `flutter analyze lib/features/auth/domain/repositories/auth_repository.dart test/onboarding_google_button_layout_test.dart` (pass)
+  - `flutter test test/onboarding_google_button_layout_test.dart` (pass)
+  - `flutter test test/router_redirect_test.dart test/auth_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Notes:**
+  - Manual screenshot attempts were blocked by environment/tooling issues:
+    - headless web screenshots rendered blank canvases for Flutter content
+    - macOS run blocked by local CocoaPods dependency conflict
+- **Next step:** If you want strict human-eye confirmation, run the app locally on a GUI target and check `/auth`, `/auth/login`, `/auth/signup` at 390px and 1024px widths.
+
+---
+
+### Task #094 — TODO_PROFILE_BACKEND Start: Populate Backend Remediation Backlog
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start on TODO_PROFILE_BACKEND.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Replace placeholder content in `TODO_PROFILE_BACKEND.md` with concrete, prioritized backend remediation tasks grounded in current code.
+- **Scope:** Profile backend surfaces in Cloud Functions REST/callable paths, profile repositories/services, and test coverage gaps; required workflow docs updates.
+- **Constraints:**
+  - Keep this pass documentation-focused (no production logic changes).
+  - Use file-anchored findings and practical acceptance criteria.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** `TODO_PROFILE_BACKEND.md` contains actionable `PROF-BE-*` tasks with priorities, affected files, acceptance criteria, and testing requirements.
+
+**Status Updates:**
+- **Received:** Opened required collaboration docs and `TODO_PROFILE_BACKEND.md` to confirm current task baseline.
+- **In Progress:** Audited profile backend paths (`functions/src/index.ts`, profile repositories/services, Firestore rules, and existing tests) to extract concrete remediation items.
+- **Completed:** Populated profile backend TODO with prioritized action items and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_PROFILE_BACKEND.md` (replaced placeholder with 9 prioritized `PROF-BE-*` remediation items)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile backend backlog is now actionable and mapped to concrete code hotspots with explicit verification expectations.
+- **Verification:**
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Execute `PROF-BE-001` (preferences-path canonicalization) and `PROF-BE-003` (PATCH validation/error mapping) as the highest-impact correctness fixes.
+
+---
+
+### Task #095 — TODO_PROFILE_BACKEND Continue: Implement PROF-BE-001 + PROF-BE-003 Core Backend Fixes
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute the next profile-backend step by implementing core fixes for `PROF-BE-001` and `PROF-BE-003`.
+- **Scope:** `functions/src/index.ts` profile/discovery REST endpoints and helper validators, plus focused functions tests and required docs updates.
+- **Constraints:**
+  - Keep changes targeted to backend profile contract and validation behavior.
+  - Preserve backward compatibility for legacy top-level `preferences`.
+  - Verify via build + targeted tests, then pass docs sync guard.
+- **Expected Outcome:** Profile REST reads/writes canonical `profile.preferences` with fallback compatibility, and `/v1/profile/me` PATCH enforces strict allow-list validation with user-correctable 4xx responses.
+
+**Status Updates:**
+- **Received:** Selected the next implementation step from `TODO_PROFILE_BACKEND.md` (`PROF-BE-001`, `PROF-BE-003`).
+- **In Progress:** Added payload validation/canonicalization helpers and rewired profile/discovery endpoints to use them.
+- **Completed:** Added helper-level backend tests, ran build + targeted tests, updated TODO/workboard/chat docs, and validated docs-sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added strict validation helpers for profile patch and preferences payloads.
+    - Added canonical preferences resolver with nested-first fallback.
+    - Updated `GET /v1/profile/me` to return canonical preferences.
+    - Updated `PATCH /v1/profile/me` to use validated allow-list updates + 4xx error mapping.
+    - Updated `PATCH /v1/profile/preferences` to validate payload and write canonical `profile.preferences` (with legacy mirror).
+    - Updated `GET /v1/discovery/deck` to read canonical preferences and apply gender filters from normalized preference fields.
+    - Exposed new helper methods in `__test__helpers` for testability.
+  - `functions/test/profileRestValidation.test.js` (new helper-focused tests for patch validation and preferences canonicalization)
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-001` and `PROF-BE-003` statuses moved to in-progress with core implementation note)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Core backend implementation for `PROF-BE-001` and `PROF-BE-003` is complete, with backward compatibility preserved and stricter client-facing validation/error behavior in place.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestValidation.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Add endpoint/integration-level tests for `/v1/profile/me` and `/v1/profile/preferences` to fully close `PROF-BE-001` and `PROF-BE-003` acceptance criteria.
+
+---
+
+### Task #096 — TODO_PROFILE_BACKEND Continue: Add Endpoint Tests for Profile REST APIs
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete the next profile-backend step by adding endpoint-level verification for `/v1/profile/me` and `/v1/profile/preferences`.
+- **Scope:** Functions test suite (`functions/test`) and existing backend profile route behavior in `functions/src/index.ts`, plus required docs updates.
+- **Constraints:**
+  - Keep production backend logic stable except for minimal correctness fix discovered during endpoint testing.
+  - Use deterministic tests without external Firebase service dependencies.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Endpoint tests cover canonical preferences reads, patch validation/error mapping, and preferences merge semantics; `PROF-BE-001` and `PROF-BE-003` move to completed.
+
+**Status Updates:**
+- **Received:** Proceeded to endpoint/integration test implementation for profile REST APIs.
+- **In Progress:** Built in-memory auth/firestore test harness around `api` HTTP function and added route-level tests.
+- **Completed:** Validated endpoint behavior, fixed preferences merge edge case, reran builds/tests, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/test/profileRestEndpoints.test.js` (new endpoint-level suite for `/v1/profile/me` and `/v1/profile/preferences`)
+  - `functions/src/index.ts` (preferences endpoint now merges incoming updates over existing canonical preferences before validating cross-field bounds)
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-001` and `PROF-BE-003` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Endpoint-level coverage now verifies canonical preference resolution, patch validation 4xx mapping, verified-email gate behavior, and preferences merge/update semantics.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestEndpoints.test.js functions/test/profileRestValidation.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-002` (DOB/age contract normalization) and `PROF-BE-005` (photo delete lifecycle/storage consistency).
+
+---
+
+### Task #097 — TODO_PROFILE_BACKEND Continue: Implement PROF-BE-002 DOB/Age Normalization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Implement `PROF-BE-002` by normalizing profile DOB storage/serialization and deriving age from DOB where profile/discovery payloads expose age.
+- **Scope:** Cloud Functions profile/discovery outputs and discovery candidate filtering, Firebase profile repository read/write mapping, focused backend tests, and required docs updates.
+- **Constraints:**
+  - Use a single canonical DOB key (`profile.birthDate`) with backward-compatible read fallback (`profile.dateOfBirth`).
+  - Keep behavior stable for existing documents and clients.
+  - Verify with targeted builds/tests and docs sync guard.
+- **Expected Outcome:** DOB is serialized consistently as ISO in REST payloads, age is derived from DOB where exposed, and repository writes/reads align to canonical DOB field.
+
+**Status Updates:**
+- **Received:** Continued from completed `PROF-BE-001/003` work to execute `PROF-BE-002`.
+- **In Progress:** Added DOB/age helpers in functions, rewired REST/discovery payload fields to derived DOB/age values, and updated Firebase profile repository canonical DOB read/write behavior.
+- **Completed:** Added/updated tests for DOB fallback + age derivation, ran build/analyze/test checks, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added DOB/age helpers: `profileBirthDate()`, `profileBirthDateIso()`, `deriveProfileAge()`
+    - Normalized profile patch DOB writes to canonical ISO `profile.birthDate`
+    - Updated `GET /v1/profile/me` to serialize DOB via canonical+legacy fallback helper
+    - Updated `GET /v1/profile/:userId` and `GET /v1/discovery/deck` to return derived `age` and `birth_date`
+    - Updated callable discovery filtering/output to use DOB-derived age where possible
+    - Hardened `toIsoString()` and `normalizeDate()` timestamp checks to be null-safe in mocked environments
+    - Exposed DOB/age helper methods via `__test__helpers`
+  - `lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`
+    - Canonicalized DOB writes to `profile.birthDate` in `saveBasicInfo`
+    - Added backward-compatible read fallback (`birthDate` -> `dateOfBirth`)
+    - Normalized parsed age to DOB-derived age when DOB exists
+    - Updated `_profileToFirestore()` to write canonical `birthDate` and DOB-derived age
+  - `functions/test/profileRestEndpoints.test.js`
+    - Added route-level assertions for DOB fallback serialization and age derivation on `/v1/profile/:userId`
+  - `functions/test/profileRestValidation.test.js`
+    - Added helper assertions for DOB fallback and age derivation
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-002` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. DOB/age contract is now normalized to canonical `profile.birthDate` with backward-compatible fallback reads, and age responses are derived from DOB where exposed.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `flutter analyze lib/features/profile/data/repositories/impl/firebase_profile_repository.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts lib/features/profile/data/repositories/impl/firebase_profile_repository.dart functions/test/profileRestEndpoints.test.js functions/test/profileRestValidation.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-005` (profile photo delete lifecycle/storage consistency) or `PROF-BE-004` (secure upload hardening).
+
+---
+
+### Task #098 — TODO_PROFILE_BACKEND Continue: Implement PROF-BE-005 Photo Delete Lifecycle
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Implement `PROF-BE-005` so profile photo deletes remove both Firestore references and backing Cloud Storage objects with safe index validation.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts` delete-photo endpoint behavior, `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js` endpoint coverage, and required docs updates.
+- **Constraints:**
+  - Keep backward-compatible profile photo URL handling.
+  - Prevent negative/invalid `photoId` index behavior.
+  - On storage delete failure, preserve Firestore state to avoid partial delete drift.
+- **Expected Outcome:** `DELETE /v1/profile/photos/:photoId` enforces valid `photo_<index>` IDs, deletes mapped storage objects when URL is Firebase Storage-managed, and returns clear 4xx/5xx responses with endpoint tests for success and failure cases.
+
+**Status Updates:**
+- **Received:** Selected next open P1 backend task (`PROF-BE-005`) from `TODO_PROFILE_BACKEND.md`.
+- **In Progress:** Added photo-id and storage-url parsing helpers, rewired delete endpoint flow to storage-first delete with guarded Firestore mutation, and expanded route-level tests.
+- **Completed:** Verified build + targeted functions tests, marked `PROF-BE-005` completed, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added helpers:
+      - `parseProfilePhotoIndex()` (strict `photo_<non-negative-int>` parser)
+      - `parseStorageObjectLocationFromUrl()` (supports `gs://`, `storage.googleapis.com`, `firebasestorage.googleapis.com` URL shapes)
+      - `deleteProfilePhotoStorageObject()` + not-found error handling helpers
+    - Updated `DELETE /v1/profile/photos/:photoId` to:
+      - reject invalid `photoId` format (`400`)
+      - return `404` for out-of-range indexes
+      - delete mapped storage object before Firestore mutation
+      - return `502` on storage delete failures and keep Firestore `profile.photoUrls` unchanged
+  - `functions/test/profileRestEndpoints.test.js`
+    - Added Firebase Storage mock layer and delete lifecycle endpoint tests:
+      - valid delete removes storage object + Firestore entry
+      - invalid negative index rejected
+      - repeated delete returns `404`
+      - storage-delete failure returns `502` and leaves Firestore photo list unchanged
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-005` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile photo deletion now validates IDs safely and maintains storage/firestore consistency under failure conditions.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass, including new delete lifecycle cases)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestEndpoints.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue with `PROF-BE-004` (secure profile photo upload pipeline hardening: mime/size guardrails, randomized filenames, and non-public object exposure).
+
+---
+
+### Task #099 — TODO_PROFILE_BACKEND Continue: Implement PROF-BE-004 Secure Photo Upload Pipeline
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Implement `PROF-BE-004` by hardening `/v1/profile/photos` upload validation and storage behavior.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts` upload route + middleware, `/Users/ace/my_first_project/storage.rules`, endpoint regression tests in `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js`, and required docs updates.
+- **Constraints:**
+  - Enforce upload guardrails (mime + size) server-side.
+  - Replace original-filename object keys with randomized safe names.
+  - Remove public-by-default object exposure.
+- **Expected Outcome:** Upload endpoint blocks unsupported/oversize payloads, stores files with randomized names and private objects (tokenized URL delivery), and has endpoint tests covering positive/negative/auth behavior.
+
+**Status Updates:**
+- **Received:** Selected next open P1 profile-backend item (`PROF-BE-004`) after `PROF-BE-005` completion.
+- **In Progress:** Added profile-photo-specific multer middleware with size limits, mime validation, randomized storage naming, and non-public download URL generation.
+- **Completed:** Extended endpoint tests for upload success/fail/auth paths, updated todo/docs, and ran build + targeted test + docs-sync verification.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added profile photo upload constants and middleware:
+      - `PROFILE_PHOTO_MAX_BYTES`
+      - `PROFILE_PHOTO_ALLOWED_MIME_TYPES`
+      - `PROFILE_PHOTO_EXTENSION_BY_MIME`
+      - `profilePhotoUploadMiddleware()` with explicit multer size-limit error mapping (`413`)
+    - Updated `POST /v1/profile/photos` to:
+      - enforce allowed mime types (`415` on blocked types)
+      - enforce max size (`413`)
+      - generate randomized safe storage filenames (UUID-based; no original filename use)
+      - stop calling `makePublic()`
+      - save object with `firebaseStorageDownloadTokens` metadata and return tokenized `firebasestorage.googleapis.com` URL
+      - return `404` when user doc is missing
+  - `functions/test/profileRestEndpoints.test.js`
+    - Extended storage mock instrumentation (`save` metadata log + `makePublic` call log)
+    - Added multipart request helper for upload endpoint tests
+    - Added endpoint tests:
+      - allowed image upload + randomized filename + no `makePublic`
+      - blocked mime type
+      - oversize upload
+      - missing-auth access rejection
+      - unverified email/password rejection
+  - `storage.rules`
+    - Added explicit deny rule for server-managed legacy backend upload path `/photos/{uid}/{fileName}`
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-004` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile photo upload pipeline now has server-side file validation, randomized storage naming, and non-public object handling with tokenized access URLs.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass, 19 passing)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass, 13 passing)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestEndpoints.test.js storage.rules docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue with `PROF-BE-006` (prompts field drift unification) or `PROF-BE-007` (username/display-name contract separation in HTTP profile repository).
+
+---
+
+### Task #100 — TODO_PROFILE_BACKEND Continue: Implement PROF-BE-006 Prompt Contract Unification
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Implement `PROF-BE-006` by unifying profile prompt contract usage and preventing prompt loss between `prompts` and `profilePrompts` paths.
+- **Scope:** Cloud Functions prompt-read logic (`/v1/profile/me`, `/v1/profile/:userId`, `/v1/discovery/deck`, completeness helpers/callable) in `/Users/ace/my_first_project/functions/src/index.ts`, Firebase profile repository prompt read/write mapping in `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`, and focused backend tests.
+- **Constraints:**
+  - Use one canonical representation for storage (`profile.profilePrompts`) with backward-compatible read fallback from legacy `profile.prompts`.
+  - Keep API payload compatibility where clients consume `prompts` string arrays.
+  - Verify with targeted tests/analyze and docs sync guard.
+- **Expected Outcome:** Prompt data round-trips reliably across repository and backend API/callable paths, completeness scoring recognizes canonical prompt data, and legacy documents remain readable.
+
+**Status Updates:**
+- **Received:** Selected next open P1 backend item (`PROF-BE-006`) after upload/delete/media contract fixes.
+- **In Progress:** Added canonical prompt-answer extraction helper in functions, rewired completeness and REST output paths, and unified repository prompt parsing/writing with legacy fallback.
+- **Completed:** Added/updated tests for prompt fallback/derivation and completeness behavior, updated TODO/workboard/chat docs, and validated docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added prompt helper:
+      - `profilePromptAnswers()` (prefers canonical `profile.profilePrompts[].answer`, falls back to legacy `profile.prompts`)
+    - Extended `ProfileData` with `profilePrompts` field
+    - Updated prompt consumers to use canonical-aware helper:
+      - `evaluateProfileCompleteness()`
+      - `ensureProfileQuality()`
+      - `checkProfileCompleteness` callable
+      - `GET /v1/profile/me`
+      - `GET /v1/profile/:userId`
+      - `GET /v1/discovery/deck`
+      - callable discovery candidate payload flattening
+    - Exposed `profilePromptAnswers` via `__test__helpers`
+  - `lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`
+    - Read path now supports canonical+legacy prompt migration:
+      - parses legacy `profile.prompts` answers
+      - parses canonical `profile.profilePrompts`
+      - backfills structured prompts from legacy answers when needed
+      - sets both `Profile.prompts` (compat) and `Profile.profilePrompts` (canonical)
+    - Write/update path now keeps canonical representation + compat mirror:
+      - `saveProfileDetails()` writes both `profile.profilePrompts` and `profile.prompts`
+      - `_profileToFirestore()` canonicalizes to `profilePrompts` and mirrors `prompts` answers
+    - Added prompt parse/convert helpers:
+      - `_parsePromptAnswers()`
+      - `_promptAnswersFromProfilePrompts()`
+      - `_profilePromptsFromAnswers()`
+      - enhanced `_parseProfilePrompts(..., legacyPromptAnswers: ...)`
+  - `functions/test/profileRestValidation.test.js`
+    - Added helper tests for canonical prompt derivation + legacy fallback
+  - `functions/test/profileCompleteness.test.js`
+    - Added completeness test proving canonical `profilePrompts` contributes to prompt score/recommendations
+  - `functions/test/profileRestEndpoints.test.js`
+    - Added endpoint tests for prompt derivation from canonical `profilePrompts` on:
+      - `GET /v1/profile/me`
+      - `GET /v1/profile/:userId`
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-006` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Prompt contract drift is resolved by using canonical `profile.profilePrompts` with compatibility fallback/mirroring to legacy `profile.prompts`, and completeness/API outputs now remain consistent across document shapes.
+- **Verification:**
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass, 21 passing)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass, 16 passing)
+  - `flutter analyze lib/features/profile/data/repositories/impl/firebase_profile_repository.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts lib/features/profile/data/repositories/impl/firebase_profile_repository.dart functions/test/profileRestEndpoints.test.js functions/test/profileRestValidation.test.js functions/test/profileCompleteness.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue with `PROF-BE-007` (username contract separation in HTTP profile repository) or `PROF-BE-008` REST coverage expansion for remaining profile/media negative cases.
+
+---
+
+### Task #101 — TODO_PROFILE_BACKEND Continue: Implement PROF-BE-007 Username Contract Fix
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Implement `PROF-BE-007` by separating canonical username from display name in the REST profile contract and HTTP profile repository mapping.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts` (`GET /v1/profile/me`), `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/http_profile_repository.dart`, targeted endpoint tests, new repository regression tests, and required docs updates.
+- **Constraints:**
+  - Preserve backward compatibility for legacy payload/document shapes.
+  - Keep display name mapped independently from username.
+  - Verify with focused backend + Dart checks and docs sync guard.
+- **Expected Outcome:** `/v1/profile/me` includes canonical `username`, `HttpProfileRepository.getCurrentUser()` maps `CrushUser.username` from that field with safe fallback behavior, and regression tests prove username/display-name separation.
+
+**Status Updates:**
+- **Received:** Continued `TODO_PROFILE_BACKEND.md` with open task `PROF-BE-007`.
+- **In Progress:** Added canonical username output in profile REST response, updated HTTP repository mapping logic, and wrote endpoint + repository regression tests.
+- **Completed:** Ran build/analyze/tests, marked task done in TODO, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - `GET /v1/profile/me` now includes `username` with fallback order: top-level `username` -> legacy `profile.username` -> `usernameLower`.
+  - `lib/features/profile/data/repositories/impl/http_profile_repository.dart`
+    - `getCurrentUser()` now maps `CrushUser.username` from payload `username` (canonical), with legacy fallback before final display-name fallback.
+    - Keeps `profile.name` mapped from `display_name`, preserving display-name behavior.
+  - `functions/test/profileRestEndpoints.test.js`
+    - Added endpoint regressions for canonical username/display-name separation and legacy profile-level username fallback.
+  - `test/features/profile/data/repositories/impl/http_profile_repository_test.dart` (new)
+    - Added repository tests for canonical username mapping and legacy fallback when `username` is absent.
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-007` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Username/display-name contract is now separated end-to-end for HTTP profile reads with compatibility fallback coverage.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass, 23 passing)
+  - `flutter analyze lib/features/profile/data/repositories/impl/http_profile_repository.dart test/features/profile/data/repositories/impl/http_profile_repository_test.dart` (pass)
+  - `flutter test test/features/profile/data/repositories/impl/http_profile_repository_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestEndpoints.test.js lib/features/profile/data/repositories/impl/http_profile_repository.dart test/features/profile/data/repositories/impl/http_profile_repository_test.dart docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue with `PROF-BE-008` to expand REST endpoint coverage (`/v1/profile/photos` and `/v1/profile/:userId` negative/security cases).
+
+---
+
+### Task #102 — TODO_PROFILE_BACKEND Continue: Implement PROF-BE-008 REST Endpoint Coverage Expansion
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `PROF-BE-008` by expanding REST endpoint regression coverage for profile APIs with additional negative validation/security and legacy-shape cases.
+- **Scope:** `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js`, `docs/TODO_PROFILE_BACKEND.md`, and required workflow docs.
+- **Constraints:**
+  - Keep coverage focused on profile REST endpoints listed in TODO acceptance criteria.
+  - Prefer test-only changes unless regressions require production fixes.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Endpoint suite comprehensively covers `/v1/profile/me`, `/v1/profile/preferences`, `/v1/profile/photos` (POST/DELETE), and `/v1/profile/:userId` across canonical+legacy document shapes and security/validation failures.
+
+**Status Updates:**
+- **Received:** Selected next open backend item (`PROF-BE-008`) after completing username contract fix.
+- **In Progress:** Expanded route-level tests with auth-required checks, unsupported payload checks, missing-user errors, and legacy data-shape assertions.
+- **Completed:** Ran updated endpoint suite and functions build, marked TODO item completed, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/test/profileRestEndpoints.test.js`
+    - Updated request helper to support explicit unauthenticated requests (`token: null`).
+    - Added coverage for:
+      - `GET /v1/profile/me` unauthenticated (`401`)
+      - `PATCH /v1/profile/preferences`:
+        - legacy top-level preferences fallback merge
+        - unsupported field rejection (`400`)
+        - unauthenticated access (`401`)
+        - missing user (`404 not-found`)
+      - `POST /v1/profile/photos` missing user (`404`)
+      - `DELETE /v1/profile/photos/:photoId`:
+        - unauthenticated access (`401`)
+        - missing user (`404`)
+      - `GET /v1/profile/:userId`:
+        - legacy DOB fallback (`dateOfBirth`)
+        - legacy prompt fallback (`profile.prompts`)
+        - unauthenticated access (`401`)
+        - unknown user (`404`)
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-008` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile REST endpoint coverage now includes broader schema-compatibility and negative security/validation paths across all endpoints in scope.
+- **Verification:**
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass, 35 passing)
+  - `npm --prefix functions run build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/test/profileRestEndpoints.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue with `PROF-BE-009` (profile-completeness fallback hardening in `ProfileValidationService`).
+
+---
+
+### Task #103 — TODO_PROFILE_BACKEND Continue: Implement PROF-BE-009 Completeness Fallback Hardening
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `PROF-BE-009` by removing permissive `score=1.0` fallback behavior in `ProfileValidationService` and replacing it with explicit/safe degraded-mode handling.
+- **Scope:** `/Users/ace/my_first_project/lib/features/profile/data/services/profile_validation_service.dart`, `/Users/ace/my_first_project/test/profile_validation_service_test.dart`, and required docs updates.
+- **Constraints:**
+  - Avoid silently granting full eligibility during backend errors.
+  - Keep existing caller integration stable (deck/chat already handle thrown validation failures by falling back to local checks).
+  - Add focused timeout/network degraded-mode tests.
+- **Expected Outcome:** Service uses cached last-known result when available, otherwise throws explicit unavailable exception (timeout/network), with regression tests validating behavior.
+
+**Status Updates:**
+- **Received:** Selected next open profile-backend item (`PROF-BE-009`) after endpoint coverage completion.
+- **In Progress:** Reworked validation service fallback strategy and introduced injectable fetch override for deterministic unit testing.
+- **Completed:** Added timeout/network/cache fallback tests, updated risk/todo/workboard/chat docs, and ran targeted verification.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/data/services/profile_validation_service.dart`
+    - Added constructor injection points (`FirebaseFunctions` and `fetchCompletenessOverride`) for testability.
+    - Added per-minimum last-known cache (`_lastKnownByMinimum`) for degraded-mode reuse.
+    - Replaced permissive hardcoded fallback with:
+      - cached result return on error when available
+      - explicit `ProfileValidationUnavailableException` throw when no cache exists
+    - Added `ProfileValidationUnavailableException` class.
+  - `test/profile_validation_service_test.dart`
+    - Replaced permissive fallback assertions with explicit degraded-mode tests:
+      - timeout + no cache -> unavailable exception
+      - network + no cache -> unavailable exception
+      - success then timeout -> cached last-known result returned
+    - Added exception serialization test for `ProfileValidationUnavailableException`.
+  - `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-009` marked completed)
+  - `docs/risk_notes.md` (added `R-056` as mitigated risk entry for previous permissive fallback behavior)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile-completeness degraded mode is now explicit and safer: no silent full-eligibility grant on backend failures.
+- **Verification:**
+  - `flutter analyze lib/features/profile/data/services/profile_validation_service.dart test/profile_validation_service_test.dart` (pass)
+  - `flutter test test/profile_validation_service_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/data/services/profile_validation_service.dart test/profile_validation_service_test.dart docs/TODO_PROFILE_BACKEND.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** `TODO_PROFILE_BACKEND.md` items are now fully completed; proceed to the next prioritized backend/frontend todo module.
+
+---
+
+### Task #104 — TODO_PROFILE_FRONTEND Start: Implement PROF-FE-003 Adaptive Photo Grid
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start on TODO_PROFILE_FRONTEND.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start profile-frontend TODO execution with a concrete high-impact item and deliver end-to-end implementation + verification.
+- **Scope:** `PROF-FE-003` adaptive photo-grid behavior in `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_media_screen.dart`, new widget tests, and required docs updates.
+- **Constraints:**
+  - Keep existing screen flow intact while improving responsiveness.
+  - Ensure phone/tablet/large-tablet layouts are test-verified.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Photos tab uses responsive 2/3/4-column grid by width and has automated widget tests asserting the layout behavior.
+
+**Status Updates:**
+- **Received:** Started `TODO_PROFILE_FRONTEND.md` and selected `PROF-FE-003` as first implementation item.
+- **In Progress:** Replaced single-photo pager with adaptive grid, added photo preview dialog, and wrote width-based widget tests.
+- **Completed:** Fixed small-screen app-bar overflow discovered by tests, ran analyze/tests, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/presentation/screens/profile_media_screen.dart`
+    - Replaced photo tab `PageView` with adaptive `GridView`.
+    - Added width-based column logic (`2` phone, `3` tablet, `4` large tablet/desktop).
+    - Added tappable photo preview dialog.
+    - Hardened app-bar title rendering with ellipsis to prevent narrow-width overflow.
+  - `test/features/profile/presentation/screens/profile_media_screen_test.dart` (new)
+    - Added widget tests validating adaptive grid columns at representative widths (390, 820, 1200).
+  - `docs/TODO_PROFILE_FRONTEND.md` (`PROF-FE-003` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile media photos now render as an adaptive grid that scales across phone/tablet widths, with automated coverage.
+- **Verification:**
+  - `flutter analyze lib/features/profile/presentation/screens/profile_media_screen.dart test/features/profile/presentation/screens/profile_media_screen_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/screens/profile_media_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/presentation/screens/profile_media_screen.dart test/features/profile/presentation/screens/profile_media_screen_test.dart docs/TODO_PROFILE_FRONTEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-002` iPad picker flow hardening or `PROF-FE-001` profile-card responsive constraints (file-path reconciliation needed).
+
+### Task #105 — TODO_PROFILE_FRONTEND Continue: Implement PROF-FE-004 EXIF Upload Privacy Regression
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `PROF-FE-004` by adding explicit regression proof that uploaded profile photos have EXIF metadata stripped before transmission.
+- **Scope:** `/Users/ace/my_first_project/test/profile_media_service_hotspot_test.dart`, `/Users/ace/my_first_project/docs/TODO_PROFILE_FRONTEND.md`, risk/workflow docs updates.
+- **Constraints:**
+  - Keep upload behavior unchanged; add proof-oriented test coverage.
+  - Use a fabricated image that actually contains EXIF GPS/device tags.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Upload-path test verifies EXIF exists in source JPEG and is absent in uploaded payload.
+
+**Status Updates:**
+- **Received:** Selected next open profile frontend item (`PROF-FE-004`).
+- **In Progress:** Added upload regression test with generated JPEG EXIF payload and path-provider test-channel support so optimization executes in test.
+- **Completed:** Marked TODO item complete, updated EXIF risk entry, and ran targeted verification + docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `test/profile_media_service_hotspot_test.dart`
+    - Added `TestWidgetsFlutterBinding.ensureInitialized()` and mocked path-provider temporary directory channel.
+    - Added `uploadPhoto strips EXIF metadata before upload` regression:
+      - builds fabricated JPEG with EXIF make/model + GPS data
+      - asserts source contains EXIF
+      - runs `uploadPhoto` and captures uploaded bytes
+      - asserts uploaded payload no longer contains EXIF signature/data
+    - Added helper builders for EXIF JPEG creation and EXIF signature detection.
+  - `docs/TODO_PROFILE_FRONTEND.md` (`PROF-FE-004` marked completed)
+  - `docs/risk_notes.md` (`R-052` updated to partially mitigated with current profile-path proof and remaining chat-path coverage gap)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile photo upload path now has explicit regression proof for EXIF stripping, satisfying `PROF-FE-004` testing requirements.
+- **Verification:**
+  - `flutter analyze test/profile_media_service_hotspot_test.dart` (pass)
+  - `flutter test test/profile_media_service_hotspot_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files test/profile_media_service_hotspot_test.dart docs/TODO_PROFILE_FRONTEND.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-002` (iPad picker source-rect hardening) or `PROF-FE-001` (responsive profile-card max-width path reconciliation).
+
+### Task #106 — TODO_PROFILE_FRONTEND Continue: Implement PROF-FE-002 iPad Picker Anchoring
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `PROF-FE-002` by hardening profile media picker source flow for iPad so photo/video upload entry points open through a safely anchored chooser.
+- **Scope:** `/Users/ace/my_first_project/lib/features/profile/presentation/widgets/profile_media_picker.dart`, focused widget tests, and required docs updates.
+- **Constraints:**
+  - Keep existing media limits/validation behavior intact.
+  - Add iOS tablet-specific anchored picker behavior without regressing phone/Android UX.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** On iPad-width iOS, tapping Add Photo/Add Video opens an anchored source menu (camera/gallery); other platforms use bottom sheet fallback.
+
+**Status Updates:**
+- **Received:** Selected next open profile-frontend item (`PROF-FE-002`).
+- **In Progress:** Refactored media-pick flow to choose source first, added iPad anchored menu path and platform fallback path.
+- **Completed:** Added widget tests for iOS-tablet anchored menu and Android bottom sheet behavior, updated TODO/workflow docs, and ran verification.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/presentation/widgets/profile_media_picker.dart`
+    - Added source-selection flow for photo/video before invoking `image_picker`.
+    - Added iOS tablet detection (`shortestSide >= 600`) and anchored `showMenu` path using add-tile render-box position.
+    - Added non-iOS/non-tablet `showModalBottomSheet` fallback with camera/gallery options.
+    - Added camera support for photo/video flows while preserving existing validation and limits.
+    - Added add-tile `GlobalKey` anchors and wired them into source chooser.
+    - Kept existing picker error handling with user-visible fallback messages for non-`already_active` failures.
+  - `test/features/profile/presentation/widgets/profile_media_picker_test.dart` (new)
+    - Verifies iOS+iPad-width opens anchored source UI (not bottom sheet).
+    - Verifies Android opens bottom-sheet source UI.
+  - `docs/TODO_PROFILE_FRONTEND.md` (`PROF-FE-002` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile media upload entry now presents a platform-appropriate source selector with iPad-safe anchored behavior.
+- **Verification:**
+  - `flutter analyze lib/features/profile/presentation/widgets/profile_media_picker.dart test/features/profile/presentation/widgets/profile_media_picker_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/widgets/profile_media_picker_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/presentation/widgets/profile_media_picker.dart test/features/profile/presentation/widgets/profile_media_picker_test.dart docs/TODO_PROFILE_FRONTEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-001` (responsive profile-card max-width with file-path reconciliation).
+
+### Task #107 — TODO_REALTIME Start: Populate Backlog + Implement RT-001 Heartbeat Cleanup
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TODO_REALTIME.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_REALTIME.md` by converting it from placeholder to actionable items and completing the first high-impact realtime reliability fix.
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_REALTIME.md`, `/Users/ace/my_first_project/lib/core/network/realtime/realtime_connection.dart`, `/Users/ace/my_first_project/test/core/network/realtime/realtime_connection_test.dart`, and required workflow docs.
+- **Constraints:**
+  - Keep fix scoped to realtime transport behavior; avoid broad chat refactors in this first pass.
+  - Add deterministic regression coverage for timeout-driven cleanup.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Realtime TODO has concrete RT items, and RT-001 is implemented + verified.
+
+**Status Updates:**
+- **Received:** Started `TODO_REALTIME.md`, found it empty aside from placeholder text.
+- **In Progress:** Audited realtime transport/services and selected heartbeat-timeout stale-socket cleanup as first concrete item.
+- **Completed:** Implemented cleanup fix, added regression test, populated realtime TODO backlog, and ran verification/docs sync.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/network/realtime/realtime_connection.dart`
+    - Added guarded connection-loss handler (`_handleConnectionLoss`) used by both socket `onDone` and heartbeat timeout paths.
+    - Heartbeat timeout now force-closes stale socket/subscription before reconnect scheduling.
+    - Resets internal connection references (`_channel`, `_subscription`, `_lastPongReceived`) during loss cleanup.
+  - `test/core/network/realtime/realtime_connection_test.dart`
+    - Added regression: `heartbeat timeout closes stale socket before marking failed`.
+    - Added server helper getter `activeClientCount` for asserting no dangling socket after timeout failure.
+  - `docs/TODO_REALTIME.md`
+    - Replaced placeholder with actionable RT backlog.
+    - Marked `RT-001` completed and added pending `RT-002..RT-004` items.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Realtime module now has concrete TODO tracking, and heartbeat-timeout handling no longer leaves stale WebSocket channels open.
+- **Verification:**
+  - `flutter analyze lib/core/network/realtime/realtime_connection.dart test/core/network/realtime/realtime_connection_test.dart` (pass)
+  - `flutter test test/core/network/realtime/realtime_connection_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/network/realtime/realtime_connection.dart test/core/network/realtime/realtime_connection_test.dart docs/TODO_REALTIME.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REALTIME.md` with `RT-002` (dynamic polling fallback based on WebSocket state changes).
+
+### Task #108 — TODO_REALTIME Continue: Implement RT-002 Dynamic Polling Fallback Switching
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RT-002` by making `HttpChatRepository` react to live WebSocket connection-state transitions so polling fallback pauses/resumes dynamically.
+- **Scope:** `/Users/ace/my_first_project/lib/features/chat/data/repositories/impl/http_chat_repository.dart`, new repository regression tests, and required docs updates.
+- **Constraints:**
+  - Keep existing polling intervals and chat contracts unchanged.
+  - Avoid broad chat architecture changes; scope strictly to polling orchestration.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Polling timers for messages/presence are removed on WebSocket connected state and reinstated when WebSocket moves to non-connected states.
+
+**Status Updates:**
+- **Received:** Selected next realtime backlog item (`RT-002`) after heartbeat cleanup.
+- **In Progress:** Added WebSocket state subscription in `HttpChatRepository` and implemented pause/resume fallback helpers.
+- **Completed:** Added repository tests for state transitions, marked TODO item complete, and ran verification + docs sync.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/chat/data/repositories/impl/http_chat_repository.dart`
+    - Added `_webSocketStateSubscription` to listen for `stateStream` updates.
+    - Added `_onWebSocketStateChanged` routing:
+      - `connected` -> cancel message/presence polling timers
+      - non-connected states -> re-enable fallback polling for active watchers
+    - Refactored polling setup to `_ensureMessagePolling` / `_ensurePresencePolling` so timers are idempotent.
+    - Added `_cancelPollingByPrefix` helper and test-visible `activePollingTimerKeys` getter.
+    - Ensured websocket state subscription is canceled during dispose.
+  - `test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart` (new)
+    - Verifies polling timers pause on `connected` and resume on `reconnecting`/`disconnected`.
+    - Verifies watchers created while connected start polling after disconnect.
+  - `docs/TODO_REALTIME.md` (`RT-002` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Realtime fallback now tracks live WebSocket state transitions and avoids stale polling behavior.
+- **Verification:**
+  - `flutter analyze lib/features/chat/data/repositories/impl/http_chat_repository.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart` (pass)
+  - `flutter test test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/chat/data/repositories/impl/http_chat_repository.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart docs/TODO_REALTIME.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REALTIME.md` with `RT-003` (RTDB match-notification payload hardening).
+
+### Task #109 — TODO_REALTIME Continue: Implement RT-003 RTDB Payload Parsing Hardening
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RT-003` by hardening realtime match-notification payload parsing against mixed/malformed RTDB value shapes.
+- **Scope:** `/Users/ace/my_first_project/lib/features/discovery/domain/repositories/realtime_match_repository.dart`, `/Users/ace/my_first_project/test/realtime_match_notification_test.dart`, and required realtime/docs updates.
+- **Constraints:**
+  - Keep repository API unchanged.
+  - Ensure parser is permissive and non-throwing for mixed types.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** `fromRtdb` safely coerces common mixed types (string/num/bool/blank) and defaults invalid values without runtime type errors.
+
+**Status Updates:**
+- **Received:** Selected `RT-003` after completing `RT-002` fallback switching.
+- **In Progress:** Reworked parser with explicit coercion helpers for required/optional strings and timestamp conversion.
+- **Completed:** Added malformed-shape tests, marked TODO item complete, and ran verification/docs sync.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/discovery/domain/repositories/realtime_match_repository.dart`
+    - Replaced direct casts in `RealtimeMatchNotification.fromRtdb` with coercion helpers:
+      - `_coerceString` with fallback support
+      - `_coerceNullableString` for optional fields
+      - `_coerceTimestamp` handling `int`, `num`, numeric strings, and invalid fallback to `0`
+  - `test/realtime_match_notification_test.dart`
+    - Added mixed-shape regression asserting coercion from non-string values.
+    - Added invalid/blank payload regression asserting safe defaults and timestamp fallback.
+  - `docs/TODO_REALTIME.md` (`RT-003` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Realtime match notification parsing is now resilient to mixed RTDB payload types and malformed values.
+- **Verification:**
+  - `flutter analyze lib/features/discovery/domain/repositories/realtime_match_repository.dart test/realtime_match_notification_test.dart` (pass)
+  - `flutter test test/realtime_match_notification_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/discovery/domain/repositories/realtime_match_repository.dart test/realtime_match_notification_test.dart docs/TODO_REALTIME.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REALTIME.md` with `RT-004` (FirebaseRealtimeService subscription lifecycle coverage).
+
+### Task #110 — TODO_REALTIME Continue: Implement RT-004 FirebaseRealtimeService Lifecycle/Filter Coverage
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RT-004` by adding automated regression coverage for `FirebaseRealtimeService` subscription lifecycle and `QueryFilter` operator mappings.
+- **Scope:** `/Users/ace/my_first_project/lib/core/network/realtime/firebase_realtime_service.dart`, `/Users/ace/my_first_project/test/core/network/realtime/firebase_realtime_service_test.dart`, and required realtime/workflow docs updates.
+- **Constraints:**
+  - Keep runtime realtime behavior unchanged; add only targeted testability hooks and focused tests.
+  - Cover subscription registration/replacement/cancellation and each supported query filter operator mapping.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** `FirebaseRealtimeService` gains deterministic tests proving listener lifecycle management and operator-to-Firestore `where(...)` mapping correctness.
+
+**Status Updates:**
+- **Received:** Selected `RT-004` as next realtime backlog item.
+- **In Progress:** Added test constructor/hook in realtime service and implemented focused lifecycle/filter mapping tests.
+- **Completed:** Ran targeted analyze/tests, marked `RT-004` complete in TODO docs, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/network/realtime/firebase_realtime_service.dart`
+    - Added injected-firestore constructor path for tests (`FirebaseRealtimeService.test(...)`).
+    - Added `applyFilterForTesting(...)` visible-for-testing hook to directly exercise `QueryFilter` operator routing.
+  - `test/core/network/realtime/firebase_realtime_service_test.dart` (new)
+    - Added subscription lifecycle coverage:
+      - duplicate `subscribeToDocument` key replaces prior subscription
+      - `cancelSubscription` cancels/removes tracked listener
+      - `cancelAllSubscriptions` cancels all active listeners
+    - Added `QueryFilter` operator mapping coverage for:
+      - `equals`, `notEquals`, `lessThan`, `lessThanOrEqual`
+      - `greaterThan`, `greaterThanOrEqual`
+      - `arrayContains`, `arrayContainsAny`
+      - `whereIn`, `whereNotIn`
+  - `docs/TODO_REALTIME.md` (`RT-004` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Realtime Firestore service now has direct regression coverage for listener lifecycle behavior and filter-operator mapping.
+- **Verification:**
+  - `flutter analyze lib/core/network/realtime/firebase_realtime_service.dart test/core/network/realtime/firebase_realtime_service_test.dart` (pass)
+  - `flutter test test/core/network/realtime/firebase_realtime_service_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/network/realtime/firebase_realtime_service.dart test/core/network/realtime/firebase_realtime_service_test.dart docs/TODO_REALTIME.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Realtime TODO backlog is complete; continue with next highest-priority TODO module.
+
+### Task #111 — TODO_RESPONSIVE_DESIGN Start: Populate Backlog + Implement RESP-009 Chat Split-View Width
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TODO_RESPONSIVE_DESIGN.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_RESPONSIVE_DESIGN.md` by replacing placeholder content with actionable responsive backlog items and complete the first concrete responsive remediation.
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_RESPONSIVE_DESIGN.md`, `/Users/ace/my_first_project/lib/features/chat/presentation/screens/chat_list_screen.dart`, `/Users/ace/my_first_project/test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart`, and required workflow docs updates.
+- **Constraints:**
+  - Keep the change focused and low-risk in an existing core chat flow.
+  - Use `DsBreakpoints` responsive logic instead of new layout dependencies.
+  - Add deterministic regression coverage for width mapping behavior.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Responsive TODO file has concrete RESP items, and chat split-view list pane width adapts by breakpoint/min/max instead of fixed 320px.
+
+**Status Updates:**
+- **Received:** Started `TODO_RESPONSIVE_DESIGN.md`; found only placeholder text.
+- **In Progress:** Audited responsive hotspots and implemented adaptive split-pane width helper in `ChatListScreen`.
+- **Completed:** Added width mapping tests, marked `RESP-009` completed, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/chat/presentation/screens/chat_list_screen.dart`
+    - Added `chatListPaneWidthFor(double screenWidth)` test-visible helper using `DsBreakpoints` with tablet/desktop fractions and min/max clamps.
+    - Replaced fixed `SizedBox(width: 320, ...)` split-pane list width with computed adaptive width.
+  - `test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart` (new)
+    - Added tests covering tablet breakpoint floor, tablet scaling, desktop floor, and large-desktop cap behavior.
+  - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - Replaced placeholder with actionable responsive backlog (`RESP-009..RESP-012`).
+    - Marked `RESP-009` completed with verification expectations.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Responsive backlog is now actionable again, and chat split-view width is adaptive across tablet/desktop sizes.
+- **Verification:**
+  - `flutter analyze lib/features/chat/presentation/screens/chat_list_screen.dart test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/chat/presentation/screens/chat_list_screen.dart test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-010` (other-user profile content/action width constraints).
+
+### Task #112 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-010 Other-User Profile Width Constraints
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Continue responsive backlog by completing `RESP-010` for `OtherUserProfileScreen`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/profile/presentation/screens/other_user_profile_screen.dart`, `/Users/ace/my_first_project/test/features/profile/presentation/screens/other_user_profile_screen_test.dart`, and responsive/workflow docs updates.
+- **Constraints:**
+  - Keep profile flow behavior intact while improving wide-screen readability.
+  - Use existing `DsBreakpoints` token helpers.
+  - Add deterministic regression coverage.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Other-user profile content and bottom action bar are centered and width-capped on tablet/desktop, with tests covering responsive max-width mapping and action-area constraints.
+
+**Status Updates:**
+- **Received:** Selected `RESP-010` as next responsive action item.
+- **In Progress:** Added centered width constraints for profile content/action areas using a shared breakpoint-based helper.
+- **Completed:** Added responsive tests, marked TODO status complete, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/presentation/screens/other_user_profile_screen.dart`
+    - Added shared responsive helper `otherUserProfileMaxWidthFor(...)` based on `DsBreakpoints.contentMaxWidth(...)`.
+    - Added centered constrained wrapper for profile content section via `LayoutBuilder + Align + ConstrainedBox`.
+    - Added centered constrained wrapper for bottom action area via `LayoutBuilder + Align + ConstrainedBox`.
+    - Added test-visible keys for responsive constraint anchors.
+  - `test/features/profile/presentation/screens/other_user_profile_screen_test.dart` (new)
+    - Added helper regression for width mapping (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+    - Added widget tests verifying bottom action area remains unconstrained on phone and capped on tablet/desktop.
+  - `docs/TODO_RESPONSIVE_DESIGN.md` (`RESP-010` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Other-user profile now applies responsive width constraints for both main content and bottom actions, improving tablet/desktop readability.
+- **Verification:**
+  - `flutter analyze lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/other_user_profile_screen_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/screens/other_user_profile_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/other_user_profile_screen_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-011` (replace hardcoded auth utility `maxWidth: 600` constraints with `DsBreakpoints` helpers).
+
+### Task #113 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-011 Auth Utility Width Tokens
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RESP-011` by replacing hardcoded auth utility width constraints with token-driven breakpoint logic.
+- **Scope:** `/Users/ace/my_first_project/lib/features/auth/presentation/screens/new_device_screen.dart`, `/Users/ace/my_first_project/lib/features/auth/presentation/screens/change_email_screen.dart`, `/Users/ace/my_first_project/lib/features/auth/presentation/screens/email_protection_screen.dart`, plus helper/test/docs updates.
+- **Constraints:**
+  - Keep auth flows and behavior unchanged.
+  - Use existing `DsBreakpoints` utilities; no new dependencies.
+  - Add representative narrow/wide responsive widget coverage.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Auth utility screens no longer use hardcoded `maxWidth: 600`; width constraints are centrally tokenized and test-covered.
+
+**Status Updates:**
+- **Received:** Selected `RESP-011` as next responsive TODO item.
+- **In Progress:** Added shared auth utility width helper and wired it into the three target screens.
+- **Completed:** Added responsive tests, marked TODO item complete, and synced docs/workflow checks.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/widgets/auth_utility_layout_constraints.dart` (new)
+    - Added shared `authUtilityMaxWidthFor(...)` using `DsBreakpoints.responsiveValue`.
+    - Added shared `authUtilityContentConstraintKey` for deterministic widget assertions.
+  - `lib/features/auth/presentation/screens/new_device_screen.dart`
+  - `lib/features/auth/presentation/screens/change_email_screen.dart`
+  - `lib/features/auth/presentation/screens/email_protection_screen.dart`
+    - Replaced hardcoded `BoxConstraints(maxWidth: 600)` with token-driven `authUtilityMaxWidthFor(MediaQuery.sizeOf(context).width)`.
+    - Applied shared constraint key to utility content constrained boxes.
+  - `test/features/auth/presentation/screens/auth_utility_layout_constraints_test.dart` (new)
+    - Added helper mapping tests for mobile/tablet/desktop widths.
+    - Added representative widget test (NewDeviceScreen) verifying unconstrained mobile and capped tablet/desktop widths.
+  - `docs/TODO_RESPONSIVE_DESIGN.md` (`RESP-011` marked completed)
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Auth utility layout constraints are now centralized and breakpoint-driven, with targeted responsive coverage.
+- **Verification:**
+  - `flutter analyze lib/features/auth/presentation/widgets/auth_utility_layout_constraints.dart lib/features/auth/presentation/screens/new_device_screen.dart lib/features/auth/presentation/screens/change_email_screen.dart lib/features/auth/presentation/screens/email_protection_screen.dart test/features/auth/presentation/screens/auth_utility_layout_constraints_test.dart` (pass)
+  - `flutter test test/features/auth/presentation/screens/auth_utility_layout_constraints_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/auth/presentation/widgets/auth_utility_layout_constraints.dart lib/features/auth/presentation/screens/new_device_screen.dart lib/features/auth/presentation/screens/change_email_screen.dart lib/features/auth/presentation/screens/email_protection_screen.dart test/features/auth/presentation/screens/auth_utility_layout_constraints_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-012` (refresh responsive coverage audit and risk-note counts).
+
+### Task #114 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-012 Coverage Audit Refresh
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RESP-012` by publishing current responsive coverage counts and syncing stale risk-note metrics.
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_RESPONSIVE_DESIGN.md`, `/Users/ace/my_first_project/docs/risk_notes.md`, and required workflow docs updates.
+- **Constraints:**
+  - Use concrete repository-driven counts from current `presentation/screens` files.
+  - Keep this pass documentation-focused (no behavior changes).
+  - Include explicit remaining non-adaptive screen list.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Responsive TODO and risk notes reflect current coverage baseline and remaining target files.
+
+**Status Updates:**
+- **Received:** Selected `RESP-012` as next responsive item.
+- **In Progress:** Ran a fresh screen audit over `lib/features/*/presentation/screens/*.dart` using breakpoint/layout token heuristics.
+- **Completed:** Updated TODO/risk snapshot with counts + remaining screens and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - Marked `RESP-012` completed.
+    - Added 2026-03-07 audit snapshot:
+      - total screens: `54`
+      - responsive screens: `48`
+      - non-adaptive screens: `6` (explicit file list).
+  - `docs/risk_notes.md`
+    - Updated `R-054` with refreshed metrics and remaining-screen list.
+    - Reduced likelihood from `High` to `Medium`.
+    - Updated mitigation plan to focus on remaining high-traffic gaps and repeatable audit refreshes.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Responsive coverage tracking is now current and aligned between TODO/workboard/risk notes.
+- **Verification:**
+  - `total=$(find lib/features -path '*/presentation/screens/*.dart' | wc -l | tr -d ' '); responsive=0; non=0; while IFS= read -r f; do if rg -q "DsBreakpoints|authUtilityMaxWidthFor\\(|AuthScaffold\\(|LayoutBuilder\\(" "$f"; then responsive=$((responsive+1)); else non=$((non+1)); printf '%s\n' "$f"; fi; done < <(find lib/features -path '*/presentation/screens/*.dart' | sort); printf 'TOTAL=%s\nRESPONSIVE=%s\nNON=%s\n' "$total" "$responsive" "$non"` (pass: `54/48/6`)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Responsive TODO backlog is complete for this cycle; next responsive work should target high-risk remaining screens (`chat_screen.dart`, `call_screen.dart`, `discovery_filters_settings_screen.dart`).
+
+### Task #115 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-013 Chat Screen Conversation Width Constraints
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RESP-013` by adding adaptive width constraints to `ChatScreen` conversation content on wide layouts.
+- **Scope:** `/Users/ace/my_first_project/lib/features/chat/presentation/screens/chat_screen.dart`, `/Users/ace/my_first_project/test/features/chat/presentation/screens/chat_screen_responsive_test.dart`, and required responsive/docs updates.
+- **Constraints:**
+  - Keep chat behavior and system banners unchanged.
+  - Use existing `DsBreakpoints` token helpers.
+  - Add deterministic regression coverage for width mapping.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** Message list/input/status cluster is centered and width-capped on tablet/desktop while mobile remains unconstrained.
+
+**Status Updates:**
+- **Received:** Selected `RESP-013` as the next responsive action item.
+- **In Progress:** Added shared width helper + keyed constrained wrapper around chat conversation content.
+- **Completed:** Added responsive helper test, refreshed audit counts/risk references, and synced required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/chat/presentation/screens/chat_screen.dart`
+    - Added `chatConversationMaxWidthFor(...)` using `DsBreakpoints.contentMaxWidth(...)`.
+    - Added `chatConversationConstraintKey` for deterministic assertions.
+    - Wrapped conversation area (`message list`, send status, typing indicator, input bar) in centered `LayoutBuilder + ConstrainedBox` width constraints.
+    - Preserved full-width behavior for system notice banners above conversation content.
+  - `test/features/chat/presentation/screens/chat_screen_responsive_test.dart` (new)
+    - Added helper mapping coverage (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - Marked `RESP-013` completed.
+    - Updated audit snapshot to `49/54 responsive; 5 remaining`.
+  - `docs/risk_notes.md`
+    - Updated `R-054` remaining-screen references and removed stale `chat_screen.dart` priority mention.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Chat conversation layout now scales cleanly across phone/tablet/desktop with explicit regression coverage.
+- **Verification:**
+  - `flutter analyze lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/chat/presentation/screens/chat_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_RESPONSIVE_DESIGN.md` with remaining non-adaptive screens (`call_screen.dart`, `discovery_filters_settings_screen.dart`, `terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
+
+### Task #116 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-014 Call Screen Content Width Constraints
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RESP-014` by adding adaptive width constraints to `CallScreen` primary content on wide layouts.
+- **Scope:** `/Users/ace/my_first_project/lib/features/calls/presentation/screens/call_screen.dart`, `/Users/ace/my_first_project/test/features/calls/presentation/screens/call_screen_responsive_test.dart`, and required responsive/risk/workflow docs updates.
+- **Constraints:**
+  - Keep call state/lifecycle behavior unchanged.
+  - Preserve full-screen call background and overlay indicators.
+  - Use existing `DsBreakpoints` token helper strategy.
+  - Add deterministic regression coverage and pass docs sync guard.
+- **Expected Outcome:** Main call content column is centered and width-capped on tablet/desktop, with mobile unchanged.
+
+**Status Updates:**
+- **Received:** Selected `call_screen.dart` as next responsive remediation target after `RESP-013`.
+- **In Progress:** Added a localized width helper and centered constrained wrapper around the `SafeArea` primary content column.
+- **Completed:** Added helper regression test, refreshed responsive coverage/risk counts, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/calls/presentation/screens/call_screen.dart`
+    - Added `callScreenContentMaxWidthFor(...)` using `DsBreakpoints.contentMaxWidth(...)`.
+    - Added `callScreenContentConstraintKey` for deterministic assertions.
+    - Wrapped the primary call content column in `LayoutBuilder + Align + ConstrainedBox` to cap width on wide layouts while retaining full-height behavior.
+    - Left background/video/quality overlays full-screen to preserve call UX behavior.
+  - `test/features/calls/presentation/screens/call_screen_responsive_test.dart` (new)
+    - Added helper mapping coverage (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - Added `RESP-014` as completed.
+    - Updated audit snapshot to `50/54 responsive; 4 remaining`.
+  - `docs/risk_notes.md`
+    - Updated `R-054` status and remaining-screen list to remove `call_screen.dart`.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `CallScreen` now applies centered adaptive width constraints to primary content on tablet/desktop without changing call behavior.
+- **Verification:**
+  - `flutter analyze lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/screens/call_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/calls/presentation/screens/call_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/screens/call_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_RESPONSIVE_DESIGN.md` with remaining non-adaptive screens (`discovery_filters_settings_screen.dart`, `terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
+
+### Task #117 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-015 Discovery Filters Width Constraints
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RESP-015` by adding adaptive width constraints to `DiscoveryFiltersSettingsScreen`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart`, `/Users/ace/my_first_project/test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart`, and required responsive/risk/workflow docs updates.
+- **Constraints:**
+  - Preserve discovery filter logic and existing section interactions.
+  - Follow existing settings-screen responsive pattern (`LayoutBuilder + ConstrainedBox` with `DsBreakpoints`).
+  - Add deterministic regression coverage and pass docs sync guard.
+- **Expected Outcome:** Discovery filters list content is centered and width-capped on tablet/desktop while mobile remains unchanged.
+
+**Status Updates:**
+- **Received:** Selected `discovery_filters_settings_screen.dart` as the next remaining responsive target.
+- **In Progress:** Added a shared width helper and applied a centered constrained wrapper to the settings body content.
+- **Completed:** Added helper regression test, refreshed responsive/risk counts, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart`
+    - Added `discoveryFiltersContentMaxWidthFor(...)` using `DsBreakpoints.contentMaxWidth(...)`.
+    - Added `discoveryFiltersContentConstraintKey` for deterministic assertions.
+    - Wrapped body content in `LayoutBuilder + Center + ConstrainedBox` to apply responsive width caps.
+  - `test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart` (new)
+    - Added helper mapping coverage (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - Added `RESP-015` as completed.
+    - Updated audit snapshot to `51/54 responsive; 3 remaining`.
+  - `docs/risk_notes.md`
+    - Updated `R-054` remaining-screen list and status counts.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Discovery filters settings now use the same breakpoint-driven content-width constraints as other settings screens.
+- **Verification:**
+  - `flutter analyze lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_RESPONSIVE_DESIGN.md` with remaining non-adaptive screens (`terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
+
+### Task #118 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-016 Terms Screen Width Constraints
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RESP-016` by migrating `TermsConditionsScreen` from hardcoded width constraints to tokenized responsive max-width behavior.
+- **Scope:** `/Users/ace/my_first_project/lib/features/auth/presentation/screens/terms_conditions_screen.dart`, `/Users/ace/my_first_project/test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart`, and required responsive/risk/workflow docs updates.
+- **Constraints:**
+  - Preserve existing terms-scroll gating, checkbox agreement, and routing behavior.
+  - Keep visual structure intact and only change responsive sizing logic.
+  - Use `DsBreakpoints` helper pattern with deterministic regression coverage.
+  - Pass docs sync guard.
+- **Expected Outcome:** Terms onboarding content remains centered and now uses shared breakpoint max-width tokens instead of hardcoded width.
+
+**Status Updates:**
+- **Received:** Selected `terms_conditions_screen.dart` as next responsive remediation target.
+- **In Progress:** Replaced hardcoded width cap with a shared helper and keyed constrained wrapper in the terms body.
+- **Completed:** Added helper regression test, refreshed responsive/risk counts, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/terms_conditions_screen.dart`
+    - Added `termsConditionsContentMaxWidthFor(...)` using `DsBreakpoints.contentMaxWidth(...)`.
+    - Added `termsConditionsContentConstraintKey` for deterministic assertions.
+    - Replaced hardcoded `BoxConstraints(maxWidth: 600)` with token-driven responsive max-width constraints.
+  - `test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart` (new)
+    - Added helper mapping coverage (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - Added `RESP-016` as completed.
+    - Updated audit snapshot to `52/54 responsive; 2 remaining`.
+  - `docs/risk_notes.md`
+    - Updated `R-054` remaining-screen list and status counts.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Terms & Conditions onboarding now follows shared breakpoint-responsive max-width tokens while preserving existing behavior.
+- **Verification:**
+  - `flutter analyze lib/features/auth/presentation/screens/terms_conditions_screen.dart test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/auth/presentation/screens/terms_conditions_screen.dart test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_RESPONSIVE_DESIGN.md` with remaining non-adaptive screens (`pin_fallback_screen.dart`, `date_ideas_screen.dart`).
+
+### Task #119 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-017 PIN Fallback Width Constraints
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RESP-017` by adding adaptive width constraints to `PinFallbackScreen`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/auth/presentation/screens/pin_fallback_screen.dart`, `/Users/ace/my_first_project/test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart`, and required responsive/risk/workflow docs updates.
+- **Constraints:**
+  - Preserve PIN setup/verification behavior and biometric lockout callbacks.
+  - Keep visual structure and centered content behavior intact.
+  - Use `DsBreakpoints` token helper pattern with deterministic regression coverage.
+  - Pass docs sync guard.
+- **Expected Outcome:** PIN fallback content is width-capped and centered on tablet/desktop while mobile remains unchanged.
+
+**Status Updates:**
+- **Received:** Selected `pin_fallback_screen.dart` as next responsive remediation target.
+- **In Progress:** Added a shared width helper and centered constrained wrapper around the PIN fallback content area.
+- **Completed:** Added helper regression test, refreshed responsive/risk counts, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/pin_fallback_screen.dart`
+    - Added `pinFallbackContentMaxWidthFor(...)` using `DsBreakpoints.contentMaxWidth(...)`.
+    - Added `pinFallbackContentConstraintKey` for deterministic assertions.
+    - Wrapped content in `LayoutBuilder + Align + ConstrainedBox` with responsive max-width cap.
+  - `test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart` (new)
+    - Added helper mapping coverage (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - Added `RESP-017` as completed.
+    - Updated audit snapshot to `53/54 responsive; 1 remaining`.
+  - `docs/risk_notes.md`
+    - Updated `R-054` remaining-screen list and status counts.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. PIN fallback screen now follows shared breakpoint-responsive max-width behavior.
+- **Verification:**
+  - `flutter analyze lib/features/auth/presentation/screens/pin_fallback_screen.dart test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/auth/presentation/screens/pin_fallback_screen.dart test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_RESPONSIVE_DESIGN.md` with final remaining non-adaptive screen (`date_ideas_screen.dart`).
+
+### Task #120 — TODO_RESPONSIVE_DESIGN Continue: Implement RESP-018 Date Ideas Width Constraints
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `RESP-018` by adding adaptive width constraints to `DateIdeasScreen`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/social/presentation/screens/date_ideas_screen.dart`, `/Users/ace/my_first_project/test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart`, and required responsive/risk/workflow docs updates.
+- **Constraints:**
+  - Preserve date-idea loading, filtering, and list interaction behavior.
+  - Keep gradient/background and modal details behavior unchanged.
+  - Use shared `DsBreakpoints` max-width token strategy.
+  - Add deterministic regression coverage and pass docs sync guard.
+- **Expected Outcome:** Date Ideas content column is centered and width-capped on tablet/desktop while mobile behavior remains unchanged.
+
+**Status Updates:**
+- **Received:** Selected `date_ideas_screen.dart` as the final remaining non-adaptive screen.
+- **In Progress:** Added shared width helper and constrained wrapper around Date Ideas main content.
+- **Completed:** Added helper regression test, refreshed coverage/risk counts to full responsive coverage, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/social/presentation/screens/date_ideas_screen.dart`
+    - Added `dateIdeasContentMaxWidthFor(...)` using `DsBreakpoints.contentMaxWidth(...)`.
+    - Added `dateIdeasContentConstraintKey` for deterministic assertions.
+    - Wrapped SafeArea content in `LayoutBuilder + Align + ConstrainedBox` for responsive max-width capping.
+  - `test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart` (new)
+    - Added helper mapping coverage (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - Added `RESP-018` as completed.
+    - Updated audit snapshot to `54/54 responsive; 0 remaining`.
+  - `docs/risk_notes.md`
+    - Updated `R-054` to mitigated with full responsive coverage counts.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Date Ideas screen now follows shared breakpoint-responsive max-width behavior, completing this responsive remediation cycle.
+- **Verification:**
+  - `flutter analyze lib/features/social/presentation/screens/date_ideas_screen.dart test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/social/presentation/screens/date_ideas_screen.dart test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Responsive TODO backlog is complete for current scope; keep audit checks in future UI changes to prevent regression.
+
+### Task #121 — TODO_SETTINGS_UI Start: Implement SETUI-001 Settings Language Label Coverage
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TODO_SETTINGS_UI.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_SETTINGS_UI.md` by converting placeholder content into a concrete backlog and completing the first safe UI remediation.
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_SETTINGS_UI.md`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/settings_screen.dart`, `/Users/ace/my_first_project/test/features/settings/presentation/screens/settings_screen_language_label_test.dart`, and required workflow docs updates.
+- **Constraints:**
+  - Keep settings behavior unchanged outside targeted language-label display logic.
+  - Follow existing `LocaleCubit` supported language set.
+  - Add deterministic regression coverage.
+  - Update required docs and pass docs sync guard.
+- **Expected Outcome:** TODO backlog is actionable and `SettingsScreen` language subtitle supports all configured locale codes instead of defaulting most values to English.
+
+**Status Updates:**
+- **Received:** Began `TODO_SETTINGS_UI.md` from placeholder state.
+- **In Progress:** Audited settings screens, rebuilt TODO backlog with concrete tasks, and implemented first language-label remediation in `SettingsScreen`.
+- **Completed:** Added regression tests and synced required docs/workflow checks.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_SETTINGS_UI.md`
+    - Replaced malformed placeholder line (escaped newlines) with structured settings backlog.
+    - Added `SETUI-001..SETUI-005` entries.
+    - Marked `SETUI-001` completed.
+  - `lib/features/settings/presentation/screens/settings_screen.dart`
+    - Added shared helper `settingsLanguageLabelFor(...)` covering all locale codes supported by `LocaleCubit`.
+    - Updated `_languageLabel(...)` to delegate to helper.
+    - Added safe fallback for unknown language codes (`code.toUpperCase()`).
+  - `test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (new)
+    - Added helper regression coverage for representative supported locales and unknown-code fallback behavior.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Settings UI backlog is now actionable, and language labels in `SettingsScreen` no longer degrade to English for most supported locales.
+- **Verification:**
+  - `flutter analyze lib/features/settings/presentation/screens/settings_screen.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/settings_screen.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SETTINGS_UI.md` with `SETUI-002` (localize remaining hardcoded `SettingsScreen` copy).
+
+### Task #122 — TODO_SETTINGS_UI Continue: Implement SETUI-002 Settings Home Copy Localization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SETUI-002` by replacing hardcoded English user-facing copy in `settings_screen.dart` with localization keys.
+- **Scope:** `/Users/ace/my_first_project/lib/features/settings/presentation/screens/settings_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localization files, and TODO/workflow docs.
+- **Constraints:**
+  - Keep settings behavior and navigation unchanged.
+  - Reuse existing localization keys where available.
+  - Add placeholder-based keys for dynamic subtitle/status strings.
+  - Regenerate l10n output and pass targeted verification + docs sync guard.
+- **Expected Outcome:** Settings home content (including subscription/incognito/safety/legal/about sections and dynamic subtitles) is localization-backed rather than hardcoded.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SETTINGS_UI.md` with `SETUI-002`.
+- **In Progress:** Audited all hardcoded settings-home strings and mapped to existing/new localization keys.
+- **Completed:** Migrated copy to l10n keys, regenerated localization classes, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/settings_screen.dart`
+    - Replaced hardcoded English tile titles/subtitles with `context.l10n` keys.
+    - Localized dynamic summaries for notifications/discovery/cache/account status/subscription status.
+    - Localized subscription card labels, CTA copy, and promo text.
+    - Localized safety/help/sign-out/legal/about headers and incognito sheet strings.
+    - Updated `_themeLabel`, `_safetySubtitle`, and `_subscriptionSubtitle` to localization-backed output.
+  - `lib/l10n/app_en.arb`
+    - Added settings-home and incognito copy keys, including placeholder-based keys for dynamic strings.
+  - `lib/l10n/app_en_XA.arb`
+    - Added corresponding pseudo-locale keys for new settings entries.
+  - `lib/l10n/generated/app_localizations.dart`
+  - `lib/l10n/generated/app_localizations_*.dart` (all locale generated files updated)
+    - Regenerated localization accessors for new keys.
+  - `docs/TODO_SETTINGS_UI.md`
+    - Marked `SETUI-002` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `SettingsScreen` no longer relies on hardcoded English copy for home/subscription/incognito section text and now uses localization keys with placeholders.
+- **Verification:**
+  - `flutter gen-l10n` (pass; expected untranslated-language warnings based on project baseline)
+  - `flutter analyze lib/features/settings/presentation/screens/settings_screen.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/settings_screen.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SETTINGS_UI.md` with `SETUI-003` (notifications settings localization sweep).
+
+### Task #123 — TODO_SETTINGS_UI Continue: Implement SETUI-003 Notifications Copy Localization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SETUI-003` by localizing hardcoded user-facing copy in `NotificationsSettingsScreen`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/settings/presentation/screens/notifications_settings_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localization files, `/Users/ace/my_first_project/test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart`, and required workflow docs updates.
+- **Constraints:**
+  - Keep notification preference behavior and backend sync calls unchanged.
+  - Reuse existing settings keys when available, add new keys only for missing copy.
+  - Add targeted widget coverage for localized category labels.
+  - Regenerate l10n and pass docs sync guard.
+- **Expected Outcome:** Notifications settings headings/tile labels/subtitles/toast copy/quiet-hours labels are localization-backed.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SETTINGS_UI.md` with `SETUI-003`.
+- **In Progress:** Replaced hardcoded strings in notifications screen with l10n keys and added missing ARB keys.
+- **Completed:** Regenerated localization files, added targeted widget coverage, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/notifications_settings_screen.dart`
+    - Replaced hardcoded copy with `context.l10n` keys across:
+      - header title/subtitle
+      - push/email/sound/vibration tile subtitles + push enable/disable snackbars
+      - notification category section labels and count summary
+      - category tile labels/subtitles
+      - safety-alerts copy
+      - quiet-hours section title/tile title/disabled label
+      - device-settings info card text
+    - Updated quiet-hour time formatting to use `MaterialLocalizations.formatTimeOfDay(...)` for locale-aware time display.
+  - `lib/l10n/app_en.arb`
+    - Added new notification-settings localization keys and placeholder metadata.
+  - `lib/l10n/app_en_XA.arb`
+    - Added pseudo-locale variants for new notification-settings keys.
+  - `lib/l10n/generated/app_localizations.dart`
+  - `lib/l10n/generated/app_localizations_*.dart` (all locale generated files updated)
+    - Regenerated localization accessors.
+  - `test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart` (new)
+    - Added targeted widget test validating localized category/quiet-hours section labels render correctly.
+  - `docs/TODO_SETTINGS_UI.md`
+    - Marked `SETUI-003` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Notifications settings screen copy is now localization-backed, with locale-aware quiet-hour time formatting and targeted widget verification.
+- **Verification:**
+  - `flutter gen-l10n` (pass; expected untranslated-language warnings from baseline)
+  - `flutter analyze lib/features/settings/presentation/screens/notifications_settings_screen.dart lib/features/settings/presentation/screens/settings_screen.dart test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/notifications_settings_screen.dart test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SETTINGS_UI.md` with `SETUI-004` (privacy settings localization sweep).
+
+### Task #124 — TODO_SETTINGS_UI Continue: Implement SETUI-004 Privacy Copy Localization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SETUI-004` by localizing hardcoded user-facing copy in `PrivacySettingsScreen`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/settings/presentation/screens/privacy_settings_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localization files, `/Users/ace/my_first_project/test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart`, and required workflow docs.
+- **Constraints:**
+  - Preserve current privacy toggle/bulk-action behavior and screen layout.
+  - Add localization keys only for missing copy; reuse existing keys where available.
+  - Add targeted widget coverage for privacy section labels.
+  - Regenerate l10n and pass docs sync guard.
+- **Expected Outcome:** Privacy screen section/tile copy, sensitive badge, info note, and batch-action snackbars are all localization-backed.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SETTINGS_UI.md` with `SETUI-004`.
+- **In Progress:** Replaced hardcoded privacy screen strings with l10n keys and added missing ARB keys.
+- **Completed:** Regenerated localization output, added targeted widget test coverage, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/privacy_settings_screen.dart`
+    - Replaced hardcoded copy with `context.l10n` keys across header, section headers, tile titles/subtitles, sensitive badge, info note, and bulk-action snackbars.
+    - Switched popup menu labels from direct `AppLocalizations.of(context)` use to `context.l10n` extension usage.
+  - `lib/l10n/app_en.arb`
+    - Added privacy-settings localization keys for all migrated strings.
+  - `lib/l10n/app_en_XA.arb`
+    - Added pseudo-locale variants for new privacy-settings keys.
+  - `lib/l10n/generated/app_localizations.dart`
+  - `lib/l10n/generated/app_localizations_*.dart` (all locale generated files updated)
+    - Regenerated localization getters for new privacy keys.
+  - `test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart` (new)
+    - Added targeted widget test validating localized privacy section titles with `en_XA` pseudo-locale.
+  - `docs/TODO_SETTINGS_UI.md`
+    - Marked `SETUI-004` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Privacy settings screen copy is now localization-backed and covered by targeted localization widget testing.
+- **Verification:**
+  - `flutter gen-l10n` (pass; expected untranslated-language warnings from project baseline)
+  - `flutter analyze lib/features/settings/presentation/screens/privacy_settings_screen.dart test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/privacy_settings_screen.dart test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SETTINGS_UI.md` with `SETUI-005` (account actions settings localization sweep).
+
+### Task #125 — TODO_SETTINGS_UI Continue: Implement SETUI-005 Account Actions Copy Localization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SETUI-005` by localizing hardcoded user-facing copy in `AccountActionsSettingsScreen`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/settings/presentation/screens/account_actions_settings_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localization files, `/Users/ace/my_first_project/test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart`, and required workflow docs.
+- **Constraints:**
+  - Preserve account actions behavior (navigation, data export, password/deactivation/deletion flows).
+  - Localize section/action labels, descriptions, and dialog/snackbar copy with placeholders where needed.
+  - Add targeted widget coverage for localized section/action labels.
+  - Regenerate l10n output and pass docs sync guard.
+- **Expected Outcome:** Account actions settings screen and related dialog/snackbar copy are localization-backed and regression-covered.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SETTINGS_UI.md` with `SETUI-005`.
+- **In Progress:** Replaced hardcoded account-actions copy with l10n keys across screen sections, dialogs, and feedback messages.
+- **Completed:** Regenerated localization outputs, added targeted widget coverage, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/account_actions_settings_screen.dart`
+    - Replaced hardcoded copy with localization getters across:
+      - header and section titles
+      - action tile labels/subtitles
+      - deactivation/deletion info boxes
+      - export/password/deactivate/delete dialog copy and bullet lists
+      - validation messages and success/error snackbars
+      - dynamic date/email/days/percent strings via placeholder-backed localization methods
+    - Updated reason-dialog handling to use localized “Other reason” label/hint.
+  - `lib/l10n/app_en.arb`
+    - Added `accountActions*` keys for account-actions screen/dialog/snackbar text, including placeholder metadata.
+  - `lib/l10n/app_en_XA.arb`
+    - Added pseudo-locale variants for new `accountActions*` keys.
+  - `lib/l10n/generated/app_localizations.dart`
+  - `lib/l10n/generated/app_localizations_*.dart` (all locale generated files updated)
+    - Regenerated localization getters for new keys.
+  - `test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart` (new)
+    - Added targeted widget test validating localized section/action labels under `en_XA` locale.
+  - `docs/TODO_SETTINGS_UI.md`
+    - Marked `SETUI-005` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Account actions settings copy is localization-backed end-to-end (screen + dialogs/snackbars) with targeted widget localization coverage.
+- **Verification:**
+  - `flutter gen-l10n` (pass; expected untranslated-language warnings from baseline)
+  - `flutter analyze lib/features/settings/presentation/screens/account_actions_settings_screen.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/account_actions_settings_screen.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** `TODO_SETTINGS_UI.md` action list is now fully completed; continue with next backlog requested by user.
+
+### Task #126 — TODO_SECURITY_FRONTEND Start: Implement SECFE-001 Account Security Copy Localization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start on TODO_SECURITY_FRONTEND.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_SECURITY_FRONTEND.md` with actionable items and complete the first safe security-frontend remediation.
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/account_security_settings_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localization files, `/Users/ace/my_first_project/test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart`, and required workflow docs.
+- **Constraints:**
+  - Preserve account security behavior (link/unlink provider flows, biometric toggle logic, route navigation).
+  - Localize user-facing copy only; avoid changing security state logic.
+  - Add focused localization widget coverage.
+  - Regenerate l10n and pass docs sync guard.
+- **Expected Outcome:** Security frontend TODO is actionable and account security settings copy is localization-backed.
+
+**Status Updates:**
+- **Received:** Started `TODO_SECURITY_FRONTEND.md` from placeholder state.
+- **In Progress:** Rebuilt TODO action list and replaced hardcoded account-security UI copy/messages with localization keys.
+- **Completed:** Added targeted localization test, regenerated localization output, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_SECURITY_FRONTEND.md`
+    - Replaced placeholder with actionable `SECFE-001..SECFE-005` backlog.
+    - Marked `SECFE-001` completed.
+  - `lib/features/settings/presentation/screens/account_security_settings_screen.dart`
+    - Localized hardcoded account-security copy across:
+      - header/title/subtitle
+      - email/phone status labels
+      - security tile titles/subtitles
+      - biometric lock title/subtitle (placeholder-based)
+      - linked accounts provider/status/action labels
+      - provider link/unlink success/failure snackbars (placeholder-based)
+      - security tips card copy
+    - Migrated direct `AppLocalizations.of(context)` usage to `context.l10n` extension usage.
+  - `lib/l10n/app_en.arb`
+    - Added `settingsSecurity*` localization keys and placeholder metadata for provider/biometric strings.
+  - `lib/l10n/app_en_XA.arb`
+    - Added pseudo-locale variants for new `settingsSecurity*` keys.
+  - `lib/l10n/generated/app_localizations.dart`
+  - `lib/l10n/generated/app_localizations_*.dart` (all locale generated files updated)
+    - Regenerated localization getters.
+  - `test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart` (new)
+    - Added targeted widget test validating localized account-security section labels under `en_XA` locale.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Security frontend TODO is now actionable and `AccountSecuritySettingsScreen` copy is localization-backed with regression coverage.
+- **Verification:**
+  - `flutter gen-l10n` (pass; expected untranslated-language warnings from project baseline)
+  - `flutter analyze lib/features/settings/presentation/screens/account_security_settings_screen.dart test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart test/account_security_settings_screen_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart test/account_security_settings_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md lib/features/settings/presentation/screens/account_security_settings_screen.dart test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-002` (chat safety report/block copy localization sweep).
+
+### Task #127 — TODO_SECURITY_FRONTEND Continue: Implement SECFE-002 Chat Safety Sheet Localization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SECFE-002` by localizing hardcoded chat safety report/block sheet and feedback copy in `chat_screen.dart`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/chat/presentation/screens/chat_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localizations, `/Users/ace/my_first_project/test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart`, `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, and workflow docs.
+- **Constraints:**
+  - Preserve chat safety behavior and backend-facing report reason payloads.
+  - Localize user-facing report/block copy only.
+  - Add focused widget localization coverage.
+  - Regenerate l10n output and pass docs sync guard.
+- **Expected Outcome:** Chat report sheet labels/descriptions and block/report feedback snackbars are localization-backed with regression coverage.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SECURITY_FRONTEND.md` with `SECFE-002`.
+- **In Progress:** Migrated report/block chat safety copy to l10n keys and extracted a testable report-sheet widget.
+- **Completed:** Regenerated localization output, added targeted widget test, updated task docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/chat/presentation/screens/chat_screen.dart`
+    - Added `ChatReportReasonOption` mapping helpers to separate localized labels from stable reason codes.
+    - Added `ChatReportSheetContent` widget and used it from `_showReportSheet(...)`.
+    - Localized report sheet subtitle/reason labels and report/block feedback snackbars.
+    - Localized custom-report dialog hint and submit feedback copy.
+  - `lib/l10n/app_en.arb`
+    - Added `chatReport*` and `chatSafety*` keys for report reason labels, report feedback, details hint, and block/unblock snackbars.
+  - `lib/l10n/app_en_XA.arb`
+    - Added pseudo-locale variants for new chat safety localization keys.
+  - `lib/l10n/generated/app_localizations.dart`
+  - `lib/l10n/generated/app_localizations_*.dart` (all locale generated files updated)
+    - Regenerated localization accessors for new keys.
+  - `test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart` (new)
+    - Added targeted widget test asserting localized report-sheet labels in `en_XA` locale.
+  - `docs/TODO_SECURITY_FRONTEND.md`
+    - Marked `SECFE-002` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Chat safety report/block copy is now localization-backed and regression-covered with a focused widget test.
+- **Verification:**
+  - `dart format lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart` (pass)
+  - `flutter gen-l10n` (pass; expected untranslated-language warnings from project baseline)
+  - `flutter analyze lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart` (pass)
+  - `flutter test test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-003` (call safety controls/report copy localization sweep).
+
+### Task #128 — TODO_SECURITY_FRONTEND Continue: Implement SECFE-003 Call Safety Controls Localization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SECFE-003` by localizing hardcoded call safety controls/report-sheet copy in `call_safety_controls.dart` and `call_screen.dart`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/calls/presentation/widgets/call_safety_controls.dart`, `/Users/ace/my_first_project/lib/features/calls/presentation/screens/call_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localization files, `/Users/ace/my_first_project/test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart`, `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, and workflow docs.
+- **Constraints:**
+  - Preserve call safety behavior and backend report-reason payload values.
+  - Localize user-facing call safety/report copy only.
+  - Add focused widget localization coverage.
+  - Regenerate l10n output and pass docs sync guard.
+- **Expected Outcome:** Call safety tip/action labels, post-call safety prompt copy, and call report flow feedback strings are localization-backed with regression coverage.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SECURITY_FRONTEND.md` with `SECFE-003`.
+- **In Progress:** Localized hardcoded call safety/report copy and replaced raw report reason strings with stable-code + localized-label mapping.
+- **Completed:** Added targeted widget localization test, regenerated l10n, updated task docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/calls/presentation/widgets/call_safety_controls.dart`
+    - Localized safety tip fallback name/title/body/tooltip copy.
+    - Localized report/block action labels (`Report`/`Reported`, `Block`/`Blocked`).
+  - `lib/features/calls/presentation/screens/call_screen.dart`
+    - Added `CallReportReasonOption` mapping helpers to keep backend reason codes stable while localizing reason labels.
+    - Localized post-call safety prompt title/subtitle.
+    - Localized block success fallback and call report sheet/dialog copy (title, reasons, hint, submit snackbars).
+  - `lib/l10n/app_en.arb`
+    - Added `callSafety*` keys for call safety tip and post-call prompt copy.
+  - `lib/l10n/app_en_XA.arb`
+    - Added pseudo-locale variants for new `callSafety*` keys.
+  - `lib/l10n/generated/app_localizations.dart`
+  - `lib/l10n/generated/app_localizations_*.dart` (all locale generated files updated)
+    - Regenerated localization accessors for new keys.
+  - `test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart` (new)
+    - Added targeted widget test asserting localized call safety controls copy in `en_XA` locale.
+  - `docs/TODO_SECURITY_FRONTEND.md`
+    - Marked `SECFE-003` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Call safety controls/report flow copy is localization-backed while preserving existing call safety behavior and report reason payloads.
+- **Verification:**
+  - `dart format lib/features/calls/presentation/widgets/call_safety_controls.dart lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart` (pass)
+  - `flutter gen-l10n` (pass; expected untranslated-language warnings from project baseline)
+  - `flutter analyze lib/features/calls/presentation/widgets/call_safety_controls.dart lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart` (pass)
+  - `flutter test test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md lib/features/calls/presentation/widgets/call_safety_controls.dart lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-004` (profile block/report dialog localization sweep).
+
+### Task #129 — TODO_SECURITY_FRONTEND Continue: Implement SECFE-004 Profile Safety Dialog Localization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SECFE-004` by localizing hardcoded profile block/report dialog labels and safety feedback snackbars in `other_user_profile_screen.dart`.
+- **Scope:** `/Users/ace/my_first_project/lib/features/profile/presentation/screens/other_user_profile_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localization files, `/Users/ace/my_first_project/test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart`, `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, and workflow docs.
+- **Constraints:**
+  - Preserve profile safety behavior and backend report reason payloads.
+  - Localize block/report dialog and related status feedback only.
+  - Add focused localization widget coverage.
+  - Regenerate l10n output and pass docs sync guard.
+- **Expected Outcome:** Profile block/report actions use localization keys for menu labels, report-sheet reason labels, and feedback snackbars.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SECURITY_FRONTEND.md` with `SECFE-004`.
+- **In Progress:** Replaced hardcoded profile safety strings and introduced stable reason-code + localized-label mapping for report reasons.
+- **Completed:** Added targeted widget localization test, regenerated l10n output, updated docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/presentation/screens/other_user_profile_screen.dart`
+    - Added `ProfileReportReasonOption` mapping helpers to keep backend report reason codes stable while localizing labels.
+    - Added `ProfileReportSheetContent` widget for testable localized report reason UI.
+    - Localized block/unblock action label in options menu and block/unblock feedback snackbars.
+    - Localized “sign in again” safety error message for block action.
+    - Replaced hardcoded report sheet title/reason labels with localization-backed strings.
+  - `lib/l10n/app_en.arb`
+    - Added `profileReport*` keys for profile report sheet title and missing reason labels.
+  - `lib/l10n/app_en_XA.arb`
+    - Added pseudo-locale variants for new `profileReport*` keys.
+  - `lib/l10n/generated/app_localizations.dart`
+  - `lib/l10n/generated/app_localizations_*.dart` (all locale generated files updated)
+    - Regenerated localization accessors for new keys.
+  - `test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart` (new)
+    - Added targeted widget test asserting localized profile report-sheet labels in `en_XA` locale.
+  - `docs/TODO_SECURITY_FRONTEND.md`
+    - Marked `SECFE-004` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile safety block/report dialog copy and feedback strings are now localization-backed while preserving existing safety action behavior and report reason payloads.
+- **Verification:**
+  - `dart format lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart` (pass)
+  - `flutter gen-l10n` (pass; expected untranslated-language warnings from project baseline)
+  - `flutter analyze lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-005` (security safety localization regression coverage sweep).
+
+### Task #130 — TODO_SECURITY_FRONTEND Continue: Implement SECFE-005 Security Localization Regression Suite
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SECFE-005` by adding deterministic regression coverage for localized security safety labels across security settings and report/block flows.
+- **Scope:** `/Users/ace/my_first_project/test/features/security/security_localization_regression_test.dart`, existing security localization tests under `test/features/{settings,chat,calls,profile}/...`, `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, and workflow docs.
+- **Constraints:**
+  - Keep coverage focused on security localization behavior only.
+  - Assert both stable backend reason codes and localization-backed labels.
+  - Use deterministic pseudo-locale (`en_XA`) assertions.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Security safety localization regressions are guarded by a focused test suite spanning settings + chat/call/profile report/block surfaces.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SECURITY_FRONTEND.md` with `SECFE-005`.
+- **In Progress:** Audited existing security localization tests and added missing deterministic coverage for report reason mappings.
+- **Completed:** Added consolidated regression test, ran full security localization test set, updated docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `test/features/security/security_localization_regression_test.dart` (new)
+    - Added consolidated regression test asserting:
+      - stable backend reason-code mappings for chat/call/profile report flows
+      - localized label mappings under `en_XA` pseudo-locale
+  - `docs/TODO_SECURITY_FRONTEND.md`
+    - Marked `SECFE-005` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Security localization coverage now includes deterministic regression checks for stable report reason payloads plus localized labels across chat/call/profile flows, and the full security localization widget suite passes.
+- **Verification:**
+  - `dart format test/features/security/security_localization_regression_test.dart` (pass)
+  - `flutter analyze test/features/security/security_localization_regression_test.dart` (pass)
+  - `flutter test test/features/security/security_localization_regression_test.dart` (pass)
+  - `flutter analyze test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart test/features/security/security_localization_regression_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart test/features/security/security_localization_regression_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md test/features/security/security_localization_regression_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** `TODO_SECURITY_FRONTEND.md` action list is now fully completed; proceed to next requested backlog.
+
+### Task #131 — TODO_SECURITY_BACKEND Start: Implement SECBE-001 REST Safety Endpoint Hardening
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TODO_SECURITY_BACKEND
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_SECURITY_BACKEND.md` with actionable security-backend items and complete the first concrete remediation (`SECBE-001`).
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/safetyValidation.test.js`, and required workflow docs.
+- **Constraints:**
+  - Preserve current endpoint contracts where possible while tightening safety validation.
+  - Keep changes focused on security validation/error handling and idempotency.
+  - Add targeted backend tests for new validation logic.
+  - Pass functions build/tests plus docs sync guard.
+- **Expected Outcome:** Security backend TODO is actionable and REST safety endpoints reject malformed/self-target requests with structured errors.
+
+**Status Updates:**
+- **Received:** Started `TODO_SECURITY_BACKEND.md` from placeholder state.
+- **In Progress:** Rebuilt backend security TODO backlog and implemented centralized safety REST validation helpers + endpoint hardening.
+- **Completed:** Added targeted helper tests, validated functions build/test passes, updated docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_SECURITY_BACKEND.md`
+    - Replaced placeholder content with actionable backlog (`SECBE-001..SECBE-005`).
+    - Marked `SECBE-001` completed.
+  - `functions/src/index.ts`
+    - Added centralized safety REST validator helpers:
+      - `validateSafetyTargetId(...)`
+      - `assertNotSelfSafetyAction(...)`
+      - `validateSafetyReportReason(...)`
+      - `validateOptionalSafetyDescription(...)`
+    - Hardened REST safety endpoints:
+      - `/v1/users/block`: self-target rejection, target existence check, deterministic idempotent block doc ID (`{blockerId}_{blockedId}`), mapped `HttpsError` responses.
+      - `/v1/users/unblock`: self-target rejection, deterministic delete + legacy random-ID cleanup query, mapped `HttpsError` responses.
+      - `/v1/users/report`: self-target rejection, sanitized/length-bounded reason+description, target existence check, mapped `HttpsError` responses.
+    - Exposed new safety validator helpers via `__test__helpers`.
+  - `functions/test/safetyValidation.test.js` (new)
+    - Added focused tests for safety REST validation helpers (target ID validation, self-action rejection, reason sanitization/min-length, description sanitization/max-length).
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Backend security TODO now has actionable items, and REST safety endpoints are hardened against self-target abuse, weak payloads, and duplicate block record creation while returning structured validation errors.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/safetyValidation.test.js` (pass)
+  - `cd functions && npx mocha --exit test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/src/index.ts functions/test/safetyValidation.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SECURITY_BACKEND.md` with `SECBE-002` (App Check/auth parity for high-risk REST auth routes).
+
+### Task #132 — TODO_SECURITY_BACKEND Continue: Implement SECBE-002 REST Auth App Check Parity
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SECBE-002` by adding App Check parity for high-risk REST auth routes.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/appCheckRest.test.js`, `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, and workflow docs.
+- **Constraints:**
+  - Keep production enforcement strict and development behavior monitor-only.
+  - Apply middleware only to high-risk auth REST routes.
+  - Add deterministic tests for token extraction/evaluation logic.
+  - Pass functions build/tests and docs sync guard.
+- **Expected Outcome:** High-risk REST auth routes follow App Check policy parity with callables and reject missing/invalid App Check tokens in production runtime.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SECURITY_BACKEND.md` with `SECBE-002`.
+- **In Progress:** Added reusable REST App Check evaluator/middleware and applied it to high-risk auth routes.
+- **Completed:** Added targeted App Check helper tests, ran functions build + targeted mocha suite, updated docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added REST App Check helper utilities:
+      - `getRestAppCheckToken(...)`
+      - `evaluateRestAppCheck(...)`
+      - `appCheckRestMiddleware(...)`
+    - Applied `appCheckRestMiddleware(...)` to high-risk auth routes:
+      - `/v1/auth/otp/send`
+      - `/v1/auth/otp/verify`
+      - `/v1/auth/token/refresh`
+      - `/v1/auth/logout`
+      - `/v1/auth/password/change`
+    - Exposed new App Check helpers via `__test__helpers`.
+  - `functions/test/appCheckRest.test.js` (new)
+    - Added focused tests covering App Check token extraction and enforcement outcomes (missing/valid/invalid token, enforce on/off).
+  - `docs/TODO_SECURITY_BACKEND.md`
+    - Marked `SECBE-002` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. High-risk REST auth routes now enforce App Check in production runtime and operate in monitor-only mode in development, matching callable policy intent.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/appCheckRest.test.js test/safetyValidation.test.js test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/src/index.ts functions/test/appCheckRest.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SECURITY_BACKEND.md` with `SECBE-003` (safety reason taxonomy normalization across REST/callable).
+
+### Task #133 — TODO_SECURITY_BACKEND Continue: Implement SECBE-003 Safety Reason Taxonomy Normalization
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SECBE-003` by unifying safety report reason taxonomy between REST and callable report APIs.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/reportReasonNormalization.test.js`, `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, and workflow docs.
+- **Constraints:**
+  - Preserve client-facing reason text while adding canonical backend category normalization.
+  - Reuse one shared normalization path across REST and callable report flows.
+  - Add deterministic tests for mapping behavior.
+  - Pass functions build/tests and docs sync guard.
+- **Expected Outcome:** REST and callable report writes persist consistent canonical reason categories while retaining normalized reason text.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SECURITY_BACKEND.md` with `SECBE-003`.
+- **In Progress:** Added shared reason normalization helpers and wired both report surfaces to the same taxonomy mapping.
+- **Completed:** Added focused normalization tests, ran functions build + targeted mocha suites, updated docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added shared reason taxonomy helpers:
+      - `normalizeReportReasonToken(...)`
+      - `inferReportCategoryFromReason(...)`
+      - `canonicalizeSafetyReportReason(...)`
+    - Updated callable `reportUser` to use shared normalization and persist:
+      - `reason` (sanitized text)
+      - `reasonCategory` (canonical enum)
+      - `safetyFlags.lastReasonCategory`
+    - Updated REST `/v1/users/report` to use shared normalization and persist `reasonCategory`.
+    - Exposed taxonomy helpers via `__test__helpers`.
+  - `functions/test/reportReasonNormalization.test.js` (new)
+    - Added deterministic tests for category mapping and canonicalization behavior across typical chat/call/profile reason labels.
+  - `docs/TODO_SECURITY_BACKEND.md`
+    - Marked `SECBE-003` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Report reason taxonomy is now normalized consistently across REST and callable report APIs while preserving reason text for moderation context.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/reportReasonNormalization.test.js test/appCheckRest.test.js test/safetyValidation.test.js test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/src/index.ts functions/test/reportReasonNormalization.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SECURITY_BACKEND.md` with `SECBE-004` (structured security audit logging for safety REST actions).
+
+### Task #134 — TODO_SECURITY_BACKEND Continue: Implement SECBE-004 Structured Safety REST Audit Logging
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SECBE-004` by adding structured audit logging for safety REST actions.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/safetyAuditLogging.test.js`, `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, and workflow docs.
+- **Constraints:**
+  - Log consistent metadata for `block`, `unblock`, and `report` REST actions.
+  - Capture actor/target/outcome/route/timestamp and retain low-risk best-effort logging behavior.
+  - Add deterministic test coverage for audit logging helpers.
+  - Pass functions build/tests and docs sync guard.
+- **Expected Outcome:** Safety REST actions emit consistent audit entries for success, rate-limited, and error outcomes without regressing endpoint behavior.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SECURITY_BACKEND.md` with `SECBE-004`.
+- **In Progress:** Added reusable safety REST audit logging helpers and integrated them into safety REST route handlers.
+- **Completed:** Added focused audit logging tests, ran functions build + targeted mocha suite, updated docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added structured safety audit helpers:
+      - `getRestClientIp(...)`
+      - `safetyAuditOutcomeFromStatusCode(...)`
+      - `logSafetyRestAudit(...)`
+    - Integrated audit logging into safety REST routes:
+      - `/v1/users/block`
+      - `/v1/users/unblock`
+      - `/v1/users/report`
+    - Safety routes now log structured metadata for success, rate-limit, and error outcomes.
+    - Exposed safety audit helpers via `__test__helpers`.
+  - `functions/test/safetyAuditLogging.test.js` (new)
+    - Added deterministic tests for client IP extraction, outcome classification, structured entry payload writing, and fail-open writer behavior.
+  - `docs/TODO_SECURITY_BACKEND.md`
+    - Marked `SECBE-004` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Safety REST actions now write consistent, structured audit metadata (`actorUid`, `targetUid`, `outcome`, `route`, `statusCode`, `createdAt`) to support moderation and abuse tracing.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/safetyAuditLogging.test.js test/reportReasonNormalization.test.js test/appCheckRest.test.js test/safetyValidation.test.js test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/src/index.ts functions/test/safetyAuditLogging.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_SECURITY_BACKEND.md` with `SECBE-005` (backend safety/rate-limit regression boundary suite).
+
+### Task #135 — TODO_SECURITY_BACKEND Continue: Implement SECBE-005 Safety + Rate-Limit Regression Suite
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `SECBE-005` by adding regression coverage for backend safety validation and rate-limit boundary responses.
+- **Scope:** `/Users/ace/my_first_project/functions/test/safetyRestRegression.test.js`, `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, and workflow docs.
+- **Constraints:**
+  - Add endpoint-level tests for self-target rejection, invalid payload rejection, and rate-limit response contracts.
+  - Keep production behavior unchanged (test-only hardening).
+  - Pass functions build/tests and docs sync guard.
+- **Expected Outcome:** Deterministic regression suite protects safety REST boundary behavior and documents completion in security backend TODO/workflow docs.
+
+**Status Updates:**
+- **Received:** Continued `TODO_SECURITY_BACKEND.md` with `SECBE-005`.
+- **In Progress:** Added dedicated safety REST endpoint regression test harness with Firestore/auth mocks and boundary assertions.
+- **Completed:** Ran build + targeted mocha suites, updated TODO/workboard/chat docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/test/safetyRestRegression.test.js` (new)
+    - Added endpoint-level regressions covering:
+      - self-target rejection (`POST /v1/users/block`)
+      - invalid payload rejection (`POST /v1/users/report` with invalid reason)
+      - rate-limit response structure at boundary (`POST /v1/users/unblock`)
+    - Added assertions for machine-readable error code mapping and structured safety audit log side effects.
+  - `docs/TODO_SECURITY_BACKEND.md`
+    - Marked `SECBE-005` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Backend safety REST boundary behavior now has explicit regression protection for validation and rate-limit contracts.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/safetyRestRegression.test.js` (pass)
+  - `cd functions && npx mocha --exit test/safetyAuditLogging.test.js test/reportReasonNormalization.test.js test/appCheckRest.test.js test/safetyValidation.test.js test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/test/safetyRestRegression.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** `TODO_SECURITY_BACKEND.md` module items are complete; proceed to the next user-requested backlog module.
+
+### Task #136 — TODO_STATE_MANAGEMENT Start: STMG-001 Realtime Cubit State Integrity
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TOD)_STATE_MANAGEMENT.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_STATE_MANAGEMENT.md` by converting placeholder content into actionable backlog items and completing the first high-impact item.
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/realtime_state_cubit.dart`, `/Users/ace/my_first_project/test/realtime_state_cubit_test.dart`, and workflow docs.
+- **Constraints:**
+  - Keep layering intact (state-layer fix without UI contract changes).
+  - Add deterministic tests for the state-management regression.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** State management TODO is actionable (`STMG-001..005`), and `STMG-001` is implemented and verified.
+
+**Status Updates:**
+- **Received:** Interpreted request as `TODO_STATE_MANAGEMENT.md` and loaded required collaboration docs.
+- **In Progress:** Replaced placeholder TODO content with concrete state-management action items and implemented `STMG-001` in chat realtime cubit.
+- **Completed:** Added focused cubit regression tests, ran targeted verification, updated docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_STATE_MANAGEMENT.md`
+    - Replaced placeholder with actionable state-management backlog entries `STMG-001..STMG-005`.
+    - Marked `STMG-001` as completed.
+  - `lib/features/chat/presentation/bloc/realtime_state_cubit.dart`
+    - Added dedupe guards for typing/presence/media updates.
+    - Added defensive immutable copy for typing set updates.
+  - `test/realtime_state_cubit_test.dart` (new)
+    - Added regressions for typing dedupe, immutable defensive copy semantics, and no-op emit suppression.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Chat realtime state handling now avoids mutable state leakage and redundant no-op emits, improving state integrity and rebuild behavior.
+- **Verification:**
+  - `dart format lib/features/chat/presentation/bloc/realtime_state_cubit.dart test/realtime_state_cubit_test.dart` (pass)
+  - `flutter analyze lib/features/chat/presentation/bloc/realtime_state_cubit.dart test/realtime_state_cubit_test.dart` (pass)
+  - `flutter test test/realtime_state_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/features/chat/presentation/bloc/realtime_state_cubit.dart test/realtime_state_cubit_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STATE_MANAGEMENT.md` with `STMG-002` (deep-equality normalization for collection-backed chat aggregate state).
+
+### Task #137 — TODO_STATE_MANAGEMENT Continue: STMG-002 Chat Aggregate Collection Semantics
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STMG-002` by normalizing collection-backed semantics in chat aggregate state.
+- **Scope:** `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/chat_state.dart`, `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/chat_bloc.dart`, `/Users/ace/my_first_project/test/chat_state_collection_semantics_test.dart`, `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, and workflow docs.
+- **Constraints:**
+  - Preserve chat UI behavior while hardening state immutability and equality stability.
+  - Keep changes focused to state-layer semantics.
+  - Add deterministic regression tests and pass targeted verification + docs sync guard.
+- **Expected Outcome:** Chat aggregate state uses defensive immutable collection snapshots and has explicit regression coverage for collection equality semantics.
+
+**Status Updates:**
+- **Received:** Continued `TODO_STATE_MANAGEMENT.md` with `STMG-002`.
+- **In Progress:** Hardened `ChatState` collection fields and updated ChatBloc initial/reset state creation for non-const normalized state construction.
+- **Completed:** Added targeted collection semantics tests, ran analyze/tests, updated TODO/workflow docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/chat/presentation/bloc/chat_state.dart`
+    - Normalized collection-backed fields (`messages`, `typingUserIds`, `failedMessages`) to defensive immutable snapshots at construction.
+    - Preserved existing public API and copy semantics while hardening mutability boundaries.
+  - `lib/features/chat/presentation/bloc/chat_bloc.dart`
+    - Updated initial/reset state construction from `const ChatState()` to `ChatState()` for normalized runtime snapshots.
+  - `test/chat_state_collection_semantics_test.dart` (new)
+    - Added regressions verifying:
+      - defensive immutable snapshot behavior against external collection mutation
+      - stable value-based equality for map/set fields regardless of insertion order
+  - `docs/TODO_STATE_MANAGEMENT.md`
+    - Marked `STMG-002` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Chat aggregate state now enforces immutable collection boundaries and deterministic value-based semantics for critical collection fields.
+- **Verification:**
+  - `dart format lib/features/chat/presentation/bloc/chat_state.dart lib/features/chat/presentation/bloc/chat_bloc.dart test/chat_state_collection_semantics_test.dart` (pass)
+  - `flutter analyze lib/features/chat/presentation/bloc/chat_state.dart lib/features/chat/presentation/bloc/chat_bloc.dart test/chat_state_collection_semantics_test.dart` (pass)
+  - `flutter test test/chat_state_collection_semantics_test.dart test/chat_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/features/chat/presentation/bloc/chat_state.dart lib/features/chat/presentation/bloc/chat_bloc.dart test/chat_state_collection_semantics_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STATE_MANAGEMENT.md` with `STMG-003` (async-safe emission guards for long-running state handlers).
+
+### Task #138 — TODO_STATE_MANAGEMENT Continue: STMG-003 Async-Safe Emission Guards
+**Date:** 2026-03-07
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STMG-003` by preventing stale async state emissions after logout/reset/close in long-running state handlers.
+- **Scope:** `/Users/ace/my_first_project/lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart`, `/Users/ace/my_first_project/lib/features/social/presentation/bloc/date_ideas_cubit.dart`, `/Users/ace/my_first_project/lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart`, `/Users/ace/my_first_project/test/state_async_emission_guards_test.dart`, `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, and workflow docs.
+- **Constraints:**
+  - Keep behavior-compatible state logic while adding lifecycle-safe async guards.
+  - Cover discovery + social state handlers.
+  - Add deterministic regression tests for logout/close race suppression.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Async completions from stale operations are ignored after logout/reset/close, with regression coverage that locks behavior.
+
+**Status Updates:**
+- **Received:** Continued `TODO_STATE_MANAGEMENT.md` with `STMG-003`.
+- **In Progress:** Added epoch-based async guarding in long-running `WeeklyPicksCubit`, `DateIdeasCubit`, and `CompatibilityQuizCubit` handlers.
+- **Completed:** Added race-condition regression tests, ran targeted analyze/tests, updated docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart`
+    - Added async epoch guards for `loadPicks(...)` and stream updates.
+    - Invalidated in-flight operations on reset/close.
+  - `lib/features/social/presentation/bloc/date_ideas_cubit.dart`
+    - Added async epoch guards for `loadIdeas(...)`, `getPersonalizedSuggestions(...)`, and async save/remove/send flows.
+    - Invalidated in-flight operations on reset/close.
+  - `lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart`
+    - Added async epoch guards for `startQuiz(...)` and `completeQuiz(...)`.
+    - Invalidated in-flight operations on reset/close.
+  - `test/state_async_emission_guards_test.dart` (new)
+    - Added deterministic race tests validating stale async completions are ignored after logout for:
+      - `WeeklyPicksCubit`
+      - `DateIdeasCubit`
+      - `CompatibilityQuizCubit`
+    - Added close-race test ensuring no throw when async completion resolves after `DateIdeasCubit.close()`.
+  - `docs/TODO_STATE_MANAGEMENT.md`
+    - Marked `STMG-003` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Discovery/social async handlers now suppress stale emissions after lifecycle transitions, reducing post-close and post-logout race regressions.
+- **Verification:**
+  - `dart format lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart test/state_async_emission_guards_test.dart` (pass)
+  - `flutter analyze lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart test/state_async_emission_guards_test.dart` (pass)
+  - `flutter test test/state_async_emission_guards_test.dart` (pass)
+  - `flutter test test/state_async_emission_guards_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart test/state_async_emission_guards_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STATE_MANAGEMENT.md` with `STMG-004` (standardize auth-driven state reset contracts across feature cubits).
+
+### Task #139 — TODO_STATE_MANAGEMENT Continue: STMG-004 Auth-Driven Reset Contract Standardization
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STMG-004` by standardizing auth-driven state reset contracts across auth-subscribing feature cubits.
+- **Scope:** `/Users/ace/my_first_project/lib/core/utils/auth_state_reset_policy.dart`, auth-subscribing feature cubits in discovery/social/analytics, related cubit tests, `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, and workflow docs.
+- **Constraints:**
+  - Keep behavior compatible for normal logout while hardening account-switch safety.
+  - Reuse a shared contract helper instead of per-cubit ad hoc logic.
+  - Add deterministic cross-cubit regression coverage.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Auth-sensitive feature cubits share one explicit reset policy (logout + account switch), with tests covering reset behavior across cubits.
+
+**Status Updates:**
+- **Received:** Continued `TODO_STATE_MANAGEMENT.md` with `STMG-004`.
+- **In Progress:** Added shared auth transition reset policy and integrated it into auth-subscribing feature cubits.
+- **Completed:** Added cross-cubit reset regressions (logout + authenticated switch), ran targeted analyze/tests, updated TODO/workflow docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/utils/auth_state_reset_policy.dart` (new)
+    - Added shared `AuthStateResetPolicy` contract used by auth-sensitive cubits.
+    - Contract now resets on logout (`null` auth) and authenticated user-id switches, while ignoring same-user re-emissions.
+  - `lib/features/analytics/presentation/bloc/profile_insights_cubit.dart`
+    - Replaced inline logout-only auth listener with shared reset policy.
+  - `lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart`
+    - Replaced inline logout-only auth listener with shared reset policy.
+  - `lib/features/social/presentation/bloc/date_ideas_cubit.dart`
+    - Replaced inline logout-only auth listener with shared reset policy.
+  - `lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart`
+    - Replaced inline logout-only auth listener with shared reset policy.
+  - `lib/features/discovery/presentation/bloc/boost_cubit.dart`
+    - Replaced inline logout-only auth listener with shared reset policy.
+  - `test/auth_state_reset_policy_test.dart` (new)
+    - Added direct unit coverage for policy behavior (first-auth, logout, switch, same-user).
+  - `test/state_async_emission_guards_test.dart`
+    - Added cross-cubit authenticated user-switch reset tests for weekly picks/date ideas/compatibility quiz.
+  - `test/weekly_picks_cubit_test.dart`
+    - Added authenticated user-switch reset regression.
+  - `test/social_cubits_test.dart`
+    - Added authenticated user-switch reset regressions for date ideas and compatibility quiz.
+  - `test/profile_insights_cubit_test.dart`
+    - Added authenticated user-switch reset regression.
+  - `test/boost_cubit_test.dart`
+    - Added authenticated user-switch reset regression.
+  - `docs/TODO_STATE_MANAGEMENT.md`
+    - Marked `STMG-004` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Auth-sensitive feature cubits now enforce one explicit reset contract for both logout and account-switch transitions, reducing stale state leakage risk across modules.
+- **Verification:**
+  - `dart format lib/core/utils/auth_state_reset_policy.dart lib/features/analytics/presentation/bloc/profile_insights_cubit.dart lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart lib/features/discovery/presentation/bloc/boost_cubit.dart test/auth_state_reset_policy_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart test/profile_insights_cubit_test.dart test/boost_cubit_test.dart test/state_async_emission_guards_test.dart` (pass)
+  - `flutter analyze lib/core/utils/auth_state_reset_policy.dart lib/features/analytics/presentation/bloc/profile_insights_cubit.dart lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart lib/features/discovery/presentation/bloc/boost_cubit.dart test/auth_state_reset_policy_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart test/profile_insights_cubit_test.dart test/boost_cubit_test.dart test/state_async_emission_guards_test.dart` (pass)
+  - `flutter test test/state_async_emission_guards_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart test/profile_insights_cubit_test.dart` (pass)
+  - `flutter test test/auth_state_reset_policy_test.dart test/boost_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/core/utils/auth_state_reset_policy.dart lib/features/analytics/presentation/bloc/profile_insights_cubit.dart lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart lib/features/discovery/presentation/bloc/boost_cubit.dart test/auth_state_reset_policy_test.dart test/state_async_emission_guards_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart test/profile_insights_cubit_test.dart test/boost_cubit_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STATE_MANAGEMENT.md` with `STMG-005` (router composition lifecycle create/dispose regression coverage).
+
+### Task #140 — TODO_STATE_MANAGEMENT Continue: STMG-005 Router Lifecycle Regression Coverage
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STMG-005` by expanding deterministic lifecycle regression coverage for router creation/disposal paths and refresh-listener cleanup behavior.
+- **Scope:** `/Users/ace/my_first_project/lib/core/router_refresh_stream.dart`, `/Users/ace/my_first_project/test/router_refresh_stream_test.dart`, `/Users/ace/my_first_project/test/router_create_router_test.dart`, `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, and workflow docs.
+- **Constraints:**
+  - Keep router behavior stable while hardening lifecycle safety contracts.
+  - Add focused regression tests for create/use/dispose lifecycle and stale async completion after unmount.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Router lifecycle paths are covered by deterministic tests for post-dispose safety and async completion stability after tree disposal.
+
+**Status Updates:**
+- **Received:** Continued `TODO_STATE_MANAGEMENT.md` with `STMG-005`.
+- **In Progress:** Added router refresh-listener lifecycle hardening and wrote targeted router lifecycle regression tests.
+- **Completed:** Ran targeted analyze/tests, marked TODO complete, updated workflow docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/router_refresh_stream.dart`
+    - Hardened `GoRouterRefreshStream` lifecycle handling with dispose-guarded listener notifications.
+    - Made disposal defensive against repeated or late-use paths by tracking disposed state and nulling subscriptions.
+  - `test/router_refresh_stream_test.dart`
+    - Added regressions for:
+      - no notifications after dispose
+      - dispose idempotency behavior
+  - `test/router_create_router_test.dart`
+    - Added lifecycle regression coverage for:
+      - router-use-after-dispose contract (`router.go(...)` throws after `dispose`)
+      - chat deep-link async completion after unmount not surfacing lifecycle exceptions
+  - `docs/TODO_STATE_MANAGEMENT.md`
+    - Marked `STMG-005` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Router lifecycle regression coverage now explicitly protects create/use/dispose boundaries and stale deep-link async completion behavior after unmount.
+- **Verification:**
+  - `dart format lib/core/router_refresh_stream.dart test/router_refresh_stream_test.dart test/router_create_router_test.dart` (pass)
+  - `flutter analyze lib/core/router_refresh_stream.dart test/router_refresh_stream_test.dart test/router_create_router_test.dart` (pass)
+  - `flutter test test/router_refresh_stream_test.dart` (pass)
+  - `flutter test test/router_create_router_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/core/router_refresh_stream.dart test/router_refresh_stream_test.dart test/router_create_router_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** State management module backlog (`STMG-001..STMG-005`) is now complete for current scope.
+
+### Task #141 — TODO_REFACTOR_PROFILE Start: REFPROF-001 Profile Form Model Extraction
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TODO_REFACTOR_PROFILE.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFPROF-001` by extracting profile edit save/fallback transforms and validation rules from `ProfileEditScreen` into a dedicated form model.
+- **Scope:** `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_edit_screen.dart`, `/Users/ace/my_first_project/lib/features/profile/presentation/models/profile_edit_form_model.dart`, `/Users/ace/my_first_project/test/features/profile/presentation/models/profile_edit_form_model_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_PROFILE.md`, and workflow docs.
+- **Constraints:**
+  - Preserve existing profile edit behavior and save flow semantics.
+  - Move validation and payload transform logic out of widget tree into testable presentation model code.
+  - Add deterministic unit tests for validation rules and transform behavior.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** `ProfileEditScreen` delegates form validation and profile payload mapping to a dedicated form model with unit-test coverage.
+
+**Status Updates:**
+- **Received:** Started `TODO_REFACTOR_PROFILE.md` with `REFPROF-001`.
+- **In Progress:** Added `ProfileEditFormModel` and refactored `_fallbackProfile`/`_save` to delegate validation, user-id resolution, and profile payload mapping.
+- **Completed:** Added model unit tests, ran targeted verification, marked TODO task complete, and updated workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/presentation/models/profile_edit_form_model.dart` (new)
+    - Added `ProfileEditFormSnapshot` for immutable form-state snapshots.
+    - Added validation helpers for min photo rules and signed-in user-id requirement.
+    - Added user-id resolution helper with state/profile/auth fallback order.
+    - Added `buildFallbackProfile(...)` and `buildUpdatedProfile(...)` to centralize profile transforms previously in widget logic.
+  - `lib/features/profile/presentation/screens/profile_edit_screen.dart`
+    - Added `_buildFormSnapshot()` helper.
+    - Replaced inline `_fallbackProfile` mapping with `ProfileEditFormModel.buildFallbackProfile(...)`.
+    - Replaced inline `_save` validation and `Profile.copyWith(...)` transform logic with model-driven methods.
+  - `test/features/profile/presentation/models/profile_edit_form_model_test.dart` (new)
+    - Added unit tests for:
+      - selected/uploaded min photo validation rules
+      - user-id resolution and presence validation
+      - fallback profile mapping behavior
+      - updated profile trim/mapping/change-timestamp behavior
+  - `docs/TODO_REFACTOR_PROFILE.md`
+    - Marked `REFPROF-001` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile edit transform/validation logic is extracted into a dedicated form model with deterministic unit coverage, reducing widget responsibility and making save rules easier to test.
+- **Verification:**
+  - `dart format lib/features/profile/presentation/models/profile_edit_form_model.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/features/profile/presentation/models/profile_edit_form_model_test.dart` (pass)
+  - `flutter analyze lib/features/profile/presentation/models/profile_edit_form_model.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/features/profile/presentation/models/profile_edit_form_model_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/models/profile_edit_form_model_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_PROFILE.md lib/features/profile/presentation/models/profile_edit_form_model.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/features/profile/presentation/models/profile_edit_form_model_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_PROFILE.md` with `REFPROF-002` (Profile media service API simplification).
+
+### Task #142 — TODO_REFACTOR_PROFILE Continue: REFPROF-002 Media Service API Simplification
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFPROF-002` by normalizing profile media upload/delete/URL-migration APIs around explicit result types and consistent error handling.
+- **Scope:** `/Users/ace/my_first_project/lib/features/profile/domain/repositories/profile_media_repository.dart`, `/Users/ace/my_first_project/lib/features/profile/data/services/profile_media_service.dart`, `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_setup_screen.dart`, `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_edit_screen.dart`, `/Users/ace/my_first_project/test/profile_media_service_test.dart`, `/Users/ace/my_first_project/test/profile_media_service_hotspot_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_PROFILE.md`, and workflow docs.
+- **Constraints:**
+  - Remove throw/swallow/tuple ambiguity in media API paths.
+  - Keep existing profile edit/setup flows behavior-compatible where possible.
+  - Add/adjust deterministic unit tests for upload/delete/ensure branches under the new typed API.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Media operations return explicit typed outcomes for success/failure/fallback/skipped branches, and profile flows consume typed ensure results directly.
+
+**Status Updates:**
+- **Received:** Continued `TODO_REFACTOR_PROFILE.md` with `REFPROF-002`.
+- **In Progress:** Introduced typed media operation results and refactored `ProfileMediaService` methods to return explicit outcomes instead of throws/swallowed paths.
+- **Completed:** Adapted profile setup/edit callers, updated tests for typed outcomes, ran targeted verification, marked TODO complete, and updated workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/domain/repositories/profile_media_repository.dart`
+    - Added explicit media result/error types:
+      - `ProfileMediaUploadResult`
+      - `ProfileMediaDeleteResult`
+      - `ProfileMediaEnsureResult`
+      - `ProfileMediaError` + enums for typed error/issue classification
+    - Updated repository method signatures to return typed results.
+  - `lib/features/profile/data/services/profile_media_service.dart`
+    - Refactored `uploadPhoto` / `uploadVideo` to return `ProfileMediaUploadResult` instead of throwing/returning bare string.
+    - Refactored `deleteMedia` to return `ProfileMediaDeleteResult` instead of swallowing all failures.
+    - Refactored `ensureRemoteUrls` to return `ProfileMediaEnsureResult` with typed issue details for missing files, failed uploads, and fallback-recovered uploads.
+    - Added shared `_uploadFailureWithOptionalFallback(...)` helper for consistent fallback/error behavior.
+  - `lib/features/profile/presentation/screens/profile_setup_screen.dart`
+    - Removed `Result.guard` wrapping for media migration call and consumed typed ensure result directly.
+    - Added explicit onboarding guard: fail submit when resulting photo list is empty after migration.
+  - `lib/features/profile/presentation/screens/profile_edit_screen.dart`
+    - Removed `Result.guard` wrapping for media migration call and consumed typed ensure result directly.
+    - Kept existing post-upload minimum-photo validation behavior.
+  - `test/profile_media_service_test.dart`
+    - Updated tests to assert typed upload/delete outcomes and issue reporting behavior.
+  - `test/profile_media_service_hotspot_test.dart`
+    - Updated hotspot branch assertions for typed success/failure/fallback/delete semantics and ensure-result issue metadata.
+  - `docs/TODO_REFACTOR_PROFILE.md`
+    - Marked `REFPROF-002` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Profile media API paths now use explicit result contracts with normalized error/fallback handling, and regression tests cover upload/delete/ensure branches under the new contract.
+- **Verification:**
+  - `dart format lib/features/profile/domain/repositories/profile_media_repository.dart lib/features/profile/data/services/profile_media_service.dart lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/profile_media_service_test.dart test/profile_media_service_hotspot_test.dart` (pass)
+  - `flutter analyze lib/features/profile/domain/repositories/profile_media_repository.dart lib/features/profile/data/services/profile_media_service.dart lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/profile_media_service_test.dart test/profile_media_service_hotspot_test.dart` (pass)
+  - `flutter test test/profile_media_service_test.dart test/profile_media_service_hotspot_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_PROFILE.md lib/features/profile/domain/repositories/profile_media_repository.dart lib/features/profile/data/services/profile_media_service.dart lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/profile_media_service_test.dart test/profile_media_service_hotspot_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_PROFILE.md` with `REFPROF-003` (prompt/profile data migration cleanup).
+
+### Task #143 — TODO_REFACTOR_PROFILE Continue: REFPROF-003 Prompt/Profile Data Migration Completion
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFPROF-003` by removing deprecated prompt usage from active profile save/completeness flows and finishing prompt migration cleanup.
+- **Scope:** `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`, `/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/stub_auth_repository.dart`, `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/stub_profile_repository.dart`, `/Users/ace/my_first_project/lib/features/profile/domain/repositories/profile_repository.dart`, `/Users/ace/my_first_project/lib/features/profile/domain/usecases/save_profile_details.dart`, mapper/util/test updates, `/Users/ace/my_first_project/docs/TODO_REFACTOR_PROFILE.md`, and workflow docs.
+- **Constraints:**
+  - Preserve backward compatibility for legacy stored `prompts` payloads via migration fallback.
+  - Remove deprecated prompt access from active save and completeness logic.
+  - Add deterministic migration unit coverage.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Active profile flows use `profilePrompts` only, legacy prompt payloads are migrated safely, and prompt migration behavior is covered by tests.
+
+**Status Updates:**
+- **Received:** Continued `TODO_REFACTOR_PROFILE.md` with `REFPROF-003`.
+- **In Progress:** Removed deprecated prompt params from profile save contracts and extracted prompt migration/parsing helpers used by Firebase and stub repositories.
+- **Completed:** Updated completeness/mappers/tests, ran targeted verification, marked TODO complete, updated workflow docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/domain/repositories/profile_repository.dart`
+    - Removed deprecated `prompts` parameter from `saveProfileDetails(...)` and `saveProfileDetailsResult(...)`.
+  - `lib/features/profile/domain/usecases/save_profile_details.dart`
+    - Removed `prompts` from `SaveProfileDetailsParams` and repository forwarding.
+  - `lib/features/profile/data/repositories/impl/http_profile_repository.dart`
+    - Removed `prompts` from profile detail save method signatures.
+  - `lib/features/profile/data/repositories/impl/stub_profile_repository.dart`
+    - Removed `prompts` from save signatures.
+    - Added legacy prompt fallback migration into `profilePrompts` during user hydration.
+  - `lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`
+    - Removed deprecated prompt write-through and prompt parameter usage in save paths.
+    - Centralized prompt parsing/migration through helper module.
+    - Stopped writing legacy `prompts` back to Firestore profile map.
+  - `lib/features/profile/data/repositories/impl/profile_prompt_migration.dart` (new)
+    - Added reusable helpers for parsing legacy prompt answers, parsing structured profile prompts, and converting between representations.
+  - `lib/features/auth/data/repositories/impl/stub_auth_repository.dart`
+    - Migrates legacy serialized `prompts` into `profilePrompts` on hydration.
+    - Serializes `profilePrompts` instead of legacy `prompts`.
+  - `lib/shared/utils/profile_completeness.dart`
+    - Removed completeness fallback to deprecated `profile.prompts`; prompt progress now uses `profile.profilePrompts` only.
+  - `lib/core/network/mappers/profile_mapper.dart`
+  - `lib/core/network/mappers/discovery_mapper.dart`
+    - Removed deprecated `prompts: const []` assignments.
+  - `lib/data/repositories/fake_repositories.dart`
+  - `test/profile_bloc_test.dart`
+  - `test/deck_gating_test.dart`
+  - `test/theme_cubit_test.dart`
+    - Updated repository test/fake signatures for removed `prompts` save parameter.
+  - `test/features/profile/data/repositories/impl/profile_prompt_migration_test.dart` (new)
+    - Added unit tests for migration helper parsing and conversion behavior.
+  - `test/profile_completeness_test.dart`
+    - Updated prompt-completeness tests to assert only `profilePrompts` count.
+  - `test/stub_auth_repository_hotspot_test.dart`
+    - Added regression assertions for legacy prompt migration into `profilePrompts`.
+  - `docs/TODO_REFACTOR_PROFILE.md`
+    - Marked `REFPROF-003` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Deprecated prompt usage is removed from active profile flows while preserving legacy data migration compatibility through shared migration helpers.
+- **Verification:**
+  - `flutter test test/features/profile/data/repositories/impl/profile_prompt_migration_test.dart` (pass)
+  - `flutter test test/profile_completeness_test.dart test/stub_auth_repository_hotspot_test.dart` (pass)
+  - `flutter test test/profile_bloc_test.dart test/deck_gating_test.dart test/theme_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_PROFILE.md lib/features/profile/data/repositories/impl/profile_prompt_migration.dart lib/features/profile/data/repositories/impl/firebase_profile_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart lib/features/profile/data/repositories/impl/stub_profile_repository.dart lib/features/profile/data/repositories/impl/http_profile_repository.dart lib/features/profile/domain/repositories/profile_repository.dart lib/features/profile/domain/usecases/save_profile_details.dart lib/shared/utils/profile_completeness.dart lib/core/network/mappers/profile_mapper.dart lib/core/network/mappers/discovery_mapper.dart lib/data/repositories/fake_repositories.dart test/features/profile/data/repositories/impl/profile_prompt_migration_test.dart test/profile_completeness_test.dart test/stub_auth_repository_hotspot_test.dart test/profile_bloc_test.dart test/deck_gating_test.dart test/theme_cubit_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_PROFILE.md` with the next profile refactor item when queued.
+
+### Task #144 — TODO_REFACTOR_AUTH Start: REFAUTH-001 Auth Flow Orchestration Split
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFAUTH-001` by moving auth/session mutation orchestration out of auth UI presentation paths into reusable testable domain use cases.
+- **Scope:** `/Users/ace/my_first_project/lib/features/auth/domain/usecases/*`, `/Users/ace/my_first_project/lib/features/auth/presentation/bloc/auth_bloc.dart`, selected auth entry screens (`auth_gateway`, `login`, `sign_up`, `email_verification`, `terms_conditions`), auth tests, and workflow docs.
+- **Constraints:**
+  - Preserve existing auth flow behavior and router outcomes.
+  - Keep changes incremental and avoid risky auth contract rewrites.
+  - Add unit coverage for the new use-case facade and keep bloc state regressions covered.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Auth entry presentation code no longer performs direct token/session mutation calls via `AuthRepository`; mutation orchestration is routed through testable domain use cases.
+
+**Status Updates:**
+- **Received:** Started `TODO_REFACTOR_AUTH.md` with `REFAUTH-001`.
+- **In Progress:** Added domain auth flow use-case facade and refactored auth bloc + auth entry screens to call use cases instead of direct repository mutation calls.
+- **Completed:** Added facade unit tests, ran targeted analyze/tests, marked TODO complete, updated workflow docs, and passed docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/domain/usecases/auth_flow_use_cases.dart` (new)
+    - Added `AuthFlowUseCases` facade encapsulating auth/session mutation operations:
+      - bootstrap/session stream wiring helpers
+      - phone/email auth operations
+      - password/social login
+      - sign-up, verification checks, terms acceptance, refresh, sign-out
+      - normalized email/login identifier handling
+  - `lib/features/auth/domain/usecases/auth_use_cases.dart`
+    - Exported new auth flow use-case facade.
+  - `lib/features/auth/presentation/bloc/auth_bloc.dart`
+    - Refactored repository mutation calls to `AuthFlowUseCases`.
+    - Preserved existing bloc state transitions and analytics behavior.
+  - `lib/features/auth/presentation/screens/auth_gateway_screen.dart`
+    - Replaced direct social sign-in repository mutations with facade calls.
+  - `lib/features/auth/presentation/screens/login_screen.dart`
+    - Replaced direct password/social sign-in repository mutations with facade calls.
+  - `lib/features/auth/presentation/screens/sign_up_screen.dart`
+    - Replaced direct sign-up/social/email-verification repository mutations with facade calls.
+  - `lib/features/auth/presentation/screens/email_verification_screen.dart`
+    - Replaced direct check/send/sign-out repository mutations with facade calls.
+  - `lib/features/auth/presentation/screens/terms_conditions_screen.dart`
+    - Replaced direct terms accept + refresh repository mutations with facade calls.
+  - `test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (new)
+    - Added unit tests for identifier/email normalization and unsupported social sign-in failure mapping.
+  - `docs/TODO_REFACTOR_AUTH.md`
+    - Marked `REFAUTH-001` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Auth entry flows now route mutation orchestration through a dedicated domain use-case facade, reducing presentation-layer auth/session mutation coupling while preserving existing behavior.
+- **Verification:**
+  - `dart format lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/domain/usecases/auth_use_cases.dart lib/features/auth/presentation/bloc/auth_bloc.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (pass)
+  - `flutter analyze lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/domain/usecases/auth_use_cases.dart lib/features/auth/presentation/bloc/auth_bloc.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (pass)
+  - `flutter test test/features/auth/domain/usecases/auth_flow_use_cases_test.dart test/auth_bloc_test.dart test/onboarding_google_button_layout_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_AUTH.md lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/domain/usecases/auth_use_cases.dart lib/features/auth/presentation/bloc/auth_bloc.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_AUTH.md` with `REFAUTH-002` (unified typed auth error mapping).
+
+### Task #145 — TODO_REFACTOR_AUTH Continue: REFAUTH-002 Unified Auth Error Mapping
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFAUTH-002` by replacing ad hoc auth exception strings with a unified typed auth failure hierarchy.
+- **Scope:** `/Users/ace/my_first_project/lib/core/errors/auth_failures.dart`, auth flow use-cases, auth data repository `Result` wrappers, auth failure tests, and workflow docs.
+- **Constraints:**
+  - Preserve existing user-facing behavior where possible while standardizing typed failure codes.
+  - Keep migration incremental and low risk.
+  - Add explicit unit coverage for failure mapping and message selection behavior.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Auth errors are normalized to one typed hierarchy with stable error codes/messages consumed by auth presentation through shared result paths.
+
+**Status Updates:**
+- **Received:** Continued `TODO_REFACTOR_AUTH.md` with `REFAUTH-002`.
+- **In Progress:** Added core auth failure hierarchy + mapper and wired auth use-cases/data result wrappers to map thrown errors through the typed hierarchy.
+- **Completed:** Added mapper tests, updated use-case tests, ran targeted verification, marked TODO complete, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/errors/auth_failures.dart` (new)
+    - Added canonical auth failure hierarchy:
+      - `AuthFailureType` (stable auth error codes + default user messages)
+      - `AuthFailure` typed exception (`RepositoryException` subclass)
+      - `AuthFailureMapper` for normalizing raw exceptions/repository errors into typed auth failures
+  - `lib/features/auth/domain/usecases/auth_flow_use_cases.dart`
+    - Added unified auth failure mapping wrapper around all auth operations.
+    - Auth flow operations now emit normalized `Result.errorCode` values from one hierarchy.
+  - `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart`
+  - `lib/features/auth/data/repositories/impl/http_auth_repository.dart`
+  - `lib/features/auth/data/repositories/impl/stub_auth_repository.dart`
+    - Updated result-returning wrapper methods to route thrown errors through `AuthFailureMapper`.
+  - `test/core/errors/auth_failures_test.dart` (new)
+    - Added unit coverage for type mapping and user-facing message selection behavior.
+  - `test/features/auth/domain/usecases/auth_flow_use_cases_test.dart`
+    - Added assertion for normalized auth error code on unsupported provider path.
+  - `docs/TODO_REFACTOR_AUTH.md`
+    - Marked `REFAUTH-002` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Auth failures are now normalized through a single typed hierarchy, and auth presentation-facing result paths receive consistent error codes/messages instead of ad hoc string exceptions.
+- **Verification:**
+  - `dart format lib/core/errors/auth_failures.dart lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart test/core/errors/auth_failures_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (pass)
+  - `flutter analyze lib/core/errors/auth_failures.dart lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart test/core/errors/auth_failures_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (pass)
+  - `flutter test test/core/errors/auth_failures_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart test/auth_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_AUTH.md lib/core/errors/auth_failures.dart lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart test/core/errors/auth_failures_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_AUTH.md` with `REFAUTH-003` (session bootstrap isolation).
+
+---
+
+### Task #146 — TODO_REFACTOR_AUTH Continue: REFAUTH-003 Session Bootstrap Isolation
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFAUTH-003` by isolating startup session bootstrap orchestration into a reusable service.
+- **Scope:** `/Users/ace/my_first_project/lib/core/session/session_bootstrap_service.dart`, `/Users/ace/my_first_project/lib/features/auth/presentation/bloc/auth_bloc.dart`, `/Users/ace/my_first_project/lib/features/auth/presentation/bloc/session_bloc.dart`, `/Users/ace/my_first_project/test/core/session/session_bootstrap_service_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_AUTH.md`, and workflow docs.
+- **Constraints:**
+  - Keep auth/session behavior compatible with current startup flow.
+  - Ensure stream-subscription lifecycle is deterministic (cancel old subscription, cancel new one on bootstrap failure).
+  - Add focused unit coverage for bootstrap orchestration.
+  - Pass targeted verification and docs sync guard.
+- **Expected Outcome:** Startup bootstrap path is extracted, deterministic, and unit-testable across auth/session blocs.
+
+**Status Updates:**
+- **Received:** Continued `TODO_REFACTOR_AUTH.md` with `REFAUTH-003`.
+- **In Progress:** Added `SessionBootstrapService` and delegated startup bootstrap orchestration from `AuthBloc` and `SessionBloc`.
+- **Completed:** Added bootstrap service tests, ran targeted test verification, marked TODO complete, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/session/session_bootstrap_service.dart` (new)
+    - Added isolated startup bootstrap service that:
+      - cancels existing auth stream subscription
+      - wires new auth stream listener
+      - executes session bootstrap through `AuthFlowUseCases`
+      - cancels the new subscription on bootstrap failure
+      - returns typed `Result<StreamSubscription<CrushUser?>>`
+  - `lib/features/auth/presentation/bloc/auth_bloc.dart`
+    - Injected/created `SessionBootstrapService`.
+    - Replaced inline startup subscription/bootstrap orchestration in `_onStarted` with service delegation.
+  - `lib/features/auth/presentation/bloc/session_bloc.dart`
+    - Injected/created `SessionBootstrapService`.
+    - Replaced inline startup bootstrap path with service delegation, then initialized `SessionManager` on success.
+  - `test/core/session/session_bootstrap_service_test.dart` (new)
+    - Added tests for:
+      - successful bootstrap + stream forwarding
+      - existing subscription cancellation before re-bootstrap
+      - new subscription cancellation on bootstrap failure
+  - `docs/TODO_REFACTOR_AUTH.md`
+    - Marked `REFAUTH-003` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Session bootstrap orchestration is now isolated and unit-tested, reducing startup duplication between auth/session blocs while preserving current behavior.
+- **Verification:**
+  - `flutter test test/core/session/session_bootstrap_service_test.dart test/auth_bloc_test.dart test/session_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_AUTH.md lib/core/session/session_bootstrap_service.dart lib/features/auth/presentation/bloc/auth_bloc.dart lib/features/auth/presentation/bloc/session_bloc.dart test/core/session/session_bootstrap_service_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_AUTH.md` with the next queued auth refactor item when added.
+
+---
+
+### Task #147 — TODO_REFACTOR_CHAT Start: REFCHAT-001 Chat Screen Reduction
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFCHAT-001` by continuing chat-screen decomposition into composable presentation widgets.
+- **Scope:** `/Users/ace/my_first_project/lib/features/chat/presentation/screens/chat_screen.dart`, extracted widget files under `/Users/ace/my_first_project/lib/features/chat/presentation/widgets/`, widget tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_CHAT.md`, and workflow docs.
+- **Constraints:**
+  - Preserve existing chat behavior while reducing `chat_screen.dart` inline UI complexity.
+  - Keep extraction incremental and low-risk.
+  - Add widget-level coverage for newly extracted component(s).
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** `chat_screen.dart` delegates report/settings sheet rendering to dedicated widgets and extracted components are covered by focused widget tests.
+
+**Status Updates:**
+- **Received:** Started next open refactor item at `TODO_REFACTOR_CHAT.md` task `REFCHAT-001`.
+- **In Progress:** Extracted report-sheet and match-settings-sheet UI from `chat_screen.dart` into standalone widgets and wired screen orchestration to use them.
+- **Completed:** Added widget coverage for extracted match settings sheet, ran targeted analyze/tests, marked TODO complete, and synced required docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/chat/presentation/widgets/chat_report_sheet.dart` (new)
+    - Moved report-reason enum, reason code/label mapping, and `ChatReportSheetContent` into a dedicated widget module.
+  - `lib/features/chat/presentation/widgets/chat_match_settings_sheet.dart` (new)
+    - Extracted the large match-chat-settings bottom-sheet UI into a dedicated composable widget consuming `MatchChatSettingsCubit`.
+  - `lib/features/chat/presentation/widgets/chat_widgets.dart`
+    - Exported new chat sheet widgets from the chat widget barrel.
+  - `lib/features/chat/presentation/screens/chat_screen.dart`
+    - Removed inline report/settings sheet widget definitions and large settings-sheet body block.
+    - Replaced with orchestration-only wiring to extracted components.
+    - Re-exported report sheet symbols for compatibility with existing imports/tests.
+  - `test/features/chat/presentation/widgets/chat_match_settings_sheet_test.dart` (new)
+    - Added widget tests for non-premium and premium retention presentation branches.
+  - `docs/TODO_REFACTOR_CHAT.md`
+    - Marked `REFCHAT-001` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Chat screen responsibilities were reduced by extracting high-complexity sheet UIs into reusable widgets, with targeted widget coverage added for extracted settings UI behavior.
+- **Verification:**
+  - `flutter analyze lib/features/chat/presentation/screens/chat_screen.dart lib/features/chat/presentation/widgets/chat_report_sheet.dart lib/features/chat/presentation/widgets/chat_match_settings_sheet.dart lib/features/chat/presentation/widgets/chat_widgets.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart test/features/security/security_localization_regression_test.dart test/features/chat/presentation/widgets/chat_match_settings_sheet_test.dart` (pass)
+  - `flutter test test/features/chat/presentation/widgets/chat_match_settings_sheet_test.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart test/features/chat/presentation/screens/chat_screen_responsive_test.dart test/features/security/security_localization_regression_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_CHAT.md lib/features/chat/presentation/screens/chat_screen.dart lib/features/chat/presentation/widgets/chat_report_sheet.dart lib/features/chat/presentation/widgets/chat_match_settings_sheet.dart lib/features/chat/presentation/widgets/chat_widgets.dart test/features/chat/presentation/widgets/chat_match_settings_sheet_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_CHAT.md` with `REFCHAT-002` (Bloc subscription refactor).
+
+---
+
+### Task #148 — TODO_REFACTOR_CHAT Continue: REFCHAT-002 Bloc Subscription Refactor
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFCHAT-002` by centralizing `ChatBloc` subscription lifecycle management and isolating realtime/auth side-effect wiring.
+- **Scope:** `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/chat_bloc.dart`, `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/chat_event.dart`, `/Users/ace/my_first_project/test/chat_bloc_test.dart`, `/Users/ace/my_first_project/test/chat_event_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_CHAT.md`, and workflow docs.
+- **Constraints:**
+  - Remove ad hoc subscription handling and avoid leak-prone patterns.
+  - Preserve chat behavior (including unmatch/loading/reset flows).
+  - Add lifecycle-focused coverage for watcher replacement/cancellation.
+  - Pass analyzer and targeted chat bloc tests.
+- **Expected Outcome:** Subscriptions are managed through one path, lifecycle cleanup is deterministic, and tests verify reopen/reset/close watcher behavior.
+
+**Status Updates:**
+- **Received:** Continued chat refactor with `REFCHAT-002`.
+- **In Progress:** Replaced per-field subscription handling in `ChatBloc` with keyed managed-subscription helpers and moved watcher/auth callbacks into isolated helper methods.
+- **Completed:** Added lifecycle assertions in chat bloc tests, updated sub-bloc changed event to carry state snapshots, ran targeted analyze/tests, marked TODO complete, and synced docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/chat/presentation/bloc/chat_bloc.dart`
+    - Added managed subscription registry (`_managedSubscriptions`) keyed by internal enum.
+    - Added centralized helpers for start/replace/cancel/all-cancel subscription flows.
+    - Replaced scattered cancellation logic in open/close/reset paths with shared helpers.
+    - Isolated side-effect wiring into dedicated callbacks (`_onAuthUserChanged`, `_startRealtimeSubscriptions`, `_notifySubBlocStateChanged`).
+    - Removed temporary stream listener in unmatch handler and kept behavior via sub-bloc emissions.
+  - `lib/features/chat/presentation/bloc/chat_event.dart`
+    - Updated `ChatSubBlocChanged` to carry `ChatState aggregatedState`, preventing dropped intermediate sub-bloc states during queued event processing.
+  - `test/chat_bloc_test.dart`
+    - Enhanced fake chat repository with realtime watcher counters and active listener tracking.
+    - Added lifecycle tests for:
+      - watcher replacement on repeated `ChatOpened`
+      - watcher cancellation on `ChatClosed`
+      - watcher cancellation on auth logout/reset path
+  - `test/chat_event_test.dart`
+    - Updated `ChatSubBlocChanged` equality/props assertions for new aggregated-state payload.
+  - `docs/TODO_REFACTOR_CHAT.md`
+    - Marked `REFCHAT-002` completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `ChatBloc` subscription lifecycle is now centralized and deterministic, with lifecycle tests validating no leaked realtime watchers across reopen/close/logout/reset flows.
+- **Verification:**
+  - `flutter analyze lib/features/chat/presentation/bloc/chat_bloc.dart lib/features/chat/presentation/bloc/chat_event.dart test/chat_bloc_test.dart test/chat_event_test.dart` (pass)
+  - `flutter test test/chat_bloc_test.dart test/chat_bloc_media_limit_test.dart test/chat_event_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_CHAT.md lib/features/chat/presentation/bloc/chat_bloc.dart lib/features/chat/presentation/bloc/chat_event.dart test/chat_bloc_test.dart test/chat_event_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_CHAT.md` with `REFCHAT-003` (transport adapter interface).
+
+---
+
+### Task #149 — TODO_REFACTOR_CHAT Continue: REFCHAT-003 Transport Adapter Interface
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFCHAT-003` by introducing a chat transport adapter abstraction that decouples repository logic from concrete HTTP/WebSocket clients.
+- **Scope:** `/Users/ace/my_first_project/lib/features/chat/domain/repositories/*`, `/Users/ace/my_first_project/lib/features/chat/data/repositories/impl/http_chat_repository.dart`, new adapter implementation/test files, `/Users/ace/my_first_project/docs/TODO_REFACTOR_CHAT.md`, architecture docs, and workflow docs.
+- **Constraints:**
+  - Preserve existing chat behavior and external `ChatRepository` API.
+  - Keep refactor incremental: isolate transport concerns without broad rewriting of all repository implementations.
+  - Add tests showing repository behavior with fake transport injection.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Chat repository transport is swappable behind a domain interface, and repository behavior can be validated in tests without direct `ApiClient`/`WebSocketConnection` dependencies.
+
+**Status Updates:**
+- **Received:** Continued `TODO_REFACTOR_CHAT.md` with `REFCHAT-003`.
+- **In Progress:** Added domain transport interface + default HTTP/WebSocket adapter, and refactored `HttpChatRepository` to use adapter methods for request/realtime operations.
+- **Completed:** Added fake-transport tests, verified realtime polling regression tests still pass, marked TODO complete, updated architecture/workflow docs, and ran docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/chat/domain/repositories/chat_transport_adapter.dart` (new)
+    - Added domain-facing `ChatTransportAdapter` interface for chat transport operations (HTTP verbs, upload, realtime streams/events).
+  - `lib/features/chat/data/repositories/impl/http_chat_transport_adapter.dart` (new)
+    - Added default adapter implementation bridging `ApiClient` + `WebSocketConnection`.
+  - `lib/features/chat/data/repositories/impl/http_chat_repository.dart`
+    - Refactored to depend on `ChatTransportAdapter` instead of direct transport clients.
+    - Added optional constructor injection for `transportAdapter` (with backward-compatible default adapter creation from `apiClient` + `webSocket`).
+    - Routed realtime connectivity/event sends and request calls through adapter methods.
+  - `test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` (new)
+    - Added fake-transport tests validating:
+      - realtime path for typing updates when connected
+      - HTTP fallback path when disconnected
+      - paginated message mapping via injected adapter payloads
+  - `test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart`
+    - Kept existing behavior verification; test suite still passes with adapter-backed repository.
+  - `docs/TODO_REFACTOR_CHAT.md`
+    - Marked `REFCHAT-003` completed.
+  - `docs/project_flowchart.md`
+    - Added `Chat Transport Adapter Flow` architecture section and updated timestamp.
+  - `docs/project_dfd.md`
+    - Added messaging transport adapter note and updated timestamp.
+  - `docs/project_er_diagram.md`
+    - Added architecture note that chat transport adapter is non-persistent and updated timestamp.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Chat transport concerns are now behind a dedicated adapter interface, and repository behavior is verifiable with fake transport implementations for deterministic tests.
+- **Verification:**
+  - `flutter analyze lib/features/chat/domain/repositories/chat_transport_adapter.dart lib/features/chat/data/repositories/impl/http_chat_transport_adapter.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart lib/core/di.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` (pass)
+  - `flutter test test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_CHAT.md lib/features/chat/domain/repositories/chat_transport_adapter.dart lib/features/chat/data/repositories/impl/http_chat_transport_adapter.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** `TODO_REFACTOR_CHAT.md` is complete in current scope; move to the next queued refactor module (`TODO_REFACTOR_DISCOVERY.md` or `TODO_REFACTOR_SETTINGS.md`).
+
+---
+
+### Task #150 — TODO_REFACTOR_DISCOVERY Continue: REFDISC-001 Deck Screen Decomposition
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFDISC-001` by decomposing `deck_screen.dart` into focused presentation widgets and keeping the screen as orchestration logic.
+- **Scope:** `/Users/ace/my_first_project/lib/features/discovery/presentation/screens/deck_screen.dart`, new extracted widgets under `/Users/ace/my_first_project/lib/features/discovery/presentation/widgets/`, discovery widget tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_DISCOVERY.md`, and workflow docs.
+- **Constraints:**
+  - Preserve existing deck behavior, routing, and bloc events.
+  - Keep the change incremental and UI-focused (no domain/data contract changes).
+  - Add focused widget coverage for extracted components.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** `DeckScreen` delegates app bar/error/empty-deck rendering to dedicated widgets and extracted views have widget-level regression coverage.
+
+**Status Updates:**
+- **Received:** Continued to the next queued refactor module and started `TODO_REFACTOR_DISCOVERY.md` task `REFDISC-001`.
+- **In Progress:** Extracted deck app bar, error-state UI, and out-of-people UI into dedicated widgets and rewired `DeckScreen` to orchestration callbacks.
+- **Completed:** Added focused widget tests for extracted state views, ran targeted analyze/tests, marked TODO complete, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart` (new)
+    - Added extracted deck top app bar widget with boost/weekly-picks, explore toggle, and refresh actions.
+  - `lib/features/discovery/presentation/widgets/deck_error_state_view.dart` (new)
+    - Added extracted error-state scaffold with retry, location-aware messaging, and Plus upsell hooks.
+  - `lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart` (new)
+    - Added extracted out-of-people state view with context-aware copy, filters shortcut, refresh action, and passport CTA behavior.
+  - `lib/features/discovery/presentation/screens/deck_screen.dart`
+    - Removed large inline `_buildAppBar`, `_buildErrorState`, and `_buildOutOfPeople` implementations.
+    - Delegated app bar/error/empty states to extracted widgets and kept callback/event orchestration in screen state.
+  - `test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart` (new)
+    - Added widget tests for error-state retry wiring and passport-mode empty-state rendering/refresh callback.
+  - `docs/TODO_REFACTOR_DISCOVERY.md`
+    - Marked `REFDISC-001` as completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `DeckScreen` is reduced to orchestration responsibilities while extracted state/app-bar views are isolated and test-covered.
+- **Verification:**
+  - `flutter analyze lib/features/discovery/presentation/screens/deck_screen.dart lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart lib/features/discovery/presentation/widgets/deck_error_state_view.dart lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart` (pass)
+  - `flutter test test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart` (pass)
+  - `flutter test test/deck_gating_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_DISCOVERY.md lib/features/discovery/presentation/screens/deck_screen.dart lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart lib/features/discovery/presentation/widgets/deck_error_state_view.dart lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_DISCOVERY.md` with `REFDISC-002` (Service Abstraction Boundaries).
+
+---
+
+### Task #151 — TODO_REFACTOR_DISCOVERY Continue: REFDISC-002 Service Abstraction Boundaries
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFDISC-002` by enforcing repository-boundary contracts between discovery presentation/domain and discovery data services.
+- **Scope:** `/Users/ace/my_first_project/lib/features/discovery/domain/repositories/*`, `/Users/ace/my_first_project/lib/features/discovery/data/services/*`, affected test imports/stubs, `/Users/ace/my_first_project/docs/TODO_REFACTOR_DISCOVERY.md`, architecture/workflow docs.
+- **Constraints:**
+  - Keep runtime behavior unchanged.
+  - Remove domain-layer references to discovery data-service files.
+  - Preserve presentation usage through repository interfaces only.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Domain repository contracts are data-layer independent; presentation/test stubs consume domain contracts without importing discovery data services for event types.
+
+**Status Updates:**
+- **Received:** Continued discovery refactor with `REFDISC-002`.
+- **In Progress:** Moved story update event types into domain repository contract and removed domain imports of discovery data-layer files.
+- **Completed:** Updated affected tests/imports, validated with targeted analyze/tests/compile-time import guard, marked TODO complete, and synced docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/discovery/domain/repositories/story_repository.dart`
+    - Added domain-owned `StoryUpdateType` enum and `StoryUpdate` event model.
+    - Removed dependency on `data/services/story_service.dart`.
+  - `lib/features/discovery/data/services/story_service.dart`
+    - Switched to domain-owned story update event types.
+    - Removed local duplicate event type definitions.
+  - `lib/features/discovery/domain/repositories/weekly_picks_repository.dart`
+    - Replaced data-layer model import with domain model import (`domain/models/weekly_picks.dart`).
+  - `lib/features/discovery/data/services/weekly_picks_service.dart`
+    - Switched to domain model import for weekly picks types.
+  - `test/story_service_test.dart`
+    - Added domain repository import for story event types.
+  - `test/swipe_card_test.dart`
+  - `test/deck_gating_test.dart`
+  - `test/router_create_router_test.dart`
+    - Removed direct `story_service.dart` imports that were only used for event type symbols.
+  - `docs/TODO_REFACTOR_DISCOVERY.md`
+    - Marked `REFDISC-002` as completed.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added brief architecture notes for discovery service-boundary refactor.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Discovery domain repository contracts no longer depend on discovery data services, and story/weekly-picks boundaries are now domain-owned and compile-time enforced.
+- **Verification:**
+  - `flutter analyze lib/features/discovery/domain/repositories/story_repository.dart lib/features/discovery/domain/repositories/weekly_picks_repository.dart lib/features/discovery/data/services/story_service.dart lib/features/discovery/data/services/weekly_picks_service.dart test/story_service_test.dart test/swipe_card_test.dart test/deck_gating_test.dart test/router_create_router_test.dart` (pass)
+  - `flutter test test/story_service_test.dart test/swipe_card_test.dart test/deck_gating_test.dart` (pass)
+  - `flutter test test/weekly_picks_cubit_test.dart test/discovery_settings_cubit_test.dart` (pass)
+  - `if rg --line-number "features/discovery/data/services" lib/features/discovery/presentation lib/features/settings/presentation lib/features/chat/presentation -g "*.dart"; then ...; else ...; fi` (pass: no discovery data-service imports in presentation layers)
+  - `flutter test test/discovery_bloc_test.dart test/weekly_picks_cubit_test.dart test/discovery_settings_cubit_test.dart` (fails in existing discovery bloc tests due pre-existing timeout/close-order expectations unrelated to touched files; weekly picks + settings suites pass when run directly)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_DISCOVERY.md lib/features/discovery/domain/repositories/story_repository.dart lib/features/discovery/domain/repositories/weekly_picks_repository.dart lib/features/discovery/data/services/story_service.dart lib/features/discovery/data/services/weekly_picks_service.dart test/story_service_test.dart test/swipe_card_test.dart test/deck_gating_test.dart test/router_create_router_test.dart docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_DISCOVERY.md` with `REFDISC-003` (Matching Decision Engine Isolation).
+
+---
+
+### Task #152 — TODO_REFACTOR_DISCOVERY Continue: REFDISC-003 Matching Decision Engine Isolation
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFDISC-003` by isolating discovery deck filter decisions and top-picks scoring/ranking into pure domain utilities with deterministic behavior.
+- **Scope:** `/Users/ace/my_first_project/lib/features/discovery/domain/usecases/matching_decision_engine.dart`, `/Users/ace/my_first_project/lib/features/discovery/domain/usecases/discovery_use_cases.dart`, `/Users/ace/my_first_project/lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart`, `/Users/ace/my_first_project/lib/data/repositories/fake_repositories.dart`, `/Users/ace/my_first_project/test/features/discovery/domain/usecases/matching_decision_engine_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_DISCOVERY.md`, architecture/workflow docs.
+- **Constraints:**
+  - Preserve discovery repository behavior (swiped-profile exclusion, passport/distance semantics, top-picks preference gating).
+  - Ensure ranking output is deterministic for equal scores.
+  - Add pure-function unit coverage for edge-case filter combinations.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** Decision logic is centralized in a domain engine consumed by repositories, and deterministic tests validate filter/ranking behavior independently of data services.
+
+**Status Updates:**
+- **Received:** Continued discovery refactor with `REFDISC-003`.
+- **In Progress:** Wired repository decision points to `MatchingDecisionEngine` and removed duplicate inline distance/score helpers.
+- **Completed:** Added deterministic pure-function tests for filter/ranking edge cases, validated targeted integration suites, marked TODO complete, and synced architecture/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/discovery/domain/usecases/matching_decision_engine.dart`
+    - Formalized pure decision helpers for candidate filtering, passport/distance gating, haversine calculation, preference gating, deterministic top-pick ranking, and compatibility scoring.
+  - `lib/features/discovery/domain/usecases/discovery_use_cases.dart`
+    - Exported `matching_decision_engine.dart` through the discovery use-case barrel.
+  - `lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart`
+    - Replaced inline swiped+distance filter logic with `MatchingDecisionEngine.filterCandidates`.
+    - Removed repository-local haversine helper methods.
+  - `lib/data/repositories/fake_repositories.dart`
+    - Replaced inline top-picks preference filter/scoring/sort logic with `MatchingDecisionEngine.rankTopPicks`.
+  - `test/features/discovery/domain/usecases/matching_decision_engine_test.dart` (new)
+    - Added deterministic pure-function coverage for:
+      - excluded-profile + distance filtering
+      - passport mode bypass
+      - missing location behavior
+      - include/exclude profiles without location
+      - preference filtering and deterministic tie-breaking
+      - interest normalization and limit handling
+  - `docs/TODO_REFACTOR_DISCOVERY.md`
+    - Marked `REFDISC-003` as completed.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture notes for the discovery matching decision-engine boundary.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Discovery decision logic for deck filtering and top-picks ranking now lives in a reusable pure domain engine with deterministic unit tests.
+- **Verification:**
+  - `dart format lib/features/discovery/domain/usecases/discovery_use_cases.dart lib/features/discovery/domain/usecases/matching_decision_engine.dart lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart lib/data/repositories/fake_repositories.dart test/features/discovery/domain/usecases/matching_decision_engine_test.dart` (pass)
+  - `flutter analyze lib/features/discovery/domain/usecases/discovery_use_cases.dart lib/features/discovery/domain/usecases/matching_decision_engine.dart lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart lib/data/repositories/fake_repositories.dart test/features/discovery/domain/usecases/matching_decision_engine_test.dart` (pass)
+  - `flutter test test/features/discovery/domain/usecases/matching_decision_engine_test.dart test/deck_gating_test.dart` (pass)
+  - `flutter test test/repository_integration_test.dart --plain-name "StubDiscoveryRepository Integration Tests"` (pass; one pre-existing skipped flaky test remains skipped by test metadata)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_DISCOVERY.md lib/features/discovery/domain/usecases/discovery_use_cases.dart lib/features/discovery/domain/usecases/matching_decision_engine.dart lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart lib/data/repositories/fake_repositories.dart test/features/discovery/domain/usecases/matching_decision_engine_test.dart docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** `TODO_REFACTOR_DISCOVERY.md` is complete in current scope; continue with the next queued refactor module.
+
+---
+
+### Task #153 — TODO_REFACTOR_SETTINGS Start: REFSET-001 Settings Screen Section Modularization
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+go next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_REFACTOR_SETTINGS.md` by completing `REFSET-001` through extraction of large `SettingsScreen` sections into reusable widgets.
+- **Scope:** `/Users/ace/my_first_project/lib/features/settings/presentation/screens/settings_screen.dart`, new section widgets under `/Users/ace/my_first_project/lib/features/settings/presentation/widgets/`, section widget tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_SETTINGS.md`, and workflow docs.
+- **Constraints:**
+  - Preserve settings behavior/routes while reducing screen-level UI composition complexity.
+  - Keep section logic isolated and testable.
+  - Add widget tests covering extracted sections.
+  - Pass targeted analyze/tests and docs sync guard.
+- **Expected Outcome:** `SettingsScreen` becomes an orchestration/composition shell, section UI is reusable in dedicated widget files, and section widgets have regression coverage.
+
+**Status Updates:**
+- **Received:** Moved to the next queued refactor module (`TODO_REFACTOR_SETTINGS.md`) and scoped `REFSET-001`.
+- **In Progress:** Extracted core navigation, subscription panel, support, and link-group sections into presentation widgets and rewired `SettingsScreen` to compose them.
+- **Completed:** Added section widget tests, validated analyze + settings test suites, marked TODO complete, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/settings_screen.dart`
+    - Reduced to orchestration/composition role and delegated section rendering to extracted widgets.
+    - Kept incognito sheet orchestration in screen state helpers.
+  - `lib/features/settings/presentation/widgets/settings_tile.dart` (new)
+    - Shared settings list-tile primitive.
+  - `lib/features/settings/presentation/widgets/settings_core_navigation_section.dart` (new)
+    - Extracted top settings navigation section (appearance/notifications/language/discovery/storage/account/privacy/chat/call/subscription/incognito/account actions).
+  - `lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart` (new)
+    - Extracted subscription card section with bloc wiring and CTA actions.
+  - `lib/features/settings/presentation/widgets/settings_support_section.dart` (new)
+    - Extracted safety/help/sign-out section.
+  - `lib/features/settings/presentation/widgets/settings_links_section.dart` (new)
+    - Reusable heading + links section used for legal/about groups.
+  - `lib/features/settings/presentation/widgets/settings_widgets.dart` (new)
+    - Barrel export for settings presentation widgets.
+  - `test/features/settings/presentation/widgets/settings_sections_test.dart` (new)
+    - Added widget coverage for extracted sections (core navigation, subscription panel, support section, links section).
+  - `docs/TODO_REFACTOR_SETTINGS.md`
+    - Marked `REFSET-001` as completed.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Settings screen section UI is now modularized into reusable components with dedicated widget tests; `SettingsScreen` primarily orchestrates layout and section composition.
+- **Verification:**
+  - `dart format lib/features/settings/presentation/screens/settings_screen.dart lib/features/settings/presentation/widgets/settings_widgets.dart lib/features/settings/presentation/widgets/settings_tile.dart lib/features/settings/presentation/widgets/settings_core_navigation_section.dart lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart lib/features/settings/presentation/widgets/settings_support_section.dart lib/features/settings/presentation/widgets/settings_links_section.dart test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/settings_screen.dart lib/features/settings/presentation/widgets/settings_widgets.dart lib/features/settings/presentation/widgets/settings_tile.dart lib/features/settings/presentation/widgets/settings_core_navigation_section.dart lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart lib/features/settings/presentation/widgets/settings_support_section.dart lib/features/settings/presentation/widgets/settings_links_section.dart test/features/settings/presentation/widgets/settings_sections_test.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/widgets/settings_sections_test.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_SETTINGS.md lib/features/settings/presentation/screens/settings_screen.dart lib/features/settings/presentation/widgets/settings_widgets.dart lib/features/settings/presentation/widgets/settings_tile.dart lib/features/settings/presentation/widgets/settings_core_navigation_section.dart lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart lib/features/settings/presentation/widgets/settings_support_section.dart lib/features/settings/presentation/widgets/settings_links_section.dart test/features/settings/presentation/widgets/settings_sections_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_SETTINGS.md` with `REFSET-002` (Account Action Command Layer).
+
+---
+
+### Task #154 — TODO_REFACTOR_SETTINGS Continue: REFSET-002 Account Action Command Layer
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFSET-002` by moving destructive account actions into a dedicated settings command layer with typed outcomes/failures.
+- **Scope:** `/Users/ace/my_first_project/lib/features/settings/domain/*`, `/Users/ace/my_first_project/lib/features/settings/data/*`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/account_actions_settings_screen.dart`, settings command tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_SETTINGS.md`, architecture/workflow docs.
+- **Constraints:**
+  - Preserve existing account-actions UX flow and navigation.
+  - UI must trigger typed commands instead of directly calling auth/export services for export/deactivate/delete.
+  - Add unit tests for delete/export/cancel-delete commands.
+  - Keep change incremental and pass targeted analyze/tests + docs sync guard.
+- **Expected Outcome:** `AccountActionsSettingsScreen` delegates destructive operations to typed settings command APIs with consistent error mapping and command-level test coverage.
+
+**Status Updates:**
+- **Received:** Continued `TODO_REFACTOR_SETTINGS.md` with `REFSET-002`.
+- **In Progress:** Added typed settings command contracts and data-layer implementation for export/deactivate/delete/cancel-delete orchestration.
+- **Completed:** Refactored account actions screen to call command layer, added command unit tests, marked TODO complete, and synced architecture/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/domain/commands/account_action_commands.dart` (new)
+    - Added typed command contract + result/failure models for account export/deactivate/delete/cancel-delete/share operations.
+    - Added optional `AccountDeletionCancellationCapability` for backends that support canceling pending deletion.
+  - `lib/features/settings/data/commands/default_account_action_commands.dart` (new)
+    - Added default command implementation with:
+      - shared typed auth failure mapping,
+      - export cooldown enforcement,
+      - remote export request handling,
+      - local export fallback orchestration,
+      - cancel-delete capability handling,
+      - typed share-export command.
+  - `lib/features/settings/presentation/screens/account_actions_settings_screen.dart`
+    - Replaced direct export/deactivate/delete service/repository calls with `DefaultAccountActionCommands` command invocations.
+    - Added typed failure-to-localized-message mapping helpers for export/deactivate/delete paths.
+    - Removed screen-owned message collection/export generation orchestration.
+  - `lib/features/settings/settings.dart`
+    - Exported new settings command domain/data layer symbols.
+  - `test/features/settings/domain/commands/account_action_commands_test.dart` (new)
+    - Added unit coverage for:
+      - delete command success and invalid-credential mapping,
+      - export command cooldown enforcement,
+      - export local-fallback path,
+      - cancel-delete unsupported and supported capability paths.
+  - `docs/TODO_REFACTOR_SETTINGS.md`
+    - Marked `REFSET-002` as completed.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture notes for settings account action command-layer boundary.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Destructive account actions are now executed through a typed settings command layer with centralized error mapping and dedicated command tests.
+- **Verification:**
+  - `dart format lib/features/settings/domain/commands/account_action_commands.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/features/settings/presentation/screens/account_actions_settings_screen.dart lib/features/settings/settings.dart test/features/settings/domain/commands/account_action_commands_test.dart` (pass)
+  - `flutter analyze lib/features/settings/domain/commands/account_action_commands.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/features/settings/presentation/screens/account_actions_settings_screen.dart lib/features/settings/settings.dart test/features/settings/domain/commands/account_action_commands_test.dart` (pass)
+  - `flutter test test/features/settings/domain/commands/account_action_commands_test.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_SETTINGS.md lib/features/settings/domain/commands/account_action_commands.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/features/settings/presentation/screens/account_actions_settings_screen.dart lib/features/settings/settings.dart test/features/settings/domain/commands/account_action_commands_test.dart docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_REFACTOR_SETTINGS.md` with `REFSET-003` (Preference Sync Abstraction).
+
+---
+
+### Task #155 — TODO_REFACTOR_SETTINGS Continue: REFSET-003 Preference Sync Abstraction
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `REFSET-003` by centralizing notification preference synchronization across local cache and backend with deterministic conflict resolution.
+- **Scope:** `/Users/ace/my_first_project/lib/features/settings/data/preferences/*`, `/Users/ace/my_first_project/lib/features/settings/presentation/bloc/notification_settings_cubit.dart`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/notifications_settings_screen.dart`, `/Users/ace/my_first_project/lib/core/services/push_notification_service.dart`, `/Users/ace/my_first_project/lib/core/di.dart`, `/Users/ace/my_first_project/functions/src/index.ts`, new tests, and required docs.
+- **Constraints:**
+  - Remove duplicated local+remote sync code from notification settings UI.
+  - Keep settings presentation -> state -> domain/data layering and use DI for remote sync wiring.
+  - Preserve compatibility with existing persisted preferences while adding explicit sync metadata.
+  - Add merge/conflict unit tests and backend contract coverage.
+- **Expected Outcome:** Notification preference sync is handled by a reusable data abstraction with timestamp-aware merge behavior; settings UI only talks to cubit methods; backend quiet-hours behavior honors explicit enablement.
+
+**Status Updates:**
+- **Received:** Continued `TODO_REFACTOR_SETTINGS.md` with `REFSET-003`.
+- **In Progress:** Added reusable preference sync engine/service and rewired notification cubit + DI to centralize persistence and remote synchronization.
+- **Completed:** Removed duplicated UI sync calls, extended backend preference normalization/quiet-hours contract, added unit/contract tests, marked TODO complete, and synced docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/data/preferences/preference_sync_engine.dart` (new)
+    - Added generic `PreferenceSyncEngine` with `PreferenceSyncSnapshot`/`PreferenceSyncMergeResult` and timestamp-first merge/conflict resolution.
+  - `lib/features/settings/data/preferences/notification_preference_sync_service.dart` (new)
+    - Added notification-specific local+remote sync service with hydrate/merge/persist flow and local sync timestamp storage.
+  - `lib/features/settings/presentation/bloc/notification_settings_cubit.dart`
+    - Injected sync service dependency, initialized state from local snapshot, added async remote hydration, and routed updates through sync service persistence.
+  - `lib/features/settings/presentation/screens/notifications_settings_screen.dart`
+    - Removed direct `PushNotificationService` writes from switch handlers; screen now delegates preference mutations to cubit only.
+  - `lib/core/services/push_notification_service.dart`
+    - Added `NotificationPreferencesSnapshot`, remote snapshot fetch API, map-based remote update API, `notificationPrefsUpdatedAtMs` support, and quiet-hours fields in payload updates.
+  - `lib/core/di.dart`
+    - Wired `NotificationSettingsCubit` with `NotificationPreferenceSyncService.withPushService(...)`.
+  - `lib/features/settings/settings.dart`
+    - Exported new settings preference sync abstractions.
+  - `functions/src/index.ts`
+    - Added notification preference normalization helper with `quietHoursEnabled`.
+    - Updated quiet-hours check to bypass suppression when quiet hours are disabled.
+    - Exposed helper functions for backend contract testing.
+  - `test/features/settings/data/preferences/preference_sync_engine_test.dart` (new)
+  - `test/features/settings/data/preferences/notification_preference_sync_service_test.dart` (new)
+    - Added unit coverage for merge precedence, conflict detection, and local/remote persistence behavior.
+  - `functions/test/notificationPrefsSyncContract.test.js` (new)
+    - Added backend contract coverage for normalization defaults and quiet-hours enablement behavior.
+  - `docs/TODO_REFACTOR_SETTINGS.md`
+    - Marked `REFSET-003` as completed.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture notes for centralized notification preference sync contract and timestamp metadata.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Notification preference synchronization is centralized behind reusable sync abstractions and no longer duplicated in settings UI handlers; backend quiet-hours behavior now respects `quietHoursEnabled`.
+- **Verification:**
+  - `dart format lib/features/settings/data/preferences/notification_preference_sync_service.dart test/features/settings/data/preferences/preference_sync_engine_test.dart` (pass)
+  - `flutter analyze lib/features/settings/data/preferences/preference_sync_engine.dart lib/features/settings/data/preferences/notification_preference_sync_service.dart lib/features/settings/presentation/bloc/notification_settings_cubit.dart lib/features/settings/presentation/screens/notifications_settings_screen.dart lib/core/services/push_notification_service.dart lib/core/di.dart lib/features/settings/settings.dart test/features/settings/data/preferences/preference_sync_engine_test.dart test/features/settings/data/preferences/notification_preference_sync_service_test.dart` (pass)
+  - `flutter test test/features/settings/data/preferences/preference_sync_engine_test.dart test/features/settings/data/preferences/notification_preference_sync_service_test.dart test/notification_settings_cubit_test.dart test/push_notification_service_test.dart test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart` (pass)
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/notificationPrefsSyncContract.test.js` (pass)
+  - `FIREBASE_CONFIG='{"projectId":"demo-project","databaseURL":"https://demo-project.firebaseio.com"}' npm --prefix functions run test -- test/profileCompleteness.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_SETTINGS.md lib/features/settings/data/preferences/preference_sync_engine.dart lib/features/settings/data/preferences/notification_preference_sync_service.dart lib/features/settings/presentation/bloc/notification_settings_cubit.dart lib/features/settings/presentation/screens/notifications_settings_screen.dart lib/core/services/push_notification_service.dart lib/core/di.dart lib/features/settings/settings.dart functions/src/index.ts test/features/settings/data/preferences/preference_sync_engine_test.dart test/features/settings/data/preferences/notification_preference_sync_service_test.dart functions/test/notificationPrefsSyncContract.test.js docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** `TODO_REFACTOR_SETTINGS.md` refactor tasks are complete in current scope; continue with the next queued module.
+
+---
+
+### Task #156 — TODO_STORE_APPLE Start: STORE-APL-001 Native IAP Foundation in Client
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TODO_STORE_APPLE.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start Apple store-compliance work by creating actionable Apple TODO tasks and completing the first implementation step for native IAP readiness.
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_STORE_APPLE.md`, `/Users/ace/my_first_project/pubspec.yaml`, `/Users/ace/my_first_project/pubspec.lock`, and required workflow docs.
+- **Constraints:**
+  - Keep scope focused on Apple-module start (not full purchase-flow refactor).
+  - Use Apple-compliant direction (native StoreKit path) and avoid reinforcing Stripe-only iOS checkout.
+  - Verify dependency resolution and subscription-area static checks.
+- **Expected Outcome:** Apple TODO is populated with executable tasks; `STORE-APL-001` is completed by adding native IAP plugin dependencies with passing pub/analyze checks.
+
+**Status Updates:**
+- **Received:** Started `TODO_STORE_APPLE.md` and identified it was a placeholder with no executable tasks.
+- **In Progress:** Populated Apple store TODO tasks and implemented the first native IAP foundation step in client dependencies.
+- **Completed:** Verified dependency and subscription-module health, updated risk tracking, and synced workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_STORE_APPLE.md`
+    - Replaced placeholder content with concrete Apple tasks (`STORE-APL-001` through `STORE-APL-005`).
+    - Marked `STORE-APL-001` completed.
+  - `pubspec.yaml`
+    - Added native billing dependencies:
+      - `in_app_purchase`
+      - `in_app_purchase_storekit`
+      - `in_app_purchase_android`
+  - `pubspec.lock`
+    - Updated lockfile from dependency resolution.
+  - `docs/risk_notes.md`
+    - Updated `R-055` wording to reflect current state: dependency foundation is in place, but native purchase flow + receipt validation remain ship blockers.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Apple store module is now actionable and started; native IAP dependencies are integrated and validated as the first compliance implementation step.
+- **Verification:**
+  - `flutter pub add in_app_purchase in_app_purchase_storekit in_app_purchase_android` (pass)
+  - `flutter analyze lib/features/subscription` (pass)
+  - `flutter test test/subscription_test.dart test/subscription_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md pubspec.yaml pubspec.lock docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_APPLE.md` with `STORE-APL-002` (remove iOS web checkout path and move purchase flow to native StoreKit lifecycle).
+
+---
+
+### Task #157 — TODO_STORE_APPLE Continue: STORE-APL-002 Remove iOS Web Checkout Path
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STORE-APL-002` by removing iOS Stripe URL checkout entry from subscription flow and routing iOS purchase initiation through native billing.
+- **Scope:** `/Users/ace/my_first_project/lib/features/subscription/presentation/bloc/subscription_bloc.dart`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/{firebase_subscription_repository.dart,http_subscription_repository.dart}`, `/Users/ace/my_first_project/lib/features/subscription/data/services/native_billing_service.dart`, subscription tests, and required docs.
+- **Constraints:**
+  - Keep changes incremental and preserve non-iOS checkout behavior.
+  - Ensure iOS path does not call `startPlusCheckout`/`launchCheckoutUrl`.
+  - Add focused regression tests for iOS repository behavior.
+- **Expected Outcome:** Checkout entrypoint is repository-owned (`purchasePlusPlan`) with native iOS routing and explicit iOS web-checkout blocking.
+
+**Status Updates:**
+- **Received:** Continued Apple TODO to `STORE-APL-002`.
+- **In Progress:** Added native billing service abstraction and refactored subscription checkout orchestration to repository-owned purchase execution.
+- **Completed:** Added iOS repository path tests, validated analyze/tests, marked TODO complete, and synced architecture/risk/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/subscription/data/services/native_billing_service.dart` (new)
+    - Added `NativeBillingService` abstraction and `InAppPurchaseNativeBillingService` implementation using `in_app_purchase` product query + purchase stream completion handling.
+  - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - Added lazy injectable dependencies for testability.
+    - Added iOS native purchase branch in `purchasePlusPlan`.
+    - Blocked iOS usage of `startPlusCheckout` and `launchCheckoutUrl` via `UnsupportedError`.
+  - `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart`
+    - Blocked iOS web checkout entrypoints (`purchasePlusPlan`, `startPlusCheckout`, `launchCheckoutUrl`) to prevent accidental external checkout path on iOS.
+  - `lib/features/subscription/presentation/bloc/subscription_bloc.dart`
+    - Replaced start+launch checkout orchestration with single `SubscriptionRepository.purchasePlusPlan()` execution path.
+  - `lib/features/subscription/subscription.dart`
+    - Exported `native_billing_service.dart`.
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (new)
+    - Added iOS-path tests for:
+      - native purchase routing,
+      - iOS start/launch web-checkout blocking,
+      - native purchase failure propagation.
+  - `test/subscription_bloc_test.dart`
+  - `test/subscription_test.dart`
+    - Updated stubs so `purchasePlusPlan()` is the failure/success checkout path used by bloc tests.
+  - `docs/TODO_STORE_APPLE.md`
+    - Marked `STORE-APL-002` as completed and updated file scope.
+  - `docs/risk_notes.md`
+    - Updated `R-055` to reflect partial mitigation (iOS native checkout routing present) while keeping ship-blocker open for missing receipt/server lifecycle implementation.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture notes for repository-owned checkout routing and iOS native path.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. iOS checkout flow no longer relies on Stripe URL session orchestration in the subscription bloc/Firebase repository path; iOS now routes through native billing entrypoint with explicit web-path guardrails.
+- **Verification:**
+  - `dart format lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/subscription/subscription.dart test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+  - `flutter analyze lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/subscription/subscription.dart test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+  - `flutter test test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/subscription/subscription.dart test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_APPLE.md` with `STORE-APL-003` (server-side Apple receipt validation and subscription lifecycle sync).
+
+---
+
+### Task #158 — TODO_STORE_GOOGLE Start: STORE-GPG-001 Remove Android Web Checkout Path
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start TODO_STORE_GOOGLE.md
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start `TODO_STORE_GOOGLE.md` by defining actionable Google tasks and completing the first implementation step that removes Android Stripe URL checkout entrypoints.
+- **Scope:** `/Users/ace/my_first_project/docs/TODO_STORE_GOOGLE.md`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/{firebase_subscription_repository.dart,http_subscription_repository.dart}`, Android checkout tests, and required docs.
+- **Constraints:**
+  - Keep change incremental and preserve iOS/web behavior already established.
+  - Ensure Android checkout does not use `startPlusCheckout`/`launchCheckoutUrl`.
+  - Keep checkout orchestration centered on repository `purchasePlusPlan` path.
+- **Expected Outcome:** Google TODO becomes actionable and Android checkout path is routed to native billing with explicit mobile web-checkout guardrails.
+
+**Status Updates:**
+- **Received:** Started `TODO_STORE_GOOGLE.md`; found placeholder content with no executable tasks.
+- **In Progress:** Populated Google store tasks and implemented Android native checkout routing in subscription repositories.
+- **Completed:** Added Android repository path tests, validated analyze/tests, updated risk/architecture/workflow docs, and synced docs guard.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_STORE_GOOGLE.md`
+    - Replaced placeholder with concrete tasks (`STORE-GPG-001` through `STORE-GPG-005`).
+    - Marked `STORE-GPG-001` as completed.
+  - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - Expanded native checkout gating from iOS-only to mobile (iOS + Android).
+    - `purchasePlusPlan` now routes to native billing on Android as well.
+    - `startPlusCheckout`/`launchCheckoutUrl` now block mobile usage via `UnsupportedError`.
+  - `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart`
+    - Expanded mobile web-checkout guardrails to Android alongside iOS.
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart` (new)
+    - Added Android path coverage for native purchase routing and web-checkout blocking.
+  - `docs/risk_notes.md`
+    - Updated `R-055` description/affected areas to reflect native checkout routing on both iOS and Android while keeping ship blocker open.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Updated architecture notes from iOS-only checkout routing to mobile-wide routing.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `TODO_STORE_GOOGLE.md` is now actionable and Android checkout no longer enters Stripe URL flow; mobile checkout routing is native-entrypoint-first via repository purchase API.
+- **Verification:**
+  - `dart format lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart` (pass)
+  - `flutter analyze lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart` (pass)
+  - `flutter test test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-002` (server-side Google purchase token validation and subscription status reconciliation).
+
+---
+
+### Task #159 — TODO_STORE_GOOGLE Continue: STORE-GPG-002 Server-Side Google Purchase Validation
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STORE-GPG-002` by implementing server-side Google Play purchase-token validation and syncing authoritative subscription state.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/googlePlayPurchaseValidation.test.js`, `/Users/ace/my_first_project/docs/TODO_STORE_GOOGLE.md`, and required architecture/workflow docs.
+- **Constraints:**
+  - Validate purchase tokens against Google Play Developer API (Android Publisher) before entitlement update.
+  - Keep duplicate token/order protections to reduce fraud/replay risk.
+  - Keep updates incremental and compatible with existing subscription plan fields.
+- **Expected Outcome:** Backend callable validates Google purchase token, derives entitlement state, updates user plan/lifecycle metadata, and has focused helper coverage.
+
+**Status Updates:**
+- **Received:** Continued Google store TODO to `STORE-GPG-002`.
+- **In Progress:** Added Google Play validation helpers + callable flow in Cloud Functions with entitlement derivation and duplicate-link checks.
+- **Completed:** Added helper tests, verified functions build/tests, marked TODO complete, and synced risk/architecture/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added env param getter: `GOOGLE_PLAY_PACKAGE_NAME`.
+    - Added Google Play validation data contracts and helper functions:
+      - package normalization, token hashing, Android Publisher URL builder,
+      - OAuth token acquisition via `GoogleAuth`,
+      - subscription validation fetch wrapper,
+      - entitlement derivation from validation payload,
+      - duplicate token/order linkage protection.
+    - Added callable: `verifyGooglePurchaseToken`
+      - requires auth + verified email,
+      - validates token against Android Publisher API,
+      - prevents duplicate token/order linkage across users,
+      - applies `setUserPlan` + RTDB premium sync,
+      - stores additive subscription metadata (`googlePlayPurchase`, `subscriptionLifecycle`) and expiry timestamp when available.
+    - Exported new test helpers via `__test__helpers`.
+  - `functions/test/googlePlayPurchaseValidation.test.js` (new)
+    - Added helper-level coverage for:
+      - package normalization,
+      - deterministic token hashing,
+      - validation URL encoding,
+      - entitlement derivation,
+      - bearer-auth fetch flow,
+      - 404 error mapping behavior.
+  - `docs/TODO_STORE_GOOGLE.md`
+    - Marked `STORE-GPG-002` as completed.
+  - `docs/risk_notes.md`
+    - Updated `R-055` to reflect progress: Google token validation added, but Apple validation/webhook lifecycle still pending.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture/data notes for Google server-side validation and additive subscription metadata.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Google Play purchase token validation is now implemented server-side and can reconcile subscription state before entitlement activation.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/googlePlayPurchaseValidation.test.js` (pass)
+  - `FIREBASE_CONFIG='{"projectId":"demo-project","databaseURL":"https://demo-project.firebaseio.com"}' npm --prefix functions run test -- test/profileCompleteness.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md functions/src/index.ts functions/test/googlePlayPurchaseValidation.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-003` (RTDN webhook lifecycle synchronization).
+
+---
+
+### Task #160 — TODO_STORE_GOOGLE Continue: STORE-GPG-003 RTDN Webhook Lifecycle Sync
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STORE-GPG-003` by implementing Google RTDN lifecycle ingestion and subscription-state reconciliation.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/googleRtdnLifecycle.test.js`, `/Users/ace/my_first_project/docs/TODO_STORE_GOOGLE.md`, and required architecture/workflow docs.
+- **Constraints:**
+  - Validate RTDN payload/auth before processing.
+  - Represent lifecycle states (including failed billing and grace/on-hold) in app-consumable subscription metadata.
+  - Keep compatibility with existing `plan`-based entitlement checks.
+- **Expected Outcome:** RTDN endpoint ingests Pub/Sub notifications, maps lifecycle states, revalidates Google purchase state, and updates Firestore/RTDB subscription records.
+
+**Status Updates:**
+- **Received:** Continued Google store TODO to `STORE-GPG-003`.
+- **In Progress:** Added RTDN payload decode/mapping helpers and webhook handler with entitlement override logic + plan sync updates.
+- **Completed:** Added RTDN helper tests, passed functions build/test verification, marked TODO complete, and synced risk/architecture/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added runtime param: `GOOGLE_RTDN_VERIFICATION_TOKEN`.
+    - Added RTDN helper models/functions:
+      - notification-type mapping (`mapGoogleRtdnNotificationType`),
+      - entitlement override logic for on-hold/grace/canceled/revoked/expired,
+      - Pub/Sub envelope decoding (`decodeGoogleRtdnEnvelope`),
+      - event-time parsing helper.
+    - Added endpoint: `googleRtdnWebhook` (`https.onRequest`)
+      - enforces POST,
+      - supports token verification via header/query when configured,
+      - decodes Pub/Sub payload,
+      - locates user by hashed purchase token,
+      - re-validates purchase token via Android Publisher API,
+      - applies lifecycle-aware entitlement reconciliation,
+      - updates Firestore (`googlePlayPurchase`, `subscriptionLifecycle`, optional `subscriptionExpiresAt`) and RTDB premium status via `setUserPlan`.
+    - Exported RTDN helpers in `__test__helpers`.
+  - `functions/test/googleRtdnLifecycle.test.js` (new)
+    - Added helper tests for RTDN mapping, entitlement override, envelope decoding, and event-time fallback behavior.
+  - `docs/TODO_STORE_GOOGLE.md`
+    - Marked `STORE-GPG-003` as completed.
+  - `docs/risk_notes.md`
+    - Updated `R-055` progress to include Google RTDN ingestion while keeping ship blocker open for remaining Apple/subscription lifecycle gaps.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture/data notes for RTDN lifecycle synchronization.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Google RTDN lifecycle synchronization is now implemented with lifecycle-state mapping and backend reconciliation into app-consumable subscription metadata.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/googlePlayPurchaseValidation.test.js test/googleRtdnLifecycle.test.js` (pass)
+  - `FIREBASE_CONFIG='{"projectId":"demo-project","databaseURL":"https://demo-project.firebaseio.com"}' npm --prefix functions run test -- test/profileCompleteness.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md functions/src/index.ts functions/test/googlePlayPurchaseValidation.test.js functions/test/googleRtdnLifecycle.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-004` (Play restore + acknowledgement flow hardening).
+
+---
+
+### Task #161 — TODO_STORE_GOOGLE Continue: STORE-GPG-004 Play Restore + Acknowledgement Flow
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STORE-GPG-004` by implementing Play-compliant restore and acknowledgement behavior with user-visible restore outcomes.
+- **Scope:** `/Users/ace/my_first_project/lib/features/subscription/data/services/native_billing_service.dart`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`, subscription/settings tests, and required docs.
+- **Constraints:**
+  - Restore action must re-sync restored Play purchases to entitlement state.
+  - Acknowledgement/transaction completion must be applied correctly for restored subscription purchases (non-consumable path).
+  - No-purchase and restore-error outcomes must be visible in app state/UI.
+- **Expected Outcome:** Mobile restore path pulls native restored purchases, verifies Android tokens server-side, completes pending transactions, and updates subscription state with clear no-purchase/error handling.
+
+**Status Updates:**
+- **Received:** Continued Google store TODO to `STORE-GPG-004`.
+- **In Progress:** Added native restore transaction collection + completion handling, then wired Firebase subscription restore to Play token verification.
+- **Completed:** Added repository/bloc/widget coverage for restore outcomes, marked TODO complete, and synced risk/architecture/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/subscription/data/services/native_billing_service.dart`
+    - Added `NativeSubscriptionPurchase` model.
+    - Added `restoreSubscriptionPurchases()` to `NativeBillingService`.
+    - Implemented restore stream collection with timeout/settle window, deduping, and pending transaction completion (`completePurchase`) for acknowledgement semantics.
+  - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - Added mobile restore branch in `refreshStatus()`:
+      - runs native restore flow,
+      - verifies restored Android purchases via `verifyGooglePurchaseToken` callable (injectable verifier for tests),
+      - returns explicit no-purchase status (`plan=free`, `status=none`) when restore finds no purchases.
+    - Added helper parsing for Google verification payload (`currentPeriodEnd`, status mapping).
+  - `lib/features/subscription/presentation/bloc/subscription_bloc.dart`
+    - Restore fallback error now uses `ErrorMessages.restorePurchasesFailed`.
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart`
+    - Added restore verification test and no-purchase restore test.
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`
+    - Updated fake native billing service with restore method support.
+  - `test/subscription_bloc_test.dart`
+    - Added no-purchase restore state coverage.
+    - Updated restore-failure assertion to restore-specific fallback message.
+  - `test/features/settings/presentation/widgets/settings_sections_test.dart`
+    - Added widget assertion for visible no-purchase restore status (`Status: NONE`) in subscription panel.
+  - `docs/TODO_STORE_GOOGLE.md`
+    - Marked `STORE-GPG-004` as completed.
+  - `docs/risk_notes.md`
+    - Updated `R-055` to reflect Google restore/ack progress while keeping ship-blocker open for Apple/server/store-console completion.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture/data-flow notes for restore acknowledgement and token revalidation path.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Google Play restore flow now re-syncs restored purchases and completes pending transactions for acknowledgement, with Android token verification and user-visible no-purchase/error restore outcomes.
+- **Verification:**
+  - `dart format lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/subscription_bloc_test.dart test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `flutter test test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/subscription_bloc_test.dart test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/subscription_bloc_test.dart test/features/settings/presentation/widgets/settings_sections_test.dart docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-005` (Play Console release compliance checklist).
+
+---
+
+### Task #162 — TODO_STORE_GOOGLE Continue: STORE-GPG-005 Play Console Release Compliance Checklist
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STORE-GPG-005` by documenting Play Console release compliance requirements for subscription disclosures, reviewer access, and internal testing.
+- **Scope:** `/Users/ace/my_first_project/docs/STORE_ASSETS.md`, `/Users/ace/my_first_project/docs/RELEASE_GUIDE.md`, `/Users/ace/my_first_project/docs/TODO_STORE_GOOGLE.md`, and required workflow/risk docs.
+- **Constraints:**
+  - Keep subscription pricing/renewal terms aligned with in-app copy (`$9.99/month` baseline).
+  - Document internal testing and reviewer app-access instructions for Play review.
+  - Include policy declaration checklist coverage (ads, data safety, app access, content rating, audience/permissions).
+- **Expected Outcome:** Play release docs include a practical, pre-submit compliance checklist and reviewer guidance; Google TODO task is marked complete.
+
+**Status Updates:**
+- **Received:** Continued Google store TODO to `STORE-GPG-005`.
+- **In Progress:** Expanded store asset and release guide docs with Play-specific app access, policy declaration, and subscription disclosure sections.
+- **Completed:** Marked TODO complete, updated risk/workboard/chat docs, and validated docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/STORE_ASSETS.md`
+    - Added Google Play reviewer app-access instructions.
+    - Added Google Play subscription disclosure template (price, recurring terms, cancellation, legal links).
+    - Added Play app-content declarations checklist.
+    - Added release checklist items to verify pricing/disclosure consistency before launch.
+  - `docs/RELEASE_GUIDE.md`
+    - Added Android internal-testing-first release flow.
+    - Added App content declarations and reviewer instruction requirements.
+    - Added subscription compliance checks for recurring billing disclosures.
+    - Expanded store pre-release checklist with Play-compliance gates.
+  - `docs/TODO_STORE_GOOGLE.md`
+    - Marked `STORE-GPG-005` as completed.
+  - `docs/risk_notes.md`
+    - Updated `R-055` wording to note Play checklist documentation completion while console execution remains pending.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `STORE-GPG-005` is complete with Play release compliance guidance documented and linked to current subscription disclosure expectations.
+- **Verification:**
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md docs/STORE_ASSETS.md docs/RELEASE_GUIDE.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_APPLE.md` with `STORE-APL-003` (server-side Apple receipt validation).
+
+---
+
+### Task #163 — TODO_STORE_APPLE Continue: STORE-APL-003 Server-Side Apple Receipt Validation
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STORE-APL-003` by implementing server-side Apple transaction validation and subscription-state reconciliation.
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/appleReceiptValidation.test.js`, `/Users/ace/my_first_project/docs/TODO_STORE_APPLE.md`, and required risk/architecture/workflow docs.
+- **Constraints:**
+  - Validate Apple transactions via App Store Server API flow.
+  - Apply duplicate transaction protections before linking purchases to a user.
+  - Persist authoritative lifecycle metadata without breaking existing `plan`-based entitlement checks.
+- **Expected Outcome:** Callable endpoint validates Apple transaction payloads, updates user plan/lifecycle metadata, and has helper-level test coverage with mocked API behavior.
+
+**Status Updates:**
+- **Received:** Continued Apple store TODO to `STORE-APL-003`.
+- **In Progress:** Added Apple server-validation helper layer, duplicate-link safeguards, and callable transaction validation endpoint.
+- **Completed:** Added Apple helper tests, marked TODO complete, and synced risk/architecture/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added Apple runtime params/getters: `APPLE_ISSUER_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_BUNDLE_ID`.
+    - Added App Store Server helpers:
+      - private key normalization and base64url helpers,
+      - App Store auth JWT creation (`ES256`),
+      - transaction lookup URL builder,
+      - signed transaction payload decoding,
+      - Apple entitlement derivation (`active`/`expired`/`revoked`),
+      - production-first lookup with sandbox fallback.
+    - Added duplicate-link guard: `ensureAppleTransactionNotAlreadyLinked()`.
+    - Added callable: `verifyAppleTransaction`.
+      - validates transaction via App Store Server API,
+      - enforces optional product consistency and bundle match,
+      - applies plan sync (`setUserPlan` + RTDB premium flag),
+      - persists additive `applePurchase` + `subscriptionLifecycle` metadata.
+    - Exported Apple helpers through `__test__helpers`.
+  - `functions/test/appleReceiptValidation.test.js` (new)
+    - Added helper tests for:
+      - escaped private key normalization,
+      - production/sandbox URL generation,
+      - auth JWT claim generation,
+      - signed transaction decoding,
+      - entitlement mapping,
+      - production-not-found -> sandbox fallback behavior.
+  - `docs/TODO_STORE_APPLE.md`
+    - Marked `STORE-APL-003` as completed.
+  - `docs/risk_notes.md`
+    - Updated `R-055` narrative to reflect Apple transaction validation completion while keeping lifecycle/store-console blockers open.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture/data-flow notes for Apple server transaction validation.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Apple server-side transaction validation is implemented and ready for client restore/purchase wiring in follow-up tasks.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/appleReceiptValidation.test.js test/googlePlayPurchaseValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md functions/src/index.ts functions/test/appleReceiptValidation.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_APPLE.md` with `STORE-APL-004` (restore purchases compliance flow).
+
+---
+
+### Task #164 — TODO_STORE_APPLE Continue: STORE-APL-004 Restore Purchases Compliance Flow
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STORE-APL-004` by implementing Apple-compliant restore verification for iOS restored purchases and clear restore outcomes.
+- **Scope:** `/Users/ace/my_first_project/lib/features/subscription/data/services/native_billing_service.dart`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`, `/Users/ace/my_first_project/test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`, and required risk/architecture/workflow docs.
+- **Constraints:**
+  - Restored iOS purchases must be server-verified before entitlement activation.
+  - Empty restore and restore-failure outcomes must stay user-visible.
+  - Keep compatibility with existing subscription status/bloc UI contracts.
+- **Expected Outcome:** iOS restore path uses backend Apple transaction verification (`verifyAppleTransaction`), handles no-purchase/error states, and is covered by repository tests.
+
+**Status Updates:**
+- **Received:** Continued Apple store TODO to `STORE-APL-004`.
+- **In Progress:** Added transaction-ID handoff from native restore payload and wired iOS restore verification callable path in repository.
+- **Completed:** Added iOS restore coverage tests, marked TODO complete, and synced risk/architecture/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/subscription/data/services/native_billing_service.dart`
+    - Extended `NativeSubscriptionPurchase` with optional `transactionId`.
+    - Native purchase parsing now captures normalized `purchaseID` for iOS transaction verification.
+  - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - Added `AppleTransactionVerifier` injectable type and constructor dependency.
+    - Added iOS restore verification path in `refreshStatus()`.
+    - Added `verifyAppleTransaction` callable invocation helper.
+    - Added restore aggregation helper for provider-specific verification outcomes.
+    - Added explicit error path for restored iOS purchases missing transaction IDs.
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`
+    - Added restore verification success test (checks productId + transactionId handoff).
+    - Added no-purchase restore test (`status: none`).
+    - Added missing transaction-ID restore failure test.
+  - `docs/TODO_STORE_APPLE.md`
+    - Marked `STORE-APL-004` as completed.
+  - `docs/risk_notes.md`
+    - Updated `R-055` narrative/affected areas to reflect Apple restore wiring completion.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture/data notes for Apple restore verification flow.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. iOS restore flow now verifies restored transactions via backend Apple validation before entitlement activation, with explicit no-purchase and restore-failure handling.
+- **Verification:**
+  - `dart format lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+  - `flutter test test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/subscription_bloc_test.dart test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue `TODO_STORE_APPLE.md` with `STORE-APL-005` (Apple subscription review metadata checklist).
+
+---
+
+### Task #165 — TODO_STORE_APPLE Continue: STORE-APL-005 Apple Subscription Review Metadata Checklist
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `STORE-APL-005` by documenting Apple-required subscription disclosure text and App Review metadata guidance.
+- **Scope:** `/Users/ace/my_first_project/docs/STORE_ASSETS.md`, `/Users/ace/my_first_project/docs/RELEASE_GUIDE.md`, `/Users/ace/my_first_project/docs/TODO_STORE_APPLE.md`, and required workflow/risk docs.
+- **Constraints:**
+  - Keep pricing/renewal/cancellation/legal-link language aligned with in-app paywall expectations.
+  - Include reviewer test-account + subscription review notes guidance.
+  - Include screenshot/metadata checklist items needed for App Store Connect submission.
+- **Expected Outcome:** Apple release docs provide a practical checklist for subscription review metadata and reviewer notes; Apple TODO task is marked complete.
+
+**Status Updates:**
+- **Received:** Continued Apple store TODO to `STORE-APL-005`.
+- **In Progress:** Expanded store asset and release docs with Apple subscription disclosure templates, App Review notes, and submission checklist requirements.
+- **Completed:** Marked TODO complete, updated risk/workboard/chat docs, and validated docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/STORE_ASSETS.md`
+    - Updated iOS screenshot guidance for current App Store Connect display classes.
+    - Added Apple subscription disclosure template (title/length/price, renewal/cancellation, legal links).
+    - Added App Review subscription test-notes template.
+    - Added App Store in-app purchase metadata checklist (review screenshot/readiness/first submission attachment).
+    - Expanded store listing checklist with iOS subscription disclosure checks.
+  - `docs/RELEASE_GUIDE.md`
+    - Added App Store Connect subscription setup callouts in iOS release path.
+    - Added App Store subscription compliance check section.
+    - Added iOS App Review submission checklist section.
+    - Expanded store requirements checklist with Apple review metadata items.
+  - `docs/TODO_STORE_APPLE.md`
+    - Marked `STORE-APL-005` as completed.
+  - `docs/risk_notes.md`
+    - Updated `R-055` wording to reflect Apple metadata checklist documentation completion while console execution remains pending.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `STORE-APL-005` is complete with Apple subscription review metadata requirements documented and aligned with current in-app disclosure expectations.
+- **Verification:**
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md docs/STORE_ASSETS.md docs/RELEASE_GUIDE.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Proceed with remaining lifecycle/store-console execution work tracked under `R-055` (Apple webhook lifecycle + final store setup).
+
+---
+
+### Task #166 — SUB-009: Apple S2S Lifecycle Webhook
+**Date:** 2026-03-08
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Advance the remaining `R-055` backend lifecycle gap by implementing Apple App Store Server Notification webhook handling (`SUB-009`).
+- **Scope:** `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/appleS2sLifecycle.test.js`, `/Users/ace/my_first_project/docs/TODO_SUBSCRIPTION.md`, and required risk/architecture/workflow docs.
+- **Constraints:**
+  - Verify signed Apple S2S notification payloads before processing lifecycle events.
+  - Reconcile lifecycle outcomes into existing app-consumable subscription metadata.
+  - Preserve compatibility with existing `plan` + `subscriptionLifecycle` storage conventions.
+- **Expected Outcome:** Apple S2S webhook ingests lifecycle notifications, updates plan/lifecycle metadata safely, and is covered by focused helper tests.
+
+**Status Updates:**
+- **Received:** Identified next ship-blocker task after store checklist completion (`SUB-009` Apple lifecycle webhook path).
+- **In Progress:** Added Apple signed-payload verification/decode helpers and lifecycle mapping/override logic, then implemented webhook endpoint.
+- **Completed:** Added Apple S2S helper tests, updated TODO/risk/architecture/workflow docs, and validated docs sync guard.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added Apple S2S helper functions:
+      - certificate PEM conversion + JWS signature verification (`verifyAppleSignedPayloadSignature`),
+      - signed notification decode (`decodeAppleServerNotificationPayload`),
+      - lifecycle notification mapping (`mapAppleServerNotificationType`),
+      - entitlement override logic (`applyAppleServerNotificationEntitlementOverride`),
+      - notification signed-date parsing,
+      - user lookup by Apple transaction identifiers.
+    - Added webhook endpoint: `appleSubscriptionWebhook` (`https.onRequest`)
+      - validates request method/payload,
+      - verifies Apple signed payload,
+      - decodes signed transaction payload,
+      - resolves target user via Apple transaction IDs,
+      - applies lifecycle reconciliation and updates `applePurchase` + `subscriptionLifecycle` metadata,
+      - syncs `plan` via `setUserPlan`.
+    - Exposed Apple S2S helpers in `__test__helpers`.
+  - `functions/test/appleS2sLifecycle.test.js` (new)
+    - Added tests for lifecycle mapping, entitlement overrides, signed payload decode with injected verifier, malformed signature payload rejection, and signed-date fallback parsing.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Updated `SUB-009` as completed and checked acceptance criteria.
+  - `docs/risk_notes.md`
+    - Updated `R-055` to reflect backend lifecycle sync completion and remaining release-operations blocker scope.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added architecture/data notes for Apple S2S lifecycle flow.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Apple subscription lifecycle webhook processing is now implemented with signed payload verification and entitlement/state reconciliation.
+- **Verification:**
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/appleS2sLifecycle.test.js test/appleReceiptValidation.test.js test/googleRtdnLifecycle.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SUBSCRIPTION.md functions/src/index.ts functions/test/appleS2sLifecycle.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- **Next step:** Continue remaining `R-055` release-operations work (App Store Connect/Play Console reviewer setup and production submission execution).

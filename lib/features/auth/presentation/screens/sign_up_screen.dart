@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/validators.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/usecases/auth_flow_use_cases.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:crushhour/features/auth/presentation/widgets/google_logo_icon.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,6 +51,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Timer? _emailResendCooldownTimer;
   Timer? _phoneOtpResendCooldownTimer;
   int _emailResendCooldownSeconds = 0;
+
+  AuthFlowUseCases _authFlowUseCases() {
+    return AuthFlowUseCases(context.read<AuthRepository>());
+  }
+
   int _phoneOtpResendCooldownSeconds = 0;
 
   // Field errors
@@ -90,10 +96,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final authRepo = context.read<AuthRepository>();
-    final bypassVerification = authRepo.isVerificationBypassEnabled;
-    final supportsGoogleSignIn = authRepo.supportsGoogleSignIn;
+    final authFlowUseCases = _authFlowUseCases();
+    final bypassVerification = authFlowUseCases.isVerificationBypassEnabled;
+    final supportsGoogleSignIn = authFlowUseCases.supportsGoogleSignIn;
 
     // Calculate total steps based on auth method
     final totalSteps = _authMethod == 'phone'
@@ -115,7 +122,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               _isLoading = false;
             });
             _startPhoneOtpResendCooldown();
-            showSuccessSnackBar(context, 'Code sent. Check your messages.');
+            showSuccessSnackBar(context, l10n.onboardingSignUpPhoneCodeSent);
           } else if (state.status == AuthStatus.authenticated) {
             setState(() => _isLoading = false);
             context.go(CrushRoutes.termsConditions);
@@ -133,7 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           elevation: 0,
           leading: GlassIconButton(
             icon: Icons.arrow_back,
-            tooltip: 'Back',
+            tooltip: l10n.commonBack,
             onPressed: _handleBack,
           ),
         ),
@@ -165,7 +172,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             supportsGoogleSignIn) ...[
                           Semantics(
                             button: true,
-                            label: 'Continue with Google',
+                            label: l10n.authContinueWithGoogle,
                             child: SizedBox(
                               width: double.infinity,
                               child: GlassOutlinedButton(
@@ -176,13 +183,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 borderColor: const Color(0xFFDADCE0),
                                 isExpanded: true,
                                 isLoading: _isGoogleLoading,
-                                child: const Text(
-                                  'Continue with Google',
-                                  style: TextStyle(
-                                    color: Color(0xFF1F1F1F),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const GoogleLogoIcon(size: 20),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      l10n.authContinueWithGoogle,
+                                      style: const TextStyle(
+                                        color: Color(0xFF1F1F1F),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -194,7 +208,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               Padding(
                                 padding: DsEdgeInsets.horizontalLg,
                                 child: Text(
-                                  'or sign up with email',
+                                  l10n.onboardingSignUpOrSignUpWithEmail,
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: isDark
@@ -363,13 +377,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _submitPhone() {
+    final l10n = AppLocalizations.of(context);
     final phone = _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (phone.isEmpty) {
-      setState(() => _phoneError = 'Enter your phone number');
+      setState(() => _phoneError = l10n.onboardingSignUpPhoneErrorRequired);
       return;
     }
     if (phone.length < 6) {
-      setState(() => _phoneError = 'Add at least 6 digits');
+      setState(() => _phoneError = l10n.onboardingSignUpPhoneErrorMinDigits);
       return;
     }
 
@@ -383,13 +398,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _verifyPhoneOtp() {
+    final l10n = AppLocalizations.of(context);
     final otp = _otpController.text.replaceAll(RegExp(r'[^0-9]'), '');
     if (otp.isEmpty) {
-      setState(() => _otpError = 'Enter the verification code');
+      setState(() => _otpError = l10n.onboardingSignUpOtpErrorRequired);
       return;
     }
     if (otp.length != 6) {
-      setState(() => _otpError = 'Enter the 6-digit code');
+      setState(() => _otpError = l10n.onboardingSignUpOtpErrorInvalidLength);
       return;
     }
 
@@ -403,16 +419,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void _resendPhoneOtp() {
+    final l10n = AppLocalizations.of(context);
     if (_phoneOtpResendCooldownSeconds > 0) {
       showErrorSnackBar(
         context,
-        'Please wait ${_phoneOtpResendCooldownSeconds}s before requesting another code.',
+        l10n.onboardingSignUpWaitBeforeRequestingCode(
+          _phoneOtpResendCooldownSeconds,
+        ),
       );
       return;
     }
     final phoneNumber = _phoneInProgress ?? _getFullPhoneNumber();
     if (phoneNumber.trim().isEmpty || phoneNumber.trim() == '+') {
-      showErrorSnackBar(context, 'Enter a valid phone number.');
+      showErrorSnackBar(context, l10n.onboardingSignUpPhoneInvalid);
       return;
     }
     setState(() => _isLoading = true);
@@ -420,10 +439,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _resendEmailVerification() async {
+    final l10n = AppLocalizations.of(context);
     if (_emailResendCooldownSeconds > 0) {
       showErrorSnackBar(
         context,
-        'Please wait ${_emailResendCooldownSeconds}s before resending the verification email.',
+        l10n.onboardingSignUpWaitBeforeResendingEmail(
+          _emailResendCooldownSeconds,
+        ),
       );
       return;
     }
@@ -432,10 +454,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   /// Validates username - required for account creation.
   void _validateUsername() {
+    final l10n = AppLocalizations.of(context);
     final username = _usernameController.text.trim();
 
     if (username.isEmpty) {
-      setState(() => _usernameError = 'Username is required');
+      setState(() => _usernameError = l10n.onboardingSignUpUsernameRequired);
       return;
     }
 
@@ -443,7 +466,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
     if (!valid) {
       setState(
-        () => _usernameError = 'Use 3-20 letters, numbers, or underscore',
+        () => _usernameError = l10n.onboardingBasicInfoUsernameFormatError,
       );
       return;
     }
@@ -455,16 +478,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   /// Validates email - required for account creation.
   void _validateEmail() {
+    final l10n = AppLocalizations.of(context);
     final email = normalizeEmail(_emailController.text);
 
     if (email.isEmpty) {
-      setState(() => _emailError = 'Email is required');
+      setState(() => _emailError = l10n.onboardingSignUpEmailRequired);
       return;
     }
 
     // Must be valid
     if (!looksLikeEmail(email)) {
-      setState(() => _emailError = 'Please enter a valid email');
+      setState(() => _emailError = l10n.errorInvalidEmail);
       return;
     }
     setState(() {
@@ -474,16 +498,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _continueWithGoogle() async {
+    final l10n = AppLocalizations.of(context);
     if (_isGoogleLoading) return;
 
     FocusScope.of(context).unfocus();
     setState(() => _isGoogleLoading = true);
 
-    final result = await Result.guard(
-      () => context.read<AuthRepository>().signInWithGoogle(),
-      logLabel: 'AuthRepository.signInWithGoogle',
-      fallbackError: 'Google Sign-In failed. Please try again.',
-    );
+    final result = await _authFlowUseCases().signInWithGoogle();
 
     if (!mounted) return;
     setState(() => _isGoogleLoading = false);
@@ -491,7 +512,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (!result.isSuccess) {
       showErrorSnackBar(
         context,
-        result.errorMessage ?? 'Google Sign-In failed. Please try again.',
+        result.errorMessage ?? l10n.onboardingSignUpGoogleSignInFailed,
       );
       return;
     }
@@ -507,6 +528,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _createAccount() async {
+    final l10n = AppLocalizations.of(context);
     final username = _usernameController.text.trim();
     final email = normalizeEmail(_emailController.text);
     final password = _passwordController.text;
@@ -516,35 +538,35 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     // Validate username (required for account creation)
     if (username.isEmpty) {
-      errors.add('Username is required');
+      errors.add(l10n.onboardingSignUpUsernameRequired);
     } else if (!RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username)) {
-      errors.add('Invalid username format');
+      errors.add(l10n.onboardingSignUpInvalidUsernameFormat);
     }
 
     // Validate email (required for account creation)
     if (email.isEmpty) {
-      errors.add('Email is required');
+      errors.add(l10n.onboardingSignUpEmailRequired);
     } else if (!looksLikeEmail(email)) {
-      errors.add('Invalid email format');
+      errors.add(l10n.onboardingSignUpInvalidEmailFormat);
     }
 
     // Validate password (required for account creation)
     if (password.isEmpty) {
-      setState(() => _passwordError = 'Please create a password');
+      setState(() => _passwordError = l10n.onboardingSignUpPasswordRequired);
       if (errors.isNotEmpty) {
         showErrorSnackBar(
           context,
-          'Please complete all required fields: ${errors.join(", ")}',
+          l10n.onboardingSignUpCompleteRequiredFields(errors.join(', ')),
         );
       }
       return;
     }
     if (password.length < 8) {
-      setState(() => _passwordError = 'Password must be at least 8 characters');
+      setState(() => _passwordError = l10n.onboardingSignUpPasswordMinLength);
       if (errors.isNotEmpty) {
         showErrorSnackBar(
           context,
-          'Please complete all required fields: ${errors.join(", ")}',
+          l10n.onboardingSignUpCompleteRequiredFields(errors.join(', ')),
         );
       }
       return;
@@ -554,7 +576,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     if (errors.isNotEmpty) {
       showErrorSnackBar(
         context,
-        'Please complete all required fields: ${errors.join(", ")}',
+        l10n.onboardingSignUpCompleteRequiredFields(errors.join(', ')),
       );
       return;
     }
@@ -567,86 +589,92 @@ class _SignUpScreenState extends State<SignUpScreen> {
     });
 
     // Check if email is already registered
-    final authRepo = context.read<AuthRepository>();
-    final emailExists = await authRepo.isEmailRegistered(email);
-    if (emailExists) {
+    final authFlowUseCases = _authFlowUseCases();
+    final emailExistsResult = await authFlowUseCases.isEmailRegistered(email);
+    if (!emailExistsResult.isSuccess) {
       if (!mounted) return;
       setState(() => _isLoading = false);
       showErrorSnackBar(
         context,
-        'An account with this email already exists. Please sign in instead, or use a different email address.',
+        emailExistsResult.errorMessage ?? l10n.onboardingSignUpRequestFailed,
+      );
+      return;
+    }
+    if (emailExistsResult.data == true) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      showErrorSnackBar(context, l10n.onboardingSignUpEmailAlreadyExists);
+      return;
+    }
+
+    final signUpResult = await authFlowUseCases.signUpWithPassword(
+      username: username,
+      email: email,
+      password: password,
+    );
+    if (!signUpResult.isSuccess) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      showErrorSnackBar(
+        context,
+        signUpResult.errorMessage ?? l10n.onboardingSignUpRequestFailed,
       );
       return;
     }
 
-    try {
-      await authRepo.signUpWithPassword(
-        username: username,
-        email: email,
-        password: password,
-      );
+    if (!mounted) return;
+    setState(() => _isLoading = false);
 
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      if (context.read<AuthRepository>().isVerificationBypassEnabled) {
-        showSuccessSnackBar(context, 'Account created! Welcome to Crush.');
-        context.go(CrushRoutes.termsConditions);
-        return;
-      }
-
-      _registeredEmail = email;
-
-      // Send email verification email
-      await _sendEmailVerification();
-
-      if (!mounted) return;
-
-      setState(() => _currentStep = 3);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-
-      // Show the actual error message to help debug
-      String errorMessage = e.toString();
-      if (errorMessage.startsWith('Exception: ')) {
-        errorMessage = errorMessage.substring(11);
-      }
-      showErrorSnackBar(context, errorMessage);
+    if (authFlowUseCases.isVerificationBypassEnabled) {
+      showSuccessSnackBar(context, l10n.onboardingSignUpAccountCreated);
+      context.go(CrushRoutes.termsConditions);
+      return;
     }
+
+    _registeredEmail = email;
+
+    // Send email verification email
+    await _sendEmailVerification();
+
+    if (!mounted) return;
+
+    setState(() => _currentStep = 3);
   }
 
   Future<void> _sendEmailVerification({bool isResend = false}) async {
+    final l10n = AppLocalizations.of(context);
     if (isResend && _emailResendCooldownSeconds > 0) {
       showErrorSnackBar(
         context,
-        'Please wait ${_emailResendCooldownSeconds}s before resending the verification email.',
+        l10n.onboardingSignUpWaitBeforeResendingEmail(
+          _emailResendCooldownSeconds,
+        ),
       );
       return;
     }
 
     setState(() => _isLoading = true);
 
-    final result = await Result.guard(
-      () => context.read<AuthRepository>().sendEmailVerification(),
-      logLabel: 'AuthRepository.sendEmailVerification',
-      fallbackError: 'Could not send verification email. Please try again.',
-    );
+    final result = await _authFlowUseCases().sendEmailVerification();
 
     if (!mounted) return;
 
     setState(() => _isLoading = false);
 
     if (!result.isSuccess) {
-      final error = (result.errorMessage ?? 'Request failed.').toLowerCase();
+      final error = (result.errorMessage ?? l10n.onboardingSignUpRequestFailed)
+          .toLowerCase();
       if (error.contains('too-many-requests') ||
           error.contains('too many requests')) {
         showErrorSnackBar(
           context,
-          'Too many attempts. Please wait about a minute and try again.',
+          l10n.onboardingEmailVerificationTooManyAttempts,
         );
       } else {
-        showErrorSnackBar(context, result.errorMessage ?? 'Request failed.');
+        showErrorSnackBar(
+          context,
+          result.errorMessage ?? l10n.onboardingSignUpRequestFailed,
+        );
       }
       return;
     }
@@ -656,8 +684,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     showSuccessSnackBar(
       context,
       isResend
-          ? 'Verification email resent successfully.'
-          : 'A verification email has been sent to your inbox.',
+          ? l10n.onboardingSignUpVerificationEmailResent
+          : l10n.onboardingSignUpVerificationEmailSent,
     );
   }
 
@@ -705,6 +733,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> _openEmailApp() async {
+    final l10n = AppLocalizations.of(context);
     // Try to open the default email app
     final emailUri = Uri(scheme: 'mailto');
     try {
@@ -717,33 +746,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
           await launchUrl(gmailUri);
         } else {
           if (mounted) {
-            showErrorSnackBar(
-              context,
-              'Could not open email app. Please check your email manually.',
-            );
+            showErrorSnackBar(context, l10n.onboardingSignUpOpenEmailAppFailed);
           }
         }
       }
     } catch (e) {
       if (mounted) {
-        showErrorSnackBar(
-          context,
-          'Could not open email app. Please check your email manually.',
-        );
+        showErrorSnackBar(context, l10n.onboardingSignUpOpenEmailAppFailed);
       }
     }
   }
 
   Future<bool> _checkEmailVerification({bool silent = false}) async {
+    final l10n = AppLocalizations.of(context);
     if (!silent) {
       setState(() => _isLoading = true);
     }
 
-    final result = await Result.guard(
-      () => context.read<AuthRepository>().checkEmailVerification(),
-      logLabel: 'AuthRepository.checkEmailVerification',
-      fallbackError: 'Could not verify email status.',
-    );
+    final result = await _authFlowUseCases().checkEmailVerification();
 
     if (!mounted) return false;
 
@@ -755,15 +775,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         result.data != null &&
         result.data!.isEmailVerified) {
       if (mounted) {
-        showSuccessSnackBar(context, 'Email verified! Welcome to Crush.');
+        showSuccessSnackBar(context, l10n.onboardingSignUpEmailVerifiedWelcome);
         context.go(CrushRoutes.termsConditions);
       }
       return true;
     } else if (!silent) {
-      showErrorSnackBar(
-        context,
-        'Email not verified yet. Please click the link in your email, then try again.',
-      );
+      showErrorSnackBar(context, l10n.onboardingSignUpEmailNotVerified);
     }
     return false;
   }
@@ -778,13 +795,14 @@ class _StepProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Text(
-              'Step ${currentStep + 1} of $totalSteps',
+              l10n.onboardingStep(currentStep + 1, totalSteps),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: DsColors.primary,
                 fontWeight: FontWeight.w600,
@@ -792,7 +810,9 @@ class _StepProgress extends StatelessWidget {
             ),
             const Spacer(),
             Text(
-              '${((currentStep + 1) / totalSteps * 100).round()}%',
+              l10n.onboardingSignUpPercent(
+                ((currentStep + 1) / totalSteps * 100).round(),
+              ),
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: DsColors.textMutedLight),
@@ -837,6 +857,7 @@ class _UsernameStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -846,7 +867,7 @@ class _UsernameStep extends StatelessWidget {
             colors: [DsColors.primary, DsColors.secondary],
           ).createShader(bounds),
           child: Text(
-            'Welcome to Crush',
+            l10n.onboardingWelcome,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: DsColors.backgroundLight,
@@ -855,7 +876,7 @@ class _UsernameStep extends StatelessWidget {
         ),
         DsGap.xs,
         Text(
-          'Step 1',
+          l10n.onboardingSignUpStepOne,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: DsColors.primary,
             fontWeight: FontWeight.w600,
@@ -863,14 +884,14 @@ class _UsernameStep extends StatelessWidget {
         ),
         DsGap.lg,
         Text(
-          'Choose your username',
+          l10n.onboardingSignUpChooseUsername,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         DsGap.xs,
         Text(
-          'This is how others will find you on Crush.',
+          l10n.onboardingSignUpUsernameDescription,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
@@ -878,8 +899,8 @@ class _UsernameStep extends StatelessWidget {
         DsGap.xxl,
         GlassTextField(
           controller: controller,
-          label: 'Username',
-          hintText: 'e.g., john_doe123',
+          label: l10n.onboardingBasicInfoUsernameLabel,
+          hintText: l10n.onboardingSignUpUsernameHint,
           prefixIcon: Icons.person_outline,
           errorText: error,
           enabled: !isLoading,
@@ -889,7 +910,7 @@ class _UsernameStep extends StatelessWidget {
         ),
         DsGap.sm,
         Text(
-          '3-20 characters, letters, numbers, and underscore only',
+          l10n.onboardingSignUpUsernameRules,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
@@ -913,7 +934,7 @@ class _UsernameStep extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  'or sign up with',
+                  l10n.onboardingSignUpOrSignUpWith,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: isDark
                         ? DsColors.textMutedDark
@@ -931,7 +952,7 @@ class _UsernameStep extends StatelessWidget {
               Expanded(
                 child: _AltSignUpOption(
                   icon: Icons.phone_outlined,
-                  label: 'Phone',
+                  label: l10n.authPhone,
                   onTap: isLoading ? null : onSwitchToPhone,
                   isDark: isDark,
                 ),
@@ -1011,11 +1032,12 @@ class _EmailStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'What\'s your email?',
+          l10n.onboardingSignUpEmailTitle,
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -1023,8 +1045,8 @@ class _EmailStep extends StatelessWidget {
         DsGap.sm,
         Text(
           bypassVerification
-              ? 'Test mode: verification is disabled.'
-              : 'We\'ll send you a verification link to confirm your email.',
+              ? l10n.onboardingSignUpBypassHint
+              : l10n.onboardingSignUpEmailHint,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
@@ -1032,8 +1054,8 @@ class _EmailStep extends StatelessWidget {
         DsGap.xxl,
         GlassTextField(
           controller: controller,
-          label: 'Email address',
-          hintText: 'you@example.com',
+          label: l10n.onboardingSignUpEmailAddressLabel,
+          hintText: l10n.onboardingSignUpEmailAddressHint,
           prefixIcon: Icons.email_outlined,
           errorText: error,
           enabled: !isLoading,
@@ -1083,22 +1105,23 @@ class _PasswordStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final missingFields = <String>[];
-    if (!hasUsername) missingFields.add('username');
-    if (!hasEmail) missingFields.add('email');
+    if (!hasUsername) missingFields.add(l10n.onboardingBasicInfoUsernameLabel);
+    if (!hasEmail) missingFields.add(l10n.authEmail);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Create a password',
+          l10n.onboardingSignUpPasswordTitle,
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         DsGap.sm,
         Text(
-          'Make it strong with at least 8 characters.',
+          l10n.onboardingSignUpPasswordDescription,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
@@ -1124,7 +1147,9 @@ class _PasswordStep extends StatelessWidget {
                 DsGap.smH,
                 Expanded(
                   child: Text(
-                    'Missing required fields: ${missingFields.join(", ")}. Go back to fill them before creating your account.',
+                    l10n.onboardingSignUpMissingRequiredFields(
+                      missingFields.join(', '),
+                    ),
                     style: Theme.of(
                       context,
                     ).textTheme.bodySmall?.copyWith(color: DsColors.warning),
@@ -1137,7 +1162,7 @@ class _PasswordStep extends StatelessWidget {
         DsGap.xxl,
         GlassTextField(
           controller: controller,
-          label: 'Password',
+          label: l10n.authPassword,
           hintText: '••••••••',
           prefixIcon: Icons.lock_outline,
           errorText: error,
@@ -1267,6 +1292,16 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final warningBackgroundColor = widget.isDark
+        ? DsColors.warning.withValues(alpha: 0.18)
+        : DsColors.warning.withValues(alpha: 0.12);
+    final warningBorderColor = widget.isDark
+        ? DsColors.warning.withValues(alpha: 0.45)
+        : DsColors.warning.withValues(alpha: 0.3);
+    final warningTextColor = widget.isDark
+        ? DsColors.textPrimaryDark
+        : DsColors.textPrimaryLight;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1302,7 +1337,7 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
         DsGap.xxl,
         Center(
           child: Text(
-            'Check your email',
+            l10n.authCheckYourEmail,
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -1311,7 +1346,7 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
         DsGap.md,
         Center(
           child: Text(
-            'We sent a verification link to',
+            l10n.onboardingEmailVerificationSentTo,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: widget.isDark
                   ? DsColors.textMutedDark
@@ -1353,27 +1388,28 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
             children: [
               _InstructionRow(
                 number: '1',
-                text: 'Open your email inbox',
+                text: l10n.onboardingSignUpEmailInstructionOpenInbox,
                 isDark: widget.isDark,
               ),
               DsGap.sm,
               _InstructionRow(
                 number: '2',
-                text: 'Find the email from Crush',
+                text: l10n.onboardingSignUpEmailInstructionFindEmail,
                 isDark: widget.isDark,
               ),
               DsGap.sm,
               _InstructionRow(
                 number: '3',
-                text: 'Click the verification link',
+                text: l10n.onboardingSignUpEmailInstructionClickLink,
                 isDark: widget.isDark,
               ),
               DsGap.md,
               Container(
                 padding: DsEdgeInsets.allSm,
                 decoration: BoxDecoration(
-                  color: DsColors.warning.withValues(alpha: 0.1),
+                  color: warningBackgroundColor,
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: warningBorderColor),
                 ),
                 child: Row(
                   children: [
@@ -1385,9 +1421,10 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
                     DsGap.smH,
                     Expanded(
                       child: Text(
-                        'If you didn\'t request this, please ignore the email.',
+                        l10n.onboardingSignUpEmailIgnoreNotice,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: DsColors.warning,
+                          color: warningTextColor,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -1415,7 +1452,7 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
                 ),
                 DsGap.smH,
                 Text(
-                  'Auto-checking verification status...',
+                  l10n.authAutoCheckingStatus,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: DsColors.success),
@@ -1437,9 +1474,9 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
           isLoading: widget.isLoading,
           isExpanded: true,
           borderColor: DsColors.primary,
-          child: const Text(
-            'I\'ve clicked the link',
-            style: TextStyle(color: DsColors.primary),
+          child: Text(
+            l10n.authIveVerified,
+            style: const TextStyle(color: DsColors.primary),
           ),
         ),
         DsGap.lg,
@@ -1447,15 +1484,17 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
         Center(
           child: Semantics(
             button: true,
-            label: 'Resend verification email',
+            label: l10n.onboardingEmailVerificationResendSemantics,
             child: GlassSmallButton(
               onPressed: widget.isLoading || widget.resendCooldownSeconds > 0
                   ? null
                   : widget.onResend,
               child: Text(
                 widget.resendCooldownSeconds > 0
-                    ? 'Resend in ${widget.resendCooldownSeconds}s'
-                    : 'Didn\'t receive email? Resend',
+                    ? l10n.onboardingEmailVerificationResendIn(
+                        widget.resendCooldownSeconds,
+                      )
+                    : l10n.onboardingSignUpDidntReceiveEmailResend,
               ),
             ),
           ),
@@ -1464,7 +1503,7 @@ class _EmailLinkStepState extends State<_EmailLinkStep>
         // Check spam notice
         Center(
           child: Text(
-            'Check your spam folder if you don\'t see it',
+            l10n.onboardingSignUpCheckSpam,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: widget.isDark
                   ? DsColors.textMutedDark
@@ -1537,7 +1576,7 @@ class _PasswordStrength extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final strength = _calculateStrength(password);
     final color = _getColor(strength);
-    final label = _getLabel(strength);
+    final label = _getLabel(context, strength);
 
     return Row(
       children: [
@@ -1585,12 +1624,13 @@ class _PasswordStrength extends StatelessWidget {
     return DsColors.success;
   }
 
-  String _getLabel(double strength) {
+  String _getLabel(BuildContext context, double strength) {
+    final l10n = AppLocalizations.of(context);
     if (strength == 0) return '';
-    if (strength < 0.3) return 'Weak';
-    if (strength < 0.6) return 'Fair';
-    if (strength < 0.8) return 'Good';
-    return 'Strong';
+    if (strength < 0.3) return l10n.onboardingSignUpPasswordStrengthWeak;
+    if (strength < 0.6) return l10n.onboardingSignUpPasswordStrengthFair;
+    if (strength < 0.8) return l10n.onboardingSignUpPasswordStrengthGood;
+    return l10n.onboardingSignUpPasswordStrengthStrong;
   }
 }
 
@@ -1598,23 +1638,24 @@ class _PasswordStrength extends StatelessWidget {
 class _LoginLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Semantics(
         button: true,
-        label: 'Sign in',
+        label: l10n.authSignIn,
         child: GlassSmallButton(
           onPressed: () => context.go(CrushRoutes.login),
           child: RichText(
             text: TextSpan(
               style: Theme.of(context).textTheme.bodyMedium,
-              children: const [
+              children: [
                 TextSpan(
-                  text: 'Already have an account? ',
-                  style: TextStyle(color: DsColors.textMutedLight),
+                  text: '${l10n.authAlreadyHaveAccount} ',
+                  style: const TextStyle(color: DsColors.textMutedLight),
                 ),
                 TextSpan(
-                  text: 'Sign in',
-                  style: TextStyle(
+                  text: l10n.authSignIn,
+                  style: const TextStyle(
                     color: DsColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1657,18 +1698,19 @@ class _PhoneStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Enter your phone number',
+          l10n.onboardingSignUpPhoneTitle,
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         DsGap.sm,
         Text(
-          'We\'ll send you a code to verify your account.',
+          l10n.onboardingSignUpPhoneSubtitle,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
@@ -1679,7 +1721,7 @@ class _PhoneStep extends StatelessWidget {
           initialValue: selectedCountry,
           isExpanded: true,
           decoration: InputDecoration(
-            labelText: 'Country',
+            labelText: l10n.profileCountry,
             prefixIcon: const Icon(Icons.flag_outlined),
             filled: true,
             fillColor: isDark
@@ -1731,7 +1773,7 @@ class _PhoneStep extends StatelessWidget {
               width: 100,
               child: GlassTextField(
                 controller: dialCodeController,
-                label: 'Code',
+                label: l10n.onboardingSignUpCodeLabel,
                 hintText: '+1',
                 prefixIcon: Icons.dialpad,
                 enabled: !isLoading,
@@ -1742,8 +1784,8 @@ class _PhoneStep extends StatelessWidget {
             Expanded(
               child: GlassTextField(
                 controller: phoneController,
-                label: 'Phone number',
-                hintText: '(555) 123-4567',
+                label: l10n.authPhoneNumber,
+                hintText: l10n.onboardingSignUpPhoneHint,
                 prefixIcon: Icons.phone_outlined,
                 errorText: error,
                 enabled: !isLoading,
@@ -1757,7 +1799,7 @@ class _PhoneStep extends StatelessWidget {
         ),
         DsGap.sm,
         Text(
-          'SMS rates may apply. We only use this to secure your account.',
+          l10n.onboardingSignUpSmsRates,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
           ),
@@ -1775,7 +1817,7 @@ class _PhoneStep extends StatelessWidget {
         Center(
           child: Semantics(
             button: true,
-            label: 'Sign up with email instead',
+            label: l10n.signUpWithEmailInstead,
             child: GlassSmallButton(
               onPressed: isLoading ? null : onSwitchToEmail,
               child: Row(
@@ -1821,6 +1863,7 @@ class _PhoneOtpStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1839,7 +1882,7 @@ class _PhoneOtpStep extends StatelessWidget {
         ),
         DsGap.xl,
         Text(
-          'Enter verification code',
+          l10n.onboardingSignUpOtpTitle,
           style: Theme.of(
             context,
           ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -1851,19 +1894,15 @@ class _PhoneOtpStep extends StatelessWidget {
               color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
             ),
             children: [
-              const TextSpan(text: 'We sent a 6-digit code to '),
-              TextSpan(
-                text: phoneNumber,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
+              TextSpan(text: l10n.onboardingSignUpOtpSentTo(phoneNumber)),
             ],
           ),
         ),
         DsGap.xxl,
         GlassTextField(
           controller: controller,
-          label: 'Verification code',
-          hintText: '000000',
+          label: l10n.authVerificationCode,
+          hintText: l10n.onboardingSignUpVerificationCodeHint,
           prefixIcon: Icons.pin_outlined,
           errorText: error,
           enabled: !isLoading,
@@ -1884,15 +1923,17 @@ class _PhoneOtpStep extends StatelessWidget {
         Center(
           child: Semantics(
             button: true,
-            label: 'Resend code',
+            label: l10n.authResendCode,
             child: GlassSmallButton(
               onPressed: isLoading || resendCooldownSeconds > 0
                   ? null
                   : onResend,
               child: Text(
                 resendCooldownSeconds > 0
-                    ? 'Resend in ${resendCooldownSeconds}s'
-                    : 'Didn\'t receive code? Resend',
+                    ? l10n.onboardingEmailVerificationResendIn(
+                        resendCooldownSeconds,
+                      )
+                    : l10n.onboardingSignUpDidntReceiveCodeResend,
               ),
             ),
           ),

@@ -31,6 +31,29 @@ import 'package:crushhour/core/services/badge_counter_service.dart';
 import 'chat_screen.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 
+@visibleForTesting
+double chatListPaneWidthFor(double screenWidth) {
+  final fraction = DsBreakpoints.responsiveValue<double>(
+    screenWidth,
+    mobile: 1.0,
+    tablet: 0.36,
+    desktop: 0.32,
+  );
+  final minWidth = DsBreakpoints.responsiveValue<double>(
+    screenWidth,
+    mobile: 0,
+    tablet: 300,
+    desktop: 340,
+  );
+  final maxWidth = DsBreakpoints.responsiveValue<double>(
+    screenWidth,
+    mobile: double.infinity,
+    tablet: 380,
+    desktop: 460,
+  );
+  return (screenWidth * fraction).clamp(minWidth, maxWidth).toDouble();
+}
+
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
@@ -319,9 +342,13 @@ class _ChatListViewState extends State<_ChatListView> {
             }
 
             // iPad/tablet: split-view — conversation list (320px) + chat detail
+            final listPaneWidth = chatListPaneWidthFor(constraints.maxWidth);
             return Row(
               children: [
-                SizedBox(width: 320, child: _buildChatList(context, state)),
+                SizedBox(
+                  width: listPaneWidth,
+                  child: _buildChatList(context, state),
+                ),
                 const VerticalDivider(width: 1),
                 Expanded(
                   child: _selectedChat != null

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:crushhour/features/subscription/data/services/native_billing_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,14 +10,60 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 
+typedef GooglePurchaseTokenVerifier =
+    Future<Map<String, dynamic>> Function({
+      required String productId,
+      required String purchaseToken,
+    });
+
+typedef AppleTransactionVerifier =
+    Future<Map<String, dynamic>> Function({
+      required String productId,
+      required String transactionId,
+    });
+
 /// Firebase implementation of SubscriptionRepository.
 /// Includes fallback demo promo codes when Cloud Functions are not deployed.
 class FirebaseSubscriptionRepository implements SubscriptionRepository {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseFunctions _functions = FirebaseFunctions.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseSubscriptionRepository({
+    FirebaseFirestore? firestore,
+    FirebaseFunctions? functions,
+    FirebaseAuth? auth,
+    NativeBillingService? nativeBillingService,
+    GooglePurchaseTokenVerifier? googlePurchaseTokenVerifier,
+    AppleTransactionVerifier? appleTransactionVerifier,
+  }) : _firestoreOverride = firestore,
+       _functionsOverride = functions,
+       _authOverride = auth,
+       _nativeBillingService =
+           nativeBillingService ?? InAppPurchaseNativeBillingService(),
+       _googlePurchaseTokenVerifier = googlePurchaseTokenVerifier,
+       _appleTransactionVerifier = appleTransactionVerifier;
+
+  final FirebaseFirestore? _firestoreOverride;
+  final FirebaseFunctions? _functionsOverride;
+  final FirebaseAuth? _authOverride;
+  final NativeBillingService _nativeBillingService;
+  final GooglePurchaseTokenVerifier? _googlePurchaseTokenVerifier;
+  final AppleTransactionVerifier? _appleTransactionVerifier;
+
+  FirebaseFirestore get _firestore =>
+      _firestoreOverride ?? FirebaseFirestore.instance;
+  FirebaseFunctions get _functions =>
+      _functionsOverride ?? FirebaseFunctions.instance;
+  FirebaseAuth get _auth => _authOverride ?? FirebaseAuth.instance;
 
   String? get _currentUserId => _auth.currentUser?.uid;
+
+  static const _plusMonthlyProductId = 'plus_monthly';
+  bool get _requiresNativeMobilePurchase =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android);
+  bool get _isAndroidNativeMobilePurchase =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  bool get _isIosNativeMobilePurchase =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   // Keys for local promo code storage (fallback)
   static const _redeemedCodesKey = 'redeemed_promo_codes_firebase';
@@ -85,6 +133,13 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<void> purchasePlusPlan() async {
+    if (_requiresNativeMobilePurchase) {
+      await _nativeBillingService.purchaseSubscription(
+        productId: _plusMonthlyProductId,
+      );
+      return;
+    }
+
     // Start checkout and launch the URL
     final url = await startPlusCheckout();
     await launchCheckoutUrl(url);
@@ -92,6 +147,12 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<String> startPlusCheckout() async {
+    if (_requiresNativeMobilePurchase) {
+      throw UnsupportedError(
+        'Mobile checkout must use native in-app purchase flow.',
+      );
+    }
+
     final callable = _functions.httpsCallable('createCheckoutSession');
     final result = await callable.call<Map<String, dynamic>>({
       'priceId': 'price_plus_monthly', // Configure your Stripe price ID
@@ -106,6 +167,12 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<void> launchCheckoutUrl(String url) async {
+    if (_requiresNativeMobilePurchase) {
+      throw UnsupportedError(
+        'Mobile checkout must use native in-app purchase flow.',
+      );
+    }
+
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -116,6 +183,10 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<SubscriptionStatus> refreshStatus() async {
+    if (_requiresNativeMobilePurchase) {
+      return _refreshNativePurchaseStatus();
+    }
+
     try {
       final callable = _functions.httpsCallable('syncSubscriptionStatus');
       final result = await callable.call<Map<String, dynamic>>();
@@ -140,6 +211,168 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
         status: plan == SubscriptionPlan.plus ? 'active' : null,
       );
     }
+  }
+
+  Future<SubscriptionStatus> _refreshNativePurchaseStatus() async {
+    final restoredPurchases = await _nativeBillingService
+        .restoreSubscriptionPurchases();
+
+    if (restoredPurchases.isEmpty) {
+      return SubscriptionStatus(plan: SubscriptionPlan.free, status: 'none');
+    }
+
+    if (_isAndroidNativeMobilePurchase) {
+      return _restoreStatusesFromPurchases(
+        restoredPurchases,
+        _verifyGooglePlayRestoredPurchase,
+      );
+    }
+
+    if (_isIosNativeMobilePurchase) {
+      return _restoreStatusesFromPurchases(
+        restoredPurchases,
+        _verifyAppleRestoredPurchase,
+      );
+    }
+
+    final currentPlan = await getCurrentPlan();
+    return SubscriptionStatus(
+      plan: currentPlan,
+      status: currentPlan == SubscriptionPlan.plus ? 'active' : 'none',
+    );
+  }
+
+  Future<SubscriptionStatus> _verifyGooglePlayRestoredPurchase(
+    NativeSubscriptionPurchase purchase,
+  ) async {
+    final payload = await _invokeGooglePurchaseVerifier(
+      productId: purchase.productId,
+      purchaseToken: purchase.serverVerificationData,
+    );
+    return _subscriptionStatusFromGooglePayload(payload);
+  }
+
+  Future<SubscriptionStatus> _verifyAppleRestoredPurchase(
+    NativeSubscriptionPurchase purchase,
+  ) async {
+    final transactionId = purchase.transactionId;
+    if (transactionId == null || transactionId.isEmpty) {
+      throw StateError(
+        'Missing App Store transaction ID for restored purchase.',
+      );
+    }
+
+    final payload = await _invokeAppleTransactionVerifier(
+      productId: purchase.productId,
+      transactionId: transactionId,
+    );
+    return _subscriptionStatusFromGooglePayload(payload);
+  }
+
+  Future<Map<String, dynamic>> _invokeGooglePurchaseVerifier({
+    required String productId,
+    required String purchaseToken,
+  }) async {
+    final verifier = _googlePurchaseTokenVerifier;
+    if (verifier != null) {
+      return verifier(productId: productId, purchaseToken: purchaseToken);
+    }
+
+    final callable = _functions.httpsCallable('verifyGooglePurchaseToken');
+    final result = await callable.call<Map<String, dynamic>>({
+      'productId': productId,
+      'purchaseToken': purchaseToken,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
+
+  Future<Map<String, dynamic>> _invokeAppleTransactionVerifier({
+    required String productId,
+    required String transactionId,
+  }) async {
+    final verifier = _appleTransactionVerifier;
+    if (verifier != null) {
+      return verifier(productId: productId, transactionId: transactionId);
+    }
+
+    final callable = _functions.httpsCallable('verifyAppleTransaction');
+    final result = await callable.call<Map<String, dynamic>>({
+      'productId': productId,
+      'transactionId': transactionId,
+    });
+    return Map<String, dynamic>.from(result.data);
+  }
+
+  Future<SubscriptionStatus> _restoreStatusesFromPurchases(
+    List<NativeSubscriptionPurchase> purchases,
+    Future<SubscriptionStatus> Function(NativeSubscriptionPurchase purchase)
+    verifier,
+  ) async {
+    final restoredStatuses = <SubscriptionStatus>[];
+    Object? lastError;
+
+    for (final purchase in purchases) {
+      try {
+        restoredStatuses.add(await verifier(purchase));
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (restoredStatuses.isNotEmpty) {
+      return _selectMostEntitledStatus(restoredStatuses);
+    }
+
+    if (lastError != null) {
+      throw StateError('Could not restore purchases. Please try again.');
+    }
+
+    return SubscriptionStatus(plan: SubscriptionPlan.free, status: 'none');
+  }
+
+  SubscriptionStatus _subscriptionStatusFromGooglePayload(
+    Map<String, dynamic> payload,
+  ) {
+    final planValue = payload['plan'] as String?;
+    final plan = planValue == 'plus'
+        ? SubscriptionPlan.plus
+        : SubscriptionPlan.free;
+
+    return SubscriptionStatus(
+      plan: plan,
+      status: payload['status'] as String?,
+      nextRenewal:
+          _parseTimestamp(payload['nextRenewal']) ??
+          _parseEpochSeconds(payload['currentPeriodEnd']),
+      cancelAtPeriodEnd: payload['cancelAtPeriodEnd'] as bool? ?? false,
+    );
+  }
+
+  SubscriptionStatus _selectMostEntitledStatus(
+    List<SubscriptionStatus> statuses,
+  ) {
+    for (final status in statuses) {
+      if (status.plan == SubscriptionPlan.plus) {
+        return status;
+      }
+    }
+    return statuses.first;
+  }
+
+  DateTime? _parseEpochSeconds(dynamic value) {
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value * 1000);
+    }
+    if (value is double) {
+      return DateTime.fromMillisecondsSinceEpoch((value * 1000).round());
+    }
+    if (value is String) {
+      final parsed = num.tryParse(value);
+      if (parsed != null) {
+        return DateTime.fromMillisecondsSinceEpoch((parsed * 1000).round());
+      }
+    }
+    return null;
   }
 
   DateTime? _parseTimestamp(dynamic value) {

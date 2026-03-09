@@ -147,6 +147,28 @@ void main() {
       await server.close();
     });
 
+    test('heartbeat timeout closes stale socket before marking failed', () async {
+      final server = await _WsTestServer.start();
+      final connection = WebSocketConnection(
+        url: server.url,
+        reconnectAttempts: 0,
+        heartbeatInterval: const Duration(milliseconds: 30),
+      );
+
+      await connection.connect();
+      expect(connection.state, ConnectionState.connected);
+      expect(server.activeClientCount, 1);
+
+      await Future<void>.delayed(const Duration(milliseconds: 220));
+
+      expect(connection.state, ConnectionState.failed);
+      expect(server.activeClientCount, 0);
+
+      await connection.disconnect();
+      await connection.dispose();
+      await server.close();
+    });
+
     test('send and sendEvent are no-ops when disconnected', () {
       final connection = WebSocketConnection(url: 'ws://127.0.0.1:1');
 
@@ -271,6 +293,8 @@ class _WsTestServer {
   String get url => 'ws://${_server.address.address}:${_server.port}';
 
   Stream<String> get messages => _messages.stream;
+
+  int get activeClientCount => _clients.length;
 
   Future<void> sendJson(Map<String, dynamic> message) async {
     final payload = jsonEncode(message);

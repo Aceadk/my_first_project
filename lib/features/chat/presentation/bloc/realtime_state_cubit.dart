@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -42,16 +43,21 @@ class RealtimeStateCubit extends Cubit<RealtimeState> {
 
   /// Update the set of currently typing user IDs.
   void updateTyping(Set<String> typingUserIds) {
-    emit(state.copyWith(typingUserIds: typingUserIds));
+    if (setEquals(state.typingUserIds, typingUserIds)) return;
+    emit(
+      state.copyWith(typingUserIds: Set<String>.unmodifiable(typingUserIds)),
+    );
   }
 
   /// Update whether the other user is online.
   void updatePresence(bool isOnline) {
+    if (state.otherUserOnline == isOnline) return;
     emit(state.copyWith(otherUserOnline: isOnline));
   }
 
   /// Update whether media sending is enabled for this chat.
   void updateMediaEnabled(bool enabled) {
+    if (state.mediaSendingEnabled == enabled) return;
     emit(state.copyWith(mediaSendingEnabled: enabled));
   }
 

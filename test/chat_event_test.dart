@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
+import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
 
 Message _message(String id) => Message(
   id: id,
@@ -180,10 +181,11 @@ void main() {
     });
 
     test('reset/sub-bloc/e2ee events support equality semantics', () {
+      final aggregated = ChatState();
       expect(ChatResetRequested(), ChatResetRequested());
-      expect(ChatSubBlocChanged(), ChatSubBlocChanged());
+      expect(ChatSubBlocChanged(aggregated), ChatSubBlocChanged(aggregated));
       expect(ChatResetRequested().props, isEmpty);
-      expect(ChatSubBlocChanged().props, isEmpty);
+      expect(ChatSubBlocChanged(aggregated).props, [aggregated]);
       expect(ChatE2eeToggled(true), ChatE2eeToggled(true));
       expect(ChatE2eeToggled(true).props, [true]);
     });

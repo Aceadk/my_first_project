@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/preferences.dart';
+import 'package:crushhour/data/models/profile_prompt.dart';
 
 void main() {
   const prefs = DiscoveryPreferences(
@@ -31,7 +32,10 @@ void main() {
       bio: 'This is a longer bio with more than forty characters.',
       photoUrls: const ['a.jpg', 'b.jpg', 'c.jpg'],
       videoUrls: const [],
-      prompts: const ['p1', 'p2'],
+      profilePrompts: const [
+        ProfilePrompt(questionId: 'unknown', answer: 'p1'),
+        ProfilePrompt(questionId: 'unknown', answer: 'p2'),
+      ],
       isVerified: false,
       jobTitle: 'Engineer',
       company: 'Acme',
@@ -127,7 +131,7 @@ void main() {
     },
   );
 
-  test('legacy prompts fallback contributes to prompts tracking', () {
+  test('legacy prompts no longer contribute to prompts tracking', () {
     const profile = Profile(
       id: 'legacy-prompts',
       name: 'Legacy',
@@ -137,6 +141,7 @@ void main() {
       bio: 'This bio is long enough.',
       photoUrls: ['a.jpg'],
       videoUrls: [],
+      // ignore: deprecated_member_use_from_same_package
       prompts: ['one', 'two'],
       isVerified: false,
       jobTitle: null,
@@ -151,8 +156,8 @@ void main() {
     );
 
     final summary = evaluateProfileCompleteness(profile);
-    expect(summary.breakdown['prompts'], 1.0);
-    expect(summary.recommended, isEmpty);
+    expect(summary.breakdown['prompts'], 0.0);
+    expect(summary.recommended, contains('Answer prompts to stand out'));
   });
 
   test(
@@ -167,7 +172,10 @@ void main() {
         bio: 'Long enough biography text.',
         photoUrls: ['a.jpg'],
         videoUrls: [],
-        prompts: ['p1', 'p2'],
+        profilePrompts: [
+          ProfilePrompt(questionId: 'unknown', answer: 'p1'),
+          ProfilePrompt(questionId: 'unknown', answer: 'p2'),
+        ],
         isVerified: false,
         jobTitle: null,
         company: null,
@@ -189,7 +197,7 @@ void main() {
         bio: 'short',
         photoUrls: [],
         videoUrls: [],
-        prompts: [],
+        profilePrompts: [],
         isVerified: false,
         jobTitle: null,
         company: null,

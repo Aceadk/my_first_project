@@ -26,7 +26,6 @@ abstract class ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -74,7 +73,6 @@ abstract class ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -90,4 +88,33 @@ abstract class ProfileRepository {
   Future<Result<CrushUser>> skipBasicInfoResult({required String username});
 
   Future<Result<CrushUser>> skipProfileSetupResult();
+}
+
+/// Optional capability for repositories that can verify username availability.
+abstract class UsernameAvailabilityProfileRepository {
+  Future<bool> isUsernameAvailable({
+    required String username,
+    String? excludingUserId,
+  });
+}
+
+extension ProfileRepositoryUsernameAvailabilityX on ProfileRepository {
+  bool get supportsUsernameAvailabilityCheck =>
+      this is UsernameAvailabilityProfileRepository;
+
+  Future<bool> isUsernameAvailable({
+    required String username,
+    String? excludingUserId,
+  }) {
+    final repo = this;
+    if (repo is UsernameAvailabilityProfileRepository) {
+      return repo.isUsernameAvailable(
+        username: username,
+        excludingUserId: excludingUserId,
+      );
+    }
+    throw UnimplementedError(
+      'Username availability checks are not supported by this repository.',
+    );
+  }
 }

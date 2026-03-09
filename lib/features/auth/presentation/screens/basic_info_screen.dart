@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
@@ -5,10 +7,12 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -32,6 +36,10 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   bool _hasShownAgeWarning = false;
   bool _isSubmitting = false; // Track if we initiated a save
   bool _hasPrefilledUsername = false; // Track if username was pre-filled
+  bool _isCheckingUsernameAvailability = false;
+  bool? _isUsernameAvailable;
+  String? _lastCheckedUsername;
+  Timer? _usernameDebounceTimer;
 
   /// Calculate age from date of birth
   int? get _calculatedAge {
@@ -44,24 +52,6 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     }
     return age;
   }
-
-  final List<Map<String, dynamic>> _genderOptions = [
-    {'value': 'female', 'label': 'Female', 'icon': Icons.female},
-    {'value': 'male', 'label': 'Male', 'icon': Icons.male},
-    {'value': 'nonbinary', 'label': 'Non-binary', 'icon': Icons.transgender},
-  ];
-
-  final List<String> _orientationOptions = [
-    'Straight',
-    'Gay',
-    'Lesbian',
-    'Bisexual',
-    'Pansexual',
-    'Asexual',
-    'Queer',
-    'Questioning',
-    'Prefer not to say',
-  ];
 
   @override
   void initState() {
@@ -77,6 +67,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
 
   @override
   void dispose() {
+    _usernameDebounceTimer?.cancel();
     _usernameController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
@@ -86,6 +77,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       body: Container(
@@ -189,7 +181,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                       ),
                                       const Spacer(),
                                       Text(
-                                        'Basic Info',
+                                        l10n.onboardingBasicInfoTitle,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleLarge
@@ -219,7 +211,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            'Step 3 of 6',
+                                            l10n.onboardingStep(3, 6),
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall
@@ -229,7 +221,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                                 ),
                                           ),
                                           Text(
-                                            'Tell us about you',
+                                            l10n.onboardingBasicInfoSubtitle,
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .bodySmall
@@ -271,55 +263,34 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                         // Username Field
                                         _buildSectionLabel(
                                           context,
-                                          'Username',
+                                          l10n.onboardingBasicInfoUsernameLabel,
                                           isDark,
                                           true,
                                         ),
                                         DsGap.sm,
                                         GlassTextField(
                                           controller: _usernameController,
-                                          hintText: 'Choose a unique username',
+                                          hintText: l10n
+                                              .onboardingBasicInfoUsernameHint,
                                           prefixIcon:
                                               Icons.alternate_email_rounded,
                                           errorText: _usernameErrorText(),
-                                          onChanged: (value) {
-                                            _markUsernameTouched();
-                                            setState(() {});
-                                          },
+                                          helperText: _usernameHelperText(),
+                                          onChanged: _onUsernameChanged,
                                         ),
-                                        if (_usernameErrorText() == null)
-                                          Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.only(
-                                                  top: 6,
-                                                  start: 12,
-                                                ),
-                                            child: Text(
-                                              '3-20 characters, letters, numbers, or underscore',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodySmall
-                                                  ?.copyWith(
-                                                    color: isDark
-                                                        ? DsColors.textMutedDark
-                                                        : DsColors
-                                                              .textMutedLight,
-                                                    fontSize: 11,
-                                                  ),
-                                            ),
-                                          ),
                                         DsGap.lg,
                                         // First Name Field
                                         _buildSectionLabel(
                                           context,
-                                          'Your First Name',
+                                          l10n.onboardingBasicInfoFirstNameLabel,
                                           isDark,
                                           false,
                                         ),
                                         DsGap.sm,
                                         GlassTextField(
                                           controller: _firstNameController,
-                                          hintText: 'Enter your first name',
+                                          hintText: l10n
+                                              .onboardingBasicInfoFirstNameHint,
                                           prefixIcon:
                                               Icons.person_outline_rounded,
                                           onChanged: (_) => setState(() {}),
@@ -328,15 +299,15 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                         // Last Name Field
                                         _buildSectionLabel(
                                           context,
-                                          'Last Name',
+                                          l10n.onboardingBasicInfoLastNameLabel,
                                           isDark,
                                           false,
                                         ),
                                         DsGap.sm,
                                         GlassTextField(
                                           controller: _lastNameController,
-                                          hintText:
-                                              'Enter your last name (optional)',
+                                          hintText: l10n
+                                              .onboardingBasicInfoLastNameHint,
                                           prefixIcon: Icons.badge_outlined,
                                           onChanged: (_) => setState(() {}),
                                         ),
@@ -344,7 +315,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                         // Birthdate Field
                                         _buildSectionLabel(
                                           context,
-                                          'Date of Birth',
+                                          l10n.onboardingBasicInfoBirthdateLabel,
                                           isDark,
                                           true,
                                         ),
@@ -354,31 +325,34 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                         // Gender Selection
                                         _buildSectionLabel(
                                           context,
-                                          'Gender',
+                                          l10n.onboardingSelectGender,
                                           isDark,
                                           true,
                                         ),
                                         DsGap.sm,
                                         Row(
-                                          children: _genderOptions
+                                          children: ProfileFieldOptions
+                                              .onboardingGenderValues
                                               .map(
-                                                (option) => Expanded(
+                                                (genderValue) => Expanded(
                                                   child: Padding(
-                                                    padding:
-                                                        EdgeInsetsDirectional.only(
-                                                          end:
-                                                              option !=
-                                                                  _genderOptions
-                                                                      .last
-                                                              ? 10
-                                                              : 0,
-                                                        ),
+                                                    padding: EdgeInsetsDirectional.only(
+                                                      end:
+                                                          genderValue !=
+                                                              ProfileFieldOptions
+                                                                  .onboardingGenderValues
+                                                                  .last
+                                                          ? 10
+                                                          : 0,
+                                                    ),
                                                     child: _buildGenderTile(
                                                       context,
-                                                      option['value'] as String,
-                                                      option['label'] as String,
-                                                      option['icon']
-                                                          as IconData,
+                                                      genderValue,
+                                                      _localizedGenderLabel(
+                                                        l10n,
+                                                        genderValue,
+                                                      ),
+                                                      _genderIcon(genderValue),
                                                       isDark,
                                                     ),
                                                   ),
@@ -390,7 +364,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                         // Sexual Orientation
                                         _buildSectionLabel(
                                           context,
-                                          'Sexual Orientation',
+                                          l10n.profileSexualOrientation,
                                           isDark,
                                           false,
                                         ),
@@ -401,8 +375,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                         ),
                                         DsGap.xs,
                                         Semantics(
-                                          label:
-                                              'Orientation is optional. You can skip this for now.',
+                                          label: l10n
+                                              .onboardingBasicInfoOrientationOptionalSemantics,
                                           child: Padding(
                                             padding:
                                                 const EdgeInsetsDirectional.only(
@@ -420,7 +394,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                                 const SizedBox(width: 6),
                                                 Flexible(
                                                   child: Text(
-                                                    'Optional — skip for now, add later in Settings',
+                                                    l10n.onboardingBasicInfoOrientationOptionalHelper,
                                                     style: Theme.of(context)
                                                         .textTheme
                                                         .bodySmall
@@ -466,9 +440,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                   child: SizedBox(
                                     width: double.infinity,
                                     child: GlassPrimaryButton(
-                                      onPressed: isBusy
-                                          ? null
-                                          : () => _handleNext(context),
+                                      onPressed: isBusy ? null : _handleNext,
                                       child: isBusy
                                           ? const SizedBox(
                                               width: 24,
@@ -478,19 +450,19 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                                 color: DsColors.surfaceLight,
                                               ),
                                             )
-                                          : const Row(
+                                          : Row(
                                               mainAxisAlignment:
                                                   MainAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                  'Continue',
-                                                  style: TextStyle(
+                                                  l10n.commonContinue,
+                                                  style: const TextStyle(
                                                     fontSize: 16,
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
-                                                SizedBox(width: 8),
-                                                Icon(
+                                                const SizedBox(width: 8),
+                                                const Icon(
                                                   Icons.arrow_forward_rounded,
                                                   size: 20,
                                                 ),
@@ -555,6 +527,68 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     );
   }
 
+  String _humanizeOptionValue(String value) {
+    return value
+        .split('_')
+        .where((segment) => segment.isNotEmpty)
+        .map(
+          (segment) =>
+              '${segment[0].toUpperCase()}${segment.substring(1).toLowerCase()}',
+        )
+        .join(' ');
+  }
+
+  String _localizedGenderLabel(AppLocalizations l10n, String value) {
+    switch (value) {
+      case 'female':
+        return l10n.wordFemale;
+      case 'male':
+        return l10n.wordMale;
+      case 'non_binary':
+        return l10n.wordNonBinary;
+      default:
+        return _humanizeOptionValue(value);
+    }
+  }
+
+  IconData _genderIcon(String value) {
+    switch (value) {
+      case 'female':
+        return Icons.female;
+      case 'male':
+        return Icons.male;
+      case 'non_binary':
+        return Icons.transgender;
+      default:
+        return Icons.person_outline_rounded;
+    }
+  }
+
+  String _localizedOrientationLabel(AppLocalizations l10n, String value) {
+    switch (value) {
+      case 'straight':
+        return l10n.orientationStraight;
+      case 'gay':
+        return l10n.orientationGay;
+      case 'lesbian':
+        return l10n.orientationLesbian;
+      case 'bisexual':
+        return l10n.orientationBisexual;
+      case 'pansexual':
+        return l10n.orientationPansexual;
+      case 'asexual':
+        return l10n.orientationAsexual;
+      case 'queer':
+        return l10n.orientationQueer;
+      case 'questioning':
+        return l10n.orientationQuestioning;
+      case 'prefer_not_say':
+        return l10n.orientationPreferNotToSay;
+      default:
+        return _humanizeOptionValue(value);
+    }
+  }
+
   Widget _buildGenderTile(
     BuildContext context,
     String value,
@@ -617,33 +651,21 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   }
 
   Widget _buildBirthdatePicker(BuildContext context, bool isDark) {
+    final l10n = AppLocalizations.of(context);
     final errorText = _birthdateErrorText();
     final hasError = errorText != null;
 
     String displayText;
     if (_dateOfBirth != null) {
       final age = _calculatedAge;
-      final months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Dec',
-      ];
-      displayText =
-          '${months[_dateOfBirth!.month - 1]} ${_dateOfBirth!.day}, ${_dateOfBirth!.year}';
+      displayText = MaterialLocalizations.of(
+        context,
+      ).formatMediumDate(_dateOfBirth!);
       if (age != null) {
-        displayText += ' ($age years old)';
+        displayText += ' (${l10n.onboardingBasicInfoYearsOld(age)})';
       }
     } else {
-      displayText = 'Select your birthdate';
+      displayText = l10n.onboardingBasicInfoSelectBirthdate;
     }
 
     return Column(
@@ -728,6 +750,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
 
   Future<void> _showBirthdatePicker(BuildContext context, bool isDark) async {
     _markBirthdateTouched();
+    final l10n = AppLocalizations.of(context);
 
     final now = DateTime.now();
     final minDate = DateTime(now.year - 75, now.month, now.day);
@@ -738,9 +761,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       initialDate: _dateOfBirth ?? maxDate,
       firstDate: minDate,
       lastDate: maxDate,
-      helpText: 'SELECT YOUR BIRTHDATE',
-      cancelText: 'CANCEL',
-      confirmText: 'CONFIRM',
+      helpText: l10n.onboardingBasicInfoBirthdateHelpText,
+      cancelText: l10n.commonCancel,
+      confirmText: l10n.commonConfirm,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -776,6 +799,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   }
 
   Widget _buildOrientationSelector(BuildContext context, bool isDark) {
+    final l10n = AppLocalizations.of(context);
     return Semantics(
       button: true,
       child: GestureDetector(
@@ -808,7 +832,9 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  _orientation ?? 'Select orientation (optional)',
+                  _orientation != null
+                      ? _localizedOrientationLabel(l10n, _orientation!)
+                      : l10n.onboardingOrientationOptionalPrompt,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: _orientation != null
                         ? (isDark
@@ -834,6 +860,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   }
 
   void _showOrientationBottomSheet(BuildContext context, bool isDark) {
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -865,7 +892,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Sexual Orientation',
+                    l10n.profileSexualOrientation,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: isDark
@@ -882,7 +909,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                           Navigator.pop(context);
                         },
                         child: Text(
-                          'Clear',
+                          l10n.clear,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(
                                 color: DsColors.primary,
@@ -902,9 +929,12 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
               child: ListView.builder(
                 shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: _orientationOptions.length,
+                itemCount: ProfileFieldOptions
+                    .onboardingSexualOrientationValues
+                    .length,
                 itemBuilder: (context, index) {
-                  final option = _orientationOptions[index];
+                  final option = ProfileFieldOptions
+                      .onboardingSexualOrientationValues[index];
                   final isSelected = _orientation == option;
 
                   return ListTile(
@@ -942,7 +972,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                           : null,
                     ),
                     title: Text(
-                      option,
+                      _localizedOrientationLabel(l10n, option),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         fontWeight: isSelected
                             ? FontWeight.w600
@@ -982,6 +1012,30 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     }
   }
 
+  void _onUsernameChanged(String value) {
+    _markUsernameTouched();
+
+    setState(() {
+      _isCheckingUsernameAvailability = false;
+      _isUsernameAvailable = null;
+      _lastCheckedUsername = null;
+    });
+
+    _queueUsernameAvailabilityCheck();
+  }
+
+  String? _usernameHelperText() {
+    final l10n = AppLocalizations.of(context);
+    if (_usernameErrorText() != null) return null;
+    if (_isCheckingUsernameAvailability) {
+      return l10n.onboardingBasicInfoUsernameCheckingAvailability;
+    }
+    if (_isUsernameAvailable == true) {
+      return l10n.onboardingBasicInfoUsernameAvailable;
+    }
+    return l10n.onboardingBasicInfoUsernameRules;
+  }
+
   void _markUsernameTouched() {
     if (!_usernameTouched) {
       setState(() {
@@ -990,15 +1044,106 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     }
   }
 
+  bool _isUsernameFormatValid(String username) {
+    return RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
+  }
+
+  void _queueUsernameAvailabilityCheck({bool immediate = false}) {
+    final username = _usernameController.text.trim();
+    final profileRepo = context.read<ProfileRepository>();
+    _usernameDebounceTimer?.cancel();
+    if (!_isUsernameFormatValid(username) ||
+        profileRepo is! UsernameAvailabilityProfileRepository) {
+      return;
+    }
+    final availabilityRepo =
+        profileRepo as UsernameAvailabilityProfileRepository;
+    _usernameDebounceTimer = Timer(
+      immediate ? Duration.zero : const Duration(milliseconds: 450),
+      () => _checkUsernameAvailability(
+        username: username,
+        repo: availabilityRepo,
+      ),
+    );
+  }
+
+  Future<bool?> _checkUsernameAvailability({
+    required String username,
+    required UsernameAvailabilityProfileRepository repo,
+  }) async {
+    if (!mounted) return null;
+
+    setState(() {
+      _isCheckingUsernameAvailability = true;
+    });
+
+    try {
+      final available = await repo.isUsernameAvailable(username: username);
+      if (!mounted) {
+        return available;
+      }
+
+      if (_usernameController.text.trim() != username) {
+        setState(() {
+          _isCheckingUsernameAvailability = false;
+        });
+        return available;
+      }
+
+      setState(() {
+        _isCheckingUsernameAvailability = false;
+        _isUsernameAvailable = available;
+        _lastCheckedUsername = username;
+      });
+      return available;
+    } catch (e) {
+      if (mounted && _usernameController.text.trim() == username) {
+        setState(() {
+          _isCheckingUsernameAvailability = false;
+          _isUsernameAvailable = null;
+          _lastCheckedUsername = null;
+        });
+      }
+      AppLogger.error(
+        '[BasicInfo] Username availability check failed',
+        error: e,
+      );
+      return null;
+    }
+  }
+
+  Future<bool> _ensureUsernameAvailable() async {
+    final username = _usernameController.text.trim();
+    final profileRepo = context.read<ProfileRepository>();
+    if (profileRepo is! UsernameAvailabilityProfileRepository) {
+      return true;
+    }
+    final availabilityRepo =
+        profileRepo as UsernameAvailabilityProfileRepository;
+
+    if (_lastCheckedUsername == username && _isUsernameAvailable != null) {
+      return _isUsernameAvailable!;
+    }
+
+    final available = await _checkUsernameAvailability(
+      username: username,
+      repo: availabilityRepo,
+    );
+    return available ?? true;
+  }
+
   String? _usernameErrorText() {
+    final l10n = AppLocalizations.of(context);
     if (!_usernameTouched) return null;
     final username = _usernameController.text.trim();
     if (username.isEmpty) {
-      return 'Choose a username to continue';
+      return l10n.onboardingBasicInfoUsernameRequired;
     }
-    final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
-    if (!valid) {
-      return 'Use 3-20 letters, numbers, or underscore';
+    if (!_isUsernameFormatValid(username)) {
+      return l10n.onboardingBasicInfoUsernameFormatError;
+    }
+    if (_lastCheckedUsername == username && _isUsernameAvailable == false) {
+      return l10n.onboardingBasicInfoUsernameTaken;
     }
     return null;
   }
@@ -1012,24 +1157,25 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   }
 
   String? _birthdateErrorText() {
+    final l10n = AppLocalizations.of(context);
     if (!_birthdateTouched) return null;
     if (_dateOfBirth == null) {
-      return 'Select your date of birth';
+      return l10n.onboardingBasicInfoBirthdateRequired;
     }
     final age = _calculatedAge;
     if (age == null) {
-      return 'Select a valid date';
+      return l10n.onboardingBasicInfoBirthdateInvalid;
     }
     if (age < 18) {
-      return 'You must be at least 18 years old';
+      return l10n.onboardingBasicInfoBirthdateTooYoung;
     }
     if (age > 75) {
-      return 'Maximum age allowed is 75';
+      return l10n.onboardingBasicInfoBirthdateTooOld;
     }
     return null;
   }
 
-  Future<void> _handleNext(BuildContext context) async {
+  Future<void> _handleNext() async {
     setState(() {
       _usernameTouched = true;
       _birthdateTouched = true;
@@ -1039,6 +1185,20 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       showErrorSnackBar(context, usernameError);
       return;
     }
+
+    final isUsernameAvailable = await _ensureUsernameAvailable();
+    if (!mounted) return;
+    if (!isUsernameAvailable) {
+      setState(() {
+        _usernameTouched = true;
+      });
+      showErrorSnackBar(
+        context,
+        AppLocalizations.of(context).onboardingBasicInfoUsernameTaken,
+      );
+      return;
+    }
+
     final birthdateError = _birthdateErrorText();
     if (birthdateError != null) {
       showErrorSnackBar(context, birthdateError);
@@ -1091,7 +1251,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
             child: const Icon(Icons.elderly, color: DsColors.warning, size: 40),
           ),
           title: Text(
-            'Age Notice',
+            AppLocalizations.of(context).ageNotice,
             style: TextStyle(
               color: isDark
                   ? DsColors.textPrimaryDark
@@ -1100,8 +1260,7 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
             ),
           ),
           content: Text(
-            'You\'re a bit too old to be using a dating app, don\'t you think?\n\n'
-            'Just kidding! Love has no age limit. Are you sure you want to continue?',
+            AppLocalizations.of(context).onboardingBasicInfoAgeWarningBody,
             style: TextStyle(
               color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
             ),

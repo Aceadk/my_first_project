@@ -23,7 +23,6 @@ class DiscoveryMapper {
       primaryPhotoIndex: _findPrimaryPhotoIndex(dto.photos),
       bio: dto.bio ?? '',
       interests: dto.interests ?? const [],
-      prompts: const [],
       heightCm: dto.height,
       relationshipGoals: null,
       languages: const [],

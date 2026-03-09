@@ -10,6 +10,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class NotificationPreferencesSnapshot {
+  const NotificationPreferencesSnapshot({
+    required this.preferences,
+    this.updatedAt,
+  });
+
+  final Map<String, dynamic> preferences;
+  final DateTime? updatedAt;
+}
+
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -586,37 +596,89 @@ class PushNotificationService {
     bool? profileViews,
     bool? promotions,
     bool? safetyAlerts,
+    bool? quietHoursEnabled,
+    int? quietHoursStart,
+    int? quietHoursEnd,
+  }) async {
+    final prefs = buildNotificationPrefs(
+      push: push,
+      email: email,
+      sound: sound,
+      vibration: vibration,
+      messages: messages,
+      matches: matches,
+      subscriptions: subscriptions,
+      likes: likes,
+      profileViews: profileViews,
+      promotions: promotions,
+      safetyAlerts: safetyAlerts,
+      quietHoursEnabled: quietHoursEnabled,
+      quietHoursStart: quietHoursStart,
+      quietHoursEnd: quietHoursEnd,
+    );
+    await updateNotificationPreferencesMap(prefs);
+  }
+
+  /// Update notification preferences with a pre-built payload map.
+  Future<void> updateNotificationPreferencesMap(
+    Map<String, dynamic> prefs, {
+    DateTime? clientUpdatedAt,
   }) async {
     final userId = _currentUserId;
-    if (userId == null) return;
+    if (userId == null || prefs.isEmpty) return;
+
+    final updatedAt = clientUpdatedAt ?? DateTime.now();
 
     try {
-      final prefs = buildNotificationPrefs(
-        push: push,
-        email: email,
-        sound: sound,
-        vibration: vibration,
-        messages: messages,
-        matches: matches,
-        subscriptions: subscriptions,
-        likes: likes,
-        profileViews: profileViews,
-        promotions: promotions,
-        safetyAlerts: safetyAlerts,
-      );
-
-      if (prefs.isNotEmpty) {
-        if (saveNotificationPrefsOverride != null) {
-          await saveNotificationPrefsOverride!(userId, prefs);
-        } else {
-          await _firestore.collection('users').doc(userId).set({
-            'notificationPrefs': prefs,
-          }, SetOptions(merge: true));
-        }
-        AppLogger.debug('Notification preferences updated for user: $userId');
+      if (saveNotificationPrefsOverride != null) {
+        await saveNotificationPrefsOverride!(userId, prefs);
+      } else {
+        await _firestore.collection('users').doc(userId).set({
+          'notificationPrefs': prefs,
+          'notificationPrefsUpdatedAt': FieldValue.serverTimestamp(),
+          'notificationPrefsUpdatedAtMs': updatedAt.millisecondsSinceEpoch,
+        }, SetOptions(merge: true));
       }
+      AppLogger.debug('Notification preferences updated for user: $userId');
     } catch (e) {
       AppLogger.error('Error updating notification preferences: $e');
+    }
+  }
+
+  /// Fetch notification preference snapshot from Firestore.
+  Future<NotificationPreferencesSnapshot?>
+  fetchNotificationPreferencesSnapshot() async {
+    final userId = _currentUserId;
+    if (userId == null) return null;
+
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+      final data = doc.data();
+      if (data == null) return null;
+
+      final rawPrefs = data['notificationPrefs'];
+      final prefs = rawPrefs is Map<String, dynamic>
+          ? rawPrefs
+          : <String, dynamic>{};
+      DateTime? updatedAt;
+
+      final updatedAtMs = data['notificationPrefsUpdatedAtMs'];
+      if (updatedAtMs is num) {
+        updatedAt = DateTime.fromMillisecondsSinceEpoch(updatedAtMs.toInt());
+      } else {
+        final updatedAtTs = data['notificationPrefsUpdatedAt'];
+        if (updatedAtTs is Timestamp) {
+          updatedAt = updatedAtTs.toDate();
+        }
+      }
+
+      return NotificationPreferencesSnapshot(
+        preferences: Map<String, dynamic>.from(prefs),
+        updatedAt: updatedAt,
+      );
+    } catch (e) {
+      AppLogger.error('Error fetching notification preferences snapshot: $e');
+      return null;
     }
   }
 
@@ -633,6 +695,9 @@ class PushNotificationService {
     bool? profileViews,
     bool? promotions,
     bool? safetyAlerts,
+    bool? quietHoursEnabled,
+    int? quietHoursStart,
+    int? quietHoursEnd,
   }) {
     final prefs = <String, dynamic>{};
     if (push != null) prefs['push'] = push;
@@ -646,6 +711,11 @@ class PushNotificationService {
     if (profileViews != null) prefs['profileViews'] = profileViews;
     if (promotions != null) prefs['promotions'] = promotions;
     if (safetyAlerts != null) prefs['safetyAlerts'] = safetyAlerts;
+    if (quietHoursEnabled != null) {
+      prefs['quietHoursEnabled'] = quietHoursEnabled;
+    }
+    if (quietHoursStart != null) prefs['quietHoursStart'] = quietHoursStart;
+    if (quietHoursEnd != null) prefs['quietHoursEnd'] = quietHoursEnd;
     return prefs;
   }
 

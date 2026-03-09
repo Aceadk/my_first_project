@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'chat_state.dart' show ChatState;
 
 abstract class ChatEvent extends Equatable {
   @override
@@ -263,7 +264,14 @@ class ChatMessageDiscardRequested extends ChatEvent {
 class ChatResetRequested extends ChatEvent {}
 
 /// Internal event: a sub-BLoC emitted a new state. Re-aggregates ChatState.
-class ChatSubBlocChanged extends ChatEvent {}
+class ChatSubBlocChanged extends ChatEvent {
+  final ChatState aggregatedState;
+
+  ChatSubBlocChanged(this.aggregatedState);
+
+  @override
+  List<Object?> get props => [aggregatedState];
+}
 
 /// Toggle end-to-end encryption for chat messages.
 /// When enabled, text messages are encrypted client-side before sending.

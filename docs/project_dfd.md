@@ -1,6 +1,6 @@
 # Data Flow Diagram (DFD) — CrushHour Dating App
 
-*Last updated: 2026-02-18*
+*Last updated: 2026-03-08*
 
 ---
 
@@ -43,6 +43,10 @@ flowchart TB
     SYS <-->|"ML Recommendations"| BQ
     SYS <-->|"Camera, Photos,<br/>Location, Storage"| DEV
 ```
+
+### Messaging Transport Note (2026-03-08)
+
+`4.0 Messaging & Chat` now routes network/realtime operations through a domain-level `ChatTransportAdapter` abstraction, enabling fake transport injection for repository-level tests.
 
 ### External Entity Descriptions
 
@@ -1117,3 +1121,35 @@ flowchart TB
     - Story retrieval for discovery candidates
     - Story view tracking (`users/{ownerId}/stories/{storyId}/views/{viewerId}`)
   - Added story viewer process with per-story progress and persisted view-count increment.
+- **2026-03-08 (Discovery Service Boundary):**
+  - Story update event types (`StoryUpdate`, `StoryUpdateType`) are now defined in the discovery domain repository contract.
+  - Discovery data services now implement domain contracts without reverse domain-to-data imports.
+- **2026-03-08 (Discovery Matching Engine):** Discovery deck candidate filtering and top-picks ranking decisions now run through `MatchingDecisionEngine` in the discovery domain layer before repository responses are returned.
+- **2026-03-08 (Settings Account Commands):**
+  - Data export/deactivate/delete command execution is centralized in `DefaultAccountActionCommands` with typed command outcomes/failures.
+  - `AccountActionsSettingsScreen` now triggers command-layer operations instead of calling auth/export services directly.
+- **2026-03-08 (Settings Preference Sync):**
+  - Notification preference local-cache + backend synchronization is centralized in `NotificationPreferenceSyncService` with timestamp-aware merge resolution (`PreferenceSyncEngine`).
+  - Settings UI now delegates notification toggles to cubit orchestration only; remote sync calls are removed from screen handlers.
+  - Backend notification preference normalization includes `quietHoursEnabled`; quiet-hour suppression checks bypass when quiet hours are disabled.
+- **2026-03-08 (Store Mobile Checkout Routing):**
+  - Subscription checkout orchestration now enters through `SubscriptionRepository.purchasePlusPlan()` from `SubscriptionBloc`, allowing repository-level platform branching.
+  - Firebase mobile checkout paths invoke native billing (`NativeBillingService`) and explicitly block external Stripe checkout URL launch on iOS/Android.
+- **2026-03-08 (Store Google Server Validation):**
+  - Added callable `verifyGooglePurchaseToken` to validate Google Play subscription tokens against Android Publisher API before applying entitlement state.
+  - Validation flow applies duplicate token/order protection and syncs subscription lifecycle metadata to Firestore along with `plan`/RTDB premium flags.
+- **2026-03-08 (Store Google RTDN Lifecycle):**
+  - Added `googleRtdnWebhook` endpoint to ingest Google Pub/Sub RTDN subscription notifications.
+  - RTDN flow maps lifecycle event types (including on-hold and grace-period states), re-validates token state, and updates `subscriptionLifecycle` + user plan synchronization.
+- **2026-03-08 (Store Google Restore + Acknowledgement):**
+  - Subscription restore flow now pulls restored purchases from native billing, completes pending transactions for acknowledgement, and revalidates restored Play tokens via `verifyGooglePurchaseToken`.
+  - Restore status now returns explicit `none` (no purchases found) and restore failures to UI-visible subscription state handling.
+- **2026-03-08 (Store Apple Server Validation):**
+  - Added callable `verifyAppleTransaction` to validate Apple subscription transactions through App Store Server API transaction lookup (production, then sandbox fallback).
+  - Apple validation flow applies duplicate transaction/original-transaction protection and persists additive `applePurchase` + `subscriptionLifecycle` metadata with plan sync.
+- **2026-03-08 (Store Apple Restore Compliance):**
+  - iOS native restore now passes transaction IDs from restored purchases into backend verification (`verifyAppleTransaction`) before entitlement activation.
+  - Restore flow now returns explicit `none` when no purchases are restored and surfaces restore failure when restored entries cannot be validated.
+- **2026-03-08 (Store Apple S2S Lifecycle):**
+  - Added `appleSubscriptionWebhook` endpoint to process App Store Server Notifications v2 signed payloads.
+  - Apple webhook flow verifies payload signatures, maps lifecycle notifications (renewal/billing retry/expired/refund/grace-period-expired), and updates `subscriptionLifecycle` + user plan reconciliation fields.

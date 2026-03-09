@@ -1,6 +1,6 @@
 # Project Flowchart — CrushHour Dating App
 
-*Last updated: 2026-02-18*
+*Last updated: 2026-03-08*
 
 ---
 
@@ -21,8 +21,8 @@ flowchart TD
   D2 --> D2b[Phone + OTP]
   C -->|Authenticated| E{Onboarding Status}
   E -->|Terms not accepted| T[Terms & Conditions]
-  E -->|Basic info incomplete| BI[Basic Info - Step 3/5]
-  E -->|Profile setup incomplete| PS[Profile Setup - Step 5/5]
+  E -->|Basic info incomplete| BI[Basic Info - Step 3/6]
+  E -->|Profile setup incomplete| PS[Profile Setup - Step 5/6]
   E -->|Email not verified| EV[Email Verification]
   E -->|All complete| H[Home Screen]
   T --> BI
@@ -67,12 +67,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  AUTH[Authenticated] --> T[Step 1: Terms & Conditions]
-  T -->|Accept| BI[Step 2: Basic Info - 60%]
-  BI --> ID[Step 3: ID Verification - 80%]
-  ID -->|Optional| PS[Step 4: Profile Setup - 100%]
-  PS --> EV{Email Verified?}
-  EV -->|No| EVS[Email Verification Screen]
+  AUTH[Authenticated] --> T[Step 2: Terms & Conditions]
+  T -->|Accept| BI[Step 3: Basic Info]
+  BI --> ID[Step 4: ID Verification]
+  ID -->|Optional| PS[Step 5: Profile Setup]
+  PS --> EV{Step 6: Email Verified?}
+  EV -->|No| EVS[Step 6: Email Verification Screen]
   EV -->|Yes| H[Home Screen]
   EVS --> H
 
@@ -129,6 +129,18 @@ flowchart TD
   P1 --> P2[Profile Edit]
   P1 --> P3[Profile Media]
   P1 --> P4[Settings]
+```
+
+---
+
+## 4.1) Chat Transport Adapter Flow
+
+```mermaid
+flowchart LR
+  UI[Chat UI + BLoCs] --> REPO[ChatRepository]
+  REPO --> ADAPTER[ChatTransportAdapter<br/>Domain Interface]
+  ADAPTER --> HTTP[HTTP API Transport]
+  ADAPTER --> RT[Realtime Transport<br/>WebSocket]
 ```
 
 ---
@@ -453,5 +465,15 @@ lib/features/
 - **Safety** route is accessible from all onboarding stages (special exception)
 - The router enforces auth state and onboarding status to prevent accessing protected routes when incomplete
 - **Password change** triggers email notification to user for security
-- **Notification settings** (Sound, Vibration, Email) sync to both local storage and Firestore
+- **2026-03-08 Settings Refactor (Preference Sync):** Notification preference writes/hydration are centralized in `NotificationPreferenceSyncService` + `PreferenceSyncEngine` (timestamp-aware local/remote merge), and UI handlers no longer perform direct remote sync writes.
 - **2026-02-23 Web update**: Discovery now includes profile stories with upload from Discover, story tray preview, card story badges, and full-screen story viewer with view tracking.
+- **2026-03-08 Discovery Refactor**: `StoryUpdate` event contract moved to `domain/repositories/story_repository.dart`, removing domain-layer dependency on discovery data services.
+- **2026-03-08 Discovery Refactor (Matching Engine):** Discovery deck distance/passport filtering and top-picks scoring decisions are now centralized in `domain/usecases/matching_decision_engine.dart`; stub/fake repositories delegate to this pure engine for deterministic behavior.
+- **2026-03-08 Settings Refactor (Account Commands):** Destructive account actions now flow through `settings/domain/commands/account_action_commands.dart` and `settings/data/commands/default_account_action_commands.dart`, keeping account action orchestration/error mapping out of `AccountActionsSettingsScreen`.
+- **2026-03-08 Store Mobile (Checkout Routing):** `SubscriptionBloc` now executes checkout through `SubscriptionRepository.purchasePlusPlan()` so repository implementations own platform-specific billing; Firebase mobile paths (iOS/Android) use native billing service and block Stripe URL checkout on mobile.
+- **2026-03-08 Store Google (Server Validation):** Added callable backend validation for Google Play subscription purchase tokens (`verifyGooglePurchaseToken`) with duplicate token/order safeguards and subscription state reconciliation to Firestore/RTDB plan fields.
+- **2026-03-08 Store Google (RTDN Lifecycle):** Added `googleRtdnWebhook` push endpoint to process Google Real-time Developer Notifications and reconcile lifecycle statuses (`renewed`, `canceled`, `on_hold`, `in_grace_period`, `revoked`, `expired`) into user subscription metadata + plan sync.
+- **2026-03-08 Store Google (Restore + Acknowledgement):** Subscription restore now runs through native billing restore flow; restored Play purchases are acknowledged via `completePurchase`, verified through `verifyGooglePurchaseToken`, and mapped to explicit restore outcomes (`active`/`none`) in subscription state.
+- **2026-03-08 Store Apple (Server Validation):** Added callable backend Apple transaction validation (`verifyAppleTransaction`) using App Store Server API lookup (production + sandbox fallback), duplicate transaction-link protection, and plan/lifecycle reconciliation to Firestore/RTDB.
+- **2026-03-08 Store Apple (Restore Compliance):** iOS restore flow now validates each restored transaction via `verifyAppleTransaction` (transaction ID from native purchase details), returns explicit no-purchase states, and surfaces restore failures when Apple verification cannot be completed.
+- **2026-03-08 Store Apple (S2S Lifecycle):** Added `appleSubscriptionWebhook` endpoint to ingest App Store Server Notifications v2, verify signed payloads, map lifecycle events (`DID_RENEW`, `DID_FAIL_TO_RENEW`, `EXPIRED`, `REFUND`, `GRACE_PERIOD_EXPIRED`), and reconcile user subscription metadata + plan state.

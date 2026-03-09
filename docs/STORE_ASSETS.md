@@ -109,10 +109,10 @@ We're constantly improving CrushHour. Please rate us if you enjoy the app!
 
 | Device | Size | Required |
 |--------|------|----------|
-| iPhone 15 Pro Max | 1290 x 2796 | Yes |
-| iPhone 8 Plus | 1242 x 2208 | Yes |
-| iPad Pro 12.9" | 2048 x 2732 | No |
-| iPad Pro 11" | 1668 x 2388 | No |
+| iPhone 6.9" display | 1260 x 2736 / 1290 x 2796 / 1320 x 2868 | Recommended primary |
+| iPhone 6.5" display | 1284 x 2778 / 1242 x 2688 | Required if 6.9" set not provided |
+| iPad 13" display | 2064 x 2752 / 2048 x 2732 | Required if app runs on iPad |
+| iPad 11" display | 1488 x 2266 / 1668 x 2388 | Optional supplemental |
 
 ### Android Screenshots
 
@@ -173,7 +173,7 @@ dart run flutter_launcher_icons
 
 ## App Review Information
 
-### Demo Account (for App Store review)
+### Demo Account (App Store + Google Play review)
 ```
 Email: demo@crushhour.app
 Password: [Provide during submission]
@@ -202,6 +202,97 @@ In-App Purchases:
 - CrushHour Plus subscription ($9.99/month)
 - Provides unlimited likes, see who likes you, etc.
 ```
+
+### App Store Subscription Disclosure (Required In-App)
+
+Use this disclosure template in paywall/checkout UI and keep it aligned with App Store Connect subscription metadata:
+
+```
+CrushHour Plus (Auto-Renewable Subscription)
+- Title: CrushHour Plus
+- Length: 1 month
+- Price: $9.99 per month (or local equivalent shown by Apple)
+- Billing: Payment is charged to Apple ID at confirmation of purchase
+- Renewal: Subscription auto-renews unless canceled at least 24 hours before the end of the current period
+- Renewal charge timing: Account is charged for renewal within 24 hours prior to period end
+- Manage/cancel: Manage or cancel in Settings > Apple ID > Subscriptions
+- Terms: https://crushhour.app/terms
+- Privacy: https://crushhour.app/privacy
+```
+
+### App Store Subscription Review Notes (App Review Information)
+
+Add this to **App Store Connect > App Review Information > Notes**:
+
+```
+Subscription review guidance:
+- Product: CrushHour Plus (auto-renewable, monthly).
+- Price baseline in app: $9.99/month (localized price shown by App Store at purchase).
+- Test path:
+  1) Log in with demo account credentials listed above.
+  2) Navigate to Profile > Settings > Subscription.
+  3) Tap "Upgrade to Plus" to open the native StoreKit purchase sheet.
+  4) Tap "Restore Purchases" to verify restored entitlement handling.
+- If additional environment/test account details are needed, use Notes field updates before submission.
+```
+
+### App Store In-App Purchase Metadata Checklist
+
+Before submitting, verify each subscription item in App Store Connect:
+- [ ] Subscription display name and description are complete and reviewer-ready
+- [ ] Subscription duration and pricing are configured and match in-app copy
+- [ ] Review screenshot is uploaded for subscription review
+- [ ] Subscription status is `Ready to Submit` before sending to review
+- [ ] First subscription/new subscription type is attached to a new app version submission
+
+### Google Play Reviewer Instructions (App Access form)
+
+Use this block in **Play Console > App content > App access**:
+
+```
+App access required: Yes
+
+Instruction set #1 (Core app):
+1) Open CrushHour and tap "Log In".
+2) Use demo@crushhour.app / [submission password].
+3) Complete onboarding prompts if shown.
+4) Navigate Discovery, Matches, and Chat from the bottom nav.
+
+Instruction set #2 (Subscription flow):
+1) Go to Profile > Settings > Subscription.
+2) Tap "Upgrade to Plus" to open native Google Play purchase sheet.
+3) Use a Play license tester account for purchase simulation.
+4) Restore path: Settings > Subscription > Restore Purchases.
+```
+
+### Google Play Subscription Disclosure (Listing + In-App Copy)
+
+Keep this copy consistent across:
+- Play Store listing description
+- In-app paywall/checkout copy
+- Policy declarations and reviewer notes
+
+```
+CrushHour Plus
+- Price: $9.99 per month (or local equivalent shown by Google Play)
+- Billing cycle: Monthly recurring subscription
+- Renewal: Auto-renews until canceled
+- Cancellation: Manage or cancel anytime in Google Play Subscriptions
+- Access: Plus features remain active until the current paid period ends
+- Terms: https://crushhour.app/terms
+- Privacy: https://crushhour.app/privacy
+```
+
+### Google Play App Content Declarations Checklist
+
+Before submitting a release, confirm all required Play Console forms are current:
+- [ ] Ads declaration (Yes/No, matches actual app behavior)
+- [ ] App access instructions (valid login and flow steps)
+- [ ] Data safety form (data collection/sharing + security practices)
+- [ ] Content rating questionnaire (IARC) completed
+- [ ] Target audience + content section completed
+- [ ] Sensitive permissions declarations (if any) completed
+- [ ] Financial features / billing disclosures reviewed for subscription terms
 
 ## Support Information
 
@@ -243,3 +334,8 @@ Before each release:
 - [ ] Update keywords if features changed
 - [ ] Verify all URLs are working
 - [ ] Test demo account is accessible
+- [ ] Verify App Review demo account credentials are valid and do not expire
+- [ ] Verify iOS paywall includes title/length/price + Terms/Privacy links
+- [ ] Verify iOS paywall includes renewal/cancellation disclosures
+- [ ] Verify Plus pricing text matches in-app paywall (`$9.99/month` current baseline)
+- [ ] Verify recurring billing/auto-renew/cancel disclosure is visible before purchase

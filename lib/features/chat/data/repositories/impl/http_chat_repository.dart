@@ -16,8 +16,11 @@ import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/message_request.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_transport_adapter.dart';
+import 'package:flutter/foundation.dart';
 
 import '../chat_repository.dart';
+import 'http_chat_transport_adapter.dart';
 
 /// HTTP-based implementation of ChatRepository.
 ///
@@ -25,24 +28,36 @@ import '../chat_repository.dart';
 /// Polling is used as a fallback when WebSocket is unavailable.
 class HttpChatRepository implements ChatRepository {
   HttpChatRepository({
-    required ApiClient apiClient,
+    ApiClient? apiClient,
     String currentUserId = '',
     WebSocketConnection? webSocket,
-  }) : _apiClient = apiClient,
+    ChatTransportAdapter? transportAdapter,
+  }) : assert(
+         transportAdapter != null || apiClient != null,
+         'Either transportAdapter or apiClient must be provided.',
+       ),
+       _transportAdapter =
+           transportAdapter ??
+           HttpChatTransportAdapter(
+             apiClient: apiClient!,
+             webSocket: webSocket,
+           ),
        _currentUserId = currentUserId,
-       _webSocket = webSocket,
        _circuitBreaker = CircuitBreakerRegistry.instance.get('chat') {
     // CHAT-005: Wire WebSocket listener for real-time message delivery
-    _webSocketSubscription = _webSocket?.messageStream.listen(
+    _webSocketSubscription = _transportAdapter.realtimeMessageStream.listen(
       _onWebSocketMessage,
+    );
+    _webSocketStateSubscription = _transportAdapter.realtimeStateStream.listen(
+      _onWebSocketStateChanged,
     );
   }
 
-  final ApiClient _apiClient;
+  final ChatTransportAdapter _transportAdapter;
   String _currentUserId;
-  final WebSocketConnection? _webSocket;
   final CircuitBreaker _circuitBreaker;
   StreamSubscription<Map<String, dynamic>>? _webSocketSubscription;
+  StreamSubscription<ConnectionState>? _webSocketStateSubscription;
   Timer? _typingCancelTimer;
 
   /// Update the current user ID after authentication.
@@ -101,7 +116,7 @@ class HttpChatRepository implements ChatRepository {
       queryParams['before'] = beforeTimestamp.toIso8601String();
     }
 
-    final result = await _apiClient.get<Map<String, dynamic>>(
+    final result = await _transportAdapter.get<Map<String, dynamic>>(
       ApiEndpoints.chatMessages(matchId),
       queryParams: queryParams,
       parser: (data) => data as Map<String, dynamic>,
@@ -139,20 +154,28 @@ class HttpChatRepository implements ChatRepository {
   }
 
   void _startMessagePolling(String matchId) {
+    _ensureMessagePolling(matchId);
+  }
+
+  void _ensureMessagePolling(String matchId) {
     // Initial fetch
     _fetchMessages(matchId);
 
     // Skip polling if WebSocket is connected (real-time events will be used)
-    if (_webSocket?.isConnected == true) {
+    if (_transportAdapter.isRealtimeConnected) {
       AppLogger.debug(
         'HttpChatRepository: WebSocket connected, skipping message polling',
       );
       return;
     }
 
+    final timerKey = 'messages_$matchId';
+    if (_pollingTimers.containsKey(timerKey)) {
+      return;
+    }
+
     // Fallback: Poll at configured interval when WebSocket unavailable
-    _pollingTimers['messages_$matchId']?.cancel();
-    _pollingTimers['messages_$matchId'] = Timer.periodic(
+    _pollingTimers[timerKey] = Timer.periodic(
       _messagePollingInterval,
       (_) => _fetchMessages(matchId),
     );
@@ -166,7 +189,7 @@ class HttpChatRepository implements ChatRepository {
       return;
     }
 
-    final result = await _apiClient.get<Map<String, dynamic>>(
+    final result = await _transportAdapter.get<Map<String, dynamic>>(
       ApiEndpoints.chatMessages(matchId),
       parser: (data) => data as Map<String, dynamic>,
     );
@@ -205,7 +228,7 @@ class HttpChatRepository implements ChatRepository {
       mediaUrl: type != MessageType.text ? content : null,
     );
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       ApiEndpoints.chatSend(matchId),
       body: request.toJson(),
     );
@@ -255,7 +278,7 @@ class HttpChatRepository implements ChatRepository {
       MessageType.text => 'file',
     };
 
-    final result = await _apiClient.uploadFile<UploadResponseDto>(
+    final result = await _transportAdapter.uploadFile<UploadResponseDto>(
       endpoint: endpoint,
       file: file,
       fieldName: 'media',
@@ -282,7 +305,9 @@ class HttpChatRepository implements ChatRepository {
 
   @override
   Future<void> markMessagesRead(String matchId, String userId) async {
-    final result = await _apiClient.post<void>(ApiEndpoints.chatRead(matchId));
+    final result = await _transportAdapter.post<void>(
+      ApiEndpoints.chatRead(matchId),
+    );
 
     if (result.isFailure) {
       AppLogger.error(
@@ -300,7 +325,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.delete<void>(
+    final result = await _transportAdapter.delete<void>(
       '/chat/$matchId/messages/$messageId',
     );
 
@@ -327,7 +352,7 @@ class HttpChatRepository implements ChatRepository {
     // CHAT-008: Sanitize edited content
     final sanitizedContent = InputSanitizer.sanitizeMessage(newContent);
 
-    final result = await _apiClient.patch<void>(
+    final result = await _transportAdapter.patch<void>(
       '/chat/$matchId/messages/$messageId',
       body: {'content': sanitizedContent},
     );
@@ -352,7 +377,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       '/chat/$matchId/messages/$messageId/hide',
     );
 
@@ -380,7 +405,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       ApiEndpoints.reportUser,
       body: {
         'reporter_id': reporterId,
@@ -412,7 +437,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       '/chat/$matchId/messages/$messageId/reactions',
       body: {'emoji': emoji},
     );
@@ -437,7 +462,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.delete<void>(
+    final result = await _transportAdapter.delete<void>(
       '/chat/$matchId/messages/$messageId/reactions',
     );
 
@@ -462,7 +487,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       '/safety/appeal',
       body: {
         'user_id': userId,
@@ -509,8 +534,8 @@ class HttpChatRepository implements ChatRepository {
     }
 
     // Send via WebSocket if available
-    if (_webSocket?.isConnected == true) {
-      _webSocket!.sendEvent(
+    if (_transportAdapter.isRealtimeConnected) {
+      _transportAdapter.sendRealtimeEvent(
         TypingEvent(
           conversationId: matchId,
           userId: userId,
@@ -525,7 +550,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       '/chat/$matchId/typing',
       body: {'is_typing': isTyping},
     );
@@ -551,19 +576,27 @@ class HttpChatRepository implements ChatRepository {
   }
 
   void _startPresencePolling(String userId) {
+    _ensurePresencePolling(userId);
+  }
+
+  void _ensurePresencePolling(String userId) {
     _fetchPresence(userId);
 
     // Skip polling if WebSocket is connected (real-time events will be used)
-    if (_webSocket?.isConnected == true) {
+    if (_transportAdapter.isRealtimeConnected) {
       AppLogger.debug(
         'HttpChatRepository: WebSocket connected, skipping presence polling',
       );
       return;
     }
 
+    final timerKey = 'presence_$userId';
+    if (_pollingTimers.containsKey(timerKey)) {
+      return;
+    }
+
     // Fallback: Poll at configured interval when WebSocket unavailable
-    _pollingTimers['presence_$userId']?.cancel();
-    _pollingTimers['presence_$userId'] = Timer.periodic(
+    _pollingTimers[timerKey] = Timer.periodic(
       _presencePollingInterval,
       (_) => _fetchPresence(userId),
     );
@@ -574,7 +607,7 @@ class HttpChatRepository implements ChatRepository {
       return;
     }
 
-    final result = await _apiClient.get<Map<String, dynamic>>(
+    final result = await _transportAdapter.get<Map<String, dynamic>>(
       '/users/$userId/presence',
       parser: (data) => data as Map<String, dynamic>,
     );
@@ -598,8 +631,10 @@ class HttpChatRepository implements ChatRepository {
     required bool isOnline,
   }) async {
     // Send via WebSocket if available
-    if (_webSocket?.isConnected == true) {
-      _webSocket!.sendEvent(PresenceEvent(userId: userId, isOnline: isOnline));
+    if (_transportAdapter.isRealtimeConnected) {
+      _transportAdapter.sendRealtimeEvent(
+        PresenceEvent(userId: userId, isOnline: isOnline),
+      );
       return;
     }
 
@@ -608,7 +643,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       '/users/$userId/presence',
       body: {'is_online': isOnline},
     );
@@ -643,7 +678,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       '/chat/$matchId/media-settings',
       body: {'enabled': enabled},
     );
@@ -673,7 +708,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       ApiEndpoints.blockUser,
       body: {'blocked_id': blockedId},
     );
@@ -696,7 +731,7 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(
+    final result = await _transportAdapter.post<void>(
       ApiEndpoints.unblockUser,
       body: {'blocked_id': blockedId},
     );
@@ -719,7 +754,9 @@ class HttpChatRepository implements ChatRepository {
       throw Exception('Service unavailable (Circuit open)');
     }
 
-    final result = await _apiClient.post<void>(ApiEndpoints.unmatch(matchId));
+    final result = await _transportAdapter.post<void>(
+      ApiEndpoints.unmatch(matchId),
+    );
 
     if (result.isFailure) {
       _circuitBreaker.recordFailure();
@@ -748,7 +785,7 @@ class HttpChatRepository implements ChatRepository {
       return const PaginatedResult(items: [], total: 0, hasMore: false);
     }
 
-    final result = await _apiClient.get<Map<String, dynamic>>(
+    final result = await _transportAdapter.get<Map<String, dynamic>>(
       ApiEndpoints.matches,
       queryParams: {'offset': offset.toString(), 'limit': limit.toString()},
       parser: (data) => data as Map<String, dynamic>,
@@ -879,9 +916,56 @@ class HttpChatRepository implements ChatRepository {
     }
   }
 
+  void _onWebSocketStateChanged(ConnectionState state) {
+    switch (state) {
+      case ConnectionState.connected:
+        _pausePollingFallback();
+        break;
+      case ConnectionState.disconnected:
+      case ConnectionState.connecting:
+      case ConnectionState.reconnecting:
+      case ConnectionState.failed:
+        _resumePollingFallback();
+        break;
+    }
+  }
+
+  void _pausePollingFallback() {
+    _cancelPollingByPrefix('messages_');
+    _cancelPollingByPrefix('presence_');
+  }
+
+  void _resumePollingFallback() {
+    if (_transportAdapter.isRealtimeConnected) {
+      return;
+    }
+
+    for (final matchId in _messageControllers.keys.toList()) {
+      _ensureMessagePolling(matchId);
+    }
+    for (final userId in _presenceControllers.keys.toList()) {
+      _ensurePresencePolling(userId);
+    }
+  }
+
+  void _cancelPollingByPrefix(String prefix) {
+    final matchingKeys = _pollingTimers.keys
+        .where((key) => key.startsWith(prefix))
+        .toList(growable: false);
+    for (final key in matchingKeys) {
+      _pollingTimers[key]?.cancel();
+      _pollingTimers.remove(key);
+    }
+  }
+
+  @visibleForTesting
+  Set<String> get activePollingTimerKeys =>
+      Set.unmodifiable(_pollingTimers.keys);
+
   /// Dispose all resources.
   void dispose() {
     _webSocketSubscription?.cancel();
+    _webSocketStateSubscription?.cancel();
     _typingCancelTimer?.cancel();
 
     for (final timer in _pollingTimers.values) {

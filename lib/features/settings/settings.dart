@@ -10,6 +10,10 @@ export 'presentation/bloc/storage_settings_cubit.dart';
 export 'presentation/bloc/safety_cubit.dart';
 export 'presentation/bloc/privacy_settings_cubit.dart';
 export 'presentation/bloc/chat_settings_cubit.dart';
+export 'domain/commands/account_action_commands.dart';
+export 'data/commands/default_account_action_commands.dart';
+export 'data/preferences/preference_sync_engine.dart';
+export 'data/preferences/notification_preference_sync_service.dart';
 
 // Subscription (cross-feature)
 export '../subscription/presentation/bloc/subscription_bloc.dart';

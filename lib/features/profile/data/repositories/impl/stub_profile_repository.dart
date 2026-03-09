@@ -6,17 +6,18 @@ import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/profile_prompt.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../profile_repository.dart';
+import 'profile_prompt_migration.dart';
 
 /// Mock implementation of ProfileRepository with local storage.
 /// This allows the app to function for development/demo without a backend.
-class StubProfileRepository implements ProfileRepository {
+class StubProfileRepository
+    implements ProfileRepository, UsernameAvailabilityProfileRepository {
   static const _usersKey = 'mock_users';
   static const _currentUserKey = 'mock_current_user_id';
   final _secureStorage = const FlutterSecureStorage();
@@ -35,6 +36,37 @@ class StubProfileRepository implements ProfileRepository {
     if (userData == null) return null;
 
     return _userFromJson(userData);
+  }
+
+  @override
+  Future<bool> isUsernameAvailable({
+    required String username,
+    String? excludingUserId,
+  }) async {
+    final sanitizedUsername = InputSanitizer.sanitizeUsername(username);
+    if (sanitizedUsername.isEmpty) return false;
+
+    final currentUser = await getCurrentUser();
+    final excludedId = excludingUserId ?? currentUser?.id;
+
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = prefs.getString(_usersKey);
+    if (usersJson == null) return true;
+
+    final users = Map<String, dynamic>.from(jsonDecode(usersJson));
+    for (final entry in users.entries) {
+      if (entry.key == excludedId) continue;
+      final userData = entry.value;
+      if (userData is! Map) continue;
+
+      final rawUsername = userData['username']?.toString();
+      final normalized = InputSanitizer.sanitizeUsername(rawUsername);
+      if (normalized == sanitizedUsername) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @override
@@ -177,7 +209,6 @@ class StubProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -396,7 +427,6 @@ class StubProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -413,7 +443,6 @@ class StubProfileRepository implements ProfileRepository {
         company: company,
         school: school,
         interests: interests,
-        prompts: prompts,
         city: city,
         country: country,
         favourites: favourites,
@@ -478,6 +507,11 @@ class StubProfileRepository implements ProfileRepository {
     Profile? profile;
     if (json['profile'] != null) {
       final p = json['profile'] as Map<String, dynamic>;
+      final legacyPromptAnswers = parseLegacyPromptAnswers(p['prompts']);
+      final parsedProfilePrompts = parseProfilePrompts(
+        p['profilePrompts'],
+        legacyPromptAnswers: legacyPromptAnswers,
+      );
       profile = Profile(
         id: p['id'] ?? '',
         username: json['username'], // Username is at user level
@@ -500,11 +534,7 @@ class StubProfileRepository implements ProfileRepository {
         videoUrls: List<String>.from(p['videoUrls'] ?? []),
         primaryPhotoIndex: p['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(p['interests'] ?? []),
-        profilePrompts:
-            (p['profilePrompts'] as List<dynamic>?)
-                ?.map((e) => ProfilePrompt.fromJson(e as Map<String, dynamic>))
-                .toList() ??
-            [],
+        profilePrompts: parsedProfilePrompts,
         country: p['country'] ?? '',
         city: p['city'] ?? '',
         livingIn: p['livingIn'],

@@ -6,6 +6,7 @@ import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// HTTP-based implementation of SubscriptionRepository.
@@ -18,6 +19,11 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     : _apiClient = apiClient;
 
   final ApiClient _apiClient;
+
+  bool get _requiresNativeMobilePurchase =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android);
 
   /// Subscription polling interval.
   /// 60 seconds is sufficient since subscription changes are user-initiated
@@ -81,6 +87,12 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<void> purchasePlusPlan() async {
+    if (_requiresNativeMobilePurchase) {
+      throw UnsupportedError(
+        'Mobile checkout must use native in-app purchase flow.',
+      );
+    }
+
     // Start checkout and launch URL
     final checkoutUrl = await startPlusCheckout();
     await launchCheckoutUrl(checkoutUrl);
@@ -88,6 +100,12 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<String> startPlusCheckout() async {
+    if (_requiresNativeMobilePurchase) {
+      throw UnsupportedError(
+        'Mobile checkout must use native in-app purchase flow.',
+      );
+    }
+
     final result = await _apiClient.post<Map<String, dynamic>>(
       ApiEndpoints.subscriptionPurchase,
       body: {'plan': 'plus'},
@@ -108,6 +126,12 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
   @override
   Future<void> launchCheckoutUrl(String url) async {
+    if (_requiresNativeMobilePurchase) {
+      throw UnsupportedError(
+        'Mobile checkout must use native in-app purchase flow.',
+      );
+    }
+
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

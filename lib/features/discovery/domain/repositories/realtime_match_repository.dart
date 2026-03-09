@@ -20,13 +20,49 @@ class RealtimeMatchNotification {
     String matchId,
     Map<dynamic, dynamic> data,
   ) {
+    final otherUserId = _coerceString(data['otherUserId'], fallback: '');
+    final otherUserName = _coerceString(
+      data['otherUserName'],
+      fallback: 'Someone',
+    );
+    final otherUserPhotoUrl = _coerceNullableString(data['otherUserPhotoUrl']);
+    final createdAt = _coerceTimestamp(data['createdAt']);
+
     return RealtimeMatchNotification(
       matchId: matchId,
-      otherUserId: data['otherUserId'] as String? ?? '',
-      otherUserName: data['otherUserName'] as String? ?? 'Someone',
-      otherUserPhotoUrl: data['otherUserPhotoUrl'] as String?,
-      createdAt: data['createdAt'] as int? ?? 0,
+      otherUserId: otherUserId,
+      otherUserName: otherUserName,
+      otherUserPhotoUrl: otherUserPhotoUrl,
+      createdAt: createdAt,
     );
+  }
+
+  static String _coerceString(dynamic value, {required String fallback}) {
+    if (value == null) return fallback;
+    final text = value.toString().trim();
+    if (text.isEmpty) return fallback;
+    return text;
+  }
+
+  static String? _coerceNullableString(dynamic value) {
+    if (value == null) return null;
+    final text = value.toString().trim();
+    if (text.isEmpty) return null;
+    return text;
+  }
+
+  static int _coerceTimestamp(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.round();
+    if (value is String) {
+      final text = value.trim();
+      if (text.isEmpty) return 0;
+      final asInt = int.tryParse(text);
+      if (asInt != null) return asInt;
+      final asDouble = double.tryParse(text);
+      if (asDouble != null) return asDouble.round();
+    }
+    return 0;
   }
 }
 

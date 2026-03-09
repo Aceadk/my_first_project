@@ -231,9 +231,20 @@
   "authSignUp": "Sign up xxxx",
   "authSignOut": "Sign out xxxx",
   "authCreateAccount": "Create account xxxx",
+  "authContinueWithGoogle": "Continue with Google xxxxxxxx",
+  "authContinueWithApple": "Continue with Apple xxxxxxx",
   "authNoAccount": "Don't have an account? xxxxxxx",
   "authAlreadyHaveAccount": "Already have an account? xxxxxxxx",
   "authOrContinueWith": "or continue with xxxxx",
+  "authGatewayTagline": "Find your Perfect Match xxxxxxxxxx",
+  "authGatewayFeatureVerifiedProfiles": "Verified profiles for safety xxxxxxxxxx",
+  "authGatewayFeatureSendMessages": "Send messages before matching xxxxxxxxx",
+  "authGatewayFeatureMeetNearby": "Meet people near you xxxxxxxx",
+  "authGatewayAgeVerificationTitle": "Age Verification xxxxxxx",
+  "authGatewayAgeVerificationDescription": "Crush is a dating app for adults only. You must be at least 18 years old to create an account. xxxxxxxxxxxxxxxxx",
+  "authGatewayAgeVerificationQuestion": "Are you 18 years or older? xxxxxxxxx",
+  "authGatewayAgeVerificationLegalNotice": "By continuing, you confirm that you are at least 18 years old and agree to our Terms of Service. xxxxxxxxxxxxxx",
+  "authGatewayAgeUnderageError": "You must be at least 18 years old to use Crush. xxxxxxxxx",
   "authPhone": "Phone xxxx",
   "authPhoneNumber": "Phone number xxxx",
   "authEnterCode": "Enter code xxxx",
@@ -338,6 +349,505 @@
   "settingsSubscriptionSubtitle": "Manage your plan xxxxx",
   "settingsGetPlus": "Get Crush Plus xxxx",
   "settingsRestorePurchases": "Restore purchases xxxxx",
+  "settingsNotificationsEnabledCount": "{enabled} of {total} enabled xxxxx",
+  "@settingsNotificationsEnabledCount": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsLanguageRegionSummary": "{language} - {region} xxxxx",
+  "@settingsLanguageRegionSummary": {
+    "placeholders": {
+      "language": {
+        "type": "String"
+      },
+      "region": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsDiscoverySummary": "{distanceKm} km, {minAge}-{maxAge} years xxxxx",
+  "@settingsDiscoverySummary": {
+    "placeholders": {
+      "distanceKm": {
+        "type": "int"
+      },
+      "minAge": {
+        "type": "int"
+      },
+      "maxAge": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsCacheSummary": "Cache: {sizeMb} MB xxxx",
+  "@settingsCacheSummary": {
+    "placeholders": {
+      "sizeMb": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAccountNoEmail": "No email added xxxx",
+  "settingsAccountEmailVerified": "Email verified xxxx",
+  "settingsAccountEmailNotVerified": "Email not verified xxxxx",
+  "settingsIdVerification": "ID Verification xxxx",
+  "settingsIdVerificationVerifiedSubtitle": "Verified - Badge active xxxxx",
+  "settingsIdVerificationPromptSubtitle": "Verify to unlock 50% more swipes xxxxx",
+  "settingsChatSettingsSubtitle": "Message retention & auto-delete xxxxx",
+  "settingsCallHistorySubtitle": "Recent audio and video calls xxxxx",
+  "settingsIncognitoActivePremium": "Active (Premium) xxxx",
+  "settingsIncognitoBrowsePrivately": "Browse profiles privately xxxxx",
+  "settingsSubscriptionStatus": "Status: {status} xxxx",
+  "@settingsSubscriptionStatus": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSubscriptionAccessEndsOn": "Access ends on {date} xxxx",
+  "@settingsSubscriptionAccessEndsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSubscriptionRenewsOn": "Renews on {date} xxxx",
+  "@settingsSubscriptionRenewsOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSubscriptionManageBillingSubtitle": "Manage billing or renew your Plus plan. xxxxx",
+  "settingsSubscriptionUpgradePitchSubtitle": "Upgrade to Plus for unlimited likes, rewinds, and Passport. xxxxx",
+  "settingsSubscriptionFirstMonthDiscount": "50% off your first month! xxxxx",
+  "settingsManageSubscription": "Manage subscription xxxx",
+  "settingsSafetyBlocking": "Safety & Blocking xxxx",
+  "settingsHelpSubtitle": "FAQ, contact support, and more xxxxx",
+  "settingsSignOutSubtitle": "Sign out of your account xxxxx",
+  "settingsLegalSection": "Legal xxxx",
+  "settingsAboutCrush": "About Crush xxxx",
+  "settingsManageBlockedUsers": "Manage blocked users xxxx",
+  "settingsThemeDarkLuxuryRoyal": "Dark Luxury (Royal) xxxx",
+  "settingsThemeDarkLuxuryModern": "Dark Luxury (Modern) xxxx",
+  "settingsIncognitoBrowseWithoutSeen": "Browse profiles without being seen xxxxx",
+  "settingsIncognitoIsActive": "Incognito is active xxxx",
+  "settingsIncognitoHideFromLikedYou": "Hide from \"Liked You\" xxxx",
+  "settingsIncognitoHideFromLikedYouSubtitle": "Your likes won't appear in their list xxxxx",
+  "settingsIncognitoHideLastActive": "Hide last active xxxx",
+  "settingsIncognitoHideLastActiveSubtitle": "Others won't see when you were online xxxxx",
+  "settingsIncognitoHideReadReceipts": "Hide read receipts xxxx",
+  "settingsIncognitoHideReadReceiptsSubtitle": "Messages won't show as read xxxxx",
+  "settingsIncognitoFeatureHideFromLikedYou": "Your likes won't appear in \"Liked You\" xxxxx",
+  "settingsIncognitoFeatureHideLastActive": "Hide your last active status xxxxx",
+  "settingsIncognitoFeatureHideReadReceipts": "Hide read receipts in chats xxxxx",
+  "settingsIncognitoFreeTierNotice": "Free users get 1 hour. Upgrade for unlimited. xxxxx",
+  "settingsSubscriptionFreeSummary": "Free Plan - Upgrade for unlimited likes xxxxx",
+  "settingsSubscriptionPlusActiveSummary": "Plus Member - Active xxxx",
+  "settingsSubscriptionPlusEndsSummary": "Plus Member - Ends on {date} xxxx",
+  "@settingsSubscriptionPlusEndsSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSubscriptionPlusRenewsSummary": "Plus Member - Renews on {date} xxxx",
+  "@settingsSubscriptionPlusRenewsSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsNotificationsHeaderTitle": "Stay Connected xxxx",
+  "settingsNotificationsHeaderSubtitle": "Get notified about matches, messages, and more. xxxxx",
+  "settingsNotificationsPushSubtitle": "Messages, matches, and app updates xxxxx",
+  "settingsNotificationsPushEnabled": "Push notifications enabled. xxxx",
+  "settingsNotificationsPushDisabled": "Push notifications disabled. xxxx",
+  "settingsNotificationsEmailSubtitle": "Updates sent to your inbox xxxxx",
+  "settingsNotificationsSoundSubtitle": "Play sounds for alerts xxxxx",
+  "settingsNotificationsVibrationSubtitle": "Vibrate on new messages or matches xxxxx",
+  "settingsNotificationCategoriesTitle": "Notification Categories xxxx",
+  "settingsNotificationCategoriesEnabledCount": "{enabled} of {total} enabled xxxx",
+  "@settingsNotificationCategoriesEnabledCount": {
+    "placeholders": {
+      "enabled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsNotificationCategoryMatchesTitle": "Matches xxxx",
+  "settingsNotificationCategoryMatchesSubtitle": "New match notifications xxxx",
+  "settingsNotificationCategoryMessagesTitle": "Messages xxxx",
+  "settingsNotificationCategoryMessagesSubtitle": "New message notifications xxxx",
+  "settingsNotificationCategoryLikesTitle": "Likes xxxx",
+  "settingsNotificationCategoryLikesSubtitle": "When someone likes your profile xxxxx",
+  "settingsNotificationCategoryProfileViewsTitle": "Profile Views xxxx",
+  "settingsNotificationCategoryProfileViewsSubtitle": "When someone views your profile xxxxx",
+  "settingsNotificationCategoryPromotionsTitle": "Promotions xxxx",
+  "settingsNotificationCategoryPromotionsSubtitle": "Special offers and features xxxxx",
+  "settingsNotificationCategorySafetyAlertsTitle": "Safety Alerts xxxx",
+  "settingsNotificationCategorySafetyAlertsSubtitle": "Always on — cannot be disabled xxxxx",
+  "settingsNotificationQuietHoursTitle": "Quiet Hours xxxx",
+  "settingsNotificationQuietHoursTileTitle": "Quiet hours xxxx",
+  "settingsNotificationDisabled": "Disabled xxxx",
+  "settingsNotificationsDeviceSettingsInfo": "You can also manage notifications in your device settings. xxxxx",
+  "settingsPrivacySnackAllPublic": "All information set to public xxxx",
+  "settingsPrivacySnackAllPrivate": "All information set to private xxxx",
+  "settingsPrivacySnackResetDefaults": "Privacy settings reset to defaults xxxx",
+  "settingsPrivacyHeaderTitle": "Control Your Privacy xxxx",
+  "settingsPrivacyHeaderSubtitle": "Choose what others can see when they view your profile. xxxxx",
+  "settingsPrivacySectionNameVisibilityTitle": "Name Visibility xxxx",
+  "settingsPrivacySectionNameVisibilitySubtitle": "Control how your name appears xxxx",
+  "settingsPrivacyFirstNameTitle": "First Name xxxx",
+  "settingsPrivacyFirstNameSubtitle": "Show your first name on your profile xxxx",
+  "settingsPrivacyLastNameTitle": "Last Name xxxx",
+  "settingsPrivacyLastNameSubtitle": "Show your last name on your profile xxxx",
+  "settingsPrivacySectionSensitiveInfoTitle": "Sensitive Information xxxx",
+  "settingsPrivacySectionSensitiveInfoSubtitle": "These are private by default xxxx",
+  "settingsPrivacyAgeTitle": "Age xxxx",
+  "settingsPrivacyAgeSubtitle": "Show your age on your profile xxxx",
+  "settingsPrivacyDateOfBirthTitle": "Date of Birth xxxx",
+  "settingsPrivacyDateOfBirthSubtitle": "Show your exact birth date xxxx",
+  "settingsPrivacyEmailTitle": "Email xxxx",
+  "settingsPrivacyEmailSubtitle": "Show your email address xxxx",
+  "settingsPrivacyPhoneNumberTitle": "Phone Number xxxx",
+  "settingsPrivacyPhoneNumberSubtitle": "Show your phone number xxxx",
+  "settingsPrivacyExactLocationTitle": "Exact Location xxxx",
+  "settingsPrivacyExactLocationSubtitle": "Show exact location instead of city only xxxx",
+  "settingsPrivacySectionDatingBasicsTitle": "Dating Basics xxxx",
+  "settingsPrivacySectionDatingBasicsSubtitle": "Basic dating profile information xxxx",
+  "settingsPrivacyHeightTitle": "Height xxxx",
+  "settingsPrivacyHeightSubtitle": "Show your height xxxx",
+  "settingsPrivacyRelationshipGoalsTitle": "Relationship Goals xxxx",
+  "settingsPrivacyRelationshipGoalsSubtitle": "Show what you're looking for xxxx",
+  "settingsPrivacyZodiacSignTitle": "Zodiac Sign xxxx",
+  "settingsPrivacyZodiacSignSubtitle": "Show your zodiac sign xxxx",
+  "settingsPrivacySectionAboutMeTitle": "About Me xxxx",
+  "settingsPrivacySectionAboutMeSubtitle": "Personal characteristics xxxx",
+  "settingsPrivacyEducationTitle": "Education xxxx",
+  "settingsPrivacyEducationSubtitle": "Show your education level xxxx",
+  "settingsPrivacyFamilyPlansTitle": "Family Plans xxxx",
+  "settingsPrivacyFamilyPlansSubtitle": "Show your family plans xxxx",
+  "settingsPrivacyPersonalityTypeTitle": "Personality Type xxxx",
+  "settingsPrivacyPersonalityTypeSubtitle": "Show your MBTI or personality xxxx",
+  "settingsPrivacySectionLifestyleTitle": "Lifestyle xxxx",
+  "settingsPrivacySectionLifestyleSubtitle": "Your habits and preferences xxxx",
+  "settingsPrivacyWorkoutTitle": "Workout xxxx",
+  "settingsPrivacyWorkoutSubtitle": "Show your exercise habits xxxx",
+  "settingsPrivacySmokingTitle": "Smoking xxxx",
+  "settingsPrivacySmokingSubtitle": "Show your smoking habits xxxx",
+  "settingsPrivacyDrinkingTitle": "Drinking xxxx",
+  "settingsPrivacyDrinkingSubtitle": "Show your drinking habits xxxx",
+  "settingsPrivacyDietTitle": "Diet xxxx",
+  "settingsPrivacyDietSubtitle": "Show your dietary preferences xxxx",
+  "settingsPrivacySleepingHabitsTitle": "Sleeping Habits xxxx",
+  "settingsPrivacySleepingHabitsSubtitle": "Show your sleep schedule xxxx",
+  "settingsPrivacyPetsTitle": "Pets xxxx",
+  "settingsPrivacyPetsSubtitle": "Show your pet preferences xxxx",
+  "settingsPrivacySectionWorkEducationTitle": "Work & Education xxxx",
+  "settingsPrivacySectionWorkEducationSubtitle": "Professional information xxxx",
+  "settingsPrivacyJobTitleTitle": "Job Title xxxx",
+  "settingsPrivacyJobTitleSubtitle": "Show your job title xxxx",
+  "settingsPrivacyCompanyTitle": "Company xxxx",
+  "settingsPrivacyCompanySubtitle": "Show where you work xxxx",
+  "settingsPrivacySchoolTitle": "School xxxx",
+  "settingsPrivacySchoolSubtitle": "Show your school or university xxxx",
+  "settingsPrivacySectionMusicTitle": "Music xxxx",
+  "settingsPrivacySectionMusicSubtitle": "Your music taste xxxx",
+  "settingsPrivacyFavoriteSingerTitle": "Favorite Singer xxxx",
+  "settingsPrivacyFavoriteSingerSubtitle": "Show your favorite artist xxxx",
+  "settingsPrivacyFavoriteSongsTitle": "Favorite Songs xxxx",
+  "settingsPrivacyFavoriteSongsSubtitle": "Show your favorite songs xxxx",
+  "settingsPrivacySectionSocialTitle": "Social xxxx",
+  "settingsPrivacySectionSocialSubtitle": "Social information xxxx",
+  "settingsPrivacyLanguagesTitle": "Languages xxxx",
+  "settingsPrivacyLanguagesSubtitle": "Show languages you speak xxxx",
+  "settingsPrivacySocialMediaTitle": "Social Media xxxx",
+  "settingsPrivacySocialMediaSubtitle": "Show your social media links xxxx",
+  "settingsPrivacySectionActivityStatusTitle": "Activity Status xxxx",
+  "settingsPrivacySectionActivityStatusSubtitle": "Online presence xxxx",
+  "settingsPrivacyOnlineStatusTitle": "Online Status xxxx",
+  "settingsPrivacyOnlineStatusSubtitle": "Show when you're online xxxx",
+  "settingsPrivacyLastActiveTitle": "Last Active xxxx",
+  "settingsPrivacyLastActiveSubtitle": "Show when you were last active xxxx",
+  "settingsPrivacySensitiveBadge": "Sensitive xxxx",
+  "settingsPrivacyInfoNote": "Hidden information will only be visible to you. Matches can see public information. xxxxx",
+  "accountActionsHeaderTitle": "Manage Your Account xxxx",
+  "accountActionsHeaderSubtitle": "Manage security, password, and account status. xxxxx",
+  "accountActionsSectionSecurity": "Security xxxx",
+  "accountActionsPhoneVerifiedTitle": "Phone verified xxxx",
+  "accountActionsPhoneVerifyTitle": "Verify phone number xxxx",
+  "accountActionsPhoneAddTitle": "Add phone number xxxx",
+  "accountActionsPhoneVerifiedSubtitle": "Your phone is verified and secured xxxx",
+  "accountActionsPhoneVerifySubtitle": "Verify your phone for account security xxxx",
+  "accountActionsChangePasswordSubtitle": "Update your account password xxxx",
+  "accountActionsSectionAccountStatus": "Account Status xxxx",
+  "accountActionsSnoozeProfileTitle": "Snooze profile xxxx",
+  "accountActionsSnoozeProfileSubtitle": "Hide profile but keep messaging active matches xxxxx",
+  "accountActionsDeactivateSubtitle": "Hide your profile temporarily xxxx",
+  "accountActionsSectionDataPrivacy": "Data & Privacy xxxx",
+  "accountActionsExportDataTitle": "Export your data xxxx",
+  "accountActionsExportDataSubtitle": "Download a copy of your personal data xxxx",
+  "accountActionsSectionDangerZone": "Danger zone xxxx",
+  "accountActionsAboutDeactivationTitle": "About Deactivation xxxx",
+  "accountActionsAboutDeactivationBody": "When you deactivate your account, your profile will be hidden. You can reactivate anytime by signing back in. If you don't sign in for 6 months, your account will be permanently deleted. xxxxx",
+  "accountActionsAboutDeletionTitle": "About Deletion xxxx",
+  "accountActionsAboutDeletionBody": "When you delete your account, you have 14 days to change your mind. Simply sign in within 14 days to recover your account. After 14 days, all your data will be permanently deleted. xxxxx",
+  "accountActionsExportSignInRequired": "Please sign in again to export data. xxxx",
+  "accountActionsExportNextAvailableOn": "You can request your next export on {date}. xxxx",
+  "@accountActionsExportNextAvailableOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountActionsExportFallbackEmail": "your email xxxx",
+  "accountActionsExportItemProfileMedia": "Profile, photos, and media xxxx",
+  "accountActionsExportItemLikesMatches": "Likes and matches xxxx",
+  "accountActionsExportItemMessagesMetadata": "Messages and chat metadata xxxx",
+  "accountActionsExportItemPreferences": "Preferences and account settings xxxx",
+  "accountActionsExportRateLimitNotice": "This request is rate-limited to once every {days} days. We will notify you when export generation completes. xxxxx",
+  "@accountActionsExportRateLimitNotice": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "accountActionsExportPrimaryContact": "Primary contact: {email} xxxx",
+  "@accountActionsExportPrimaryContact": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "accountActionsExportRequestedSuccess": "Data export requested. We will send a push notification when it is ready. xxxxx",
+  "accountActionsExportRequestFailed": "Could not request data export. xxxx",
+  "accountActionsExportCloudUnavailable": "Cloud export is not available in this environment. Generating local export now. xxxxx",
+  "accountActionsExportProgressStarting": "Starting export... xxxx",
+  "accountActionsExportProgressPercentComplete": "{percent}% complete xxxx",
+  "@accountActionsExportProgressPercentComplete": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "accountActionsExportGenerateFailed": "Could not generate data export. Please try again. xxxx",
+  "accountActionsExportCompletedNextRequest": "Data export request completed. Next request available in {days} days. xxxx",
+  "@accountActionsExportCompletedNextRequest": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "accountActionsChangePasswordPrompt": "Enter your current password and choose a new one. xxxx",
+  "accountActionsCurrentPasswordLabel": "Current password xxxx",
+  "accountActionsCurrentPasswordRequired": "Enter your current password xxxx",
+  "accountActionsNewPasswordLabel": "New password xxxx",
+  "accountActionsNewPasswordRequired": "Enter a new password xxxx",
+  "accountActionsNewPasswordMinLength": "Password must be at least 8 characters xxxx",
+  "accountActionsNewPasswordMustDiffer": "New password must be different from current password xxxx",
+  "accountActionsConfirmNewPasswordLabel": "Confirm new password xxxx",
+  "accountActionsConfirmNewPasswordRequired": "Confirm your new password xxxx",
+  "accountActionsPasswordsDoNotMatch": "Passwords do not match xxxx",
+  "accountActionsPasswordChangeFallbackError": "Could not change password. Please try again. xxxx",
+  "accountActionsPasswordChangedSuccess": "Password changed successfully! xxxx",
+  "accountActionsPasswordChangeFailed": "Password change failed. xxxx",
+  "accountActionsGenericErrorTryAgain": "An error occurred. Please try again. xxxx",
+  "accountActionsDeactivateReasonTitle": "Why are you leaving? xxxx",
+  "accountActionsReasonTakingBreakFromDating": "Taking a break from dating xxxx",
+  "accountActionsReasonFoundSomeoneSpecial": "Found someone special xxxx",
+  "accountActionsReasonTooManyNotifications": "Too many notifications xxxx",
+  "accountActionsReasonNotFindingGoodMatches": "Not finding good matches xxxx",
+  "accountActionsReasonPrivacyConcerns": "Privacy concerns xxxx",
+  "accountActionsReasonOther": "Other reason xxxx",
+  "accountActionsDeactivateBulletHiddenFromDiscovery": "Your profile will be hidden from discovery xxxx",
+  "accountActionsDeactivateBulletNoNewMatches": "You won't receive new matches xxxx",
+  "accountActionsDeactivateBulletKeepMatchesMessages": "Your existing matches and messages are preserved xxxx",
+  "accountActionsDeactivateBulletReactivateAnytime": "You can reactivate anytime by signing in xxxx",
+  "accountActionsDeactivateAutoDeleteWarning": "If you don't sign in for 6 months, your account will be permanently deleted. xxxx",
+  "accountActionsDeactivateFailedTryAgain": "Could not deactivate account. Please try again. xxxx",
+  "accountActionsDeactivateSuccess": "Your account has been deactivated. Sign in anytime to reactivate. xxxx",
+  "accountActionsDeactivationFailed": "Deactivation failed. xxxx",
+  "accountActionsDeleteSignInRequired": "Please sign in again to continue. xxxx",
+  "accountActionsDeleteWarningMatches": "All your matches xxxx",
+  "accountActionsDeleteWarningMessages": "All your messages xxxx",
+  "accountActionsDeleteWarningProfile": "Your profile and photos xxxx",
+  "accountActionsDeleteWarningSubscription": "Your subscription (if any) xxxx",
+  "accountActionsDeleteScheduledOn": "Deleted on {date}. Sign back in within 14 days to cancel. xxxx",
+  "@accountActionsDeleteScheduledOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountActionsDeleteReasonTitle": "Optional: Why are you deleting your account? xxxx",
+  "accountActionsReasonFoundRelationship": "Found a relationship xxxx",
+  "accountActionsReasonNotHappyWithApp": "Not happy with the app xxxx",
+  "accountActionsReasonTooExpensive": "Too expensive xxxx",
+  "accountActionsReasonCreatingNewAccount": "Creating a new account xxxx",
+  "accountActionsDeleteNoReasonProvided": "No reason provided xxxx",
+  "accountActionsDeleteTypeToConfirm": "Type \"{value}\" to confirm account deletion. xxxx",
+  "@accountActionsDeleteTypeToConfirm": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "accountActionsDeleteTypeUsernameLabel": "Type username xxxx",
+  "accountActionsDeletePasswordLabel": "Password xxxx",
+  "accountActionsDeleteFailedCheckPassword": "Could not delete account. Please check your password. xxxx",
+  "accountActionsDeleteScheduledSuccess": "Your account is scheduled for deletion on {date}. Sign in within 14 days to recover it. xxxx",
+  "@accountActionsDeleteScheduledSuccess": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "accountActionsDeletionFailed": "Deletion failed. xxxx",
+  "accountActionsReasonOtherHint": "Please tell us more... xxxx",
+  "accountActionsReasonOtherPrefix": "Other: xxxx ",
+  "settingsSecurityProviderLinkUnavailable": "{provider} linking is not available. xxxx",
+  "@settingsSecurityProviderLinkUnavailable": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProviderLinkedSuccess": "{provider} linked successfully. xxxx",
+  "@settingsSecurityProviderLinkedSuccess": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProviderUnlinkUnavailable": "{provider} unlink is not available. xxxx",
+  "@settingsSecurityProviderUnlinkUnavailable": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProviderUnlinkedSuccess": "{provider} unlinked successfully. xxxx",
+  "@settingsSecurityProviderUnlinkedSuccess": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProviderAlreadyLinked": "{provider} is already linked. xxxx",
+  "@settingsSecurityProviderAlreadyLinked": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProviderLinkedAnotherAccount": "{provider} is already linked to another account. xxxx",
+  "@settingsSecurityProviderLinkedAnotherAccount": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProviderNotEnabledEnvironment": "{provider} is not enabled for this environment. xxxx",
+  "@settingsSecurityProviderNotEnabledEnvironment": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProviderLinkCanceled": "{provider} linking was canceled. xxxx",
+  "@settingsSecurityProviderLinkCanceled": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityProviderUpdateFailed": "Could not update linked account. xxxx",
+  "settingsSecurityHeaderTitle": "Protect Your Account xxxx",
+  "settingsSecurityHeaderSubtitle": "Add extra layers of security to keep your account safe. xxxxx",
+  "settingsSecurityPhoneNotVerified": "Phone not verified xxxx",
+  "settingsSecurityNoPhoneAdded": "No phone added xxxx",
+  "settingsSecurityEmailProtectionLocked": "Email protection (Locked) xxxx",
+  "settingsSecurityEmailProtection": "Email protection xxxx",
+  "settingsSecurityVerifiedAndLocked": "Verified and locked xxxx",
+  "settingsSecurityVerifyYourEmail": "Verify your email xxxx",
+  "settingsSecurityAddEmailRecoveryOtp": "Add an email for recovery and OTP xxxx",
+  "settingsSecurityPhoneProtectionLocked": "Phone protection (Locked) xxxx",
+  "settingsSecurityPhoneProtection": "Phone protection xxxx",
+  "settingsSecurityVerifyYourPhone": "Verify your phone xxxx",
+  "settingsSecurityAddPhoneForSecurity": "Add a phone number for security xxxx",
+  "settingsSecurityBiometricLockTitle": "{biometric} Lock xxxx",
+  "@settingsSecurityBiometricLockTitle": {
+    "placeholders": {
+      "biometric": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityBiometricUnlockWith": "Unlock Crush with {biometric} xxxx",
+  "@settingsSecurityBiometricUnlockWith": {
+    "placeholders": {
+      "biometric": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityBiometricRequireToOpen": "Require {biometric} to open Crush xxxx",
+  "@settingsSecurityBiometricRequireToOpen": {
+    "placeholders": {
+      "biometric": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurityLinkedAccounts": "Linked Accounts xxxx",
+  "settingsSecurityProviderEmail": "Email xxxx",
+  "settingsSecurityProviderPhone": "Phone xxxx",
+  "settingsSecurityProviderGoogle": "Google xxxx",
+  "settingsSecurityProviderApple": "Apple xxxx",
+  "settingsSecurityLinkedVerified": "Linked · Verified xxxx",
+  "settingsSecurityLinkedUnverified": "Linked · Unverified xxxx",
+  "settingsSecurityNotLinked": "Not linked xxxx",
+  "settingsSecurityChecking": "Checking... xxxx",
+  "settingsSecurityActionManage": "Manage xxxx",
+  "settingsSecurityActionLink": "Link xxxx",
+  "settingsSecurityActionLinked": "Linked xxxx",
+  "settingsSecurityAddVerifyEmailHint": "Add and verify an email in Email Protection. xxxxx",
+  "settingsSecurityAddVerifyPhoneHint": "Add and verify a phone in Phone Protection. xxxxx",
+  "settingsSecurityTipsTitle": "Security tips xxxx",
+  "settingsSecurityTipsUniquePassword": "Use a unique password for this app xxxx",
+  "settingsSecurityTipsEnableEmailRecovery": "Enable email verification for account recovery xxxx",
+  "settingsSecurityTipsNeverShareCodes": "Never share your verification codes xxxx",
   "@@_DISCOVERY": "Discovery/Deck screens",
   "discoveryTitle": "Discover xxxx",
   "discoveryNoMatchesTitle": "No matches yet xxxx",
@@ -490,6 +1000,68 @@
   "onboardingWhatsYourName": "What's your name? xxxxx",
   "onboardingWhenBirthday": "When's your birthday? xxxxxxx",
   "onboardingSelectGender": "Select your gender xxxxxx",
+  "onboardingBasicInfoTitle": "Basic Info xxxx",
+  "onboardingBasicInfoSubtitle": "Tell us about you xxxxxxx",
+  "onboardingBasicInfoUsernameLabel": "Username xxxx",
+  "onboardingBasicInfoUsernameHint": "Choose a unique username xxxxxxxxx",
+  "onboardingBasicInfoFirstNameLabel": "Your First Name xxxxx",
+  "onboardingBasicInfoFirstNameHint": "Enter your first name xxxxxxx",
+  "onboardingBasicInfoLastNameLabel": "Last Name xxxx",
+  "onboardingBasicInfoLastNameHint": "Enter your last name (optional) xxxxxxxxx",
+  "onboardingBasicInfoBirthdateLabel": "Date of Birth xxxxx",
+  "onboardingBasicInfoSelectBirthdate": "Select your birthdate xxxxxxx",
+  "onboardingBasicInfoBirthdateHelpText": "Select your birthdate xxxxxxx",
+  "onboardingBasicInfoYearsOld": "{age} years old xxxxx",
+  "@onboardingBasicInfoYearsOld": {
+    "placeholders": {
+      "age": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingBasicInfoUsernameCheckingAvailability": "Checking username availability... xxxxxxxxx",
+  "onboardingBasicInfoUsernameAvailable": "Username is available xxxxx",
+  "onboardingBasicInfoUsernameRules": "3-20 characters, letters, numbers, or underscore xxxxxxxxx",
+  "onboardingBasicInfoUsernameRequired": "Choose a username to continue xxxxxxxx",
+  "onboardingBasicInfoUsernameFormatError": "Use 3-20 letters, numbers, or underscore xxxxxxxxx",
+  "onboardingBasicInfoUsernameTaken": "This username is already taken xxxxxxx",
+  "onboardingBasicInfoBirthdateRequired": "Select your date of birth xxxxxxxx",
+  "onboardingBasicInfoBirthdateInvalid": "Select a valid date xxxxx",
+  "onboardingBasicInfoBirthdateTooYoung": "You must be at least 18 years old xxxxxxxxx",
+  "onboardingBasicInfoBirthdateTooOld": "Maximum age allowed is 75 xxxxxxx",
+  "onboardingBasicInfoOrientationOptionalSemantics": "Orientation is optional. You can skip this for now. xxxxxxxxxxxx",
+  "onboardingBasicInfoOrientationOptionalHelper": "Optional - skip for now, add later in Settings xxxxxxxxxxx",
+  "onboardingBasicInfoAgeWarningBody": "You're a bit too old to be using a dating app, don't you think?\n\nJust kidding! Love has no age limit. Are you sure you want to continue? xxxxxxxxxxxxx",
+  "onboardingEmailVerificationTitle": "Verify Your Email xxxxx",
+  "onboardingEmailVerificationSentTo": "We've sent a verification link to: xxxxxxxxx",
+  "onboardingEmailVerificationFallbackEmail": "your email xxxx",
+  "onboardingEmailVerificationInstruction": "Click the link in the email to verify your account and continue. xxxxxxxxxxxxx",
+  "onboardingEmailVerificationSent": "Verification email sent! Check your inbox. xxxxxxxxx",
+  "onboardingEmailVerificationSuccessRedirecting": "Email verified successfully! Redirecting... xxxxxxxxx",
+  "onboardingEmailVerificationTooManyAttempts": "Too many attempts. Please wait about a minute and try again. xxxxxxxxxxxx",
+  "onboardingEmailVerificationSendFailed": "Failed to send email. Please try again. xxxxxxxxx",
+  "onboardingEmailVerificationCheckingStatus": "Checking verification status... xxxxxxx",
+  "onboardingEmailVerificationResendSemantics": "Resend verification email xxxxxxx",
+  "onboardingEmailVerificationResendButton": "Resend Verification Email xxxxxxx",
+  "onboardingEmailVerificationResendIn": "Resend in {seconds}s xxxxx",
+  "@onboardingEmailVerificationResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingEmailVerificationCheckNowSemantics": "I have verified, check now xxxxxxx",
+  "onboardingEmailVerificationCheckNowButton": "I've Verified - Check Now xxxxxxx",
+  "onboardingEmailVerificationAutoCheckStopped": "Auto-check stopped after {minutes} minutes. Tap \"I've Verified\" to check manually. xxxxxxxxxxxxx",
+  "@onboardingEmailVerificationAutoCheckStopped": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingOrientationOptionalPrompt": "Select orientation (optional) xxxxxxxxx",
   "onboardingAddPhotos": "Add your best photos xxxxxxx",
   "onboardingPhotosHint": "Add at least 2 photos to continue xxxxxxxxxxxx",
   "onboardingWriteBio": "Write something about yourself xxxxxxxxxxx",
@@ -497,6 +1069,236 @@
   "onboardingInterestsHint": "Choose at least 3 interests xxxxxxxxx",
   "onboardingAllSet": "You're all set! xxxxx",
   "onboardingStartSwiping": "Start swiping xxxx",
+  "onboardingTermsSaveFailed": "Failed to save. Please try again. xxxxxxx",
+  "onboardingTermsReadAndAccept": "Please read and accept xxxxxxx",
+  "onboardingTermsScrollToContinue": "Scroll to continue xxxxxx",
+  "onboardingTermsWelcomeTitle": "Welcome to Crush xxxxx",
+  "onboardingTermsWelcomeBody": "By using our dating app, you agree to these Terms and Conditions. Please read them carefully before proceeding. xxxxxxxxxxxx",
+  "onboardingTermsEligibilityTitle": "1. Eligibility xxxx",
+  "onboardingTermsEligibilityBody": "You must be at least 18 years old to use Crush. By creating an account, you confirm that you are of legal age and have the right to enter into this agreement. xxxxxxxxxxxxx",
+  "onboardingTermsAccountSecurityTitle": "2. Account Security xxxxx",
+  "onboardingTermsAccountSecurityBody": "You are responsible for maintaining the confidentiality of your account credentials. Notify us immediately if you suspect unauthorized access to your account. xxxxxxxxxxxxx",
+  "onboardingTermsUserConductTitle": "3. User Conduct xxxx",
+  "onboardingTermsUserConductBody": "You agree to:\n• Provide accurate information\n• Treat other users with respect\n• Not engage in harassment, hate speech, or illegal activities\n• Not impersonate others or create fake profiles\n• Not share inappropriate or explicit content xxxxxxxxxxxxx",
+  "onboardingTermsPrivacyTitle": "4. Privacy xxxx",
+  "onboardingTermsPrivacyBody": "Your privacy is important to us. We collect and process your personal data in accordance with our Privacy Policy. By using Crush, you consent to our data practices as described in the Privacy Policy. xxxxxxxxxxxx",
+  "onboardingTermsContentOwnershipTitle": "5. Content Ownership xxxxx",
+  "onboardingTermsContentOwnershipBody": "You retain ownership of content you post. However, you grant Crush a non-exclusive license to use, display, and distribute your content within the app for the purpose of providing our services. xxxxxxxxxxxxx",
+  "onboardingTermsSafetyTitle": "6. Safety xxxx",
+  "onboardingTermsSafetyBody": "While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your plans. xxxxxxxxxxxxx",
+  "onboardingTermsTerminationTitle": "7. Termination xxxx",
+  "onboardingTermsTerminationBody": "We reserve the right to suspend or terminate your account if you violate these terms. You may also delete your account at any time through the app settings. xxxxxxxxxxx",
+  "onboardingTermsDisclaimerTitle": "8. Disclaimer xxxx",
+  "onboardingTermsDisclaimerBody": "Crush is provided \"as is\" without warranties. We do not guarantee that you will find a match or that other users' information is accurate. xxxxxxxxxxx",
+  "onboardingTermsChangesTitle": "9. Changes to Terms xxxxx",
+  "onboardingTermsChangesBody": "We may update these terms from time to time. Continued use of the app after changes constitutes acceptance of the new terms. xxxxxxxxxxx",
+  "onboardingTermsContactTitle": "10. Contact xxxx",
+  "onboardingTermsContactBody": "If you have questions about these terms, please contact us through the app's support feature or email support@crushhour.app. xxxxxxxxxxx",
+  "onboardingTermsEndLabel": "End of Terms xxxx",
+  "onboardingTermsAgreementLabel": "I have read and agree to the Terms and Conditions and Privacy Policy xxxxxxxxx",
+  "onboardingTermsAgreementToggleHint": "Double tap to toggle agreement xxxxxxxxx",
+  "onboardingTermsContinueSemantics": "Continue xxxx",
+  "onboardingTermsScrollHint": "Please scroll down to read all terms before agreeing xxxxxxxxx",
+  "onboardingSignUpPhoneCodeSent": "Code sent. Check your messages. xxxxxxx",
+  "onboardingSignUpContinueWithGoogle": "Continue with Google xxxxxxxx",
+  "onboardingSignUpOrSignUpWithEmail": "or sign up with email xxxxxxxx",
+  "onboardingSignUpOrSignUpWith": "or sign up with xxxxx",
+  "onboardingSignUpPhoneErrorRequired": "Enter your phone number xxxxxxx",
+  "onboardingSignUpPhoneErrorMinDigits": "Add at least 6 digits xxxxx",
+  "onboardingSignUpOtpErrorRequired": "Enter the verification code xxxxxxx",
+  "onboardingSignUpOtpErrorInvalidLength": "Enter the 6-digit code xxxxx",
+  "onboardingSignUpWaitBeforeRequestingCode": "Please wait {seconds}s before requesting another code. xxxxxxxxx",
+  "@onboardingSignUpWaitBeforeRequestingCode": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingSignUpPhoneInvalid": "Enter a valid phone number. xxxxx",
+  "onboardingSignUpWaitBeforeResendingEmail": "Please wait {seconds}s before resending the verification email. xxxxxxxxx",
+  "@onboardingSignUpWaitBeforeResendingEmail": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingSignUpUsernameRequired": "Username is required xxxxx",
+  "onboardingSignUpEmailRequired": "Email is required xxxxx",
+  "onboardingSignUpGoogleSignInFailed": "Google Sign-In failed. Please try again. xxxxxxxxx",
+  "onboardingSignUpInvalidUsernameFormat": "Invalid username format xxxxx",
+  "onboardingSignUpInvalidEmailFormat": "Invalid email format xxxxx",
+  "onboardingSignUpPasswordRequired": "Please create a password xxxxx",
+  "onboardingSignUpPasswordMinLength": "Password must be at least 8 characters xxxxxxx",
+  "onboardingSignUpCompleteRequiredFields": "Please complete all required fields: {fields} xxxxxxxxx",
+  "@onboardingSignUpCompleteRequiredFields": {
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingSignUpEmailAlreadyExists": "An account with this email already exists. Please sign in instead, or use a different email address. xxxxxxxxxxxxx",
+  "onboardingSignUpAccountCreated": "Account created! Welcome to Crush. xxxxxxx",
+  "onboardingSignUpSendVerificationFailed": "Could not send verification email. Please try again. xxxxxxxxx",
+  "onboardingSignUpRequestFailed": "Request failed. xxxx",
+  "onboardingSignUpVerificationEmailResent": "Verification email resent successfully. xxxxxxxxx",
+  "onboardingSignUpVerificationEmailSent": "A verification email has been sent to your inbox. xxxxxxxxx",
+  "onboardingSignUpOpenEmailAppFailed": "Could not open email app. Please check your email manually. xxxxxxxxx",
+  "onboardingSignUpCheckEmailStatusFailed": "Could not verify email status. xxxxxxx",
+  "onboardingSignUpEmailVerifiedWelcome": "Email verified! Welcome to Crush. xxxxxxx",
+  "onboardingSignUpEmailNotVerified": "Email not verified yet. Please click the link in your email, then try again. xxxxxxxxxxxx",
+  "onboardingSignUpPercent": "{percent}% xxxx",
+  "@onboardingSignUpPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingSignUpStepOne": "Step 1 xxxx",
+  "onboardingSignUpChooseUsername": "Choose your username xxxxxxx",
+  "onboardingSignUpUsernameDescription": "This is how others will find you on Crush. xxxxxxxxx",
+  "onboardingSignUpUsernameHint": "e.g., john_doe123 xxxx",
+  "onboardingSignUpUsernameRules": "3-20 characters, letters, numbers, and underscore only xxxxxxxxx",
+  "onboardingSignUpEmailTitle": "What's your email? xxxxx",
+  "onboardingSignUpBypassHint": "Test mode: verification is disabled. xxxxxxxxx",
+  "onboardingSignUpEmailHint": "We'll send you a verification link to confirm your email. xxxxxxxxx",
+  "onboardingSignUpEmailAddressLabel": "Email address xxxx",
+  "onboardingSignUpEmailAddressHint": "you@example.com xxxx",
+  "onboardingSignUpPasswordTitle": "Create a password xxxxx",
+  "onboardingSignUpPasswordDescription": "Make it strong with at least 8 characters. xxxxxxxxx",
+  "onboardingSignUpMissingRequiredFields": "Missing required fields: {fields}. Go back to fill them before creating your account. xxxxxxxxxxxxx",
+  "@onboardingSignUpMissingRequiredFields": {
+    "placeholders": {
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingSignUpEmailInstructionOpenInbox": "Open your email inbox xxxxxxx",
+  "onboardingSignUpEmailInstructionFindEmail": "Find the email from Crush xxxxxxx",
+  "onboardingSignUpEmailInstructionClickLink": "Click the verification link xxxxxxx",
+  "onboardingSignUpEmailIgnoreNotice": "If you didn't request this, please ignore the email. xxxxxxxxx",
+  "onboardingSignUpDidntReceiveEmailResend": "Didn't receive email? Resend xxxxxxx",
+  "onboardingSignUpCheckSpam": "Check your spam folder if you don't see it xxxxxxxxx",
+  "onboardingSignUpPhoneTitle": "Enter your phone number xxxxxxx",
+  "onboardingSignUpPhoneSubtitle": "We'll send you a code to verify your account. xxxxxxxxx",
+  "onboardingSignUpCodeLabel": "Code xxxx",
+  "onboardingSignUpPhoneHint": "(555) 123-4567 xxxx",
+  "onboardingSignUpSmsRates": "SMS rates may apply. We only use this to secure your account. xxxxxxxxx",
+  "onboardingSignUpOtpTitle": "Enter verification code xxxxx",
+  "onboardingSignUpOtpSentTo": "We sent a 6-digit code to {phoneNumber} xxxxxxx",
+  "@onboardingSignUpOtpSentTo": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingSignUpVerificationCodeHint": "000000 xxxx",
+  "onboardingSignUpDidntReceiveCodeResend": "Didn't receive code? Resend xxxxxxx",
+  "onboardingSignUpPasswordStrengthWeak": "Weak xxxx",
+  "onboardingSignUpPasswordStrengthFair": "Fair xxxx",
+  "onboardingSignUpPasswordStrengthGood": "Good xxxx",
+  "onboardingSignUpPasswordStrengthStrong": "Strong xxxx",
+  "onboardingProfileLocationRationaleTitle": "Find matches near you xxxxxxx",
+  "onboardingProfileLocationRationaleDescription": "CRUSH uses your location to show you people nearby. Your exact location is never shared with other users. xxxxxxxxxxxx",
+  "onboardingProfileSignInRequired": "You need to be signed in to continue. xxxxxxx",
+  "onboardingProfileAllFieldsOptional": "All fields are optional. You can complete your profile later in Settings. xxxxxxxxxxxx",
+  "onboardingProfileYourPhotosTitle": "Your Photos xxxx",
+  "onboardingProfileYourPhotosSubtitle": "Optional - helps you get more matches xxxxxxxxx",
+  "onboardingProfileAboutYouSubtitle": "Tell others about yourself xxxxxxx",
+  "onboardingProfileLookingForTitle": "I Am Looking For xxxxx",
+  "onboardingProfileLookingForSubtitle": "Who would you like to see? xxxxxxx",
+  "onboardingProfileLocationSubtitle": "Where are you based? xxxxxxx",
+  "onboardingProfileWorkEducationTitle": "Work & Education xxxxx",
+  "onboardingProfileOptionalSubtitle": "Optional xxxx",
+  "onboardingProfileSchoolUniversity": "School / University xxxxx",
+  "onboardingProfileSelectUpToFive": "Select up to 5 xxxxx",
+  "onboardingProfileFavouritesTitle": "Favourites xxxx",
+  "onboardingProfileFavouritesSubtitle": "Share what you love xxxxxxx",
+  "onboardingProfileSettingUpProfile": "Setting up your profile... xxxxxxx",
+  "onboardingProfileCompleteTitle": "Profile Complete! xxxxx",
+  "onboardingProfileBasicCompleteTitle": "Basic Profile Complete xxxxx",
+  "onboardingProfileEligibleToStartMatching": "You're eligible to start matching! xxxxxxx",
+  "onboardingProfileRecommendCompleteAll": "We recommend completing all fields to get more matches and build trust with other users. xxxxxxxxxxxxx",
+  "onboardingProfileCompletionLabel": "Profile Completion xxxxx",
+  "onboardingProfileCompletionCount": "{filled}/{total} fields ({percent}%) xxxxxxx",
+  "@onboardingProfileCompletionCount": {
+    "placeholders": {
+      "filled": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingProfileFromBasicInfoStep": "From your profile setup xxxxxxx",
+  "onboardingProfileYourUsernameTitle": "Your Username xxxxx",
+  "onboardingProfileUsernameChangeEvery28Days": "You can change this once every 28 days xxxxxxxxx",
+  "onboardingProfileUsernameLockedForDays": "Locked for {days} more days xxxxxxx",
+  "@onboardingProfileUsernameLockedForDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingProfileEnterUsername": "Enter username xxxxx",
+  "onboardingProfileUsernameChangeAgainInDays": "You can change your username again in {days} days xxxxxxxxx",
+  "@onboardingProfileUsernameChangeAgainInDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingProfileNotSet": "Not set xxxx",
+  "onboardingProfileDaysRemaining": "{days} days xxxx",
+  "@onboardingProfileDaysRemaining": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingProfileUsernameChangesLimited": "Username changes are limited to once every 28 days. You can change it again in {days} days. xxxxxxxxxxxxx",
+  "@onboardingProfileUsernameChangesLimited": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingProfileFavouriteAthlete": "Favourite Athlete xxxxx",
+  "onboardingProfileFavouriteFood": "Favourite Food xxxxx",
+  "onboardingProfileFavouriteSport": "Favourite Sport xxxxx",
+  "onboardingProfileFavouriteTvShow": "Favourite TV Show xxxxx",
+  "onboardingProfileFavouriteActor": "Favourite Actor xxxxx",
+  "onboardingProfileFavouriteSinger": "Favourite Singer xxxxx",
+  "onboardingProfileFavouriteMovie": "Favourite Movie xxxxx",
+  "onboardingProfileFavouriteHobby": "Favourite Hobby xxxxx",
+  "onboardingProfileSelectPlaceholder": "Select... xxxx",
+  "onboardingProfileOrTypeYourOwn": "Or type your own... xxxxx",
+  "onboardingProfileAddPhotoBeforeSkip": "Please add at least 1 photo before skipping. This is required for dating apps. xxxxxxxxxxxxx",
+  "onboardingProfileStartMatching": "Start Matching xxxxx",
+  "onboardingProfileStartMatchingWithPercent": "Start Matching ({percent}% complete) xxxxxxx",
+  "@onboardingProfileStartMatchingWithPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingProfileCompleteLaterInSettings": "You can always complete your profile later in Settings xxxxxxxxx",
+  "onboardingProfileSaveAndStartMatchingSemantics": "Save profile and start matching xxxxxxx",
+  "onboardingProfileSkipSemantics": "Skip profile setup for now. Requires at least one photo. xxxxxxxxx",
   "@@_SUBSCRIPTION": "Subscription screens",
   "subscriptionFree": "Free xxxx",
   "subscriptionPlus": "Plus xxxx",
@@ -1470,6 +2272,16 @@
   "wordGender": "Gender xxxx",
   "wordMale": "Male xxxx",
   "wordFemale": "Female xxxx",
+  "wordNonBinary": "Non-binary xxxxx",
+  "orientationStraight": "Straight xxxx",
+  "orientationGay": "Gay xxxx",
+  "orientationLesbian": "Lesbian xxxx",
+  "orientationBisexual": "Bisexual xxxx",
+  "orientationPansexual": "Pansexual xxxx",
+  "orientationAsexual": "Asexual xxxx",
+  "orientationQueer": "Queer xxxx",
+  "orientationQuestioning": "Questioning xxxx",
+  "orientationPreferNotToSay": "Prefer not to say xxxxxxx",
   "wordMan": "Man xxxx",
   "wordWoman": "Woman xxxx",
   "wordBoy": "Boy xxxx",
@@ -1491,6 +2303,63 @@
   "wordSomething": "Something xxxx",
   "wordNothing": "Nothing xxxx",
   "wordAnything": "Anything xxxx",
+  "chatReportLastMatch": "Last match: {matchId} xxxx",
+  "@chatReportLastMatch": {
+    "placeholders": {
+      "matchId": {
+        "type": "String"
+      }
+    }
+  },
+  "chatReportReasonSpamScams": "Spam or scams xxxx",
+  "chatReportReasonHarassmentHate": "Harassment or hate xxxx",
+  "chatReportReasonInappropriateContent": "Inappropriate content xxxx",
+  "chatReportReasonFakeProfile": "Fake profile xxxx",
+  "chatReportReasonOther": "Other xxxx",
+  "chatReportSubmittedReason": "Report submitted: {reason} xxxx",
+  "@chatReportSubmittedReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "chatReportSubmitted": "Report submitted xxxx",
+  "chatReportDetailsHint": "Tell us what happened xxxx",
+  "chatSafetyBlockedUser": "Blocked {name}. xxxx",
+  "@chatSafetyBlockedUser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSafetyUnblockedUser": "Unblocked {name}. xxxx",
+  "@chatSafetyUnblockedUser": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "callSafetyTipFallbackPerson": "this person xxxx",
+  "callSafetyTipTitle": "Safety reminder xxxx",
+  "callSafetyTipDismissTooltip": "Dismiss safety tip xxxx",
+  "callSafetyTipBody": "On your first call with {name}, avoid sharing private details. If anything feels unsafe, report or block immediately. xxxx",
+  "@callSafetyTipBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "callSafetyActionReported": "Reported xxxx",
+  "callSafetyPostCallPromptTitle": "Did you feel safe on this call? xxxx",
+  "callSafetyPostCallPromptSubtitle": "If anything felt off, report or block now. xxxx",
+  "profileReportSheetTitle": "Why are you reporting this profile? xxxx",
+  "profileReportReasonInappropriatePhotos": "Inappropriate photos xxxx",
+  "profileReportReasonScamOrSpam": "Scam or spam xxxx",
+  "profileReportReasonUnderageUser": "Underage user xxxx",
   "@@_PLURALS_NEW": "New plural items added",
   "notificationsCount": "{count, plural, =0{No notifications} =1{1 notification} other{{count} notifications}} (expanded string to test overflow xxxx)",
   "matchCount": "{count, plural, =0{No matches} =1{1 match} other{{count} matches}} (expanded string to test overflow xxxx)",

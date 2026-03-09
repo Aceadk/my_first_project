@@ -3,7 +3,6 @@ import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/core/services/location_service.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -98,6 +97,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   /// system permission. If the user taps "Allow", the system permission
   /// dialog is shown. If "Not Now", location is skipped.
   Future<void> _showLocationRationale() async {
+    final l10n = AppLocalizations.of(context);
     if (_locationRequested) return;
     _locationRequested = true;
 
@@ -117,10 +117,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
           child: PermissionRationaleScreen(
             permissionType: PermissionType.location,
-            title: 'Find matches near you',
-            description:
-                'CRUSH uses your location to show you people nearby. '
-                'Your exact location is never shared with other users.',
+            title: l10n.onboardingProfileLocationRationaleTitle,
+            description: l10n.onboardingProfileLocationRationaleDescription,
             icon: Icons.location_on_rounded,
             onAllow: () {
               Navigator.of(sheetContext).pop();
@@ -194,14 +192,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   String? _usernameErrorText() {
+    final l10n = AppLocalizations.of(context);
     if (!_usernameTouched) return null;
     final username = _usernameController.text.trim();
     if (username.isEmpty) {
-      return 'Username is required';
+      return l10n.onboardingSignUpUsernameRequired;
     }
     final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(username);
     if (!valid) {
-      return 'Use 3-20 letters, numbers, or underscore';
+      return l10n.onboardingBasicInfoUsernameFormatError;
     }
     return null;
   }
@@ -367,11 +366,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   ];
 
   Future<void> _submit(ProfileState state) async {
+    final l10n = AppLocalizations.of(context);
     if (_uploading || state.isSaving) return;
 
     final userId = state.user?.id;
     if (userId == null) {
-      showErrorSnackBar(context, 'You need to be signed in to continue.');
+      showErrorSnackBar(context, l10n.onboardingProfileSignInRequired);
       return;
     }
 
@@ -395,22 +395,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       );
     }
 
-    final uploadResult = await Result.guard(
-      () => _mediaService.ensureRemoteUrls(
-        userId: userId,
-        photoPaths: _photoPaths,
-        videoPaths: _videoPaths,
-      ),
-      logLabel: 'ProfileMediaService.ensureRemoteUrls',
-      fallbackError: 'Could not upload media.',
+    final uploadResult = await _mediaService.ensureRemoteUrls(
+      userId: userId,
+      photoPaths: _photoPaths,
+      videoPaths: _videoPaths,
     );
 
     if (!mounted) return;
-    if (!uploadResult.isSuccess || uploadResult.data == null) {
-      showErrorSnackBar(
-        context,
-        uploadResult.errorMessage ?? 'Could not upload media.',
-      );
+    if (uploadResult.photoUrls.isEmpty) {
+      showErrorSnackBar(context, l10n.errorMediaUploadFailed);
       setState(() => _uploading = false);
       return;
     }
@@ -418,8 +411,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     context.read<ProfileBloc>().add(
       ProfileDetailsSubmitted(
         bio: _bioController.text.trim(),
-        photoUrls: uploadResult.data!.photoUrls,
-        videoUrls: uploadResult.data!.videoUrls,
+        photoUrls: uploadResult.photoUrls,
+        videoUrls: uploadResult.videoUrls,
         jobTitle: _jobController.text.trim(),
         company: _companyController.text.trim(),
         school: _schoolController.text.trim(),
@@ -453,6 +446,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -606,7 +600,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                               const SizedBox(width: 10),
                                               Expanded(
                                                 child: Text(
-                                                  'All fields are optional. You can complete your profile later in Settings.',
+                                                  l10n.onboardingProfileAllFieldsOptional,
                                                   style: Theme.of(context)
                                                       .textTheme
                                                       .bodySmall
@@ -639,8 +633,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                         _buildSectionHeader(
                                           context,
                                           isDark,
-                                          'Your Photos',
-                                          'Optional - helps you get more matches',
+                                          l10n.onboardingProfileYourPhotosTitle,
+                                          l10n.onboardingProfileYourPhotosSubtitle,
                                           Icons.photo_library_rounded,
                                         ),
                                         DsGap.md,
@@ -662,15 +656,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                         _buildSectionHeader(
                                           context,
                                           isDark,
-                                          'About You',
-                                          'Tell others about yourself',
+                                          l10n.profileAboutMe,
+                                          l10n.onboardingProfileAboutYouSubtitle,
                                           Icons.edit_note_rounded,
                                         ),
                                         DsGap.md,
                                         GlassTextField(
                                           controller: _bioController,
-                                          hintText:
-                                              'Write something interesting about yourself...',
+                                          hintText: l10n.profileBioHint,
                                           maxLines: 4,
                                           maxLength: 500,
                                         ),
@@ -679,8 +672,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                         _buildSectionHeader(
                                           context,
                                           isDark,
-                                          'I Am Looking For',
-                                          'Who would you like to see?',
+                                          l10n.onboardingProfileLookingForTitle,
+                                          l10n.onboardingProfileLookingForSubtitle,
                                           Icons.search_rounded,
                                         ),
                                         DsGap.md,
@@ -694,8 +687,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                         _buildSectionHeader(
                                           context,
                                           isDark,
-                                          'Location',
-                                          'Where are you based?',
+                                          l10n.profileLocation,
+                                          l10n.onboardingProfileLocationSubtitle,
                                           Icons.location_on_rounded,
                                         ),
                                         DsGap.md,
@@ -704,7 +697,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                             Expanded(
                                               child: GlassTextField(
                                                 controller: _cityController,
-                                                hintText: 'City',
+                                                hintText: l10n.profileCity,
                                                 prefixIcon:
                                                     Icons.location_city_rounded,
                                               ),
@@ -713,7 +706,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                             Expanded(
                                               child: GlassTextField(
                                                 controller: _countryController,
-                                                hintText: 'Country',
+                                                hintText: l10n.profileCountry,
                                                 prefixIcon:
                                                     Icons.public_rounded,
                                               ),
@@ -725,26 +718,27 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                         _buildSectionHeader(
                                           context,
                                           isDark,
-                                          'Work & Education',
-                                          'Optional',
+                                          l10n.onboardingProfileWorkEducationTitle,
+                                          l10n.onboardingProfileOptionalSubtitle,
                                           Icons.work_outline_rounded,
                                         ),
                                         DsGap.md,
                                         GlassTextField(
                                           controller: _jobController,
-                                          hintText: 'Job Title',
+                                          hintText: l10n.profileJobTitle,
                                           prefixIcon: Icons.badge_outlined,
                                         ),
                                         DsGap.md,
                                         GlassTextField(
                                           controller: _companyController,
-                                          hintText: 'Company',
+                                          hintText: l10n.profileCompany,
                                           prefixIcon: Icons.business_rounded,
                                         ),
                                         DsGap.md,
                                         GlassTextField(
                                           controller: _schoolController,
-                                          hintText: 'School / University',
+                                          hintText: l10n
+                                              .onboardingProfileSchoolUniversity,
                                           prefixIcon: Icons.school_rounded,
                                         ),
                                         DsGap.xl,
@@ -752,8 +746,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                         _buildSectionHeader(
                                           context,
                                           isDark,
-                                          'Interests',
-                                          'Select up to 5',
+                                          l10n.profileInterests,
+                                          l10n.onboardingProfileSelectUpToFive,
                                           Icons.interests_rounded,
                                         ),
                                         DsGap.md,
@@ -763,8 +757,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                         _buildSectionHeader(
                                           context,
                                           isDark,
-                                          'Favourites',
-                                          'Share what you love',
+                                          l10n.onboardingProfileFavouritesTitle,
+                                          l10n.onboardingProfileFavouritesSubtitle,
                                           Icons.favorite_rounded,
                                         ),
                                         DsGap.md,
@@ -790,17 +784,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             Positioned.fill(
                               child: Container(
                                 color: DsColors.ink900.withValues(alpha: 0.3),
-                                child: const Center(
+                                child: Center(
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      CircularProgressIndicator(
+                                      const CircularProgressIndicator(
                                         color: DsColors.primary,
                                       ),
                                       DsGap.md,
                                       Text(
-                                        'Setting up your profile...',
-                                        style: TextStyle(
+                                        l10n.onboardingProfileSettingUpProfile,
+                                        style: const TextStyle(
                                           color: DsColors.surfaceLight,
                                         ),
                                       ),
@@ -823,6 +817,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Widget _buildAppBar(BuildContext context, bool isDark) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: DsEdgeInsets.horizontalXxl.copyWith(top: DsSpacing.md),
       child: Row(
@@ -840,7 +835,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
           const Spacer(),
           Text(
-            'Complete Profile',
+            l10n.profileComplete,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: isDark
@@ -860,6 +855,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     bool isDark,
     ProfileState state,
   ) {
+    final l10n = AppLocalizations.of(context);
     final completeness = _calculateFormCompleteness(state);
     final percentage = completeness['percentage'] as double;
     final filledCount = completeness['filledCount'] as int;
@@ -925,8 +921,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         children: [
                           Text(
                             isFullyComplete
-                                ? 'Profile Complete!'
-                                : 'Basic Profile Complete',
+                                ? l10n.onboardingProfileCompleteTitle
+                                : l10n.onboardingProfileBasicCompleteTitle,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
@@ -937,7 +933,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           ),
                           if (isEligible)
                             Text(
-                              "You're eligible to start matching!",
+                              l10n.onboardingProfileEligibleToStartMatching,
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(
                                     color: DsColors.success,
@@ -969,7 +965,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'We recommend completing all fields to get more matches and build trust with other users.',
+                            l10n.onboardingProfileRecommendCompleteAll,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: isDark
@@ -991,7 +987,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Profile Completion',
+                l10n.onboardingProfileCompletionLabel,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: isDark
                       ? DsColors.textMutedDark
@@ -1000,7 +996,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 ),
               ),
               Text(
-                '$filledCount/$totalCount fields ($percentDisplay%)',
+                l10n.onboardingProfileCompletionCount(
+                  filledCount,
+                  totalCount,
+                  percentDisplay,
+                ),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: isFullyComplete ? DsColors.success : DsColors.primary,
                   fontWeight: FontWeight.w600,
@@ -1161,6 +1161,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     bool isDark,
     ProfileState state,
   ) {
+    final l10n = AppLocalizations.of(context);
     final profile = state.user?.profile;
     final username = state.user?.username ?? '';
     final name = profile?.name ?? '';
@@ -1207,7 +1208,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Basic Info',
+                      l10n.profileBasicInfo,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: isDark
@@ -1216,7 +1217,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       ),
                     ),
                     Text(
-                      'From your profile setup',
+                      l10n.onboardingProfileFromBasicInfoStep,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: isDark
                             ? DsColors.textMutedDark
@@ -1246,7 +1247,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               context,
               isDark,
               icon: Icons.alternate_email_rounded,
-              label: 'Username',
+              label: l10n.onboardingBasicInfoUsernameLabel,
               value: '@$username',
               isPrimary: true,
             ),
@@ -1258,7 +1259,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               context,
               isDark,
               icon: Icons.badge_outlined,
-              label: 'Name',
+              label: l10n.profileName,
               value: name,
             ),
             DsGap.sm,
@@ -1272,8 +1273,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     context,
                     isDark,
                     icon: Icons.cake_outlined,
-                    label: 'Age',
-                    value: '$age years',
+                    label: l10n.profileAge,
+                    value: l10n.onboardingBasicInfoYearsOld(age),
                   ),
                 ),
               if (age > 0 && genderDisplay.isNotEmpty)
@@ -1284,7 +1285,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     context,
                     isDark,
                     icon: Icons.wc_rounded,
-                    label: 'Gender',
+                    label: l10n.profileGender,
                     value: genderDisplay,
                   ),
                 ),
@@ -1347,6 +1348,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     bool isDark,
     ProfileState state,
   ) {
+    final l10n = AppLocalizations.of(context);
     // Initialize username from user profile if not done yet
     if (!_usernameInitialized) {
       final currentUsername =
@@ -1368,17 +1370,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildSectionHeader(
           context,
           isDark,
-          'Your Username',
+          l10n.onboardingProfileYourUsernameTitle,
           canChangeUsername
-              ? 'You can change this once every 28 days'
-              : 'Locked for $daysUntilChange more days',
+              ? l10n.onboardingProfileUsernameChangeEvery28Days
+              : l10n.onboardingProfileUsernameLockedForDays(daysUntilChange),
           Icons.alternate_email_rounded,
         ),
         DsGap.md,
         if (_isEditingUsername) ...[
           GlassTextField(
             controller: _usernameController,
-            hintText: 'Enter username',
+            hintText: l10n.onboardingProfileEnterUsername,
             prefixIcon: Icons.alternate_email_rounded,
             errorText: _usernameErrorText(),
             enabled: canChangeUsername,
@@ -1390,7 +1392,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             Padding(
               padding: const EdgeInsetsDirectional.only(top: 6, start: 12),
               child: Text(
-                '3-20 characters, letters, numbers, or underscore',
+                l10n.onboardingBasicInfoUsernameRules,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: isDark
                       ? DsColors.textMutedDark
@@ -1417,7 +1419,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   });
                 },
                 child: Text(
-                  'Cancel',
+                  l10n.commonCancel,
                   style: TextStyle(
                     color: isDark
                         ? DsColors.textMutedDark
@@ -1447,7 +1449,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   // Show message that username is locked
                   showErrorSnackBar(
                     context,
-                    'You can change your username again in $daysUntilChange days',
+                    l10n.onboardingProfileUsernameChangeAgainInDays(
+                      daysUntilChange,
+                    ),
                   );
                 }
               },
@@ -1485,7 +1489,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Username',
+                            l10n.onboardingBasicInfoUsernameLabel,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: isDark
@@ -1497,7 +1501,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           Text(
                             _usernameController.text.isNotEmpty
                                 ? '@${_usernameController.text}'
-                                : 'Not set',
+                                : l10n.onboardingProfileNotSet,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: isDark
@@ -1535,7 +1539,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              '$daysUntilChange days',
+                              l10n.onboardingProfileDaysRemaining(
+                                daysUntilChange,
+                              ),
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: DsColors.warning,
@@ -1563,7 +1569,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Username changes are limited to once every 28 days. You can change it again in $daysUntilChange days.',
+                      l10n.onboardingProfileUsernameChangesLimited(
+                        daysUntilChange,
+                      ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: DsColors.warning,
                         fontSize: 11,
@@ -1641,12 +1649,13 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   Widget _buildFavouritesSection(BuildContext context, bool isDark) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         _buildFavouriteSelector(
           context,
           isDark,
-          label: 'Favourite Athlete',
+          label: l10n.onboardingProfileFavouriteAthlete,
           icon: Icons.sports_soccer_rounded,
           value: _favouriteAthlete,
           options: FavouritesOptions.athletes,
@@ -1656,7 +1665,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildFavouriteSelector(
           context,
           isDark,
-          label: 'Favourite Food',
+          label: l10n.onboardingProfileFavouriteFood,
           icon: Icons.restaurant_rounded,
           value: _favouriteFood,
           options: FavouritesOptions.foods,
@@ -1666,7 +1675,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildFavouriteSelector(
           context,
           isDark,
-          label: 'Favourite Sport',
+          label: l10n.onboardingProfileFavouriteSport,
           icon: Icons.sports_rounded,
           value: _favouriteSport,
           options: FavouritesOptions.sports,
@@ -1676,7 +1685,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildFavouriteSelector(
           context,
           isDark,
-          label: 'Favourite TV Show',
+          label: l10n.onboardingProfileFavouriteTvShow,
           icon: Icons.tv_rounded,
           value: _favouriteTvShow,
           options: FavouritesOptions.tvShows,
@@ -1686,7 +1695,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildFavouriteSelector(
           context,
           isDark,
-          label: 'Favourite Actor',
+          label: l10n.onboardingProfileFavouriteActor,
           icon: Icons.movie_rounded,
           value: _favouriteActor,
           options: FavouritesOptions.actors,
@@ -1696,7 +1705,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildFavouriteSelector(
           context,
           isDark,
-          label: 'Favourite Singer',
+          label: l10n.onboardingProfileFavouriteSinger,
           icon: Icons.music_note_rounded,
           value: _favouriteSinger,
           options: FavouritesOptions.singers,
@@ -1706,7 +1715,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildFavouriteSelector(
           context,
           isDark,
-          label: 'Favourite Movie',
+          label: l10n.onboardingProfileFavouriteMovie,
           icon: Icons.local_movies_rounded,
           value: _favouriteMovie,
           options: FavouritesOptions.movies,
@@ -1716,7 +1725,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildFavouriteSelector(
           context,
           isDark,
-          label: 'Favourite Hobby',
+          label: l10n.onboardingProfileFavouriteHobby,
           icon: Icons.palette_rounded,
           value: _favouriteHobby,
           options: FavouritesOptions.hobbies,
@@ -1788,7 +1797,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       ),
                     ),
                     Text(
-                      value ?? 'Select...',
+                      value ??
+                          AppLocalizations.of(
+                            context,
+                          ).onboardingProfileSelectPlaceholder,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: value != null
                             ? (isDark
@@ -1826,6 +1838,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     String? currentValue,
     ValueChanged<String?> onSelected,
   ) {
+    final l10n = AppLocalizations.of(context);
     final customController = TextEditingController();
 
     showModalBottomSheet(
@@ -1875,7 +1888,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           Navigator.pop(ctx);
                         },
                         child: Text(
-                          'Clear',
+                          l10n.commonClear,
                           style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
                             color: DsColors.primary,
                             fontWeight: FontWeight.w600,
@@ -1898,7 +1911,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     child: TextField(
                       controller: customController,
                       decoration: InputDecoration(
-                        hintText: 'Or type your own...',
+                        hintText: l10n.onboardingProfileOrTypeYourOwn,
                         hintStyle: TextStyle(
                           color: isDark
                               ? DsColors.textMutedDark
@@ -2002,11 +2015,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   /// Handle "Skip for now" — requires at least 1 photo (Apple App Store requirement).
   void _handleSkip(ProfileState state) {
+    final l10n = AppLocalizations.of(context);
     if (_photoPaths.isEmpty) {
-      showErrorSnackBar(
-        context,
-        'Please add at least 1 photo before skipping. This is required for dating apps.',
-      );
+      showErrorSnackBar(context, l10n.onboardingProfileAddPhotoBeforeSkip);
       return;
     }
 
@@ -2020,6 +2031,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     bool saving,
     ProfileState state,
   ) {
+    final l10n = AppLocalizations.of(context);
     final completeness = _calculateFormCompleteness(state);
     final isFullyComplete = completeness['isFullyComplete'] as bool;
     final percentDisplay = ((completeness['percentage'] as double) * 100)
@@ -2027,8 +2039,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     // Button text based on completion
     final buttonText = isFullyComplete
-        ? 'Start Matching'
-        : 'Start Matching ($percentDisplay% complete)';
+        ? l10n.onboardingProfileStartMatching
+        : l10n.onboardingProfileStartMatchingWithPercent(percentDisplay);
 
     // Detect if keyboard is open - hide button completely to prevent overlap with text fields
     final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
@@ -2056,7 +2068,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             Padding(
               padding: const EdgeInsetsDirectional.only(bottom: 12),
               child: Text(
-                'You can always complete your profile later in Settings',
+                l10n.onboardingProfileCompleteLaterInSettings,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: isDark
                       ? DsColors.textMutedDark
@@ -2068,7 +2080,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           SizedBox(
             width: double.infinity,
             child: GlassPrimaryButton(
-              semanticLabel: 'Save profile and start matching',
+              semanticLabel:
+                  l10n.onboardingProfileSaveAndStartMatchingSemantics,
               onPressed: saving ? null : () => _submit(state),
               child: saving
                   ? const SizedBox(
@@ -2107,19 +2120,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               width: double.infinity,
               child: Semantics(
                 button: true,
-                label:
-                    'Skip profile setup for now. Requires at least one photo.',
+                label: l10n.onboardingProfileSkipSemantics,
                 child: GlassOutlinedButton(
-                  semanticLabel: 'Skip for now',
+                  semanticLabel: l10n.authSkipForNow,
                   onPressed: () => _handleSkip(state),
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.skip_next_rounded, size: 20),
-                      SizedBox(width: 8),
+                      const Icon(Icons.skip_next_rounded, size: 20),
+                      const SizedBox(width: 8),
                       Text(
-                        'Skip for now',
-                        style: TextStyle(
+                        l10n.authSkipForNow,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
                         ),

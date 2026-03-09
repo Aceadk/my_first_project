@@ -7,19 +7,64 @@ import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/profile_prompt.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../profile_repository.dart';
+import 'profile_prompt_migration.dart';
 
 /// Firebase implementation of ProfileRepository.
-class FirebaseProfileRepository implements ProfileRepository {
+class FirebaseProfileRepository
+    implements ProfileRepository, UsernameAvailabilityProfileRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   String? get _currentUserId => _auth.currentUser?.uid;
+
+  int _calculateAgeFromDate(DateTime dateOfBirth) {
+    final now = DateTime.now();
+    var age = now.year - dateOfBirth.year;
+    final hasNotHadBirthdayThisYear =
+        now.month < dateOfBirth.month ||
+        (now.month == dateOfBirth.month && now.day < dateOfBirth.day);
+    if (hasNotHadBirthdayThisYear) {
+      age--;
+    }
+    return age.clamp(18, 120);
+  }
+
+  @override
+  Future<bool> isUsernameAvailable({
+    required String username,
+    String? excludingUserId,
+  }) async {
+    final sanitizedUsername = InputSanitizer.sanitizeUsername(username);
+    if (sanitizedUsername.isEmpty) return false;
+
+    final excludedUserId = excludingUserId ?? _currentUserId;
+    final usersCollection = _firestore.collection('users');
+
+    // Primary lookup against normalized field.
+    final normalizedSnapshot = await usersCollection
+        .where('usernameLower', isEqualTo: sanitizedUsername)
+        .limit(5)
+        .get();
+    final normalizedTaken = normalizedSnapshot.docs.any(
+      (doc) => doc.id != excludedUserId,
+    );
+    if (normalizedTaken) return false;
+
+    // Fallback for older docs that may only have `username`.
+    final legacySnapshot = await usersCollection
+        .where('username', isEqualTo: sanitizedUsername)
+        .limit(5)
+        .get();
+    final legacyTaken = legacySnapshot.docs.any(
+      (doc) => doc.id != excludedUserId,
+    );
+    return !legacyTaken;
+  }
 
   @override
   Future<CrushUser?> getCurrentUser() async {
@@ -185,7 +230,8 @@ class FirebaseProfileRepository implements ProfileRepository {
       profileData['sexualOrientation'] = sanitizedOrientation;
     }
     if (dateOfBirth != null) {
-      profileData['dateOfBirth'] = Timestamp.fromDate(dateOfBirth);
+      profileData['birthDate'] = Timestamp.fromDate(dateOfBirth);
+      profileData['age'] = _calculateAgeFromDate(dateOfBirth);
     }
 
     // Build the document data
@@ -210,6 +256,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         }
         // Set the new username and update the change timestamp
         docData['username'] = sanitizedUsername;
+        docData['usernameLower'] = sanitizedUsername;
         docData['lastUsernameChangeAt'] = FieldValue.serverTimestamp();
         AppLogger.info(
           '[FirebaseProfileRepo] saveBasicInfo: Username changed from "$existingUsername" to "$sanitizedUsername"',
@@ -217,6 +264,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       } else {
         // Username unchanged, just include it without updating timestamp
         docData['username'] = sanitizedUsername;
+        docData['usernameLower'] = sanitizedUsername;
       }
     }
 
@@ -251,7 +299,6 @@ class FirebaseProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -319,7 +366,6 @@ class FirebaseProfileRepository implements ProfileRepository {
       updateData['profile.company'] = sanitizedCompany;
     }
     if (sanitizedSchool != null) updateData['profile.school'] = sanitizedSchool;
-    if (prompts != null) updateData['profile.prompts'] = prompts;
     if (sanitizedCity != null) updateData['profile.city'] = sanitizedCity;
     if (sanitizedCountry != null) {
       updateData['profile.country'] = sanitizedCountry;
@@ -363,7 +409,6 @@ class FirebaseProfileRepository implements ProfileRepository {
             'jobTitle': ?sanitizedJobTitle,
             'company': ?sanitizedCompany,
             'school': ?sanitizedSchool,
-            'prompts': ?prompts,
             'city': ?sanitizedCity,
             'country': ?sanitizedCountry,
             if (favourites != null) 'favourites': favourites.toJson(),
@@ -446,6 +491,7 @@ class FirebaseProfileRepository implements ProfileRepository {
 
     final docData = <String, dynamic>{
       'username': sanitizedUsername,
+      'usernameLower': sanitizedUsername,
       'hasSkippedBasicInfo': true,
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -530,7 +576,6 @@ class FirebaseProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -547,7 +592,6 @@ class FirebaseProfileRepository implements ProfileRepository {
         company: company,
         school: school,
         interests: interests,
-        prompts: prompts,
         city: city,
         country: country,
         favourites: favourites,
@@ -602,15 +646,30 @@ class FirebaseProfileRepository implements ProfileRepository {
     final profileData = data['profile'] as Map<String, dynamic>?;
 
     if (profileData != null) {
+      final parsedBirthDate =
+          _parseTimestamp(profileData['birthDate']) ??
+          _parseTimestamp(profileData['dateOfBirth']);
+      final parsedAge = (profileData['age'] as num?)?.toInt();
+      final normalizedAge = parsedBirthDate != null
+          ? _calculateAgeFromDate(parsedBirthDate)
+          : (parsedAge ?? 0);
+      final legacyPromptAnswers = parseLegacyPromptAnswers(
+        profileData['prompts'],
+      );
+      final parsedProfilePrompts = parseProfilePrompts(
+        profileData['profilePrompts'],
+        legacyPromptAnswers: legacyPromptAnswers,
+      );
+
       profile = Profile(
         id: id,
         username: data['username'], // Username is stored at user document level
         name: profileData['name'] ?? '',
         lastName: profileData['lastName'],
-        age: profileData['age'] ?? 0,
+        age: normalizedAge,
         gender: profileData['gender'] ?? '',
         sexualOrientation: profileData['sexualOrientation'],
-        dateOfBirth: _parseTimestamp(profileData['dateOfBirth']),
+        dateOfBirth: parsedBirthDate,
         lastDobChangeAt: _parseTimestamp(profileData['lastDobChangeAt']),
         lastNameChangeAt: _parseTimestamp(profileData['lastNameChangeAt']),
         bio: profileData['bio'] ?? '',
@@ -623,7 +682,7 @@ class FirebaseProfileRepository implements ProfileRepository {
         ).where(_isRemoteUrl).toList(),
         primaryPhotoIndex: profileData['primaryPhotoIndex'] ?? 0,
         interests: List<String>.from(profileData['interests'] ?? []),
-        profilePrompts: _parseProfilePrompts(profileData['profilePrompts']),
+        profilePrompts: parsedProfilePrompts,
         country: profileData['country'] ?? '',
         city: profileData['city'] ?? '',
         latitude: (profileData['latitude'] as num?)?.toDouble(),
@@ -746,13 +805,18 @@ class FirebaseProfileRepository implements ProfileRepository {
       );
     }
 
+    final canonicalAge = p.dateOfBirth != null
+        ? _calculateAgeFromDate(p.dateOfBirth!)
+        : p.age;
+    final canonicalProfilePrompts = p.profilePrompts;
+
     return {
       'name': p.name,
       'lastName': p.lastName,
-      'age': p.age,
+      'age': canonicalAge,
       'gender': p.gender,
       'sexualOrientation': p.sexualOrientation,
-      'dateOfBirth': p.dateOfBirth,
+      'birthDate': p.dateOfBirth,
       'lastDobChangeAt': p.lastDobChangeAt,
       'lastNameChangeAt': p.lastNameChangeAt,
       'bio': p.bio,
@@ -760,7 +824,7 @@ class FirebaseProfileRepository implements ProfileRepository {
       'videoUrls': remoteVideoUrls,
       'primaryPhotoIndex': p.primaryPhotoIndex,
       'interests': p.interests,
-      'profilePrompts': p.profilePrompts
+      'profilePrompts': canonicalProfilePrompts
           .map((prompt) => prompt.toJson())
           .toList(),
       'country': p.country,
@@ -810,26 +874,5 @@ class FirebaseProfileRepository implements ProfileRepository {
     if (value is Timestamp) return value.toDate();
     if (value is String) return DateTime.tryParse(value);
     return null;
-  }
-
-  List<ProfilePrompt> _parseProfilePrompts(dynamic value) {
-    if (value == null) return const [];
-    if (value is! List) return const [];
-
-    return value
-        .whereType<Map<String, dynamic>>()
-        .map((json) {
-          try {
-            return ProfilePrompt.fromJson(json);
-          } catch (e) {
-            AppLogger.error(
-              '[FirebaseProfileRepository] Error parsing prompt',
-              error: e,
-            );
-            return null;
-          }
-        })
-        .whereType<ProfilePrompt>()
-        .toList();
   }
 }

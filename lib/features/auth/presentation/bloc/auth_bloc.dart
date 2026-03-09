@@ -1,19 +1,32 @@
 import 'dart:async';
+import 'package:crushhour/core/session/session_bootstrap_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/domain/usecases/auth_flow_use_cases.dart';
 import 'package:crushhour/data/models/user.dart';
-import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/core/services/user_data_clearance_service.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthRepository authRepository;
+  final AuthFlowUseCases authFlowUseCases;
+  final SessionBootstrapService _sessionBootstrapService;
   StreamSubscription<CrushUser?>? _sub;
   bool _didInitialRefresh = false;
 
-  AuthBloc({required this.authRepository}) : super(AuthState.unknown()) {
+  AuthBloc({
+    required AuthRepository authRepository,
+    AuthFlowUseCases? authFlowUseCases,
+    SessionBootstrapService? sessionBootstrapService,
+  }) : authFlowUseCases = authFlowUseCases ?? AuthFlowUseCases(authRepository),
+       _sessionBootstrapService =
+           sessionBootstrapService ??
+           SessionBootstrapService(
+             authFlowUseCases:
+                 authFlowUseCases ?? AuthFlowUseCases(authRepository),
+           ),
+       super(AuthState.unknown()) {
     on<AuthStarted>(_onStarted);
     on<_AuthUserChanged>(_onUserChanged);
     on<AuthPhoneSubmitted>(_onPhoneSubmitted);
@@ -32,38 +45,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onStarted(AuthStarted event, Emitter<AuthState> emit) async {
     emit(state.copyWith(isLoading: true, errorMessage: null));
-    final result = await Result.guard(
-      () async {
-        await _sub?.cancel();
-        StreamSubscription<CrushUser?>? sub;
-        try {
-          sub = authRepository.authStateChanges().listen((user) {
-            add(_AuthUserChanged(user));
-          });
-          await authRepository.bootstrapSession();
-          return sub;
-        } catch (e) {
-          await sub?.cancel();
-          rethrow;
-        }
-        // Don't emit null here - let the Firebase stream determine auth state.
-        // The stream will emit null if no user is logged in, or the user if
-        // a session was restored from secure storage.
-      },
-      logLabel: 'AuthRepository.authStateChanges',
-      fallbackError: 'Could not connect to authentication. Please try again.',
+    final bootstrapResult = await _sessionBootstrapService.bootstrap(
+      existingSubscription: _sub,
+      onUserChanged: (user) => add(_AuthUserChanged(user)),
     );
-    if (!result.isSuccess) {
+    if (!bootstrapResult.isSuccess) {
       emit(
         state.copyWith(
           status: AuthStatus.unauthenticated,
           isLoading: false,
-          errorMessage: result.errorMessage,
+          errorMessage: bootstrapResult.errorMessage,
         ),
       );
       return;
     }
-    _sub = result.data;
+    _sub = bootstrapResult.data;
   }
 
   void _onUserChanged(_AuthUserChanged event, Emitter<AuthState> emit) {
@@ -103,13 +99,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage: null,
       ),
     );
-    final result = await Result.guard(
-      () => authRepository.verifyOtp(
-        phoneNumber: event.phoneNumber,
-        otp: event.otp,
-      ),
-      logLabel: 'AuthRepository.verifyOtp',
-      fallbackError: 'Invalid code. Please try again.',
+    final result = await authFlowUseCases.verifyOtp(
+      phoneNumber: event.phoneNumber,
+      otp: event.otp,
     );
     final user = result.data;
     if (user != null) {
@@ -169,11 +161,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage: null,
       ),
     );
-    final result = await Result.guard(
-      () => authRepository.sendEmailSignInLink(email),
-      logLabel: 'AuthRepository.sendEmailSignInLink',
-      fallbackError: 'Could not send sign-in link. Please try again.',
-    );
+    final result = await authFlowUseCases.sendEmailSignInLink(email: email);
     if (!result.isSuccess) {
       emit(
         state.copyWith(
@@ -208,13 +196,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage: null,
       ),
     );
-    final result = await Result.guard(
-      () => authRepository.signInWithEmailLink(
-        email: event.email.trim(),
-        emailLink: event.emailLink,
-      ),
-      logLabel: 'AuthRepository.signInWithEmailLink',
-      fallbackError: 'Invalid or expired email link.',
+    final result = await authFlowUseCases.signInWithEmailLink(
+      email: event.email.trim(),
+      emailLink: event.emailLink,
     );
     final user = result.data;
     if (user != null) {
@@ -244,13 +228,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage: null,
       ),
     );
-    final result = await Result.guard(
-      () => authRepository.signInWithEmailPassword(
-        email: event.email.trim(),
-        password: event.password,
-      ),
-      logLabel: 'AuthRepository.signInWithEmailPassword',
-      fallbackError: 'Could not sign in. Please try again.',
+    final result = await authFlowUseCases.signInWithEmailPassword(
+      email: event.email.trim(),
+      password: event.password,
     );
     final user = result.data;
     if (user != null) {
@@ -285,13 +265,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage: null,
       ),
     );
-    final result = await Result.guard(
-      () => authRepository.requestEmailOtp(
-        identifier: identifier,
-        purpose: EmailOtpPurpose.login,
-      ),
-      logLabel: 'AuthRepository.requestEmailOtp',
-      fallbackError: 'Could not send code. Please try again.',
+    final result = await authFlowUseCases.requestEmailOtp(
+      identifier: identifier,
+      purpose: EmailOtpPurpose.login,
     );
     if (!result.isSuccess) {
       emit(
@@ -325,14 +301,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage: null,
       ),
     );
-    final result = await Result.guard(
-      () => authRepository.verifyEmailOtp(
-        identifier: event.identifier.trim(),
-        otp: event.otp.trim(),
-        purpose: EmailOtpPurpose.login,
-      ),
-      logLabel: 'AuthRepository.verifyEmailOtp',
-      fallbackError: 'Invalid or expired code. Please try again.',
+    final result = await authFlowUseCases.verifyEmailOtp(
+      identifier: event.identifier.trim(),
+      otp: event.otp.trim(),
+      purpose: EmailOtpPurpose.login,
     );
     final user = result.data;
     if (user != null) {
@@ -392,11 +364,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // This prevents the next user from seeing previous user's data
     await UserDataClearanceService.instance.clearAllUserData();
 
-    final result = await Result.guard(
-      () => authRepository.signOut(),
-      logLabel: 'AuthRepository.signOut',
-      fallbackError: 'Could not sign out. Try again.',
-    );
+    final result = await authFlowUseCases.signOut();
     if (!result.isSuccess) {
       emit(state.copyWith(isLoading: false, errorMessage: result.errorMessage));
       return;
@@ -408,9 +376,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthUserRefreshRequested event,
     Emitter<AuthState> emit,
   ) async {
-    final user = await authRepository.refreshCurrentUser();
-    if (user != null) {
-      emit(state.copyWith(user: user, status: AuthStatus.authenticated));
+    final result = await authFlowUseCases.refreshCurrentUser();
+    if (result.isSuccess && result.data != null) {
+      emit(state.copyWith(user: result.data, status: AuthStatus.authenticated));
     }
   }
 
@@ -433,11 +401,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         errorMessage: null,
       ),
     );
-    final result = await Result.guard(
-      () => authRepository.sendOtp(phone),
-      logLabel: 'AuthRepository.sendOtp',
-      fallbackError: 'Could not send code. Please try again.',
-    );
+    final result = await authFlowUseCases.sendOtp(phoneNumber: phone);
     if (!result.isSuccess) {
       emit(
         state.copyWith(
@@ -448,7 +412,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       return;
     }
-    if (authRepository.isVerificationBypassEnabled) {
+    if (authFlowUseCases.isVerificationBypassEnabled) {
       emit(
         state.copyWith(
           status: AuthStatus.unauthenticated,

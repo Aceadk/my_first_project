@@ -593,3 +593,2660 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
     - mobile: Performance `0.78`, Accessibility `1.00`, Best Practices `0.92`, SEO `0.92`
     - desktop: Performance `0.94`, Accessibility `1.00`, Best Practices `0.92`, SEO `0.92`
 - Next Step: Continue remaining Phase 9 quality backlog with bundle analysis/code-splitting and image optimization audit, then expand accessibility audit coverage beyond marketing homepage.
+
+### T-2026-03-07-ONBOARDING-OB008
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_ONBOARDING_FLOW` remediation by implementing `OB-008` (username uniqueness validation before basic-info submit).
+- Scope: Onboarding basic-info screen and profile repository implementations in `/Users/ace/my_first_project/lib`, plus required status docs in `/Users/ace/my_first_project/docs`.
+- Key Changes:
+  - Added debounced username availability checks + submit-time blocking validation in:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/basic_info_screen.dart`
+  - Added optional profile repository capability for username availability:
+    - `/Users/ace/my_first_project/lib/features/profile/domain/repositories/profile_repository.dart`
+  - Implemented availability lookup in Firebase + stub profile repositories:
+    - `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`
+    - `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/stub_profile_repository.dart`
+  - Persisted normalized `usernameLower` for new Firebase user docs to improve lookup consistency:
+    - `/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/firebase_auth_repository.dart`
+  - Updated onboarding TODO item status:
+    - `docs/TODO_ONBOARDING_FLOW.md` (OB-008 marked completed)
+  - Synced architecture/data-flow docs for onboarding username and step-flow consistency:
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Username availability checks are capability-based so repositories without support are not forced into brittle fallback behavior.
+  - Firebase checks query `usernameLower` first with fallback to legacy `username` for backward compatibility.
+- Verification:
+  - `flutter analyze lib/features/profile/domain/repositories/profile_repository.dart lib/features/profile/data/repositories/impl/firebase_profile_repository.dart lib/features/profile/data/repositories/impl/stub_profile_repository.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/presentation/screens/basic_info_screen.dart` (pass)
+  - `flutter test test/stub_profile_repository_hotspot_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue onboarding backlog with `OB-007` (data-driven/localized gender/orientation options) and broader onboarding localization (`OB-005`).
+
+### T-2026-03-07-ONBOARDING-OB007
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Continue onboarding backlog by completing `OB-007` (hardcoded gender options in basic info).
+- Scope: Onboarding option source + localization display wiring in `/Users/ace/my_first_project/lib`, plus required docs updates in `/Users/ace/my_first_project/docs`.
+- Key Changes:
+  - Added shared onboarding option lists in:
+    - `/Users/ace/my_first_project/lib/shared/utils/profile_field_options.dart`
+  - Refactored onboarding basic-info screen to consume shared options and render localized labels:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/basic_info_screen.dart`
+  - Added localization keys for non-binary + sexual orientation labels and onboarding orientation prompt:
+    - `/Users/ace/my_first_project/lib/l10n/app_en.arb`
+    - `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`
+  - Regenerated localization outputs:
+    - `/Users/ace/my_first_project/lib/l10n/generated/*`
+  - Updated onboarding TODO status:
+    - `docs/TODO_ONBOARDING_FLOW.md` (OB-007 marked complete)
+- Decisions/Handoffs:
+  - Kept onboarding to a curated subset of gender/orientation values while sourcing those values from shared config for maintainability.
+  - Added resilient UI fallbacks (humanized value labels + generic icon fallback) so future option additions degrade safely before explicit localization.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/auth/presentation/screens/basic_info_screen.dart lib/shared/utils/profile_field_options.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/profile_field_options_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue onboarding localization backlog in `OB-005` (remaining hardcoded strings across onboarding screens).
+
+### T-2026-03-07-ONBOARDING-OB005-PHASE1
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Continue onboarding remediation by advancing `OB-005` with a concrete localization pass on high-impact onboarding screens.
+- Scope: Localization updates in `/Users/ace/my_first_project/lib/features/auth/presentation/screens`, ARB/generated localization files in `/Users/ace/my_first_project/lib/l10n`, and required status docs in `/Users/ace/my_first_project/docs`.
+- Key Changes:
+  - Localized major user-facing copy in basic info onboarding screen:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/basic_info_screen.dart`
+  - Localized email verification onboarding screen copy and status/semantic labels; replaced brittle string-based error styling with explicit state flag:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/email_verification_screen.dart`
+  - Added onboarding localization keys and pseudo-locale entries:
+    - `/Users/ace/my_first_project/lib/l10n/app_en.arb`
+    - `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`
+  - Regenerated localization outputs:
+    - `/Users/ace/my_first_project/lib/l10n/generated/*`
+  - Updated onboarding TODO status with phased progress details:
+    - `docs/TODO_ONBOARDING_FLOW.md`
+- Decisions/Handoffs:
+  - Tracked `OB-005` as phased to avoid risky broad rewrites in one pass while still shipping meaningful localization coverage.
+  - Kept existing onboarding behavior intact and limited this phase to localization + display/semantics string migration.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/auth/presentation/screens/basic_info_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart lib/shared/utils/profile_field_options.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/profile_field_options_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files $(git diff --name-only)` (pass)
+- Next Step: Continue `OB-005` Phase 2 with localization extraction in `sign_up_screen.dart`, `terms_conditions_screen.dart`, and `profile_setup_screen.dart`.
+
+### T-2026-03-07-ONBOARDING-OB005-PHASE2
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Continue `OB-005` by localizing the Terms & Conditions onboarding screen end-to-end.
+- Scope: Terms onboarding UI in `/Users/ace/my_first_project/lib/features/auth/presentation/screens`, onboarding l10n resources in `/Users/ace/my_first_project/lib/l10n`, and required docs updates in `/Users/ace/my_first_project/docs`.
+- Key Changes:
+  - Localized all user-facing strings in:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/terms_conditions_screen.dart`
+      - progress prompts
+      - full section titles and body content
+      - agreement text
+      - continue semantics
+      - end-of-terms label
+      - scroll hint
+      - save-failed snackbar
+  - Added terms/onboarding localization keys:
+    - `/Users/ace/my_first_project/lib/l10n/app_en.arb`
+    - `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`
+  - Regenerated localization outputs:
+    - `/Users/ace/my_first_project/lib/l10n/generated/*`
+  - Updated onboarding TODO progress:
+    - `docs/TODO_ONBOARDING_FLOW.md` (`OB-005` now tracks phases 1-2 complete)
+- Decisions/Handoffs:
+  - Kept this pass focused on one full screen to deliver complete localization coverage with low regression risk.
+  - Deferred broader sign-up/profile-setup string extraction to next phase to keep changes reviewable.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files $(git diff --name-only)` (pass)
+- Next Step: Continue `OB-005` Phase 3 with localization extraction for `sign_up_screen.dart` and `profile_setup_screen.dart`.
+
+### T-2026-03-07-ONBOARDING-RECON-OPEN-ITEMS
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Reconcile open items in `TODO_ONBOARDING_FLOW` with actual code state and close stale findings that were already implemented.
+- Scope: Documentation reconciliation for onboarding items in `/Users/ace/my_first_project/docs/TODO_ONBOARDING_FLOW.md`, with required workflow-log updates.
+- Key Changes:
+  - Re-validated open onboarding findings against current code in:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/basic_info_screen.dart`
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/email_verification_screen.dart`
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/sign_up_screen.dart`
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/terms_conditions_screen.dart`
+    - `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_setup_screen.dart`
+    - `/Users/ace/my_first_project/lib/core/routing/route_redirect.dart`
+  - Updated onboarding TODO statuses:
+    - marked `OB-001`, `OB-002`, `OB-003`, `OB-004`, `OB-006`, `OB-009`, `OB-010`, `OB-011` as completed
+    - marked `OB-012` as mitigated with explicit residual follow-up note
+    - file: `/Users/ace/my_first_project/docs/TODO_ONBOARDING_FLOW.md`
+- Decisions/Handoffs:
+  - Kept `OB-012` as mitigated (not fully closed) because the direct top-level global was removed, but timing state remains singleton-scoped mutable state.
+  - Preserved `OB-005` as active implementation backlog for Phase 3 (`sign_up_screen.dart` + `profile_setup_screen.dart` localization).
+- Verification:
+  - `rg -n "_favouriteAthlete\\s*=\\s*null|_maxAutoCheckAttempts|void _goBack|onboardingStep\\(3, 6\\)|isAccountVerified|ColorScheme\\.light|_lastAutoSendTime|CrushRoutes\\.changeEmail|onboardingStartTime" lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart lib/features/auth/presentation/screens/basic_info_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/core/routing/route_redirect.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Implement `OB-005` Phase 3 localization extraction for remaining onboarding screens.
+
+### T-2026-03-07-ONBOARDING-OB005-PHASE3A
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Continue `OB-005` by localizing sign-up onboarding flow copy end-to-end (`Phase 3A`).
+- Scope: Sign-up onboarding UI/state copy in `/Users/ace/my_first_project/lib/features/auth/presentation/screens/sign_up_screen.dart`, onboarding l10n resources in `/Users/ace/my_first_project/lib/l10n`, and required docs updates.
+- Key Changes:
+  - Localized hardcoded sign-up onboarding copy across:
+    - state-layer validation/errors/snackbars
+    - step progress labels and percent text
+    - username/email/password step labels and helper copy
+    - email verification instruction/check/resend copy
+    - phone + OTP flow labels and resend messaging
+    - password strength labels and login-link semantics
+    - file: `/Users/ace/my_first_project/lib/features/auth/presentation/screens/sign_up_screen.dart`
+  - Added new sign-up onboarding localization keys (`onboardingSignUp*`) and placeholder metadata:
+    - `/Users/ace/my_first_project/lib/l10n/app_en.arb`
+    - `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`
+  - Regenerated localization outputs:
+    - `/Users/ace/my_first_project/lib/l10n/generated/*`
+  - Updated onboarding TODO progress:
+    - `docs/TODO_ONBOARDING_FLOW.md` (`OB-005` now shows phases 1-3A complete; remaining scope narrowed to `profile_setup_screen.dart`)
+- Decisions/Handoffs:
+  - Kept country-name list unchanged in this pass (data/localization strategy for country catalog is broader than onboarding copy extraction scope).
+  - Focused on user-visible onboarding copy and validation/status messages to reduce risk while delivering meaningful localization coverage.
+- Verification:
+  - `dart format lib/features/auth/presentation/screens/sign_up_screen.dart` (pass)
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/auth/presentation/screens/sign_up_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `OB-005` Phase 3B by localizing remaining onboarding strings in `profile_setup_screen.dart`.
+
+### T-2026-03-07-ONBOARDING-OB005-PHASE3B
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Continue `OB-005` by localizing profile-setup onboarding copy (`Phase 3B`) in `ProfileSetupScreen`.
+- Scope: Profile setup onboarding UI copy in `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_setup_screen.dart`, onboarding l10n resources in `/Users/ace/my_first_project/lib/l10n`, and required docs updates.
+- Key Changes:
+  - Localized hardcoded profile-setup onboarding copy across:
+    - location rationale title/description
+    - sign-in/upload fallback error text
+    - optional notice and section headers/subtitles
+    - progress/eligibility labels and completion placeholders
+    - basic info summary labels
+    - username edit/lock/help/cooldown messaging
+    - favourite labels and selector placeholders
+    - bottom CTA/skip labels and semantics
+    - file: `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_setup_screen.dart`
+  - Added new profile-setup onboarding localization keys (`onboardingProfile*`) and placeholder metadata:
+    - `/Users/ace/my_first_project/lib/l10n/app_en.arb`
+    - `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`
+  - Regenerated localization outputs:
+    - `/Users/ace/my_first_project/lib/l10n/generated/*`
+  - Updated onboarding TODO progress:
+    - `docs/TODO_ONBOARDING_FLOW.md` (`OB-005` now tracks phases 1-3B complete; residual scope narrowed to option-catalog localization)
+- Decisions/Handoffs:
+  - Kept interest/favourite option datasets as-is in this pass (English value catalogs currently act as stored option values); deferred catalog label-localization strategy to follow-up.
+  - Prioritized primary onboarding UI/action/error copy to reduce user-facing localization debt first.
+- Verification:
+  - `dart format lib/features/profile/presentation/screens/profile_setup_screen.dart` (pass)
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/profile/presentation/screens/profile_setup_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_FLOW.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Finish `OB-005` by localizing option-catalog display labels (interests/favourites) via data-driven key mapping.
+
+### T-2026-03-07-ONBOARDING-UI-START
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_ONBOARDING_UI` execution by reconciling stale findings and fixing clearly open onboarding UI issues.
+- Scope: Auth onboarding UI screens in `/Users/ace/my_first_project/lib/features/auth/presentation/screens`, auth localization resources in `/Users/ace/my_first_project/lib/l10n`, and required docs updates in `/Users/ace/my_first_project/docs`.
+- Key Changes:
+  - Localized auth gateway marketing/feature copy and social CTA labels:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/auth_gateway_screen.dart`
+  - Fixed login header icon foreground color semantic mismatch (`DsColors.backgroundLight` -> `Colors.white`) and localized social CTA labels:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/login_screen.dart`
+  - Added Google icon to sign-up social CTA for cross-screen parity:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/sign_up_screen.dart`
+  - Added new auth localization keys:
+    - `/Users/ace/my_first_project/lib/l10n/app_en.arb`
+    - `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`
+  - Regenerated localization outputs:
+    - `/Users/ace/my_first_project/lib/l10n/generated/*`
+  - Reconciled onboarding UI TODO status with per-item completion/mitigation markers:
+    - `/Users/ace/my_first_project/docs/TODO_ONBOARDING_UI.md`
+- Decisions/Handoffs:
+  - Marked several OBU items as already completed/mitigated where code had already been fixed, to avoid duplicate work.
+  - Kept `OBU-006` as mitigated (not fully closed) because Google CTA now has icon parity but still lacks a branded asset/SVG implementation.
+- Risks/Mitigation:
+  - Low risk; changes are UI copy/presentation only and preserve auth flow behavior.
+- Verification:
+  - `dart format lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart` (pass)
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_UI.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Implement remaining onboarding UI items starting with `OBU-004` checkbox semantics hardening and `OBU-008` age-gate interaction polish.
+
+### T-2026-03-07-ONBOARDING-UI-OBU004-OBU008
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Continue `TODO_ONBOARDING_UI` by closing remaining accessibility/interaction items `OBU-004` and `OBU-008`.
+- Scope: Terms and auth-gateway onboarding UI in `/Users/ace/my_first_project/lib/features/auth/presentation/screens`, related l10n resources in `/Users/ace/my_first_project/lib/l10n`, and required docs in `/Users/ace/my_first_project/docs`.
+- Key Changes:
+  - Hardened T&C agreement semantics to expose checkbox-like behavior:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/terms_conditions_screen.dart`
+    - includes `checked`, `enabled`, semantic `onTap`, and contextual hint text
+  - Improved age-gate interaction flow:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/auth_gateway_screen.dart`
+    - dialog is stateful and disables actions after selection
+    - underage explanation snackbar is handled in parent flow after `false` dialog result
+  - Added localization keys for age-gate strings + agreement toggle hint:
+    - `/Users/ace/my_first_project/lib/l10n/app_en.arb`
+    - `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`
+  - Regenerated localization outputs:
+    - `/Users/ace/my_first_project/lib/l10n/generated/*`
+  - Updated onboarding UI TODO statuses:
+    - `/Users/ace/my_first_project/docs/TODO_ONBOARDING_UI.md` (`OBU-004`, `OBU-008` marked completed)
+- Decisions/Handoffs:
+  - Kept age-gate behavior synchronous and lightweight while still introducing explicit disabled-state handling to prevent repeated taps.
+  - Left `OBU-006` as mitigated due lack of branded Google asset in repository; functional icon parity remains in place.
+- Risks/Mitigation:
+  - Low risk; only UI semantics/copy and dialog interaction state changed.
+- Verification:
+  - `dart format lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart` (pass)
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_UI.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Complete remaining onboarding UI follow-ups (`OBU-006` branded Google logo asset, `OBU-012` contrast verification).
+
+### T-2026-03-07-ONBOARDING-UI-OBU006-OBU012
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Continue `TODO_ONBOARDING_UI` and close the remaining non-complete items (`OBU-006`, `OBU-012`).
+- Scope: Auth onboarding CTA visuals and sign-up email-link warning panel in `/Users/ace/my_first_project/lib/features/auth/presentation`, plus required docs in `/Users/ace/my_first_project/docs`.
+- Key Changes:
+  - Added branded Google logo asset:
+    - `/Users/ace/my_first_project/assets/icons/google_logo.png`
+  - Added reusable Google icon widget:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/widgets/google_logo_icon.dart`
+  - Updated Google CTA icons in onboarding/auth entry screens:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/auth_gateway_screen.dart`
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/login_screen.dart`
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/sign_up_screen.dart`
+  - Hardened `_EmailLinkStep` warning notice contrast with explicit adaptive bg/border/text colors:
+    - `/Users/ace/my_first_project/lib/features/auth/presentation/screens/sign_up_screen.dart`
+  - Updated onboarding UI TODO statuses:
+    - `/Users/ace/my_first_project/docs/TODO_ONBOARDING_UI.md` (`OBU-006`, `OBU-012` completed)
+- Decisions/Handoffs:
+  - Implemented a shared `GoogleLogoIcon` to avoid repeating ad-hoc icon snippets and keep CTA visuals consistent.
+  - Kept contrast adaptation scoped to `_EmailLinkStep` warning panel per `OBU-012` scope.
+- Risks/Mitigation:
+  - Low risk; changes are presentation-only and do not alter auth logic/routing.
+- Verification:
+  - `dart format lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/widgets/google_logo_icon.dart` (pass)
+  - `flutter analyze lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/widgets/google_logo_icon.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_ONBOARDING_UI.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Run a manual visual check on auth gateway/login/sign-up for Google icon sizing/alignment across phone and tablet widths.
+
+### T-2026-03-07-ONBOARDING-UI-VISUAL-QA-GOOGLE-CTA
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Validate Google CTA icon/text alignment on auth gateway/login/sign-up across phone and tablet viewports.
+- Scope: Onboarding auth UI verification flow and minimal unblock fixes in `/Users/ace/my_first_project/lib/features/auth`, plus required docs updates.
+- Key Changes:
+  - Added deterministic viewport layout QA coverage:
+    - `/Users/ace/my_first_project/test/onboarding_google_button_layout_test.dart`
+    - validates Google icon + label centering in button on 390x844 and 1024x1366 for:
+      - `AuthGatewayScreen`
+      - `LoginScreen`
+      - `SignUpScreen`
+  - Fixed recursive Google-sign-in extension access that surfaced during QA harness execution:
+    - `/Users/ace/my_first_project/lib/features/auth/domain/repositories/auth_repository.dart`
+    - switched extension calls to explicit casts against `GoogleSignInAuthRepository`
+- Decisions/Handoffs:
+  - Manual screenshot pass was attempted first but blocked by environment/tooling (blank headless Flutter canvas + local macOS CocoaPods conflict).
+  - Used widget-level viewport verification as reliable fallback evidence for alignment objective.
+- Risks/Mitigation:
+  - Low risk; extension fix is narrowly scoped and backed by auth/router test coverage.
+- Verification:
+  - `flutter analyze lib/features/auth/domain/repositories/auth_repository.dart test/onboarding_google_button_layout_test.dart` (pass)
+  - `flutter test test/onboarding_google_button_layout_test.dart` (pass)
+  - `flutter test test/router_redirect_test.dart test/auth_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Optional: run a true on-device visual spot-check when local GUI environment is available for final pixel-level confirmation.
+
+### T-2026-03-07-PROFILE-BE-START
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_PROFILE_BACKEND.md` by replacing the placeholder with a concrete remediation backlog.
+- Scope: Profile backend audit and documentation updates in `/Users/ace/my_first_project/docs`, informed by current implementations in Cloud Functions and profile repositories/services.
+- Key Changes:
+  - Populated `/Users/ace/my_first_project/docs/TODO_PROFILE_BACKEND.md` with 9 actionable, prioritized items:
+    - `PROF-BE-001` preferences path canonicalization
+    - `PROF-BE-002` DOB/age contract normalization
+    - `PROF-BE-003` profile PATCH validation + error mapping
+    - `PROF-BE-004` secure photo upload hardening
+    - `PROF-BE-005` storage-aware photo delete lifecycle
+    - `PROF-BE-006` prompt-field contract unification
+    - `PROF-BE-007` username contract fix in HTTP profile repository
+    - `PROF-BE-008` REST profile endpoint test coverage
+    - `PROF-BE-009` profile-completeness fallback hardening
+  - Added file-anchored acceptance criteria and testing requirements for each item to support execution-ready follow-up work.
+- Decisions/Handoffs:
+  - Kept this pass documentation-only to establish a reliable backend execution order before introducing higher-risk API/storage changes.
+  - Prioritized contract consistency and validation/security hardening items first (`PROF-BE-001` through `PROF-BE-006`).
+- Verification:
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Implement `PROF-BE-001` and `PROF-BE-003` in a single targeted backend pass, then add endpoint tests from `PROF-BE-008`.
+
+### T-2026-03-07-PROFILE-BE-001-003-CORE
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the core backend fixes for `PROF-BE-001` (preferences-path canonicalization) and `PROF-BE-003` (profile PATCH validation/error mapping).
+- Scope: Profile/discovery REST logic in `/Users/ace/my_first_project/functions/src/index.ts`, focused functions tests in `/Users/ace/my_first_project/functions/test`, and required docs updates.
+- Key Changes:
+  - Added strict profile payload validation helpers:
+    - `validateProfilePatchPayload()`
+    - `validateProfilePreferencesPayload()`
+    - supporting typed validators for profile text, interests, booleans, and numeric bounds
+  - Added canonical nested-first preferences resolver:
+    - `getCanonicalProfilePreferences()` (`profile.preferences` primary, top-level `preferences` fallback)
+  - Updated profile/discovery REST endpoints:
+    - `GET /v1/profile/me` now returns canonical preferences and normalizes birth date output
+    - `PATCH /v1/profile/me` now enforces allow-listed validated updates with explicit 4xx error mapping for user-correctable failures
+    - `PATCH /v1/profile/preferences` now validates payload and writes canonical `profile.preferences` while mirroring top-level `preferences` for compatibility
+    - `GET /v1/discovery/deck` now reads canonical preferences and applies normalized gender filters
+  - Added helper-focused regression coverage:
+    - `/Users/ace/my_first_project/functions/test/profileRestValidation.test.js`
+    - covers payload validation failures, canonical preferences selection, and normalization behavior
+  - Updated TODO tracking state:
+    - `/Users/ace/my_first_project/docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-001` and `PROF-BE-003` moved to in-progress with core implementation completed)
+- Decisions/Handoffs:
+  - Preserved backward compatibility by mirroring validated preferences to top-level `preferences` while moving read/write semantics to canonical `profile.preferences`.
+  - Kept this pass focused on core endpoint behavior; full endpoint integration tests remain follow-up work under `PROF-BE-008`.
+- Risks/Mitigation:
+  - Medium risk (profile/discovery API behavior): mitigated via strict allow-list validation, compatibility fallback, and targeted helper tests.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestValidation.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add endpoint/integration tests for `GET/PATCH /v1/profile/me` and `PATCH /v1/profile/preferences` to fully close `PROF-BE-001` and `PROF-BE-003`.
+
+### T-2026-03-07-PROFILE-BE-001-003-ENDPOINT-TESTS
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete endpoint-level verification for profile REST APIs and close `PROF-BE-001` / `PROF-BE-003`.
+- Scope: Functions endpoint tests in `/Users/ace/my_first_project/functions/test`, minimal backend correction in `/Users/ace/my_first_project/functions/src/index.ts`, and required docs updates.
+- Key Changes:
+  - Added route-level profile endpoint test suite:
+    - `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js`
+    - Covers:
+      - canonical nested preferences read in `GET /v1/profile/me`
+      - top-level preferences fallback in `GET /v1/profile/me`
+      - unsupported field rejection in `PATCH /v1/profile/me` (400)
+      - underage DOB rejection mapping in `PATCH /v1/profile/me` (412)
+      - successful validated profile patch updates
+      - preferences patch merge behavior and top-level mirror writes
+      - merged min/max age constraint validation
+      - unverified email/password gate on profile patch
+  - Tightened preferences patch semantics:
+    - `/Users/ace/my_first_project/functions/src/index.ts`
+    - `PATCH /v1/profile/preferences` now merges incoming validated preferences with existing canonical preferences before cross-field validation and write.
+  - Updated backlog status:
+    - `/Users/ace/my_first_project/docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-001` and `PROF-BE-003` marked completed)
+- Decisions/Handoffs:
+  - Implemented deterministic in-memory Firebase admin test doubles for endpoint tests to avoid external service dependency during CI/local runs.
+  - Kept production logic change minimal and directly tied to endpoint behavior discovered by tests (merge-then-validate preference updates).
+- Risks/Mitigation:
+  - Medium risk on profile preferences write path; mitigated by endpoint tests that assert merge + validation outcomes and legacy mirror consistency.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestEndpoints.test.js functions/test/profileRestValidation.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-002` (DOB/age contract normalization) and `PROF-BE-005` (profile photo delete + storage lifecycle).
+
+### T-2026-03-07-PROFILE-BE-002-DOB-AGE
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Implement `PROF-BE-002` by normalizing DOB contract and deriving age from DOB in profile/discovery outputs.
+- Scope: Cloud Functions profile/discovery logic in `/Users/ace/my_first_project/functions/src/index.ts`, Firebase profile repository mapping in `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`, focused test updates, and required docs.
+- Key Changes:
+  - Added DOB/age normalization helpers in functions:
+    - `profileBirthDate()`, `profileBirthDateIso()`, `deriveProfileAge()`
+  - Canonicalized DOB write path on profile patch:
+    - `validateProfilePatchPayload()` now normalizes `birth_date` to ISO and writes `profile.birthDate`
+  - Updated REST/discovery payload behavior:
+    - `GET /v1/profile/me`: `birth_date` serialized from canonical `birthDate` with legacy `dateOfBirth` fallback
+    - `GET /v1/profile/:userId`: now returns derived `age` and normalized `birth_date`
+    - `GET /v1/discovery/deck`: candidate `age` derived from DOB and `birth_date` included
+  - Updated callable discovery candidate logic:
+    - age filtering and returned `age` now prefer DOB-derived age
+  - Hardened date conversion helpers:
+    - `toIsoString()` and `normalizeDate()` now guard timestamp-constructor checks for mocked/runtime-safe behavior
+  - Updated Firebase profile repository DOB mapping:
+    - `saveBasicInfo()` writes canonical `profile.birthDate`
+    - `_userFromFirestore()` reads `birthDate` with `dateOfBirth` fallback
+    - `_profileToFirestore()` writes canonical `birthDate` and DOB-derived age
+  - Extended tests:
+    - `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js` (DOB fallback and age-derivation route checks)
+    - `/Users/ace/my_first_project/functions/test/profileRestValidation.test.js` (DOB helper/age helper checks)
+  - Updated TODO status:
+    - `/Users/ace/my_first_project/docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-002` marked completed)
+- Decisions/Handoffs:
+  - Chose canonical field `profile.birthDate` (REST + repository alignment) while keeping read fallback to `profile.dateOfBirth` for backward compatibility.
+  - Left stored `age` as compatibility data but made outbound/profile filtering behavior DOB-first to avoid stale-age regressions.
+- Risks/Mitigation:
+  - Medium risk (profile/discovery payload behavior); mitigated by endpoint and helper test coverage around DOB fallback and derived age.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `flutter analyze lib/features/profile/data/repositories/impl/firebase_profile_repository.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts lib/features/profile/data/repositories/impl/firebase_profile_repository.dart functions/test/profileRestEndpoints.test.js functions/test/profileRestValidation.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue with `PROF-BE-005` (photo delete lifecycle + storage consistency) and `PROF-BE-004` (secure photo upload hardening).
+
+### T-2026-03-07-PROFILE-BE-005-PHOTO-DELETE
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Implement `PROF-BE-005` by making profile photo delete lifecycle storage-aware and index-safe.
+- Scope: Photo delete API in `/Users/ace/my_first_project/functions/src/index.ts`, endpoint regression tests in `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js`, and required docs updates.
+- Key Changes:
+  - Added profile photo delete safety/storage helpers in `functions/src/index.ts`:
+    - `parseProfilePhotoIndex()` to enforce `photo_<non-negative-int>` format
+    - `parseStorageObjectLocationFromUrl()` to map Firebase Storage URL variants to bucket/object paths
+    - `deleteProfilePhotoStorageObject()` with tolerant not-found handling
+  - Updated `DELETE /v1/profile/photos/:photoId`:
+    - returns `400` for invalid photo IDs
+    - returns `404` when index is out of bounds
+    - deletes storage object first, then updates `profile.photoUrls`
+    - returns `502` when storage deletion fails and avoids Firestore mutation in that failure path
+  - Expanded endpoint tests in `functions/test/profileRestEndpoints.test.js`:
+    - valid delete
+    - invalid negative index
+    - repeated delete returns 404
+    - storage-delete failure preserves Firestore list
+  - Updated task backlog status:
+    - `/Users/ace/my_first_project/docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-005` marked completed)
+- Decisions/Handoffs:
+  - Chose storage-first deletion to prevent Firestore updates when object deletion fails.
+  - Kept unmanaged/legacy URLs removable by skipping storage delete when URL cannot be mapped to Firebase Storage path.
+- Risks/Mitigation:
+  - Medium risk on media-delete path; mitigated via explicit 4xx/5xx responses and route-level tests for repeated/failure scenarios.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestEndpoints.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Implement `PROF-BE-004` secure profile photo upload hardening.
+
+### T-2026-03-07-PROFILE-BE-004-PHOTO-UPLOAD
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Implement `PROF-BE-004` by securing profile photo upload pipeline behavior in backend REST API.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts` upload endpoint + middleware, `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js` endpoint coverage, `/Users/ace/my_first_project/storage.rules`, and required docs updates.
+- Key Changes:
+  - Added profile-photo-specific upload hardening in `functions/src/index.ts`:
+    - strict allowed mime list (`jpeg/png/webp/heic/heif`)
+    - explicit 10MB server-side size ceiling with multer error mapping to HTTP `413`
+    - randomized safe file naming (`photos/{uid}/{timestamp}_{uuid}.{ext}`)
+    - removed `makePublic()` and switched to tokenized download URLs (`firebasestorage.googleapis.com` + `firebaseStorageDownloadTokens`)
+  - Updated upload route behavior (`POST /v1/profile/photos`):
+    - `415` for blocked mime
+    - `413` for oversize payload
+    - `404` for missing user doc
+    - private-object storage with non-original filename and tokenized URL response
+  - Added explicit storage-rule clarity for server-managed legacy backend upload path:
+    - `/photos/{uid}/{fileName}` denied for direct client read/write in `storage.rules`
+  - Expanded endpoint tests in `functions/test/profileRestEndpoints.test.js`:
+    - allowed upload path assertions (URL shape, randomized filename, no `makePublic`)
+    - blocked mime path
+    - oversize path
+    - auth and verified-email gate behavior for upload endpoint
+  - Updated TODO backlog status:
+    - `/Users/ace/my_first_project/docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-004` marked completed)
+- Decisions/Handoffs:
+  - Kept object access private by default and returned tokenized URL for compatibility with existing `photoUrls` URL-based rendering.
+  - Scoped this pass strictly to profile-photo endpoint; chat-media upload hardening remains separate.
+- Risks/Mitigation:
+  - Medium risk on media upload contract; mitigated with explicit endpoint-level tests for success + failure + auth guardrails.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestEndpoints.test.js storage.rules docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-006` prompt-field contract unification.
+
+### T-2026-03-07-PROFILE-BE-006-PROMPTS-CONTRACT
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Implement `PROF-BE-006` by unifying profile prompt contract behavior between `prompts` and `profilePrompts`.
+- Scope: Prompt-related backend reads in `/Users/ace/my_first_project/functions/src/index.ts`, prompt read/write mapping in `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`, focused functions tests, and required docs updates.
+- Key Changes:
+  - Added canonical prompt-answer helper in functions:
+    - `profilePromptAnswers()` (prefers `profile.profilePrompts[].answer`, legacy fallback to `profile.prompts`)
+  - Updated prompt consumers in functions to canonical-aware behavior:
+    - `evaluateProfileCompleteness()`
+    - `ensureProfileQuality()`
+    - `checkProfileCompleteness` callable
+    - REST responses: `GET /v1/profile/me`, `GET /v1/profile/:userId`, `GET /v1/discovery/deck`
+    - callable discovery candidate flattened output now includes derived `prompts`
+  - Updated Firebase profile repository prompt contract:
+    - read fallback/migration from legacy `profile.prompts` into structured prompts when canonical field is absent
+    - `saveProfileDetails()` writes both `profile.profilePrompts` (canonical) and `profile.prompts` (compat mirror)
+    - `_profileToFirestore()` now serializes canonical structured prompts and mirrored prompt answers consistently
+  - Added prompt contract test coverage:
+    - `/Users/ace/my_first_project/functions/test/profileRestValidation.test.js` (helper tests)
+    - `/Users/ace/my_first_project/functions/test/profileCompleteness.test.js` (completeness with canonical `profilePrompts`)
+    - `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js` (REST prompt derivation from canonical prompts)
+  - Updated backlog status:
+    - `/Users/ace/my_first_project/docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-006` marked completed)
+- Decisions/Handoffs:
+  - Chose `profile.profilePrompts` as canonical storage representation to preserve structured Q/A data.
+  - Kept `profile.prompts` as compatibility mirror/output path to avoid breaking existing prompt-string consumers.
+- Risks/Mitigation:
+  - Medium risk on profile contract compatibility; mitigated with helper, endpoint, and completeness regression tests across canonical+legacy shapes.
+- Verification:
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"projectId":"demo-test","databaseURL":"https://demo-test.firebaseio.com"}' npx mocha test/profileRestValidation.test.js test/profileCompleteness.test.js --exit` (pass)
+  - `flutter analyze lib/features/profile/data/repositories/impl/firebase_profile_repository.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts lib/features/profile/data/repositories/impl/firebase_profile_repository.dart functions/test/profileRestEndpoints.test.js functions/test/profileRestValidation.test.js functions/test/profileCompleteness.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-007` username/display-name contract fix.
+
+### T-2026-03-07-PROFILE-BE-007-USERNAME-CONTRACT
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Implement `PROF-BE-007` by separating canonical username from display name in profile REST payloads and HTTP repository mapping.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/http_profile_repository.dart`, endpoint tests in `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js`, new repository test coverage, and required docs updates.
+- Key Changes:
+  - Updated `GET /v1/profile/me` in `functions/src/index.ts` to return `username` with legacy fallback resolution:
+    - `data.username` (canonical)
+    - `profile.username` (legacy)
+    - `data.usernameLower` (legacy fallback)
+  - Updated `HttpProfileRepository.getCurrentUser()` in `lib/features/profile/data/repositories/impl/http_profile_repository.dart`:
+    - maps `CrushUser.username` from API `username`
+    - preserves `profile.name` as display name from `display_name`
+    - uses legacy fallback when canonical username is absent
+  - Extended endpoint regressions in `functions/test/profileRestEndpoints.test.js`:
+    - verifies username/display-name separation in `GET /v1/profile/me`
+    - verifies legacy fallback from `profile.username`
+  - Added repository regressions in `test/features/profile/data/repositories/impl/http_profile_repository_test.dart`:
+    - canonical username mapping path
+    - legacy fallback path when username is missing
+  - Updated backlog tracking in `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-007` marked completed).
+- Decisions/Handoffs:
+  - Kept a display-name fallback in repository mapping to maintain compatibility with legacy payloads lacking canonical username.
+- Risks/Mitigation:
+  - Low-medium contract risk on profile identity fields; mitigated with endpoint-level and repository-level tests that assert separation explicitly.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass)
+  - `flutter analyze lib/features/profile/data/repositories/impl/http_profile_repository.dart test/features/profile/data/repositories/impl/http_profile_repository_test.dart` (pass)
+  - `flutter test test/features/profile/data/repositories/impl/http_profile_repository_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestEndpoints.test.js lib/features/profile/data/repositories/impl/http_profile_repository.dart test/features/profile/data/repositories/impl/http_profile_repository_test.dart docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-008` endpoint coverage expansion.
+
+### T-2026-03-07-PROFILE-BE-008-REST-COVERAGE
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `PROF-BE-008` by expanding route-level regression coverage for profile REST endpoints across validation, security, and legacy-schema paths.
+- Scope: `/Users/ace/my_first_project/functions/test/profileRestEndpoints.test.js` plus required docs updates in `/Users/ace/my_first_project/docs`.
+- Key Changes:
+  - Expanded `functions/test/profileRestEndpoints.test.js` coverage for all endpoints listed in TODO acceptance criteria:
+    - `/v1/profile/me`: unauthenticated access (`401`) in addition to existing canonical/legacy schema checks.
+    - `/v1/profile/preferences`: legacy top-level merge fallback, unsupported-field validation failure (`400`), unauthenticated access (`401`), and missing-user (`404`).
+    - `/v1/profile/photos` POST: missing-user (`404`).
+    - `/v1/profile/photos/:photoId` DELETE: unauthenticated access (`401`) and missing-user (`404`).
+    - `/v1/profile/:userId`: legacy DOB fallback (`dateOfBirth`), legacy prompt fallback (`profile.prompts`), unauthenticated access (`401`), and unknown-user (`404`).
+  - Updated request test helper in endpoint suite to support explicit no-auth requests (`token: null`) for security-path assertions.
+  - Updated backlog tracking status in `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-008` marked completed).
+- Decisions/Handoffs:
+  - Kept this pass test-only for production logic, since expanded coverage passed against current implementation without further backend changes.
+- Risks/Mitigation:
+  - Low risk. Changes are isolated to test harness and docs; broader negative-path assertions reduce regression risk on auth/validation behavior.
+- Verification:
+  - `cd functions && npx mocha test/profileRestEndpoints.test.js --exit` (pass, 35 passing)
+  - `npm --prefix functions run build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/test/profileRestEndpoints.test.js docs/TODO_PROFILE_BACKEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-009` profile-completeness degraded-mode hardening.
+
+### T-2026-03-07-PROFILE-BE-009-COMPLETENESS-FALLBACK
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Implement `PROF-BE-009` by hardening profile-completeness degraded-mode behavior so backend validation failures do not silently grant full eligibility.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/data/services/profile_validation_service.dart`, `/Users/ace/my_first_project/test/profile_validation_service_test.dart`, and required docs updates.
+- Key Changes:
+  - Updated `ProfileValidationService` fallback strategy:
+    - added per-minimum cache of last successful remote result (`_lastKnownByMinimum`)
+    - on remote timeout/network errors, returns cached result when available
+    - if no cache exists, throws explicit `ProfileValidationUnavailableException` for caller-managed local fallback
+  - Added constructor injection hooks (`fetchCompletenessOverride`) to enable deterministic failure/success unit tests without live Firebase Functions calls.
+  - Removed permissive hardcoded fallback response (`score=1.0`, all gate booleans true) from error path.
+  - Expanded `test/profile_validation_service_test.dart` with degraded-mode coverage:
+    - timeout error without cache
+    - network error without cache
+    - cached last-known result reuse after timeout
+    - unavailable-exception message/minimum assertions
+  - Updated backlog status in `docs/TODO_PROFILE_BACKEND.md` (`PROF-BE-009` marked completed).
+  - Added mitigated risk record in `docs/risk_notes.md` (`R-056`).
+- Decisions/Handoffs:
+  - Chose exception-based no-cache fallback so existing callers (chat/deck) use explicit local-check degraded mode instead of hidden permissive remote grants.
+- Risks/Mitigation:
+  - Low. Change is scoped to validation service + tests; mitigates prior high-impact bypass risk during backend outages.
+- Verification:
+  - `flutter analyze lib/features/profile/data/services/profile_validation_service.dart test/profile_validation_service_test.dart` (pass)
+  - `flutter test test/profile_validation_service_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/data/services/profile_validation_service.dart test/profile_validation_service_test.dart docs/TODO_PROFILE_BACKEND.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Profile backend TODO backlog is complete; move to next highest-priority TODO module.
+
+### T-2026-03-07-PROFILE-FE-003-ADAPTIVE-PHOTO-GRID
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_PROFILE_FRONTEND.md` implementation by delivering `PROF-FE-003` adaptive photo-grid behavior for profile media.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_media_screen.dart`, `/Users/ace/my_first_project/test/features/profile/presentation/screens/profile_media_screen_test.dart`, and required docs updates.
+- Key Changes:
+  - Reworked photos tab in `ProfileMediaScreen` from single-item `PageView` to responsive `GridView.builder`.
+  - Added width-driven grid columns:
+    - phone: 2 columns
+    - tablet: 3 columns
+    - large tablet/desktop: 4 columns
+  - Added tap-to-preview dialog for photo zoom/inspection from grid tiles.
+  - Fixed small-width app-bar title overflow by making title text ellipsize in constrained width.
+  - Added widget coverage in `profile_media_screen_test.dart` validating column counts for 390px, 820px, and 1200px layouts.
+  - Updated task backlog status in `docs/TODO_PROFILE_FRONTEND.md` (`PROF-FE-003` marked completed).
+- Decisions/Handoffs:
+  - Used deterministic widget tests for responsive behavior instead of golden snapshots to keep verification fast/stable for this first pass.
+- Risks/Mitigation:
+  - Low risk. Change is isolated to profile media presentation and adds regression tests for responsive breakpoints.
+- Verification:
+  - `flutter analyze lib/features/profile/presentation/screens/profile_media_screen.dart test/features/profile/presentation/screens/profile_media_screen_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/screens/profile_media_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/presentation/screens/profile_media_screen.dart test/features/profile/presentation/screens/profile_media_screen_test.dart docs/TODO_PROFILE_FRONTEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-002` (iPad picker flow hardening) or `PROF-FE-001` (profile-card max-width/centering with path reconciliation).
+
+### T-2026-03-07-PROFILE-FE-004-EXIF-PRIVACY
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `PROF-FE-004` with explicit regression proof that profile-photo uploads strip EXIF metadata before network transmission.
+- Scope: `/Users/ace/my_first_project/test/profile_media_service_hotspot_test.dart` plus required TODO/risk/workflow docs updates.
+- Key Changes:
+  - Added upload-path EXIF regression in `test/profile_media_service_hotspot_test.dart`:
+    - generated fabricated JPEG containing EXIF device + GPS metadata
+    - asserted source EXIF exists before upload
+    - captured uploaded bytes from mocked storage uploader
+    - asserted uploaded payload has no EXIF signature / JPEG EXIF payload
+  - Added test harness setup required for optimizer path execution:
+    - `TestWidgetsFlutterBinding.ensureInitialized()`
+    - mocked `path_provider` temporary-directory channel in setup/teardown
+  - Updated `docs/TODO_PROFILE_FRONTEND.md` to mark `PROF-FE-004` completed.
+  - Updated `docs/risk_notes.md` for `R-052` to partially mitigated with profile proof in place and remaining chat-path coverage gap tracked.
+- Decisions/Handoffs:
+  - Kept this pass scoped to profile upload path (per TODO module); chat EXIF direct regression remains tracked as follow-up.
+- Risks/Mitigation:
+  - Reduced risk on profile photo privacy leakage by adding deterministic regression proof in CI.
+- Verification:
+  - `flutter analyze test/profile_media_service_hotspot_test.dart` (pass)
+  - `flutter test test/profile_media_service_hotspot_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files test/profile_media_service_hotspot_test.dart docs/TODO_PROFILE_FRONTEND.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-002` (iPad picker source-rect hardening) or `PROF-FE-001` (profile-card responsive max-width).
+
+### T-2026-03-07-PROFILE-FE-002-IPAD-PICKER-ANCHOR
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `PROF-FE-002` by hardening profile media source selection for iPad with anchored picker UX and safe platform fallback behavior.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/presentation/widgets/profile_media_picker.dart`, `/Users/ace/my_first_project/test/features/profile/presentation/widgets/profile_media_picker_test.dart`, and required docs updates.
+- Key Changes:
+  - Refactored photo/video add flows to select media source (`camera`/`gallery`) before invoking `image_picker`.
+  - Added iOS tablet anchored source menu path:
+    - detects iOS + tablet width (`shortestSide >= 600`)
+    - computes anchor rect from tapped add tile via `GlobalKey` + render-box coordinates
+    - opens source chooser via `showMenu` for popover-style behavior
+  - Added fallback source picker path using `showModalBottomSheet` for non-iOS-tablet contexts.
+  - Added camera support for both photo and video add flows while preserving existing limits/validation logic.
+  - Added widget regressions in `profile_media_picker_test.dart`:
+    - iOS tablet path opens anchored source menu (not bottom sheet)
+    - Android path opens bottom-sheet source menu
+  - Updated task status in `docs/TODO_PROFILE_FRONTEND.md` (`PROF-FE-002` completed).
+- Decisions/Handoffs:
+  - Kept source labels reusing existing localization keys where available (`takePhoto`, `chooseFromGallery`) and avoided broad l10n regeneration for this scoped task.
+- Risks/Mitigation:
+  - Low-medium UI/platform risk around picker presentation differences; mitigated with explicit platform-path widget coverage and preserved error handling.
+- Verification:
+  - `flutter analyze lib/features/profile/presentation/widgets/profile_media_picker.dart test/features/profile/presentation/widgets/profile_media_picker_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/widgets/profile_media_picker_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/presentation/widgets/profile_media_picker.dart test/features/profile/presentation/widgets/profile_media_picker_test.dart docs/TODO_PROFILE_FRONTEND.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-001` (responsive profile-card max-width/centering with path reconciliation).
+
+### T-2026-03-07-REALTIME-RT001-HEARTBEAT-CLEANUP
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_REALTIME.md` with concrete actionable items and complete first realtime reliability hardening item (`RT-001`).
+- Scope: `/Users/ace/my_first_project/lib/core/network/realtime/realtime_connection.dart`, `/Users/ace/my_first_project/test/core/network/realtime/realtime_connection_test.dart`, and `/Users/ace/my_first_project/docs/TODO_REALTIME.md`.
+- Key Changes:
+  - Populated `docs/TODO_REALTIME.md` with initial realtime backlog items (`RT-001..RT-004`) and marked `RT-001` completed.
+  - Implemented heartbeat-timeout cleanup hardening in `WebSocketConnection`:
+    - added guarded `_handleConnectionLoss` flow
+    - used for both stream `onDone` and pong-timeout paths
+    - timeout path now force-closes stale socket before reconnect/fail state transition
+    - resets connection references and pong timestamp on loss cleanup
+  - Added regression coverage in `test/core/network/realtime/realtime_connection_test.dart`:
+    - `heartbeat timeout closes stale socket before marking failed`
+    - server-side active-client assertion to detect stale channel leaks
+- Decisions/Handoffs:
+  - Scoped first realtime pass to transport-layer cleanup bug; broader fallback orchestration (`HttpChatRepository` polling toggles) is tracked as next item (`RT-002`).
+- Risks/Mitigation:
+  - Reduced realtime transport leak/duplication risk by enforcing explicit socket teardown on timeout-driven reconnect/failure.
+- Verification:
+  - `flutter analyze lib/core/network/realtime/realtime_connection.dart test/core/network/realtime/realtime_connection_test.dart` (pass)
+  - `flutter test test/core/network/realtime/realtime_connection_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/network/realtime/realtime_connection.dart test/core/network/realtime/realtime_connection_test.dart docs/TODO_REALTIME.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REALTIME.md` with `RT-002` (dynamic polling fallback switching based on WebSocket state).
+
+### T-2026-03-07-REALTIME-RT002-DYNAMIC-POLLING-SWITCH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RT-002` by making chat polling fallback dynamically follow WebSocket connection-state transitions.
+- Scope: `/Users/ace/my_first_project/lib/features/chat/data/repositories/impl/http_chat_repository.dart`, `/Users/ace/my_first_project/test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart`, and realtime/docs updates.
+- Key Changes:
+  - Added WebSocket state subscription in `HttpChatRepository` (`_webSocketStateSubscription`).
+  - Implemented live fallback orchestration:
+    - `connected` state cancels `messages_*` and `presence_*` polling timers.
+    - non-connected states resume polling for actively watched message/presence streams.
+  - Refactored polling creation to idempotent helpers:
+    - `_ensureMessagePolling`
+    - `_ensurePresencePolling`
+    - prevents duplicate timers on repeated transition events.
+  - Added polling-prefix cancellation helper (`_cancelPollingByPrefix`) and testing visibility (`activePollingTimerKeys`).
+  - Added regression coverage in new test suite `http_chat_repository_realtime_polling_test.dart` for connected/disconnected/reconnecting transition behavior.
+  - Updated `docs/TODO_REALTIME.md` marking `RT-002` complete.
+- Decisions/Handoffs:
+  - Kept existing polling intervals (10s messages, 30s presence) unchanged; this pass only changed runtime orchestration.
+- Risks/Mitigation:
+  - Reduced medium realtime consistency risk where polling could continue unnecessarily (battery/network churn) or fail to resume after connection loss.
+- Verification:
+  - `flutter analyze lib/features/chat/data/repositories/impl/http_chat_repository.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart` (pass)
+  - `flutter test test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/chat/data/repositories/impl/http_chat_repository.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart docs/TODO_REALTIME.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REALTIME.md` with `RT-003` (RTDB payload parsing hardening).
+
+### T-2026-03-07-REALTIME-RT003-RTDB-PARSER-HARDENING
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RT-003` by hardening realtime match-notification payload parsing against mixed RTDB value types.
+- Scope: `/Users/ace/my_first_project/lib/features/discovery/domain/repositories/realtime_match_repository.dart`, `/Users/ace/my_first_project/test/realtime_match_notification_test.dart`, and docs updates.
+- Key Changes:
+  - Updated `RealtimeMatchNotification.fromRtdb` to use safe coercion helpers instead of strict casts.
+  - Added coercion helpers for:
+    - required strings with fallback defaults
+    - nullable strings with blank normalization
+    - timestamps from `int`, `num`, and numeric strings with invalid fallback to `0`
+  - Added regression coverage in `realtime_match_notification_test.dart` for:
+    - mixed non-string payload shapes (`int`/`bool`/numeric-string timestamp)
+    - blank-string and invalid timestamp fallback behavior
+  - Updated `docs/TODO_REALTIME.md` marking `RT-003` complete.
+- Decisions/Handoffs:
+  - Kept parser tolerant and non-throwing, prioritizing realtime stream stability over strict schema enforcement.
+- Risks/Mitigation:
+  - Reduced runtime crash risk from inconsistent RTDB payloads in realtime match notifications.
+- Verification:
+  - `flutter analyze lib/features/discovery/domain/repositories/realtime_match_repository.dart test/realtime_match_notification_test.dart` (pass)
+  - `flutter test test/realtime_match_notification_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/discovery/domain/repositories/realtime_match_repository.dart test/realtime_match_notification_test.dart docs/TODO_REALTIME.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REALTIME.md` with `RT-004` (FirebaseRealtimeService subscription/query-operator lifecycle test coverage).
+
+### T-2026-03-07-REALTIME-RT004-SERVICE-LIFECYCLE-COVERAGE
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RT-004` by adding deterministic regression coverage for `FirebaseRealtimeService` subscription lifecycle management and query-filter operator routing.
+- Scope: `/Users/ace/my_first_project/lib/core/network/realtime/firebase_realtime_service.dart`, `/Users/ace/my_first_project/test/core/network/realtime/firebase_realtime_service_test.dart`, and required docs updates.
+- Key Changes:
+  - Added test-focused constructor path in `FirebaseRealtimeService` for injected Firestore (`FirebaseRealtimeService.test`).
+  - Added visible-for-testing `applyFilterForTesting` helper to directly validate `QueryFilter` operator mapping behavior.
+  - Added new test suite `firebase_realtime_service_test.dart` covering:
+    - subscription replacement for duplicate document subscription IDs
+    - explicit single-subscription cancellation via `cancelSubscription`
+    - global cancellation via `cancelAllSubscriptions`
+    - mapping of all supported `FilterOperator` values to expected Firestore `where(...)` named arguments.
+  - Updated `docs/TODO_REALTIME.md` marking `RT-004` completed.
+- Decisions/Handoffs:
+  - Kept runtime production behavior unchanged; limited code changes to testability hooks and verification coverage.
+- Risks/Mitigation:
+  - Low risk; scope is isolated to service testability surface and unit tests, reducing regression risk in realtime listener/filter behavior.
+- Verification:
+  - `flutter analyze lib/core/network/realtime/firebase_realtime_service.dart test/core/network/realtime/firebase_realtime_service_test.dart` (pass)
+  - `flutter test test/core/network/realtime/firebase_realtime_service_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/network/realtime/firebase_realtime_service.dart test/core/network/realtime/firebase_realtime_service_test.dart docs/TODO_REALTIME.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Realtime TODO backlog is complete; proceed to next prioritized TODO module.
+
+### T-2026-03-07-RESPONSIVE-RESP009-CHAT-SPLIT-WIDTH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_RESPONSIVE_DESIGN.md` with actionable backlog entries and complete first remediation by replacing fixed chat split-view pane width with adaptive breakpoint logic.
+- Scope: `/Users/ace/my_first_project/docs/TODO_RESPONSIVE_DESIGN.md`, `/Users/ace/my_first_project/lib/features/chat/presentation/screens/chat_list_screen.dart`, `/Users/ace/my_first_project/test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart`.
+- Key Changes:
+  - Replaced placeholder-only responsive TODO doc with concrete follow-up backlog items (`RESP-009..RESP-012`) and marked `RESP-009` completed.
+  - Added `chatListPaneWidthFor` helper in `ChatListScreen` to compute master-pane width via `DsBreakpoints` with tablet/desktop fractions and min/max clamps.
+  - Replaced fixed `320px` split list width with adaptive computed width.
+  - Added focused test suite `chat_list_screen_responsive_test.dart` covering tablet breakpoint floor, tablet scaling, desktop floor, and large-desktop cap.
+- Decisions/Handoffs:
+  - Scoped first responsive pass to a low-risk, high-traffic screen (`ChatListScreen`) to restore momentum while keeping behavior predictable.
+- Risks/Mitigation:
+  - Low risk; change is limited to split-pane width calculation with explicit regression tests for each breakpoint band.
+- Verification:
+  - `flutter analyze lib/features/chat/presentation/screens/chat_list_screen.dart test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/chat/presentation/screens/chat_list_screen.dart test/features/chat/presentation/screens/chat_list_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-010` (other-user profile content + bottom action width constraints).
+
+### T-2026-03-07-RESPONSIVE-RESP010-OTHER-PROFILE-WIDTH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-010` by constraining other-user profile content and bottom action layouts on wide screens.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/presentation/screens/other_user_profile_screen.dart`, `/Users/ace/my_first_project/test/features/profile/presentation/screens/other_user_profile_screen_test.dart`, and responsive/workflow docs.
+- Key Changes:
+  - Added shared responsive width helper `otherUserProfileMaxWidthFor` based on `DsBreakpoints.contentMaxWidth`.
+  - Applied centered `ConstrainedBox` wrapping to the profile content section for width capping on tablet/desktop.
+  - Applied centered `ConstrainedBox` wrapping to bottom action area, preserving full-width behavior on mobile.
+  - Added test-visible keys for responsive constraint anchors in the screen.
+  - Added new responsive test suite `other_user_profile_screen_test.dart` covering:
+    - helper width mapping for mobile/tablet/desktop breakpoints
+    - action-area max-width behavior on phone/tablet/desktop.
+  - Updated `docs/TODO_RESPONSIVE_DESIGN.md` marking `RESP-010` completed.
+- Decisions/Handoffs:
+  - Kept responsive logic token-driven (`DsBreakpoints`) and avoided introducing new layout abstractions.
+- Risks/Mitigation:
+  - Low risk; changes are UI-layout only and backed by focused responsive tests.
+- Verification:
+  - `flutter analyze lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/other_user_profile_screen_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/screens/other_user_profile_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/other_user_profile_screen_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-011` (normalize auth utility screens away from hardcoded width constants).
+
+### T-2026-03-07-RESPONSIVE-RESP011-AUTH-UTILITY-WIDTHS
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-011` by replacing hardcoded auth utility max-width constraints with tokenized breakpoint logic.
+- Scope: `/Users/ace/my_first_project/lib/features/auth/presentation/screens/new_device_screen.dart`, `/Users/ace/my_first_project/lib/features/auth/presentation/screens/change_email_screen.dart`, `/Users/ace/my_first_project/lib/features/auth/presentation/screens/email_protection_screen.dart`, `/Users/ace/my_first_project/lib/features/auth/presentation/widgets/auth_utility_layout_constraints.dart`, and responsive/docs updates.
+- Key Changes:
+  - Added shared auth utility layout helper file with:
+    - `authUtilityMaxWidthFor(...)` using `DsBreakpoints.responsiveValue`
+    - `authUtilityContentConstraintKey` for deterministic UI assertions.
+  - Updated `new_device_screen.dart`, `change_email_screen.dart`, and `email_protection_screen.dart` to replace hardcoded `maxWidth: 600` with token-driven `authUtilityMaxWidthFor(MediaQuery.sizeOf(context).width)`.
+  - Added representative responsive test suite `auth_utility_layout_constraints_test.dart`:
+    - verifies helper width mapping for mobile/tablet/desktop
+    - verifies NewDeviceScreen constrained-box max-width behavior at narrow and wide layouts.
+  - Updated `docs/TODO_RESPONSIVE_DESIGN.md` marking `RESP-011` completed.
+- Decisions/Handoffs:
+  - Used a shared helper to avoid repeating width constants and to keep follow-up auth screen migrations consistent.
+- Risks/Mitigation:
+  - Low risk; changes are layout-only and covered by focused tests.
+- Verification:
+  - `flutter analyze lib/features/auth/presentation/widgets/auth_utility_layout_constraints.dart lib/features/auth/presentation/screens/new_device_screen.dart lib/features/auth/presentation/screens/change_email_screen.dart lib/features/auth/presentation/screens/email_protection_screen.dart test/features/auth/presentation/screens/auth_utility_layout_constraints_test.dart` (pass)
+  - `flutter test test/features/auth/presentation/screens/auth_utility_layout_constraints_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/auth/presentation/widgets/auth_utility_layout_constraints.dart lib/features/auth/presentation/screens/new_device_screen.dart lib/features/auth/presentation/screens/change_email_screen.dart lib/features/auth/presentation/screens/email_protection_screen.dart test/features/auth/presentation/screens/auth_utility_layout_constraints_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-012` (refresh responsive coverage audit + risk-note alignment).
+
+### T-2026-03-07-RESPONSIVE-RESP012-COVERAGE-AUDIT
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-012` by refreshing responsive coverage metrics and aligning risk tracking with current repository state.
+- Scope: `/Users/ace/my_first_project/docs/TODO_RESPONSIVE_DESIGN.md`, `/Users/ace/my_first_project/docs/risk_notes.md`, and required workflow docs.
+- Key Changes:
+  - Added completed status and 2026-03-07 audit snapshot to `docs/TODO_RESPONSIVE_DESIGN.md`.
+  - Published current responsive coverage metrics:
+    - total screens (`presentation/screens`): `54`
+    - responsive by breakpoint/layout-token heuristic: `48`
+    - non-adaptive remaining: `6`
+  - Added explicit remaining non-adaptive file list:
+    - `lib/features/auth/presentation/screens/pin_fallback_screen.dart`
+    - `lib/features/auth/presentation/screens/terms_conditions_screen.dart`
+    - `lib/features/calls/presentation/screens/call_screen.dart`
+    - `lib/features/chat/presentation/screens/chat_screen.dart`
+    - `lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart`
+    - `lib/features/social/presentation/screens/date_ideas_screen.dart`
+  - Updated `R-054` in `docs/risk_notes.md`:
+    - likelihood reduced to `Medium`
+    - status refreshed to `Partially Mitigated (48/54 responsive; 6 remaining)`
+    - mitigation plan now references refreshed responsive follow-up targeting high-traffic gaps.
+- Decisions/Handoffs:
+  - Used a transparent, reproducible heuristic (`DsBreakpoints|authUtilityMaxWidthFor|AuthScaffold|LayoutBuilder`) to avoid subjective/manual counting drift.
+- Risks/Mitigation:
+  - Residual responsive risk remains concentrated in 6 screens; chat/call/filter surfaces are prioritized for next pass.
+- Verification:
+  - `total=$(find lib/features -path '*/presentation/screens/*.dart' | wc -l | tr -d ' '); responsive=0; non=0; while IFS= read -r f; do if rg -q "DsBreakpoints|authUtilityMaxWidthFor\\(|AuthScaffold\\(|LayoutBuilder\\(" "$f"; then responsive=$((responsive+1)); else non=$((non+1)); printf '%s\n' "$f"; fi; done < <(find lib/features -path '*/presentation/screens/*.dart' | sort); printf 'TOTAL=%s\nRESPONSIVE=%s\nNON=%s\n' "$total" "$responsive" "$non"` (pass: `54/48/6`)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Responsive backlog items currently complete; start follow-up remediation on remaining high-risk screens (`chat_screen.dart`, `call_screen.dart`, `discovery_filters_settings_screen.dart`).
+
+### T-2026-03-07-RESPONSIVE-RESP013-CHAT-CONVERSATION-WIDTH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-013` by constraining `ChatScreen` conversation content width on tablet/desktop while preserving mobile/full-width banner behavior.
+- Scope: `/Users/ace/my_first_project/lib/features/chat/presentation/screens/chat_screen.dart`, `/Users/ace/my_first_project/test/features/chat/presentation/screens/chat_screen_responsive_test.dart`, and responsive/risk/workflow docs.
+- Key Changes:
+  - Added `chatConversationMaxWidthFor(...)` helper in `chat_screen.dart` using `DsBreakpoints.contentMaxWidth(...)`.
+  - Added `chatConversationConstraintKey` for deterministic test access.
+  - Wrapped conversation column (`messages`, status/typing indicators, composer) in centered `LayoutBuilder + Align + ConstrainedBox`.
+  - Kept system notice banners outside constrained wrapper so they remain full-width.
+  - Added `chat_screen_responsive_test.dart` with helper mapping assertions (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - Updated `docs/TODO_RESPONSIVE_DESIGN.md` with completed `RESP-013` and refreshed audit snapshot (`49/54 responsive; 5 remaining`).
+  - Updated `R-054` in `docs/risk_notes.md` to remove stale `chat_screen.dart` pending-reference.
+- Decisions/Handoffs:
+  - Chose a localized width constraint in `ChatScreen` to avoid broader chat layout refactors and keep existing interaction behavior stable.
+- Risks/Mitigation:
+  - Low risk; UI layout-only change with focused regression coverage.
+- Verification:
+  - `flutter analyze lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/chat/presentation/screens/chat_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_RESPONSIVE_DESIGN.md` against remaining non-adaptive screens (`call_screen.dart`, `discovery_filters_settings_screen.dart`, `terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
+
+### T-2026-03-07-RESPONSIVE-RESP014-CALL-SCREEN-WIDTH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-014` by constraining `CallScreen` primary content width on tablet/desktop while preserving full-screen call overlays/background behavior.
+- Scope: `/Users/ace/my_first_project/lib/features/calls/presentation/screens/call_screen.dart`, `/Users/ace/my_first_project/test/features/calls/presentation/screens/call_screen_responsive_test.dart`, and responsive/risk/workflow docs.
+- Key Changes:
+  - Added `callScreenContentMaxWidthFor(...)` helper in `call_screen.dart` using `DsBreakpoints.contentMaxWidth(...)`.
+  - Added `callScreenContentConstraintKey` for deterministic test access.
+  - Wrapped the primary `SafeArea` call content in centered `LayoutBuilder + Align + ConstrainedBox` with width cap and full-height constraint.
+  - Preserved full-screen background and overlay components (video preview, connection indicator, PiP action) outside the constrained content wrapper.
+  - Added `call_screen_responsive_test.dart` with helper mapping assertions (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - Updated `docs/TODO_RESPONSIVE_DESIGN.md` with completed `RESP-014` and refreshed audit snapshot (`50/54 responsive; 4 remaining`).
+  - Updated `R-054` in `docs/risk_notes.md` to remove `call_screen.dart` from remaining screens and refresh status counts.
+- Decisions/Handoffs:
+  - Used a localized content constraint wrapper instead of broader layout refactors to keep call lifecycle/UI behavior stable.
+- Risks/Mitigation:
+  - Low risk; UI layout-only adjustment backed by focused regression tests and unchanged call state transitions.
+- Verification:
+  - `flutter analyze lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/screens/call_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/calls/presentation/screens/call_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/screens/call_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue responsive remediation on remaining non-adaptive screens (`discovery_filters_settings_screen.dart`, `terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
+
+### T-2026-03-07-RESPONSIVE-RESP015-DISCOVERY-FILTERS-WIDTH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-015` by constraining `DiscoveryFiltersSettingsScreen` content width on tablet/desktop using the same tokenized pattern as other settings screens.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart`, `/Users/ace/my_first_project/test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart`, and responsive/risk/workflow docs.
+- Key Changes:
+  - Added `discoveryFiltersContentMaxWidthFor(...)` helper in `discovery_filters_settings_screen.dart` using `DsBreakpoints.contentMaxWidth(...)`.
+  - Added `discoveryFiltersContentConstraintKey` for deterministic test access.
+  - Wrapped body content in `LayoutBuilder + Center + ConstrainedBox` so discovery filters list remains centered and width-capped on wide layouts.
+  - Added `discovery_filters_settings_screen_responsive_test.dart` with helper mapping assertions (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - Updated `docs/TODO_RESPONSIVE_DESIGN.md` with completed `RESP-015` and refreshed audit snapshot (`51/54 responsive; 3 remaining`).
+  - Updated `R-054` in `docs/risk_notes.md` to remove `discovery_filters_settings_screen.dart` from remaining screens and refresh counts.
+- Decisions/Handoffs:
+  - Reused the existing settings-screen responsive wrapper pattern to minimize UX variance and implementation risk.
+- Risks/Mitigation:
+  - Low risk; layout-only change with focused helper regression coverage and no discovery state logic modifications.
+- Verification:
+  - `flutter analyze lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart test/features/settings/presentation/screens/discovery_filters_settings_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue responsive remediation on remaining non-adaptive screens (`terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
+
+### T-2026-03-07-RESPONSIVE-RESP016-TERMS-WIDTH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-016` by replacing hardcoded terms onboarding width constraints with shared breakpoint token sizing.
+- Scope: `/Users/ace/my_first_project/lib/features/auth/presentation/screens/terms_conditions_screen.dart`, `/Users/ace/my_first_project/test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart`, and responsive/risk/workflow docs.
+- Key Changes:
+  - Added `termsConditionsContentMaxWidthFor(...)` helper in `terms_conditions_screen.dart` using `DsBreakpoints.contentMaxWidth(...)`.
+  - Added `termsConditionsContentConstraintKey` for deterministic test access.
+  - Replaced hardcoded `maxWidth: 600` in `TermsConditionsScreen` with tokenized responsive max-width constraints.
+  - Added `terms_conditions_screen_responsive_test.dart` with helper mapping assertions (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - Updated `docs/TODO_RESPONSIVE_DESIGN.md` with completed `RESP-016` and refreshed audit snapshot (`52/54 responsive; 2 remaining`).
+  - Updated `R-054` in `docs/risk_notes.md` to remove `terms_conditions_screen.dart` from remaining screens and refresh counts.
+- Decisions/Handoffs:
+  - Kept change scoped to layout sizing only to avoid impacting onboarding gate logic and route progression behavior.
+- Risks/Mitigation:
+  - Low risk; UI layout-only update with focused regression tests and unchanged terms acceptance logic.
+- Verification:
+  - `flutter analyze lib/features/auth/presentation/screens/terms_conditions_screen.dart test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/auth/presentation/screens/terms_conditions_screen.dart test/features/auth/presentation/screens/terms_conditions_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue responsive remediation on remaining non-adaptive screens (`pin_fallback_screen.dart`, `date_ideas_screen.dart`).
+
+### T-2026-03-07-RESPONSIVE-RESP017-PIN-FALLBACK-WIDTH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-017` by constraining `PinFallbackScreen` content width on tablet/desktop using shared breakpoint tokens.
+- Scope: `/Users/ace/my_first_project/lib/features/auth/presentation/screens/pin_fallback_screen.dart`, `/Users/ace/my_first_project/test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart`, and responsive/risk/workflow docs.
+- Key Changes:
+  - Added `pinFallbackContentMaxWidthFor(...)` helper in `pin_fallback_screen.dart` using `DsBreakpoints.contentMaxWidth(...)`.
+  - Added `pinFallbackContentConstraintKey` for deterministic test access.
+  - Wrapped content in `LayoutBuilder + Align + ConstrainedBox` to center and width-cap PIN fallback content on larger screens.
+  - Added `pin_fallback_screen_responsive_test.dart` with helper mapping assertions (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - Updated `docs/TODO_RESPONSIVE_DESIGN.md` with completed `RESP-017` and refreshed audit snapshot (`53/54 responsive; 1 remaining`).
+  - Updated `R-054` in `docs/risk_notes.md` to remove `pin_fallback_screen.dart` from remaining screens and refresh counts.
+- Decisions/Handoffs:
+  - Kept scope limited to layout constraints and avoided changes to PIN verification/setup logic.
+- Risks/Mitigation:
+  - Low risk; UI layout-only update with focused helper regression tests and no auth-flow behavior changes.
+- Verification:
+  - `flutter analyze lib/features/auth/presentation/screens/pin_fallback_screen.dart test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/auth/presentation/screens/pin_fallback_screen.dart test/features/auth/presentation/screens/pin_fallback_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Complete final responsive remediation item on `date_ideas_screen.dart`.
+
+### T-2026-03-07-RESPONSIVE-RESP018-DATE-IDEAS-WIDTH
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `RESP-018` by constraining `DateIdeasScreen` content width on tablet/desktop to align with shared responsive token behavior.
+- Scope: `/Users/ace/my_first_project/lib/features/social/presentation/screens/date_ideas_screen.dart`, `/Users/ace/my_first_project/test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart`, and responsive/risk/workflow docs.
+- Key Changes:
+  - Added `dateIdeasContentMaxWidthFor(...)` helper in `date_ideas_screen.dart` using `DsBreakpoints.contentMaxWidth(...)`.
+  - Added `dateIdeasContentConstraintKey` for deterministic test access.
+  - Wrapped Date Ideas main content in `LayoutBuilder + Align + ConstrainedBox` for centered responsive width capping.
+  - Added `date_ideas_screen_responsive_test.dart` with helper mapping assertions (`390 -> inf`, `820 -> 720`, `1200 -> 960`).
+  - Updated `docs/TODO_RESPONSIVE_DESIGN.md` with completed `RESP-018` and refreshed audit snapshot (`54/54 responsive; 0 remaining`).
+  - Updated `R-054` in `docs/risk_notes.md` to mitigated status with no remaining non-adaptive screens.
+- Decisions/Handoffs:
+  - Limited changes to layout constraints only; left filtering logic, list loading, and modal interactions untouched.
+- Risks/Mitigation:
+  - Low risk; UI layout-only adjustment with focused helper regression tests.
+- Verification:
+  - `flutter analyze lib/features/social/presentation/screens/date_ideas_screen.dart test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart` (pass)
+  - `flutter test test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/social/presentation/screens/date_ideas_screen.dart test/features/social/presentation/screens/date_ideas_screen_responsive_test.dart docs/TODO_RESPONSIVE_DESIGN.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Responsive remediation backlog complete for current screen-audit scope; maintain audit checks on future layout changes.
+
+### T-2026-03-07-SETTINGS-UI-SETUI001-LANGUAGE-LABEL-COVERAGE
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_SETTINGS_UI.md` with concrete action items and complete first settings UI remediation by fixing language-label coverage in `SettingsScreen`.
+- Scope: `/Users/ace/my_first_project/docs/TODO_SETTINGS_UI.md`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/settings_screen.dart`, `/Users/ace/my_first_project/test/features/settings/presentation/screens/settings_screen_language_label_test.dart`.
+- Key Changes:
+  - Rebuilt `docs/TODO_SETTINGS_UI.md` from malformed placeholder into actionable backlog entries (`SETUI-001..SETUI-005`).
+  - Marked `SETUI-001` complete for settings language-label coverage.
+  - Added `settingsLanguageLabelFor(...)` helper in `settings_screen.dart` covering all language codes supported by `LocaleCubit`.
+  - Updated `_languageLabel(...)` to use helper and added unknown-code fallback (`code.toUpperCase()`).
+  - Added new regression test file `settings_screen_language_label_test.dart` covering supported-code mappings and unknown fallback behavior.
+- Decisions/Handoffs:
+  - Prioritized a low-risk, user-visible fix first to establish momentum before broader localization sweeps (`SETUI-002..SETUI-005`).
+- Risks/Mitigation:
+  - Low risk; change is presentation-only and guarded by deterministic unit tests.
+- Verification:
+  - `flutter analyze lib/features/settings/presentation/screens/settings_screen.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/settings_screen.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SETTINGS_UI.md` with `SETUI-002` (localize hardcoded `settings_screen.dart` copy and dynamic subtitles).
+
+### T-2026-03-07-SETTINGS-UI-SETUI002-HOME-COPY-LOCALIZATION
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SETUI-002` by migrating hardcoded settings home/user-facing copy in `settings_screen.dart` to localization keys.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/settings_screen.dart`, `/Users/ace/my_first_project/lib/l10n/app_en.arb`, `/Users/ace/my_first_project/lib/l10n/app_en_XA.arb`, generated localization files, and TODO/workflow docs.
+- Key Changes:
+  - Replaced hardcoded text in Settings home tiles/subtitles with localized strings.
+  - Added localized placeholder-based summaries for:
+    - notifications enabled count
+    - language/region subtitle
+    - discovery summary
+    - cache summary
+    - subscription status/renewal labels
+  - Localized account security status labels, ID verification copy, chat/call subtitles, safety/help/sign-out/legal/about section labels.
+  - Localized incognito tile and sheet copy (titles, subtitles, feature rows, free-tier notice).
+  - Updated theme label variants (`darkLuxury`/`darkLuxuryModern`) to localization-backed labels.
+  - Updated subscription subtitle helper to localized outputs.
+  - Added new keys to `app_en.arb` and `app_en_XA.arb`, then regenerated localization files.
+  - Marked `SETUI-002` complete in `docs/TODO_SETTINGS_UI.md`.
+- Decisions/Handoffs:
+  - Kept scope in a single screen (`settings_screen.dart`) to avoid broad settings-module churn while still removing the highest concentration of hardcoded copy.
+- Risks/Mitigation:
+  - Low risk; copy/localization-only migration with no routing/business-logic changes.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/settings_screen.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/settings_screen.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SETTINGS_UI.md` with `SETUI-003` (notifications settings hardcoded copy localization).
+
+### T-2026-03-07-SETTINGS-UI-SETUI003-NOTIFICATIONS-LOCALIZATION
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SETUI-003` by localizing hardcoded notifications settings copy and adding targeted UI coverage.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/notifications_settings_screen.dart`, localization ARBs/generated files, `/Users/ace/my_first_project/test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart`, and workflow docs.
+- Key Changes:
+  - Replaced hardcoded notifications screen copy with localization keys across header, tiles, category sections, safety alerts, quiet hours, and info card text.
+  - Added localized snackbar copy for push toggle enable/disable states.
+  - Migrated quiet-hour display formatting to `MaterialLocalizations.formatTimeOfDay(...)` for locale-aware time output.
+  - Added new localization keys in `app_en.arb` and pseudo-locale variants in `app_en_XA.arb`.
+  - Regenerated localization classes under `lib/l10n/generated/`.
+  - Added widget test `notifications_settings_screen_localization_test.dart` covering category/quiet-hours section labels.
+  - Updated `docs/TODO_SETTINGS_UI.md` marking `SETUI-003` complete.
+- Decisions/Handoffs:
+  - Kept scope focused on text/localization and formatting surfaces; no changes to notification state logic or backend preference sync behavior.
+- Risks/Mitigation:
+  - Low risk; UI-copy migration with targeted widget regression coverage.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/notifications_settings_screen.dart lib/features/settings/presentation/screens/settings_screen.dart test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/notifications_settings_screen.dart test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SETTINGS_UI.md` with `SETUI-004` (`privacy_settings_screen.dart` localization sweep).
+
+### T-2026-03-07-SETTINGS-UI-SETUI004-PRIVACY-LOCALIZATION
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SETUI-004` by localizing hardcoded privacy settings copy and adding targeted localization coverage.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/privacy_settings_screen.dart`, localization ARBs/generated files, `/Users/ace/my_first_project/test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart`, and workflow docs.
+- Key Changes:
+  - Replaced hardcoded copy in `privacy_settings_screen.dart` with `context.l10n` keys across:
+    - batch-action snackbar messages
+    - header title/subtitle
+    - all section headers
+    - all tile labels/subtitles
+    - sensitive badge text
+    - informational footer note
+  - Added new privacy settings localization keys in `app_en.arb` and pseudo-locale variants in `app_en_XA.arb`.
+  - Regenerated localization accessors under `lib/l10n/generated/`.
+  - Added widget test `privacy_settings_screen_localization_test.dart` validating localized section titles using `en_XA` locale.
+  - Marked `SETUI-004` complete in `docs/TODO_SETTINGS_UI.md`.
+- Decisions/Handoffs:
+  - Kept scope limited to localization/copy surfaces only; did not modify privacy state-management or persistence behavior.
+- Risks/Mitigation:
+  - Low risk; UI copy migration with focused widget regression coverage.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/privacy_settings_screen.dart test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/privacy_settings_screen.dart test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SETTINGS_UI.md` with `SETUI-005` (`account_actions_settings_screen.dart` localization sweep).
+
+### T-2026-03-07-SETTINGS-UI-SETUI005-ACCOUNT-ACTIONS-LOCALIZATION
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SETUI-005` by localizing hardcoded account actions settings copy (screen, dialogs, and feedback messages) and adding focused localization coverage.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/account_actions_settings_screen.dart`, localization ARBs/generated files, `/Users/ace/my_first_project/test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart`, and workflow docs.
+- Key Changes:
+  - Replaced hardcoded account-actions copy in `account_actions_settings_screen.dart` with localization getters across:
+    - header and section labels
+    - action tile labels/subtitles
+    - account deactivation/deletion info-card copy
+    - export/password/deactivate/delete dialog text, bullets, and validation labels
+    - success/error snackbar messages
+  - Added placeholder-backed localized strings for dynamic values:
+    - export next-available date
+    - export cooldown day count
+    - export primary contact email
+    - export progress percent
+    - deletion scheduled date
+    - final type-to-confirm value
+  - Updated reason selection flow to use localized “Other reason” label/hint and localized prefix for custom reason payloads.
+  - Added new `accountActions*` localization keys in `app_en.arb` and pseudo-locale variants in `app_en_XA.arb`.
+  - Regenerated localization classes under `lib/l10n/generated/`.
+  - Added widget test `account_actions_settings_screen_localization_test.dart` validating localized section/action labels under `en_XA` locale.
+  - Marked `SETUI-005` complete in `docs/TODO_SETTINGS_UI.md`.
+- Decisions/Handoffs:
+  - Kept flow logic and side effects unchanged; scope was limited to text/localization surfaces and localized placeholder formatting.
+- Risks/Mitigation:
+  - Low risk; copy-only migration with targeted widget regression coverage and successful analyze/test pass.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/account_actions_settings_screen.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SETTINGS_UI.md lib/features/settings/presentation/screens/account_actions_settings_screen.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: `TODO_SETTINGS_UI.md` action items are complete; proceed to the next requested backlog.
+
+### T-2026-03-07-SECURITY-FRONTEND-SECFE001-ACCOUNT-SECURITY-LOCALIZATION
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_SECURITY_FRONTEND.md` with concrete security-frontend remediation items and complete `SECFE-001` by localizing account security settings copy.
+- Scope: `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/account_security_settings_screen.dart`, localization ARBs/generated files, `/Users/ace/my_first_project/test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart`, and workflow docs.
+- Key Changes:
+  - Replaced placeholder `TODO_SECURITY_FRONTEND.md` content with actionable backlog entries (`SECFE-001..SECFE-005`).
+  - Marked `SECFE-001` complete.
+  - Localized hardcoded account-security copy in `account_security_settings_screen.dart` across:
+    - header and status cards
+    - security options + biometric labels/subtitles
+    - linked-account provider/status/action labels
+    - provider link/unlink feedback errors/success messages
+    - security tips card text
+  - Added placeholder-backed localization for dynamic strings:
+    - provider display-name interpolation
+    - biometric type interpolation
+  - Added `settingsSecurity*` keys in `app_en.arb` and pseudo-locale variants in `app_en_XA.arb`.
+  - Regenerated localization classes under `lib/l10n/generated/`.
+  - Added widget test `account_security_settings_screen_localization_test.dart` validating localized section labels in `en_XA` locale.
+- Decisions/Handoffs:
+  - Scoped changes strictly to text/localization surfaces; security workflow logic and provider-linking behavior were intentionally left unchanged.
+- Risks/Mitigation:
+  - Low risk; presentation-only localization migration with targeted widget regression coverage.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/account_security_settings_screen.dart test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart test/account_security_settings_screen_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart test/account_security_settings_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md lib/features/settings/presentation/screens/account_security_settings_screen.dart test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-002` (`chat_screen.dart` safety report/block copy localization sweep).
+
+### T-2026-03-07-SECURITY-FRONTEND-SECFE002-CHAT-SAFETY-LOCALIZATION
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SECFE-002` by localizing hardcoded chat safety report/block sheet copy in `chat_screen.dart`.
+- Scope: `/Users/ace/my_first_project/lib/features/chat/presentation/screens/chat_screen.dart`, localization ARBs/generated files, `/Users/ace/my_first_project/test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart`, `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, and workflow docs.
+- Key Changes:
+  - Added `ChatReportReasonOption` + helper mappings to keep backend reason codes stable while localizing reason labels.
+  - Added `ChatReportSheetContent` widget and reused it in `_showReportSheet(...)` for testable localized report UI.
+  - Replaced hardcoded report/block copy in chat report sheet and snackbars with localization keys.
+  - Localized custom report dialog hint text and submission feedback.
+  - Added new `chatReport*` and `chatSafety*` keys in `app_en.arb` and pseudo-locale variants in `app_en_XA.arb`.
+  - Regenerated localization classes under `lib/l10n/generated/`.
+  - Added `chat_report_sheet_localization_test.dart` to assert localized report labels in `en_XA` locale.
+  - Marked `SECFE-002` completed in `docs/TODO_SECURITY_FRONTEND.md`.
+- Decisions/Handoffs:
+  - Scoped this change to report/block copy only; other chat safety copy (mute/unmatch labels) remains for later backlog items.
+- Risks/Mitigation:
+  - Low risk; presentation/localization-only migration with stable reason-code mapping and focused widget coverage.
+- Verification:
+  - `dart format lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart` (pass)
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart` (pass)
+  - `flutter test test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md lib/features/chat/presentation/screens/chat_screen.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-003` (`call_safety_controls.dart` / `call_screen.dart` safety copy localization).
+
+### T-2026-03-07-SECURITY-FRONTEND-SECFE003-CALL-SAFETY-LOCALIZATION
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SECFE-003` by localizing hardcoded call safety controls/report sheet copy in `call_safety_controls.dart` and `call_screen.dart`.
+- Scope: `/Users/ace/my_first_project/lib/features/calls/presentation/widgets/call_safety_controls.dart`, `/Users/ace/my_first_project/lib/features/calls/presentation/screens/call_screen.dart`, localization ARBs/generated files, `/Users/ace/my_first_project/test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart`, `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, and workflow docs.
+- Key Changes:
+  - Localized call safety tip title/body/tooltip/fallback-name copy in `CallSafetyControls`.
+  - Localized call safety action labels (`Report`/`Reported`, `Block`/`Blocked`) in safety controls.
+  - Added `CallReportReasonOption` + helper mappings in `call_screen.dart` to keep backend report reason codes stable while rendering localized reason labels.
+  - Localized post-call safety prompt copy and call report flow copy (sheet title/reasons, details hint, submit feedback, block fallback).
+  - Added `callSafety*` keys in `app_en.arb` and pseudo-locale variants in `app_en_XA.arb`.
+  - Regenerated localization classes under `lib/l10n/generated/`.
+  - Added `call_safety_controls_localization_test.dart` asserting localized call safety controls labels in `en_XA` locale.
+  - Marked `SECFE-003` completed in `docs/TODO_SECURITY_FRONTEND.md`.
+- Decisions/Handoffs:
+  - Scoped changes to safety/report surfaces only; non-safety call controls/status copy remains out of scope for this task.
+- Risks/Mitigation:
+  - Low risk; presentation/localization-only migration with stable report-reason code mapping and focused widget coverage.
+- Verification:
+  - `dart format lib/features/calls/presentation/widgets/call_safety_controls.dart lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart` (pass)
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/calls/presentation/widgets/call_safety_controls.dart lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart` (pass)
+  - `flutter test test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md lib/features/calls/presentation/widgets/call_safety_controls.dart lib/features/calls/presentation/screens/call_screen.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-004` (`other_user_profile_screen.dart` safety dialog/snackbar localization).
+
+### T-2026-03-07-SECURITY-FRONTEND-SECFE004-PROFILE-SAFETY-LOCALIZATION
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SECFE-004` by localizing hardcoded profile block/report dialog copy in `other_user_profile_screen.dart`.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/presentation/screens/other_user_profile_screen.dart`, localization ARBs/generated files, `/Users/ace/my_first_project/test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart`, `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, and workflow docs.
+- Key Changes:
+  - Added `ProfileReportReasonOption` + helper mappings to preserve backend reason codes while rendering localized reason labels.
+  - Added `ProfileReportSheetContent` widget and reused it from `_showReportDialog(...)` for testable localized report UI.
+  - Replaced hardcoded profile safety strings for:
+    - block/unblock option label
+    - sign-in-required safety error message
+    - block/unblock status snackbars
+    - report-sheet title and report reason labels
+  - Added new `profileReport*` localization keys in `app_en.arb` and pseudo-locale variants in `app_en_XA.arb`.
+  - Regenerated localization classes under `lib/l10n/generated/`.
+  - Added `profile_report_sheet_localization_test.dart` asserting localized report-sheet labels in `en_XA` locale.
+  - Marked `SECFE-004` completed in `docs/TODO_SECURITY_FRONTEND.md`.
+- Decisions/Handoffs:
+  - Kept scope to block/report safety dialog surfaces only; other hardcoded profile screen copy remains out of scope for this security TODO item.
+- Risks/Mitigation:
+  - Low risk; localization-only migration with stable report reason-code mapping and focused widget regression coverage.
+- Verification:
+  - `dart format lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart` (pass)
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md lib/features/profile/presentation/screens/other_user_profile_screen.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-005` (localized security safety regression coverage sweep).
+
+### T-2026-03-07-SECURITY-FRONTEND-SECFE005-LOCALIZATION-REGRESSION-SUITE
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SECFE-005` by adding deterministic regression coverage for localized security safety labels across settings and report/block safety flows.
+- Scope: `/Users/ace/my_first_project/test/features/security/security_localization_regression_test.dart`, existing security localization tests, `/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md`, and workflow docs.
+- Key Changes:
+  - Added new regression test `security_localization_regression_test.dart` to validate:
+    - stable report reason backend payload codes for chat/call/profile flows
+    - localization-backed reason labels in `en_XA` pseudo-locale
+  - Ran consolidated security localization verification across:
+    - account security settings labels
+    - chat report sheet labels
+    - call safety controls labels
+    - profile report sheet labels
+    - new cross-flow reason mapping suite
+  - Marked `SECFE-005` completed in `docs/TODO_SECURITY_FRONTEND.md`.
+- Decisions/Handoffs:
+  - Prioritized deterministic helper-mapping coverage to protect both localization correctness and backend reason-code contract stability.
+- Risks/Mitigation:
+  - Low risk; test-only change with focused assertions and no runtime behavior modifications.
+- Verification:
+  - `dart format test/features/security/security_localization_regression_test.dart` (pass)
+  - `flutter analyze test/features/security/security_localization_regression_test.dart` (pass)
+  - `flutter test test/features/security/security_localization_regression_test.dart` (pass)
+  - `flutter analyze test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart test/features/security/security_localization_regression_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/account_security_settings_screen_localization_test.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart test/features/calls/presentation/widgets/call_safety_controls_localization_test.dart test/features/profile/presentation/screens/profile_report_sheet_localization_test.dart test/features/security/security_localization_regression_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_FRONTEND.md test/features/security/security_localization_regression_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Security frontend backlog items are complete for current scope; continue with next user-requested TODO module.
+
+### T-2026-03-07-SECURITY-BACKEND-SECBE001-REST-SAFETY-HARDENING
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_SECURITY_BACKEND.md` with concrete remediation items and complete `SECBE-001` by hardening REST safety endpoint validation/error handling.
+- Scope: `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/safetyValidation.test.js`, and workflow docs.
+- Key Changes:
+  - Replaced placeholder `TODO_SECURITY_BACKEND.md` content with actionable backend security backlog entries (`SECBE-001..SECBE-005`).
+  - Marked `SECBE-001` complete.
+  - Added centralized safety REST validation helpers in `functions/src/index.ts`:
+    - `validateSafetyTargetId(...)`
+    - `assertNotSelfSafetyAction(...)`
+    - `validateSafetyReportReason(...)`
+    - `validateOptionalSafetyDescription(...)`
+  - Hardened safety REST routes:
+    - `/v1/users/block`: reject self-target, validate target exists, idempotent deterministic block doc ID writes, structured `HttpsError` response mapping.
+    - `/v1/users/unblock`: reject self-target, deterministic delete with legacy random-ID block cleanup fallback, structured `HttpsError` response mapping.
+    - `/v1/users/report`: reject self-target, sanitize/length-bound reason and description, validate target exists, structured `HttpsError` response mapping.
+  - Added targeted unit tests in `functions/test/safetyValidation.test.js` for the new validator helpers.
+- Decisions/Handoffs:
+  - Kept route paths and payload field names unchanged to avoid client-contract churn while tightening validation/security checks.
+- Risks/Mitigation:
+  - Low risk; API hardening focused on validation and idempotency. Legacy unblock fallback prevents regressions for pre-existing random-ID block docs.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/safetyValidation.test.js` (pass)
+  - `cd functions && npx mocha --exit test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/src/index.ts functions/test/safetyValidation.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SECURITY_BACKEND.md` with `SECBE-002` (App Check/auth parity on high-risk REST auth routes).
+
+### T-2026-03-07-SECURITY-BACKEND-SECBE002-REST-AUTH-APPCHECK-PARITY
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SECBE-002` by enforcing App Check/auth parity on high-risk REST auth routes.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/appCheckRest.test.js`, `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, and workflow docs.
+- Key Changes:
+  - Added reusable REST App Check helpers in `functions/src/index.ts`:
+    - `getRestAppCheckToken(...)`
+    - `evaluateRestAppCheck(...)`
+    - `appCheckRestMiddleware(...)`
+  - Applied REST App Check middleware to high-risk auth routes:
+    - `/v1/auth/otp/send`
+    - `/v1/auth/otp/verify`
+    - `/v1/auth/token/refresh`
+    - `/v1/auth/logout`
+    - `/v1/auth/password/change`
+  - Exposed App Check helpers through `__test__helpers` for deterministic testing.
+  - Added `functions/test/appCheckRest.test.js` to validate token extraction and enforcement behavior (missing/invalid/valid token with enforce on/off).
+  - Marked `SECBE-002` complete in `docs/TODO_SECURITY_BACKEND.md`.
+- Decisions/Handoffs:
+  - Aligned REST policy with existing callable App Check model: production-enforced, development monitor-only.
+  - Did not apply App Check middleware to Apple server-to-server revocation webhook route.
+- Risks/Mitigation:
+  - Low risk; middleware-only hardening on selected auth routes. Unit tests cover enforcement matrix to reduce rollout regressions.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/appCheckRest.test.js test/safetyValidation.test.js test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/src/index.ts functions/test/appCheckRest.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SECURITY_BACKEND.md` with `SECBE-003` (unify safety reason taxonomy between REST and callable APIs).
+
+### T-2026-03-07-SECURITY-BACKEND-SECBE003-REPORT-REASON-TAXONOMY
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SECBE-003` by unifying safety reason taxonomy between REST and callable report APIs.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/reportReasonNormalization.test.js`, `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, and workflow docs.
+- Key Changes:
+  - Added shared safety reason normalization helpers:
+    - `normalizeReportReasonToken(...)`
+    - `inferReportCategoryFromReason(...)`
+    - `canonicalizeSafetyReportReason(...)`
+  - Updated callable `reportUser` to use shared normalization and persist `reasonCategory` alongside `reason`.
+  - Updated REST `/v1/users/report` to use shared normalization and persist `reasonCategory`.
+  - Updated callable user safety flag writes to include `lastReasonCategory`.
+  - Added focused regression test `functions/test/reportReasonNormalization.test.js` for category mapping and canonicalization behavior.
+  - Marked `SECBE-003` complete in `docs/TODO_SECURITY_BACKEND.md`.
+- Decisions/Handoffs:
+  - Kept existing `reason` text storage for moderation context while adding canonical `reasonCategory` for consistent analytics/moderation workflows.
+- Risks/Mitigation:
+  - Low risk; additive normalization and storage field changes with deterministic helper tests.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/reportReasonNormalization.test.js test/appCheckRest.test.js test/safetyValidation.test.js test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/src/index.ts functions/test/reportReasonNormalization.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SECURITY_BACKEND.md` with `SECBE-004` (structured security audit logging for safety REST actions).
+
+### T-2026-03-07-SECURITY-BACKEND-SECBE004-SAFETY-REST-AUDIT-LOGGING
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SECBE-004` by adding structured security audit logging for safety REST actions.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/safetyAuditLogging.test.js`, `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, and workflow docs.
+- Key Changes:
+  - Added reusable safety REST audit helpers in `functions/src/index.ts`:
+    - `getRestClientIp(...)`
+    - `safetyAuditOutcomeFromStatusCode(...)`
+    - `logSafetyRestAudit(...)`
+  - Added audit writes to safety REST routes:
+    - `/v1/users/block`
+    - `/v1/users/unblock`
+    - `/v1/users/report`
+  - Audit entries now consistently include actor/target/outcome/route/status/timestamp context for success, rate-limit, and error paths.
+  - Exposed audit helpers in `__test__helpers` and added focused regression suite `functions/test/safetyAuditLogging.test.js`.
+  - Marked `SECBE-004` complete in `docs/TODO_SECURITY_BACKEND.md`.
+- Decisions/Handoffs:
+  - Implemented safety audit logging as fail-open (logs errors without breaking user-facing safety actions) to preserve API reliability while improving observability.
+- Risks/Mitigation:
+  - Low risk; additive logging + helper tests. Fail-open writer behavior avoids action path regressions if audit storage write fails.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/safetyAuditLogging.test.js test/reportReasonNormalization.test.js test/appCheckRest.test.js test/safetyValidation.test.js test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/src/index.ts functions/test/safetyAuditLogging.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_SECURITY_BACKEND.md` with `SECBE-005` (regression suite for safety and rate-limit boundaries).
+
+### T-2026-03-07-SECURITY-BACKEND-SECBE005-SAFETY-RATELIMIT-REGRESSION-SUITE
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `SECBE-005` by adding a focused regression suite for backend safety validation and rate-limit boundary behavior.
+- Scope: `/Users/ace/my_first_project/functions/test/safetyRestRegression.test.js`, `/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md`, and workflow docs.
+- Key Changes:
+  - Added new endpoint regression suite `functions/test/safetyRestRegression.test.js` with lightweight Firestore/auth mocks.
+  - Added boundary coverage for:
+    - self-target rejection (`POST /v1/users/block`)
+    - invalid payload rejection (`POST /v1/users/report` invalid reason)
+    - rate-limit response structure (`POST /v1/users/unblock` boundary exceed)
+  - Added assertions for machine-readable error code mapping and safety audit log metadata side effects.
+  - Marked `SECBE-005` complete in `docs/TODO_SECURITY_BACKEND.md`.
+- Decisions/Handoffs:
+  - Kept implementation test-only for low risk and fast CI regression protection.
+- Risks/Mitigation:
+  - Low risk; no runtime behavior changes. Tests harden contract expectations for validation and rate-limit responses.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx mocha --exit test/safetyRestRegression.test.js` (pass)
+  - `cd functions && npx mocha --exit test/safetyAuditLogging.test.js test/reportReasonNormalization.test.js test/appCheckRest.test.js test/safetyValidation.test.js test/callables.test.js test/profileRestValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SECURITY_BACKEND.md functions/test/safetyRestRegression.test.js docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Security backend TODO module is complete for current scope; continue with the next user-prioritized module.
+
+### T-2026-03-07-STATE-MANAGEMENT-STMG001-REALTIME-CUBIT-INTEGRITY
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_STATE_MANAGEMENT.md` with actionable backlog items and complete `STMG-001` to harden realtime cubit state integrity.
+- Scope: `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/realtime_state_cubit.dart`, `/Users/ace/my_first_project/test/realtime_state_cubit_test.dart`, and workflow docs.
+- Key Changes:
+  - Replaced placeholder state-management TODO with concrete items `STMG-001..STMG-005`.
+  - Marked `STMG-001` complete.
+  - Updated `RealtimeStateCubit` to:
+    - dedupe typing updates by set value
+    - skip no-op presence/media emits
+    - store immutable defensive copies for typing sets
+  - Added `test/realtime_state_cubit_test.dart` regression coverage for dedupe/immutability/no-op behavior.
+- Decisions/Handoffs:
+  - Kept this pass state-layer only to reduce risk and avoid UI/API contract churn.
+- Risks/Mitigation:
+  - Low risk; focused cubit-level change with deterministic unit tests.
+- Verification:
+  - `dart format lib/features/chat/presentation/bloc/realtime_state_cubit.dart test/realtime_state_cubit_test.dart` (pass)
+  - `flutter analyze lib/features/chat/presentation/bloc/realtime_state_cubit.dart test/realtime_state_cubit_test.dart` (pass)
+  - `flutter test test/realtime_state_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/features/chat/presentation/bloc/realtime_state_cubit.dart test/realtime_state_cubit_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STATE_MANAGEMENT.md` with `STMG-002` (collection deep-equality normalization in chat aggregate state).
+
+### T-2026-03-07-STATE-MANAGEMENT-STMG002-CHAT-COLLECTION-SEMANTICS
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STMG-002` by normalizing collection semantics for chat aggregate state equality/copy stability.
+- Scope: `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/chat_state.dart`, `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/chat_bloc.dart`, `/Users/ace/my_first_project/test/chat_state_collection_semantics_test.dart`, `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, and workflow docs.
+- Key Changes:
+  - Hardened `ChatState` to snapshot collection-backed fields with defensive immutable wrappers:
+    - `messages`
+    - `typingUserIds`
+    - `failedMessages`
+  - Updated `ChatBloc` initial/reset emission to non-const `ChatState()` construction for normalized runtime snapshots.
+  - Added `test/chat_state_collection_semantics_test.dart` regression coverage for:
+    - immutable snapshot boundaries against external mutation
+    - value-stable map/set equality semantics
+  - Marked `STMG-002` complete in `docs/TODO_STATE_MANAGEMENT.md`.
+- Decisions/Handoffs:
+  - Kept this pass focused to chat state-layer semantics and avoided behavior/UI flow rewrites.
+- Risks/Mitigation:
+  - Low risk; state immutability hardening with targeted tests and existing `chat_bloc_test.dart` validation.
+- Verification:
+  - `dart format lib/features/chat/presentation/bloc/chat_state.dart lib/features/chat/presentation/bloc/chat_bloc.dart test/chat_state_collection_semantics_test.dart` (pass)
+  - `flutter analyze lib/features/chat/presentation/bloc/chat_state.dart lib/features/chat/presentation/bloc/chat_bloc.dart test/chat_state_collection_semantics_test.dart` (pass)
+  - `flutter test test/chat_state_collection_semantics_test.dart test/chat_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/features/chat/presentation/bloc/chat_state.dart lib/features/chat/presentation/bloc/chat_bloc.dart test/chat_state_collection_semantics_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STATE_MANAGEMENT.md` with `STMG-003` (async-safe emission guards in long-running state handlers).
+
+### T-2026-03-07-STATE-MANAGEMENT-STMG003-ASYNC-EMISSION-GUARDS
+- Date: 2026-03-07
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STMG-003` by adding async-safe emission guards to long-running discovery/social state handlers.
+- Scope: `/Users/ace/my_first_project/lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart`, `/Users/ace/my_first_project/lib/features/social/presentation/bloc/date_ideas_cubit.dart`, `/Users/ace/my_first_project/lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart`, `/Users/ace/my_first_project/test/state_async_emission_guards_test.dart`, `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, and workflow docs.
+- Key Changes:
+  - Added epoch-based async stale-emission guards to:
+    - `WeeklyPicksCubit`
+    - `DateIdeasCubit`
+    - `CompatibilityQuizCubit`
+  - Invalidated in-flight async operations on reset/logout/close to prevent stale post-lifecycle emits.
+  - Added new race regression suite `test/state_async_emission_guards_test.dart` covering:
+    - logout-race suppression for weekly picks/date ideas/compatibility quiz async flows
+    - close-race suppression for date ideas personalized suggestions
+  - Marked `STMG-003` complete in `docs/TODO_STATE_MANAGEMENT.md`.
+- Decisions/Handoffs:
+  - Used lightweight epoch invalidation instead of broad architectural rewrites to deliver deterministic lifecycle safety with minimal behavior churn.
+- Risks/Mitigation:
+  - Low risk; additive lifecycle guards with focused race tests and existing suite compatibility checks.
+- Verification:
+  - `dart format lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart test/state_async_emission_guards_test.dart` (pass)
+  - `flutter analyze lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart test/state_async_emission_guards_test.dart` (pass)
+  - `flutter test test/state_async_emission_guards_test.dart` (pass)
+  - `flutter test test/state_async_emission_guards_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart test/state_async_emission_guards_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STATE_MANAGEMENT.md` with `STMG-004` (auth-driven reset contract standardization).
+
+### T-2026-03-08-STATE-MANAGEMENT-STMG004-AUTH-RESET-CONTRACT
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STMG-004` by standardizing auth-driven reset behavior across auth-subscribing feature cubits.
+- Scope: `/Users/ace/my_first_project/lib/core/utils/auth_state_reset_policy.dart`, `/Users/ace/my_first_project/lib/features/analytics/presentation/bloc/profile_insights_cubit.dart`, `/Users/ace/my_first_project/lib/features/discovery/presentation/bloc/{weekly_picks_cubit.dart,boost_cubit.dart}`, `/Users/ace/my_first_project/lib/features/social/presentation/bloc/{date_ideas_cubit.dart,compatibility_quiz_cubit.dart}`, related tests, `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, and workflow docs.
+- Key Changes:
+  - Added shared auth transition contract helper: `lib/core/utils/auth_state_reset_policy.dart`.
+  - Standardized auth listeners in feature cubits to one policy:
+    - reset on logout (`auth == null`)
+    - reset on authenticated user-id switch
+    - no reset on repeated same-user emissions
+  - Applied shared policy to:
+    - `ProfileInsightsCubit`
+    - `WeeklyPicksCubit`
+    - `DateIdeasCubit`
+    - `CompatibilityQuizCubit`
+    - `BoostCubit`
+  - Added regression coverage for reset contract behavior:
+    - `test/auth_state_reset_policy_test.dart` (new)
+    - user-switch reset tests in `test/state_async_emission_guards_test.dart`, `test/weekly_picks_cubit_test.dart`, `test/social_cubits_test.dart`, `test/profile_insights_cubit_test.dart`, `test/boost_cubit_test.dart`
+  - Marked `STMG-004` completed in `docs/TODO_STATE_MANAGEMENT.md`.
+- Decisions/Handoffs:
+  - Used a shared policy helper to avoid drift between cubits and keep reset semantics explicit.
+  - Kept this pass limited to feature cubits for low-risk incremental rollout; router lifecycle coverage remains in `STMG-005`.
+- Risks/Mitigation:
+  - Low risk; contract unification is covered by focused unit/cubit tests across multiple modules.
+- Verification:
+  - `dart format lib/core/utils/auth_state_reset_policy.dart lib/features/analytics/presentation/bloc/profile_insights_cubit.dart lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart lib/features/discovery/presentation/bloc/boost_cubit.dart test/auth_state_reset_policy_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart test/profile_insights_cubit_test.dart test/boost_cubit_test.dart test/state_async_emission_guards_test.dart` (pass)
+  - `flutter analyze lib/core/utils/auth_state_reset_policy.dart lib/features/analytics/presentation/bloc/profile_insights_cubit.dart lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart lib/features/discovery/presentation/bloc/boost_cubit.dart test/auth_state_reset_policy_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart test/profile_insights_cubit_test.dart test/boost_cubit_test.dart test/state_async_emission_guards_test.dart` (pass)
+  - `flutter test test/state_async_emission_guards_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart test/profile_insights_cubit_test.dart` (pass)
+  - `flutter test test/auth_state_reset_policy_test.dart test/boost_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/core/utils/auth_state_reset_policy.dart lib/features/analytics/presentation/bloc/profile_insights_cubit.dart lib/features/discovery/presentation/bloc/weekly_picks_cubit.dart lib/features/social/presentation/bloc/date_ideas_cubit.dart lib/features/social/presentation/bloc/compatibility_quiz_cubit.dart lib/features/discovery/presentation/bloc/boost_cubit.dart test/auth_state_reset_policy_test.dart test/state_async_emission_guards_test.dart test/weekly_picks_cubit_test.dart test/social_cubits_test.dart test/profile_insights_cubit_test.dart test/boost_cubit_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STATE_MANAGEMENT.md` with `STMG-005` (router composition lifecycle create/dispose regression coverage).
+
+### T-2026-03-08-STATE-MANAGEMENT-STMG005-ROUTER-LIFECYCLE-REGRESSIONS
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STMG-005` by adding deterministic lifecycle regression coverage for router creation/disposal paths and router refresh listener behavior.
+- Scope: `/Users/ace/my_first_project/lib/core/router_refresh_stream.dart`, `/Users/ace/my_first_project/test/router_refresh_stream_test.dart`, `/Users/ace/my_first_project/test/router_create_router_test.dart`, `/Users/ace/my_first_project/docs/TODO_STATE_MANAGEMENT.md`, and workflow docs.
+- Key Changes:
+  - Hardened `GoRouterRefreshStream` lifecycle behavior:
+    - ignore late notifications after disposal
+    - guard repeated disposal paths safely
+  - Expanded router lifecycle tests:
+    - `test/router_refresh_stream_test.dart` now verifies post-dispose silence and dispose idempotency semantics
+    - `test/router_create_router_test.dart` now verifies:
+      - use-after-dispose contract (`router.go` throws after `dispose`)
+      - chat deep-link async completion after unmount does not surface lifecycle exceptions
+  - Marked `STMG-005` complete in `docs/TODO_STATE_MANAGEMENT.md`.
+- Decisions/Handoffs:
+  - Kept changes incremental and test-focused to avoid broad router architecture churn.
+  - Preserved existing route behavior while hardening lifecycle contracts around disposal and async completion.
+- Risks/Mitigation:
+  - Low risk; additive lifecycle safeguards with deterministic regression tests.
+- Verification:
+  - `dart format lib/core/router_refresh_stream.dart test/router_refresh_stream_test.dart test/router_create_router_test.dart` (pass)
+  - `flutter analyze lib/core/router_refresh_stream.dart test/router_refresh_stream_test.dart test/router_create_router_test.dart` (pass)
+  - `flutter test test/router_refresh_stream_test.dart` (pass)
+  - `flutter test test/router_create_router_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STATE_MANAGEMENT.md lib/core/router_refresh_stream.dart test/router_refresh_stream_test.dart test/router_create_router_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: State management TODO module is complete in current scope; move to next user-prioritized backlog module.
+
+### T-2026-03-08-REFACTOR-PROFILE-REFPROF001-FORM-MODEL-EXTRACTION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFPROF-001` by extracting profile edit form validation and profile transform logic from widget code into a dedicated form model.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_edit_screen.dart`, `/Users/ace/my_first_project/lib/features/profile/presentation/models/profile_edit_form_model.dart`, `/Users/ace/my_first_project/test/features/profile/presentation/models/profile_edit_form_model_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_PROFILE.md`, and workflow docs.
+- Key Changes:
+  - Added `lib/features/profile/presentation/models/profile_edit_form_model.dart`:
+    - `ProfileEditFormSnapshot` immutable form-state snapshot.
+    - Validation helpers for min-photo requirements and signed-in user checks.
+    - User-id fallback resolution helper (`state user` -> `state profile` -> `auth`).
+    - Profile builders for fallback profile and save payload transform (`buildFallbackProfile`, `buildUpdatedProfile`).
+  - Refactored `lib/features/profile/presentation/screens/profile_edit_screen.dart`:
+    - Added `_buildFormSnapshot()`.
+    - Replaced inline fallback profile construction with model helper call.
+    - Replaced inline save validation + `copyWith` transform logic with model helper calls.
+  - Added `test/features/profile/presentation/models/profile_edit_form_model_test.dart`:
+    - Validation rule tests (min photos, user-id requirement).
+    - Transform tests for fallback mapping, save-time trimming/default behavior, privacy/preference mapping, and change timestamp behavior.
+  - Marked `REFPROF-001` complete in `docs/TODO_REFACTOR_PROFILE.md`.
+- Decisions/Handoffs:
+  - Kept save/upload flow and UI behavior intact; extraction was limited to form model + screen delegation for low-risk refactor.
+- Risks/Mitigation:
+  - Low risk; save mapping now has targeted unit coverage and screen behavior remains unchanged at integration boundaries.
+- Verification:
+  - `dart format lib/features/profile/presentation/models/profile_edit_form_model.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/features/profile/presentation/models/profile_edit_form_model_test.dart` (pass)
+  - `flutter analyze lib/features/profile/presentation/models/profile_edit_form_model.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/features/profile/presentation/models/profile_edit_form_model_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/models/profile_edit_form_model_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_PROFILE.md lib/features/profile/presentation/models/profile_edit_form_model.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/features/profile/presentation/models/profile_edit_form_model_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_PROFILE.md` with `REFPROF-002` (media service API simplification and explicit result types).
+
+### T-2026-03-08-REFACTOR-PROFILE-REFPROF002-MEDIA-API-SIMPLIFICATION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFPROF-002` by simplifying profile media APIs with explicit result types and consistent upload/delete/migration error handling.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/domain/repositories/profile_media_repository.dart`, `/Users/ace/my_first_project/lib/features/profile/data/services/profile_media_service.dart`, `/Users/ace/my_first_project/lib/features/profile/presentation/screens/{profile_setup_screen.dart,profile_edit_screen.dart}`, `/Users/ace/my_first_project/test/profile_media_service_test.dart`, `/Users/ace/my_first_project/test/profile_media_service_hotspot_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_PROFILE.md`, and workflow docs.
+- Key Changes:
+  - Added explicit media result/error contracts in `profile_media_repository.dart`:
+    - `ProfileMediaUploadResult`
+    - `ProfileMediaDeleteResult`
+    - `ProfileMediaEnsureResult`
+    - `ProfileMediaError` with typed error/issue enums.
+  - Refactored `ProfileMediaService` methods to the typed API:
+    - `uploadPhoto` / `uploadVideo` now return typed success/failure/fallback outcomes (no throw-based contract).
+    - `deleteMedia` now returns typed deleted/skipped/failure outcomes.
+    - `ensureRemoteUrls` now returns normalized URLs plus typed migration issues (missing local file, upload failure, fallback-recovered upload).
+  - Updated profile flows to consume explicit ensure results directly:
+    - `profile_setup_screen.dart`: removed `Result.guard` wrapper and added explicit empty-photo guard after migration.
+    - `profile_edit_screen.dart`: removed `Result.guard` wrapper and retained minimum-photo validation against typed migration output.
+  - Updated media service test suites for typed branch behavior:
+    - `test/profile_media_service_test.dart`
+    - `test/profile_media_service_hotspot_test.dart`
+  - Marked `REFPROF-002` complete in `docs/TODO_REFACTOR_PROFILE.md`.
+- Decisions/Handoffs:
+  - Preserved existing debug local-path fallback behavior, but now surfaced as explicit typed fallback results instead of ambiguous string/throw paths.
+- Risks/Mitigation:
+  - Low risk; API behavior now explicit and covered by focused tests for upload/delete/ensure branch matrices.
+- Verification:
+  - `dart format lib/features/profile/domain/repositories/profile_media_repository.dart lib/features/profile/data/services/profile_media_service.dart lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/profile_media_service_test.dart test/profile_media_service_hotspot_test.dart` (pass)
+  - `flutter analyze lib/features/profile/domain/repositories/profile_media_repository.dart lib/features/profile/data/services/profile_media_service.dart lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/profile_media_service_test.dart test/profile_media_service_hotspot_test.dart` (pass)
+  - `flutter test test/profile_media_service_test.dart test/profile_media_service_hotspot_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_PROFILE.md lib/features/profile/domain/repositories/profile_media_repository.dart lib/features/profile/data/services/profile_media_service.dart lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/profile/presentation/screens/profile_edit_screen.dart test/profile_media_service_test.dart test/profile_media_service_hotspot_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_PROFILE.md` with `REFPROF-003` (prompt/profile data migration cleanup and deprecated prompt usage removal).
+
+### T-2026-03-08-REFACTOR-PROFILE-REFPROF003-PROMPT-MIGRATION-CLEANUP
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFPROF-003` by finishing prompt/profile migration cleanup and removing deprecated prompt access from active profile flows.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/firebase_profile_repository.dart`, `/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/stub_auth_repository.dart`, `/Users/ace/my_first_project/lib/features/profile/data/repositories/impl/stub_profile_repository.dart`, `/Users/ace/my_first_project/lib/features/profile/domain/repositories/profile_repository.dart`, `/Users/ace/my_first_project/lib/features/profile/domain/usecases/save_profile_details.dart`, mapper/util/test updates, `/Users/ace/my_first_project/docs/TODO_REFACTOR_PROFILE.md`, and workflow docs.
+- Key Changes:
+  - Removed deprecated `prompts` save parameter from profile repository contracts and use-case params:
+    - `lib/features/profile/domain/repositories/profile_repository.dart`
+    - `lib/features/profile/domain/usecases/save_profile_details.dart`
+    - matching impl updates in `http_profile_repository.dart`, `stub_profile_repository.dart`, and `firebase_profile_repository.dart`.
+  - Added reusable prompt migration utility:
+    - `lib/features/profile/data/repositories/impl/profile_prompt_migration.dart`
+    - helpers parse legacy prompt-answer payloads, parse structured profile prompts, and convert legacy/structured representations.
+  - Refactored Firebase/stub profile hydration to migrate legacy `prompts` into `profilePrompts` and removed active deprecated prompt write-through:
+    - `firebase_profile_repository.dart`
+    - `stub_auth_repository.dart`
+    - `stub_profile_repository.dart`
+  - Removed deprecated prompt fallback usage from active completeness path:
+    - `lib/shared/utils/profile_completeness.dart`
+  - Removed deprecated prompt placeholder mapping from network mappers:
+    - `lib/core/network/mappers/profile_mapper.dart`
+    - `lib/core/network/mappers/discovery_mapper.dart`
+  - Updated affected fakes/tests for repository signature changes:
+    - `lib/data/repositories/fake_repositories.dart`
+    - `test/profile_bloc_test.dart`
+    - `test/deck_gating_test.dart`
+    - `test/theme_cubit_test.dart`
+  - Added/updated migration-focused test coverage:
+    - `test/features/profile/data/repositories/impl/profile_prompt_migration_test.dart` (new)
+    - `test/profile_completeness_test.dart`
+    - `test/stub_auth_repository_hotspot_test.dart`
+  - Marked `REFPROF-003` complete in `docs/TODO_REFACTOR_PROFILE.md`.
+- Decisions/Handoffs:
+  - Kept deprecated `prompts` fields in shared DTO/domain models unchanged in this pass for backward compatibility, while removing deprecated prompt access from active profile flow logic.
+- Risks/Mitigation:
+  - Low risk; legacy prompt data remains readable through migration fallback and new helper tests cover normalization behavior.
+- Verification:
+  - `flutter test test/features/profile/data/repositories/impl/profile_prompt_migration_test.dart` (pass)
+  - `flutter test test/profile_completeness_test.dart test/stub_auth_repository_hotspot_test.dart` (pass)
+  - `flutter test test/profile_bloc_test.dart test/deck_gating_test.dart test/theme_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_PROFILE.md lib/features/profile/data/repositories/impl/profile_prompt_migration.dart lib/features/profile/data/repositories/impl/firebase_profile_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart lib/features/profile/data/repositories/impl/stub_profile_repository.dart lib/features/profile/data/repositories/impl/http_profile_repository.dart lib/features/profile/domain/repositories/profile_repository.dart lib/features/profile/domain/usecases/save_profile_details.dart lib/shared/utils/profile_completeness.dart lib/core/network/mappers/profile_mapper.dart lib/core/network/mappers/discovery_mapper.dart lib/data/repositories/fake_repositories.dart test/features/profile/data/repositories/impl/profile_prompt_migration_test.dart test/profile_completeness_test.dart test/stub_auth_repository_hotspot_test.dart test/profile_bloc_test.dart test/deck_gating_test.dart test/theme_cubit_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_PROFILE.md` with the next queued refactor item.
+
+### T-2026-03-08-REFACTOR-AUTH-REFAUTH001-AUTH-FLOW-ORCHESTRATION-SPLIT
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFAUTH-001` by separating auth/session mutation orchestration from auth UI flows into testable domain use cases.
+- Scope: `/Users/ace/my_first_project/lib/features/auth/domain/usecases/*`, `/Users/ace/my_first_project/lib/features/auth/presentation/bloc/auth_bloc.dart`, auth entry screens, `/Users/ace/my_first_project/test/features/auth/domain/usecases/auth_flow_use_cases_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_AUTH.md`, and workflow docs.
+- Key Changes:
+  - Added new domain facade:
+    - `lib/features/auth/domain/usecases/auth_flow_use_cases.dart`
+    - centralizes auth/session mutation operations (bootstrap, login/social sign-in, sign-up, verification actions, terms acceptance, refresh, sign-out) with normalized input handling and explicit `Result` contracts.
+  - Exported new facade in:
+    - `lib/features/auth/domain/usecases/auth_use_cases.dart`
+  - Refactored `AuthBloc` orchestration:
+    - `lib/features/auth/presentation/bloc/auth_bloc.dart`
+    - replaced direct repository mutation calls with `AuthFlowUseCases` calls while preserving existing state transitions/analytics behavior.
+  - Refactored auth entry screens to remove direct token/session mutation repository calls:
+    - `lib/features/auth/presentation/screens/auth_gateway_screen.dart`
+    - `lib/features/auth/presentation/screens/login_screen.dart`
+    - `lib/features/auth/presentation/screens/sign_up_screen.dart`
+    - `lib/features/auth/presentation/screens/email_verification_screen.dart`
+    - `lib/features/auth/presentation/screens/terms_conditions_screen.dart`
+  - Added focused use-case coverage:
+    - `test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (new)
+    - covers identifier/email normalization and unsupported social sign-in failure path.
+  - Marked `REFAUTH-001` complete in `docs/TODO_REFACTOR_AUTH.md`.
+- Decisions/Handoffs:
+  - Kept this pass focused on auth entry/token/session mutation paths and avoided high-risk contract rewrites for account-maintenance flows.
+  - Reused existing `Result` error-handling pattern to keep behavior predictable while moving orchestration into domain-level use cases.
+- Risks/Mitigation:
+  - Low risk; changes are mostly orchestration-layer refactors with targeted facade tests and existing auth bloc regression coverage.
+- Verification:
+  - `dart format lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/domain/usecases/auth_use_cases.dart lib/features/auth/presentation/bloc/auth_bloc.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (pass)
+  - `flutter analyze lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/domain/usecases/auth_use_cases.dart lib/features/auth/presentation/bloc/auth_bloc.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (pass)
+  - `flutter test test/features/auth/domain/usecases/auth_flow_use_cases_test.dart test/auth_bloc_test.dart test/onboarding_google_button_layout_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_AUTH.md lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/domain/usecases/auth_use_cases.dart lib/features/auth/presentation/bloc/auth_bloc.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/sign_up_screen.dart lib/features/auth/presentation/screens/terms_conditions_screen.dart lib/features/auth/presentation/screens/email_verification_screen.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_AUTH.md` with `REFAUTH-002` (unified typed auth failure mapping).
+
+### T-2026-03-08-REFACTOR-AUTH-REFAUTH002-UNIFIED-ERROR-MAPPING
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFAUTH-002` by replacing ad hoc auth exceptions with a single typed auth failure hierarchy and consistent presentation-facing error mapping.
+- Scope: `/Users/ace/my_first_project/lib/core/errors/auth_failures.dart`, `/Users/ace/my_first_project/lib/features/auth/domain/usecases/auth_flow_use_cases.dart`, auth repository result wrappers, auth failure tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_AUTH.md`, and workflow docs.
+- Key Changes:
+  - Added canonical auth failure hierarchy:
+    - `lib/core/errors/auth_failures.dart` (new)
+    - includes `AuthFailureType`, `AuthFailure`, and `AuthFailureMapper`.
+    - normalizes backend/repository exception patterns into stable auth failure codes/messages.
+  - Updated auth flow use-case facade to map all auth operation failures through the shared hierarchy:
+    - `lib/features/auth/domain/usecases/auth_flow_use_cases.dart`
+    - auth operations now return consistent `Result.errorCode` values and normalized messages.
+  - Updated auth data-layer result wrappers to emit typed mapped failures:
+    - `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart`
+    - `lib/features/auth/data/repositories/impl/http_auth_repository.dart`
+    - `lib/features/auth/data/repositories/impl/stub_auth_repository.dart`
+  - Added/updated tests:
+    - `test/core/errors/auth_failures_test.dart` (new) for mapper classification + user message selection.
+    - `test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` updated to verify normalized auth failure code output.
+  - Marked `REFAUTH-002` completed in `docs/TODO_REFACTOR_AUTH.md`.
+- Decisions/Handoffs:
+  - Chose incremental normalization by mapping at use-case and data `Result` wrapper boundaries, minimizing risk of broad behavioral drift in existing auth repository internals.
+- Risks/Mitigation:
+  - Low risk; mapping layer is additive and covered by focused unit tests plus existing auth bloc regression tests.
+- Verification:
+  - `dart format lib/core/errors/auth_failures.dart lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart test/core/errors/auth_failures_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (pass)
+  - `flutter analyze lib/core/errors/auth_failures.dart lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart test/core/errors/auth_failures_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart` (pass)
+  - `flutter test test/core/errors/auth_failures_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart test/auth_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_AUTH.md lib/core/errors/auth_failures.dart lib/features/auth/domain/usecases/auth_flow_use_cases.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart test/core/errors/auth_failures_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_AUTH.md` with `REFAUTH-003` (session bootstrap isolation).
+
+### T-2026-03-08-REFACTOR-AUTH-REFAUTH003-SESSION-BOOTSTRAP-ISOLATION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFAUTH-003` by extracting startup session restore/bootstrap orchestration into an isolated reusable service.
+- Scope: `/Users/ace/my_first_project/lib/core/session/session_bootstrap_service.dart`, `/Users/ace/my_first_project/lib/features/auth/presentation/bloc/{auth_bloc.dart,session_bloc.dart}`, `/Users/ace/my_first_project/test/core/session/session_bootstrap_service_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_AUTH.md`, and workflow docs.
+- Key Changes:
+  - Added new bootstrap orchestration service:
+    - `lib/core/session/session_bootstrap_service.dart`
+    - handles existing subscription cancellation, stream subscription wiring, bootstrap execution, and failure cleanup.
+  - Refactored startup paths to use the shared service:
+    - `lib/features/auth/presentation/bloc/auth_bloc.dart`
+    - `lib/features/auth/presentation/bloc/session_bloc.dart`
+  - Added focused bootstrap service regression tests:
+    - `test/core/session/session_bootstrap_service_test.dart` (new)
+  - Marked `REFAUTH-003` complete in `docs/TODO_REFACTOR_AUTH.md`.
+- Decisions/Handoffs:
+  - Kept refactor incremental by isolating only bootstrap/startup wiring; retained existing post-bootstrap state transitions and session-manager responsibilities.
+- Risks/Mitigation:
+  - Low risk; startup behavior is covered by existing auth/session bloc tests plus dedicated bootstrap lifecycle tests.
+- Verification:
+  - `flutter test test/core/session/session_bootstrap_service_test.dart test/auth_bloc_test.dart test/session_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_AUTH.md lib/core/session/session_bootstrap_service.dart lib/features/auth/presentation/bloc/auth_bloc.dart lib/features/auth/presentation/bloc/session_bloc.dart test/core/session/session_bootstrap_service_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_AUTH.md` with the next queued refactor item when added.
+
+### T-2026-03-08-REFACTOR-CHAT-REFCHAT001-CHAT-SCREEN-REDUCTION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFCHAT-001` by further splitting `chat_screen.dart` into composable, testable presentation components.
+- Scope: `/Users/ace/my_first_project/lib/features/chat/presentation/screens/chat_screen.dart`, extracted widgets under `/Users/ace/my_first_project/lib/features/chat/presentation/widgets/`, focused widget tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_CHAT.md`, and workflow docs.
+- Key Changes:
+  - Added extracted report sheet module:
+    - `lib/features/chat/presentation/widgets/chat_report_sheet.dart`
+    - moved report reason enum/mapping + `ChatReportSheetContent`.
+  - Added extracted match settings sheet module:
+    - `lib/features/chat/presentation/widgets/chat_match_settings_sheet.dart`
+    - moved large bottom-sheet UI and kept cubit-driven behavior.
+  - Updated chat widget barrel exports:
+    - `lib/features/chat/presentation/widgets/chat_widgets.dart`
+  - Refactored chat screen to orchestration role:
+    - `lib/features/chat/presentation/screens/chat_screen.dart`
+    - delegates report/settings sheet rendering to extracted widgets.
+  - Added widget coverage for extracted settings sheet:
+    - `test/features/chat/presentation/widgets/chat_match_settings_sheet_test.dart` (new)
+  - Marked `REFCHAT-001` complete in `docs/TODO_REFACTOR_CHAT.md`.
+- Decisions/Handoffs:
+  - Preserved report reason code compatibility by re-exporting report-sheet symbols through `chat_screen.dart`, avoiding downstream test/import churn.
+- Risks/Mitigation:
+  - Low risk; extraction is UI-only and validated with targeted widget/security localization tests.
+- Verification:
+  - `flutter analyze lib/features/chat/presentation/screens/chat_screen.dart lib/features/chat/presentation/widgets/chat_report_sheet.dart lib/features/chat/presentation/widgets/chat_match_settings_sheet.dart lib/features/chat/presentation/widgets/chat_widgets.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart test/features/security/security_localization_regression_test.dart test/features/chat/presentation/widgets/chat_match_settings_sheet_test.dart` (pass)
+  - `flutter test test/features/chat/presentation/widgets/chat_match_settings_sheet_test.dart test/features/chat/presentation/screens/chat_report_sheet_localization_test.dart test/features/chat/presentation/screens/chat_screen_responsive_test.dart test/features/security/security_localization_regression_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_CHAT.md lib/features/chat/presentation/screens/chat_screen.dart lib/features/chat/presentation/widgets/chat_report_sheet.dart lib/features/chat/presentation/widgets/chat_match_settings_sheet.dart lib/features/chat/presentation/widgets/chat_widgets.dart test/features/chat/presentation/widgets/chat_match_settings_sheet_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_CHAT.md` with `REFCHAT-002` (Bloc subscription refactor).
+
+### T-2026-03-08-REFACTOR-CHAT-REFCHAT002-BLOC-SUBSCRIPTION-REFACTOR
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFCHAT-002` by centralizing `ChatBloc` subscription registration/cancellation and isolating realtime/auth side effects.
+- Scope: `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/chat_bloc.dart`, `/Users/ace/my_first_project/lib/features/chat/presentation/bloc/chat_event.dart`, `/Users/ace/my_first_project/test/chat_bloc_test.dart`, `/Users/ace/my_first_project/test/chat_event_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_CHAT.md`, and workflow docs.
+- Key Changes:
+  - Refactored `ChatBloc` subscription management:
+    - replaced scattered stream fields with keyed managed subscription registry.
+    - added centralized helpers for subscription setup/cancel/cancel-all/realtime-cancel paths.
+    - reused shared lifecycle helpers in `ChatOpened`, `ChatClosed`, `ChatResetRequested`, and `close()`.
+  - Isolated side-effect callbacks:
+    - auth logout reset callback
+    - sub-bloc change notification callback
+    - realtime watcher registration callback
+  - Updated sub-bloc change event to preserve intermediate state snapshots:
+    - `ChatSubBlocChanged` now carries `aggregatedState`.
+  - Added lifecycle coverage in chat bloc tests:
+    - reopen replaces watchers without leaks
+    - close cancels active watchers
+    - logout/reset cancels watchers
+  - Marked `REFCHAT-002` complete in `docs/TODO_REFACTOR_CHAT.md`.
+- Decisions/Handoffs:
+  - Preserved existing `ChatEvent`/`ChatState` facade API while changing only internal orchestration to keep screen-level compatibility stable.
+- Risks/Mitigation:
+  - Low risk; focused internal refactor with targeted lifecycle and regression tests across open/close/unmatch/logout paths.
+- Verification:
+  - `flutter analyze lib/features/chat/presentation/bloc/chat_bloc.dart lib/features/chat/presentation/bloc/chat_event.dart test/chat_bloc_test.dart test/chat_event_test.dart` (pass)
+  - `flutter test test/chat_bloc_test.dart test/chat_bloc_media_limit_test.dart test/chat_event_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_CHAT.md lib/features/chat/presentation/bloc/chat_bloc.dart lib/features/chat/presentation/bloc/chat_event.dart test/chat_bloc_test.dart test/chat_event_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_CHAT.md` with `REFCHAT-003` (transport adapter interface).
+
+### T-2026-03-08-REFACTOR-CHAT-REFCHAT003-TRANSPORT-ADAPTER-INTERFACE
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFCHAT-003` by hiding concrete chat transport details behind a domain adapter interface for swapability and testability.
+- Scope: `/Users/ace/my_first_project/lib/features/chat/domain/repositories/chat_transport_adapter.dart`, `/Users/ace/my_first_project/lib/features/chat/data/repositories/impl/http_chat_transport_adapter.dart`, `/Users/ace/my_first_project/lib/features/chat/data/repositories/impl/http_chat_repository.dart`, transport adapter tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_CHAT.md`, architecture docs, and workflow docs.
+- Key Changes:
+  - Added new domain transport abstraction:
+    - `lib/features/chat/domain/repositories/chat_transport_adapter.dart`
+    - defines request/upload/realtime interfaces used by chat repository implementations.
+  - Added default HTTP/WebSocket adapter implementation:
+    - `lib/features/chat/data/repositories/impl/http_chat_transport_adapter.dart`
+  - Refactored HTTP chat repository to adapter-based transport wiring:
+    - `lib/features/chat/data/repositories/impl/http_chat_repository.dart`
+    - supports transport adapter injection while preserving backward-compatible constructor behavior.
+  - Added fake-transport coverage:
+    - `test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` (new)
+  - Preserved and re-validated realtime polling fallback behavior:
+    - `test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart`
+  - Marked `REFCHAT-003` complete in `docs/TODO_REFACTOR_CHAT.md`.
+  - Updated architecture docs for adapter-layer change:
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Kept refactor focused on HTTP chat path to avoid high-risk churn across Firebase/stub repositories while still establishing a reusable transport abstraction contract.
+- Risks/Mitigation:
+  - Low risk; external `ChatRepository` contract remains stable and adapter behavior is covered by targeted fake-transport + realtime regression tests.
+- Verification:
+  - `flutter analyze lib/features/chat/domain/repositories/chat_transport_adapter.dart lib/features/chat/data/repositories/impl/http_chat_transport_adapter.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart lib/core/di.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` (pass)
+  - `flutter test test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_CHAT.md lib/features/chat/domain/repositories/chat_transport_adapter.dart lib/features/chat/data/repositories/impl/http_chat_transport_adapter.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Chat refactor TODO is complete; continue with the next queued refactor module.
+
+### T-2026-03-08-REFACTOR-DISCOVERY-REFDISC001-DECK-SCREEN-DECOMPOSITION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFDISC-001` by decomposing discovery `DeckScreen` into focused presentation widgets and leaving the screen in an orchestration role.
+- Scope: `/Users/ace/my_first_project/lib/features/discovery/presentation/screens/deck_screen.dart`, extracted widgets under `/Users/ace/my_first_project/lib/features/discovery/presentation/widgets/`, focused widget tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_DISCOVERY.md`, and workflow docs.
+- Key Changes:
+  - Added extracted discovery app bar widget:
+    - `lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart`
+    - contains boost/weekly picks actions, explore toggle, and refresh action wiring.
+  - Added extracted error-state view:
+    - `lib/features/discovery/presentation/widgets/deck_error_state_view.dart`
+    - keeps location-aware retry messaging and plus-upsell branch behind callback hooks.
+  - Added extracted empty/out-of-people view:
+    - `lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart`
+    - keeps deck-exhaustion/passport copy, filter shortcut, and refresh/passport actions.
+  - Refactored discovery deck screen into orchestration role:
+    - `lib/features/discovery/presentation/screens/deck_screen.dart`
+    - removed large inline app-bar/error/empty builders and delegates to extracted widgets with callbacks.
+  - Added focused widget coverage for extracted state views:
+    - `test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart` (new)
+  - Marked `REFDISC-001` complete in `docs/TODO_REFACTOR_DISCOVERY.md`.
+- Decisions/Handoffs:
+  - Kept refactor UI-only and callback-based to avoid high-risk changes in discovery bloc/state contracts while still reducing `DeckScreen` size.
+- Risks/Mitigation:
+  - Low risk; behavior preserved through callback routing and validated with targeted widget tests plus existing `deck_gating_test` regression.
+- Verification:
+  - `flutter analyze lib/features/discovery/presentation/screens/deck_screen.dart lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart lib/features/discovery/presentation/widgets/deck_error_state_view.dart lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart` (pass)
+  - `flutter test test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart` (pass)
+  - `flutter test test/deck_gating_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_DISCOVERY.md lib/features/discovery/presentation/screens/deck_screen.dart lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart lib/features/discovery/presentation/widgets/deck_error_state_view.dart lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart test/features/discovery/presentation/widgets/deck_screen_state_views_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_DISCOVERY.md` with `REFDISC-002` (Service Abstraction Boundaries).
+
+### T-2026-03-08-REFACTOR-DISCOVERY-REFDISC002-SERVICE-ABSTRACTION-BOUNDARIES
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFDISC-002` by enforcing clean discovery repository boundaries so domain/presentation contracts no longer depend on discovery data-service files.
+- Scope: `/Users/ace/my_first_project/lib/features/discovery/domain/repositories/*`, `/Users/ace/my_first_project/lib/features/discovery/data/services/*`, affected test imports/stubs, `/Users/ace/my_first_project/docs/TODO_REFACTOR_DISCOVERY.md`, architecture docs, and workflow docs.
+- Key Changes:
+  - Moved story update event contract to domain layer:
+    - `lib/features/discovery/domain/repositories/story_repository.dart`
+    - now defines `StoryUpdateType` + `StoryUpdate` used by `StoryRepository`.
+  - Removed domain dependency on discovery data service:
+    - `story_repository.dart` no longer imports `data/services/story_service.dart`.
+  - Updated discovery story service to use domain event contract:
+    - `lib/features/discovery/data/services/story_service.dart`
+    - removed local duplicate event definitions.
+  - Removed domain dependency on discovery data-model path in weekly picks interface:
+    - `lib/features/discovery/domain/repositories/weekly_picks_repository.dart`
+    - now imports `domain/models/weekly_picks.dart` directly.
+  - Updated weekly picks service import boundary:
+    - `lib/features/discovery/data/services/weekly_picks_service.dart`
+    - now uses domain model import.
+  - Updated affected tests to consume domain contract symbols instead of data-service imports:
+    - `test/story_service_test.dart`
+    - `test/swipe_card_test.dart`
+    - `test/deck_gating_test.dart`
+    - `test/router_create_router_test.dart`
+  - Marked `REFDISC-002` complete in `docs/TODO_REFACTOR_DISCOVERY.md`.
+  - Added architecture notes for boundary update:
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Kept refactor incremental by moving only type ownership/import boundaries; preserved behavior and API shapes for screens/blocs/services.
+- Risks/Mitigation:
+  - Low risk; compile-time imports now enforce cleaner domain/data separation and behavior is covered by discovery service/widget tests.
+- Verification:
+  - `flutter analyze lib/features/discovery/domain/repositories/story_repository.dart lib/features/discovery/domain/repositories/weekly_picks_repository.dart lib/features/discovery/data/services/story_service.dart lib/features/discovery/data/services/weekly_picks_service.dart test/story_service_test.dart test/swipe_card_test.dart test/deck_gating_test.dart test/router_create_router_test.dart` (pass)
+  - `flutter test test/story_service_test.dart test/swipe_card_test.dart test/deck_gating_test.dart` (pass)
+  - `flutter test test/weekly_picks_cubit_test.dart test/discovery_settings_cubit_test.dart` (pass)
+  - `if rg --line-number "features/discovery/data/services" lib/features/discovery/presentation lib/features/settings/presentation lib/features/chat/presentation -g "*.dart"; then ...; else ...; fi` (pass: no discovery data-service imports in presentation)
+  - `flutter test test/discovery_bloc_test.dart test/weekly_picks_cubit_test.dart test/discovery_settings_cubit_test.dart` (partial fail: existing discovery bloc test instability/timeout in this workspace; weekly picks + discovery settings pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_DISCOVERY.md lib/features/discovery/domain/repositories/story_repository.dart lib/features/discovery/domain/repositories/weekly_picks_repository.dart lib/features/discovery/data/services/story_service.dart lib/features/discovery/data/services/weekly_picks_service.dart test/story_service_test.dart test/swipe_card_test.dart test/deck_gating_test.dart test/router_create_router_test.dart docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_DISCOVERY.md` with `REFDISC-003` (Matching Decision Engine Isolation).
+
+### T-2026-03-08-REFACTOR-DISCOVERY-REFDISC003-MATCHING-DECISION-ENGINE-ISOLATION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFDISC-003` by isolating discovery match/filter decision logic into pure domain utilities with deterministic tests.
+- Scope: `/Users/ace/my_first_project/lib/features/discovery/domain/usecases/{matching_decision_engine.dart,discovery_use_cases.dart}`, `/Users/ace/my_first_project/lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart`, `/Users/ace/my_first_project/lib/data/repositories/fake_repositories.dart`, `/Users/ace/my_first_project/test/features/discovery/domain/usecases/matching_decision_engine_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_DISCOVERY.md`, architecture/workflow docs.
+- Key Changes:
+  - Centralized discovery decision logic in domain:
+    - `lib/features/discovery/domain/usecases/matching_decision_engine.dart`
+    - provides pure helpers for distance/passport filtering, haversine math, preference gating, deterministic top-picks ranking, and compatibility scoring.
+  - Exported discovery decision engine from use-case barrel:
+    - `lib/features/discovery/domain/usecases/discovery_use_cases.dart`
+  - Refactored stub discovery repository to consume domain decision engine:
+    - `lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart`
+    - removed repository-local distance math helpers and inline filter logic.
+  - Refactored fake discovery top-picks logic to consume domain ranking engine:
+    - `lib/data/repositories/fake_repositories.dart`
+    - removed inline preference/score/sort functions from `fetchTopPicks`.
+  - Added deterministic pure-function regression suite:
+    - `test/features/discovery/domain/usecases/matching_decision_engine_test.dart` (new)
+    - covers distance/passport/missing-location edge cases plus ranking determinism and limit behavior.
+  - Marked `REFDISC-003` complete in `docs/TODO_REFACTOR_DISCOVERY.md`.
+  - Updated architecture notes:
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Kept the change incremental by extracting only decision logic while preserving existing repository APIs and call sites.
+  - Added deterministic tie-breaking by profile ID for equal top-pick scores to avoid order instability.
+- Risks/Mitigation:
+  - Low risk; extraction is behavior-preserving and covered by pure-function tests plus stub repository integration tests.
+- Verification:
+  - `dart format lib/features/discovery/domain/usecases/discovery_use_cases.dart lib/features/discovery/domain/usecases/matching_decision_engine.dart lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart lib/data/repositories/fake_repositories.dart test/features/discovery/domain/usecases/matching_decision_engine_test.dart` (pass)
+  - `flutter analyze lib/features/discovery/domain/usecases/discovery_use_cases.dart lib/features/discovery/domain/usecases/matching_decision_engine.dart lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart lib/data/repositories/fake_repositories.dart test/features/discovery/domain/usecases/matching_decision_engine_test.dart` (pass)
+  - `flutter test test/features/discovery/domain/usecases/matching_decision_engine_test.dart test/deck_gating_test.dart` (pass)
+  - `flutter test test/repository_integration_test.dart --plain-name "StubDiscoveryRepository Integration Tests"` (pass; one known skipped flaky test remains skipped)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_DISCOVERY.md lib/features/discovery/domain/usecases/discovery_use_cases.dart lib/features/discovery/domain/usecases/matching_decision_engine.dart lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart lib/data/repositories/fake_repositories.dart test/features/discovery/domain/usecases/matching_decision_engine_test.dart docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Discovery refactor TODO is complete in current scope; proceed to the next queued refactor module.
+
+### T-2026-03-08-REFACTOR-SETTINGS-REFSET001-SETTINGS-SCREEN-SECTION-MODULARIZATION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFSET-001` by modularizing oversized settings screen sections into reusable presentation widgets with isolated coverage.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/settings_screen.dart`, section widgets under `/Users/ace/my_first_project/lib/features/settings/presentation/widgets/`, section widget tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_SETTINGS.md`, and workflow docs.
+- Key Changes:
+  - Refactored settings screen into composition role:
+    - `lib/features/settings/presentation/screens/settings_screen.dart`
+    - delegates major sections to extracted widgets while retaining incognito-sheet orchestration and shared label helpers.
+  - Added reusable settings tile primitive:
+    - `lib/features/settings/presentation/widgets/settings_tile.dart`
+  - Extracted core settings navigation section:
+    - `lib/features/settings/presentation/widgets/settings_core_navigation_section.dart`
+    - contains appearance/notifications/language/discovery/storage/account/privacy/chat/call/subscription/incognito/account-actions navigation rows.
+  - Extracted subscription card section:
+    - `lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart`
+    - contains subscription status display + upgrade/manage/restore/promo actions.
+  - Extracted support actions section:
+    - `lib/features/settings/presentation/widgets/settings_support_section.dart`
+  - Added reusable heading+links section for legal/about:
+    - `lib/features/settings/presentation/widgets/settings_links_section.dart`
+  - Added settings widget barrel export:
+    - `lib/features/settings/presentation/widgets/settings_widgets.dart`
+  - Added section-level widget regression coverage:
+    - `test/features/settings/presentation/widgets/settings_sections_test.dart` (new)
+  - Marked `REFSET-001` complete in `docs/TODO_REFACTOR_SETTINGS.md`.
+- Decisions/Handoffs:
+  - Kept the refactor UI-structural only (no settings state contract changes) to minimize risk and preserve route/action behavior.
+  - Extracted sections around existing blocs/cubits to avoid introducing new orchestration layers mid-refactor.
+- Risks/Mitigation:
+  - Low risk; behavior preserved with direct route/event wiring and new section-level widget tests.
+- Verification:
+  - `dart format lib/features/settings/presentation/screens/settings_screen.dart lib/features/settings/presentation/widgets/settings_widgets.dart lib/features/settings/presentation/widgets/settings_tile.dart lib/features/settings/presentation/widgets/settings_core_navigation_section.dart lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart lib/features/settings/presentation/widgets/settings_support_section.dart lib/features/settings/presentation/widgets/settings_links_section.dart test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/settings_screen.dart lib/features/settings/presentation/widgets/settings_widgets.dart lib/features/settings/presentation/widgets/settings_tile.dart lib/features/settings/presentation/widgets/settings_core_navigation_section.dart lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart lib/features/settings/presentation/widgets/settings_support_section.dart lib/features/settings/presentation/widgets/settings_links_section.dart test/features/settings/presentation/widgets/settings_sections_test.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/widgets/settings_sections_test.dart test/features/settings/presentation/screens/settings_screen_language_label_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_SETTINGS.md lib/features/settings/presentation/screens/settings_screen.dart lib/features/settings/presentation/widgets/settings_widgets.dart lib/features/settings/presentation/widgets/settings_tile.dart lib/features/settings/presentation/widgets/settings_core_navigation_section.dart lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart lib/features/settings/presentation/widgets/settings_support_section.dart lib/features/settings/presentation/widgets/settings_links_section.dart test/features/settings/presentation/widgets/settings_sections_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_SETTINGS.md` with `REFSET-002` (Account Action Command Layer).
+
+### T-2026-03-08-REFACTOR-SETTINGS-REFSET002-ACCOUNT-ACTION-COMMAND-LAYER
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFSET-002` by moving destructive settings account actions behind a typed command/use-case layer.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/domain/commands/account_action_commands.dart`, `/Users/ace/my_first_project/lib/features/settings/data/commands/default_account_action_commands.dart`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/account_actions_settings_screen.dart`, `/Users/ace/my_first_project/test/features/settings/domain/commands/account_action_commands_test.dart`, `/Users/ace/my_first_project/docs/TODO_REFACTOR_SETTINGS.md`, architecture/workflow docs.
+- Key Changes:
+  - Added settings command contract + typed models:
+    - `lib/features/settings/domain/commands/account_action_commands.dart` (new)
+    - introduces `AccountActionCommands`, typed command results/failures, export outcome payloads, and optional cancel-delete capability interface.
+  - Added default command implementation:
+    - `lib/features/settings/data/commands/default_account_action_commands.dart` (new)
+    - centralizes account export/deactivate/delete/cancel-delete/share orchestration,
+    - enforces local export cooldown,
+    - maps auth/export failures to typed command failures,
+    - supports local export fallback when cloud export endpoint is unavailable.
+  - Refactored account actions screen to command-layer execution:
+    - `lib/features/settings/presentation/screens/account_actions_settings_screen.dart`
+    - export/deactivate/delete flows now invoke command methods instead of direct auth/export service calls.
+    - added typed failure-to-localized-message mapping helpers.
+  - Exported new settings command symbols:
+    - `lib/features/settings/settings.dart`
+  - Added command-level unit coverage:
+    - `test/features/settings/domain/commands/account_action_commands_test.dart` (new)
+    - covers delete success/failure mapping, export cooldown + fallback paths, and cancel-delete capability paths.
+  - Marked `REFSET-002` complete in `docs/TODO_REFACTOR_SETTINGS.md`.
+  - Added architecture notes for command boundary:
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Kept the refactor incremental by introducing a settings-scoped command abstraction without changing existing auth repository contracts.
+  - Added cancel-delete as optional capability to avoid forcing immediate backend contract changes while still exposing typed command support.
+- Risks/Mitigation:
+  - Low risk; screen behavior is preserved with typed error mapping, and command logic is validated via focused unit tests + existing account-actions localization screen test.
+- Verification:
+  - `dart format lib/features/settings/domain/commands/account_action_commands.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/features/settings/presentation/screens/account_actions_settings_screen.dart lib/features/settings/settings.dart test/features/settings/domain/commands/account_action_commands_test.dart` (pass)
+  - `flutter analyze lib/features/settings/domain/commands/account_action_commands.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/features/settings/presentation/screens/account_actions_settings_screen.dart lib/features/settings/settings.dart test/features/settings/domain/commands/account_action_commands_test.dart` (pass)
+  - `flutter test test/features/settings/domain/commands/account_action_commands_test.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_SETTINGS.md lib/features/settings/domain/commands/account_action_commands.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/features/settings/presentation/screens/account_actions_settings_screen.dart lib/features/settings/settings.dart test/features/settings/domain/commands/account_action_commands_test.dart docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_REFACTOR_SETTINGS.md` with `REFSET-003` (Preference Sync Abstraction).
+
+### T-2026-03-08-REFACTOR-SETTINGS-REFSET003-PREFERENCE-SYNC-ABSTRACTION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `REFSET-003` by centralizing notification preference synchronization across local cache and backend with explicit merge/conflict rules.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/data/preferences/*`, `/Users/ace/my_first_project/lib/features/settings/presentation/bloc/notification_settings_cubit.dart`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/notifications_settings_screen.dart`, `/Users/ace/my_first_project/lib/core/services/push_notification_service.dart`, `/Users/ace/my_first_project/lib/core/di.dart`, `/Users/ace/my_first_project/functions/src/index.ts`, new tests, `/Users/ace/my_first_project/docs/TODO_REFACTOR_SETTINGS.md`, architecture/workflow docs.
+- Key Changes:
+  - Added reusable preference sync primitives:
+    - `lib/features/settings/data/preferences/preference_sync_engine.dart` (new)
+    - provides generic timestamp-aware local/remote conflict resolution.
+  - Added notification preference sync abstraction:
+    - `lib/features/settings/data/preferences/notification_preference_sync_service.dart` (new)
+    - centralizes local snapshot reads, remote hydration merge, and local/remote persistence with sync timestamp metadata.
+  - Refactored notification settings state orchestration:
+    - `lib/features/settings/presentation/bloc/notification_settings_cubit.dart`
+    - now delegates persistence/hydration to sync service instead of owning local+remote write logic.
+  - Removed duplicated remote sync code from settings UI:
+    - `lib/features/settings/presentation/screens/notifications_settings_screen.dart`
+    - switch handlers now call cubit methods only.
+  - Extended push notification contract:
+    - `lib/core/services/push_notification_service.dart`
+    - added remote snapshot fetch, map-based update API, `notificationPrefsUpdatedAtMs`, and `quietHoursEnabled` payload support.
+  - Wired sync service in DI:
+    - `lib/core/di.dart`
+    - `NotificationSettingsCubit` now receives `NotificationPreferenceSyncService.withPushService(...)`.
+  - Exported new settings abstractions:
+    - `lib/features/settings/settings.dart`
+  - Updated backend notification preference normalization/quiet-hours contract:
+    - `functions/src/index.ts`
+    - added `normalizeNotificationPrefs` helper and `quietHoursEnabled` handling in suppression checks.
+  - Added regression coverage:
+    - `test/features/settings/data/preferences/preference_sync_engine_test.dart` (new)
+    - `test/features/settings/data/preferences/notification_preference_sync_service_test.dart` (new)
+    - `functions/test/notificationPrefsSyncContract.test.js` (new)
+  - Marked `REFSET-003` complete in `docs/TODO_REFACTOR_SETTINGS.md`.
+  - Updated architecture notes:
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Kept the refactor focused on notification preferences first to remove active duplication while introducing a reusable sync abstraction that can be applied to other settings domains.
+  - Preserved backward compatibility by retaining existing local preference keys and extending server payloads additively.
+- Risks/Mitigation:
+  - Medium (settings state + backend preference contract touchpoint): mitigated via targeted analyze, Flutter unit/widget tests, functions build, and backend helper contract tests.
+- Verification:
+  - `dart format lib/features/settings/data/preferences/notification_preference_sync_service.dart test/features/settings/data/preferences/preference_sync_engine_test.dart` (pass)
+  - `flutter analyze lib/features/settings/data/preferences/preference_sync_engine.dart lib/features/settings/data/preferences/notification_preference_sync_service.dart lib/features/settings/presentation/bloc/notification_settings_cubit.dart lib/features/settings/presentation/screens/notifications_settings_screen.dart lib/core/services/push_notification_service.dart lib/core/di.dart lib/features/settings/settings.dart test/features/settings/data/preferences/preference_sync_engine_test.dart test/features/settings/data/preferences/notification_preference_sync_service_test.dart` (pass)
+  - `flutter test test/features/settings/data/preferences/preference_sync_engine_test.dart test/features/settings/data/preferences/notification_preference_sync_service_test.dart test/notification_settings_cubit_test.dart test/push_notification_service_test.dart test/features/settings/presentation/screens/notifications_settings_screen_localization_test.dart` (pass)
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/notificationPrefsSyncContract.test.js` (pass)
+  - `FIREBASE_CONFIG='{"projectId":"demo-project","databaseURL":"https://demo-project.firebaseio.com"}' npm --prefix functions run test -- test/profileCompleteness.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_REFACTOR_SETTINGS.md lib/features/settings/data/preferences/preference_sync_engine.dart lib/features/settings/data/preferences/notification_preference_sync_service.dart lib/features/settings/presentation/bloc/notification_settings_cubit.dart lib/features/settings/presentation/screens/notifications_settings_screen.dart lib/core/services/push_notification_service.dart lib/core/di.dart lib/features/settings/settings.dart functions/src/index.ts test/features/settings/data/preferences/preference_sync_engine_test.dart test/features/settings/data/preferences/notification_preference_sync_service_test.dart functions/test/notificationPrefsSyncContract.test.js docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Settings refactor TODO is complete in current scope; continue with the next queued module.
+
+### T-2026-03-08-STORE-APPLE-STOREAPL001-NATIVE-IAP-FOUNDATION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_STORE_APPLE.md` by defining actionable Apple store tasks and completing the first implementation step for native IAP readiness.
+- Scope: `/Users/ace/my_first_project/docs/TODO_STORE_APPLE.md`, `/Users/ace/my_first_project/pubspec.yaml`, `/Users/ace/my_first_project/pubspec.lock`, `/Users/ace/my_first_project/docs/risk_notes.md`, and workflow docs.
+- Key Changes:
+  - Replaced Apple store placeholder TODO with executable task list:
+    - `docs/TODO_STORE_APPLE.md`
+    - added `STORE-APL-001` through `STORE-APL-005` with acceptance/testing/status fields.
+  - Completed `STORE-APL-001` dependency foundation:
+    - `pubspec.yaml`
+    - added `in_app_purchase`, `in_app_purchase_storekit`, `in_app_purchase_android`.
+  - Resolved and recorded dependency graph update:
+    - `pubspec.lock`
+  - Updated risk tracking to reflect current blocker state:
+    - `docs/risk_notes.md`
+    - `R-055` now reflects partial mitigation (dependency setup complete) while maintaining ship-blocker status for missing native purchase/receipt flows.
+- Decisions/Handoffs:
+  - Kept this start pass scoped to low-risk, prerequisite foundation only; deferred checkout-path migration and StoreKit transaction lifecycle to `STORE-APL-002`.
+  - Noted Apple capability nuance in TODO notes: In-App Purchase is managed via Apple/Xcode capabilities, not an app entitlement key in this repo.
+- Risks/Mitigation:
+  - Critical store compliance risk remains open (`R-055`): native purchase execution and server-side receipt validation are still pending.
+- Verification:
+  - `flutter pub add in_app_purchase in_app_purchase_storekit in_app_purchase_android` (pass)
+  - `flutter analyze lib/features/subscription` (pass)
+  - `flutter test test/subscription_test.dart test/subscription_bloc_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md pubspec.yaml pubspec.lock docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-002` (remove iOS web checkout path and route iOS purchases through native StoreKit flow).
+
+### T-2026-03-08-STORE-APPLE-STOREAPL002-REMOVE-IOS-WEB-CHECKOUT-PATH
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STORE-APL-002` by removing iOS Stripe URL checkout path and routing iOS purchase initiation through native billing.
+- Scope: `/Users/ace/my_first_project/lib/features/subscription/presentation/bloc/subscription_bloc.dart`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/{firebase_subscription_repository.dart,http_subscription_repository.dart}`, `/Users/ace/my_first_project/lib/features/subscription/data/services/native_billing_service.dart`, `/Users/ace/my_first_project/test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`, related subscription tests, and required docs.
+- Key Changes:
+  - Added native billing service abstraction + plugin implementation:
+    - `lib/features/subscription/data/services/native_billing_service.dart` (new)
+    - implements product query, native purchase kickoff, and purchase-stream completion handling.
+  - Refactored subscription checkout orchestration in bloc:
+    - `lib/features/subscription/presentation/bloc/subscription_bloc.dart`
+    - checkout now runs through `SubscriptionRepository.purchasePlusPlan()` rather than start+launch URL sequence.
+  - Added iOS-native routing and iOS web-path guardrails in Firebase repository:
+    - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - iOS `purchasePlusPlan()` delegates to native billing service.
+    - `startPlusCheckout()` and `launchCheckoutUrl()` throw `UnsupportedError` on iOS.
+    - made Firebase dependencies lazily injectable for isolated repository tests.
+  - Added iOS web-path guardrails in HTTP repository:
+    - `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart`
+  - Exported new subscription service symbol:
+    - `lib/features/subscription/subscription.dart`
+  - Added focused iOS repository regression coverage:
+    - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (new)
+  - Updated checkout test stubs for new bloc path:
+    - `test/subscription_bloc_test.dart`
+    - `test/subscription_test.dart`
+  - Marked Apple task complete:
+    - `docs/TODO_STORE_APPLE.md` (`STORE-APL-002`)
+  - Updated architecture/risk docs:
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+    - `docs/risk_notes.md` (`R-055` wording updated; remains open ship blocker)
+- Decisions/Handoffs:
+  - Kept `SubscriptionRepository` interface stable to avoid broad cross-feature churn; moved orchestration to repository-owned `purchasePlusPlan()` path instead.
+  - Scoped to iOS web-path removal and native checkout entry routing only; server-side receipt validation remains separate in `STORE-APL-003`.
+- Risks/Mitigation:
+  - Critical store-compliance risk remains open until server receipt validation/webhook lifecycle is implemented (`R-055`).
+- Verification:
+  - `dart format lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/subscription/subscription.dart test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+  - `flutter analyze lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/subscription/subscription.dart test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+  - `flutter test test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/subscription/subscription.dart test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-003` (server-side Apple receipt validation and subscription lifecycle sync).
+
+### T-2026-03-08-STORE-GOOGLE-STOREGPG001-REMOVE-ANDROID-WEB-CHECKOUT-PATH
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Start `TODO_STORE_GOOGLE.md` by defining executable Google store tasks and removing Android Stripe URL checkout entrypoints in app checkout flow.
+- Scope: `/Users/ace/my_first_project/docs/TODO_STORE_GOOGLE.md`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/{firebase_subscription_repository.dart,http_subscription_repository.dart}`, `/Users/ace/my_first_project/test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart`, and required docs.
+- Key Changes:
+  - Replaced Google store placeholder TODO with actionable task list:
+    - `docs/TODO_STORE_GOOGLE.md`
+    - added `STORE-GPG-001` through `STORE-GPG-005` and marked `STORE-GPG-001` completed.
+  - Expanded native checkout routing from iOS-only to mobile-wide in Firebase repository:
+    - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - `purchasePlusPlan()` now uses `NativeBillingService` on iOS and Android.
+    - `startPlusCheckout()` and `launchCheckoutUrl()` now reject mobile usage.
+  - Expanded mobile checkout guardrails in HTTP repository:
+    - `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart`
+    - blocks iOS/Android web-checkout methods.
+  - Added Android-specific repository checkout-path regression tests:
+    - `test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart` (new)
+  - Updated risk/architecture docs to reflect mobile checkout routing state:
+    - `docs/risk_notes.md`
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Reused repository-owned `purchasePlusPlan()` orchestration introduced in Apple task to keep platform branching in data layer and avoid additional bloc contract churn.
+  - Scoped to client-side Android web-checkout removal only; Google server token validation/RTDN lifecycle remains `STORE-GPG-002` and `STORE-GPG-003`.
+- Risks/Mitigation:
+  - `R-055` remains open (ship blocker): native routing is present on both mobile platforms, but server-side receipt/token validation and webhook lifecycle sync are still pending.
+- Verification:
+  - `dart format lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart` (pass)
+  - `flutter analyze lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart` (pass)
+  - `flutter test test/subscription_bloc_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-002` (server-side Google purchase token validation and reconciliation).
+
+### T-2026-03-08-STORE-GOOGLE-STOREGPG002-SERVER-SIDE-GOOGLE-PURCHASE-VALIDATION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STORE-GPG-002` by adding server-side Google Play purchase-token validation and subscription-state reconciliation.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/googlePlayPurchaseValidation.test.js`, `/Users/ace/my_first_project/docs/TODO_STORE_GOOGLE.md`, architecture/risk/workflow docs.
+- Key Changes:
+  - Added Google Play validation runtime configuration:
+    - `GOOGLE_PLAY_PACKAGE_NAME` param getter in `functions/src/index.ts`.
+  - Added Android Publisher validation helpers:
+    - package normalization,
+    - purchase token hashing,
+    - URL builder for Google subscription token validation endpoint,
+    - OAuth token acquisition (`GoogleAuth`, androidpublisher scope),
+    - HTTP validation wrapper with explicit error mapping,
+    - entitlement derivation (`plan/status/currentPeriodEnd/cancelAtPeriodEnd`),
+    - duplicate token/order linkage checks across user docs.
+  - Added callable purchase validation endpoint:
+    - `verifyGooglePurchaseToken` in `functions/src/index.ts`
+    - validates token against Google API before entitlement,
+    - applies `setUserPlan` (Firestore + RTDB premium sync),
+    - stores additive metadata maps on user docs:
+      - `googlePlayPurchase`
+      - `subscriptionLifecycle`
+      - updates `subscriptionExpiresAt` when available.
+  - Added focused backend helper tests:
+    - `functions/test/googlePlayPurchaseValidation.test.js` (new)
+  - Marked TODO task completed:
+    - `docs/TODO_STORE_GOOGLE.md` (`STORE-GPG-002`)
+  - Updated risk/architecture docs:
+    - `docs/risk_notes.md`
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Kept implementation as callable-first to align with existing subscription callables and avoid immediate REST contract churn.
+  - Used additive user metadata fields to avoid breaking current `plan`-based gating while enabling future provider-aware reconciliation.
+- Risks/Mitigation:
+  - Ship blocker (`R-055`) remains open: Google validation exists, but Apple receipt validation + webhook lifecycle synchronization are still pending.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/googlePlayPurchaseValidation.test.js` (pass)
+  - `FIREBASE_CONFIG='{"projectId":"demo-project","databaseURL":"https://demo-project.firebaseio.com"}' npm --prefix functions run test -- test/profileCompleteness.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md functions/src/index.ts functions/test/googlePlayPurchaseValidation.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-003` (RTDN webhook lifecycle synchronization).
+
+### T-2026-03-08-STORE-GOOGLE-STOREGPG003-RTDN-WEBHOOK-LIFECYCLE-SYNC
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STORE-GPG-003` by implementing Google RTDN lifecycle ingestion and subscription-state synchronization.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/googleRtdnLifecycle.test.js`, `/Users/ace/my_first_project/docs/TODO_STORE_GOOGLE.md`, architecture/risk/workflow docs.
+- Key Changes:
+  - Added RTDN security/configuration param:
+    - `GOOGLE_RTDN_VERIFICATION_TOKEN` getter in functions runtime config.
+  - Added RTDN lifecycle helper layer in backend:
+    - notification type mapping (`mapGoogleRtdnNotificationType`),
+    - entitlement override for lifecycle states (`applyGoogleRtdnEntitlementOverride`),
+    - Pub/Sub envelope/direct payload decoding (`decodeGoogleRtdnEnvelope`),
+    - RTDN event-time parsing helper.
+  - Implemented webhook endpoint:
+    - `googleRtdnWebhook` in `functions/src/index.ts`
+    - validates HTTP method and optional verification token,
+    - decodes and validates RTDN payload,
+    - identifies user via hashed purchase token,
+    - re-validates purchase against Android Publisher API,
+    - applies lifecycle-aware plan/status reconciliation,
+    - persists additive lifecycle metadata and updates plan/RTDB premium state.
+  - Added focused RTDN helper coverage:
+    - `functions/test/googleRtdnLifecycle.test.js` (new)
+  - Marked Google TODO task complete:
+    - `docs/TODO_STORE_GOOGLE.md` (`STORE-GPG-003`)
+  - Updated architecture/risk docs:
+    - `docs/risk_notes.md`
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Implemented RTDN as dedicated `https.onRequest` endpoint (not callable) to match Google Pub/Sub push delivery model.
+  - Kept user linkage via hashed purchase token field already introduced by `verifyGooglePurchaseToken` to avoid schema churn.
+- Risks/Mitigation:
+  - `R-055` remains open: Google lifecycle path is now in place, but Apple receipt/webhook lifecycle and broader restore hardening still block store-ready billing.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/googlePlayPurchaseValidation.test.js test/googleRtdnLifecycle.test.js` (pass)
+  - `FIREBASE_CONFIG='{"projectId":"demo-project","databaseURL":"https://demo-project.firebaseio.com"}' npm --prefix functions run test -- test/profileCompleteness.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md functions/src/index.ts functions/test/googlePlayPurchaseValidation.test.js functions/test/googleRtdnLifecycle.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-004` (restore + acknowledgement flow hardening).
+
+### T-2026-03-08-STORE-GOOGLE-STOREGPG004-PLAY-RESTORE-ACKNOWLEDGEMENT-FLOW
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STORE-GPG-004` by implementing Play restore reconciliation and acknowledgement-safe transaction completion.
+- Scope: `/Users/ace/my_first_project/lib/features/subscription/data/services/native_billing_service.dart`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`, `/Users/ace/my_first_project/lib/features/subscription/presentation/bloc/subscription_bloc.dart`, subscription/settings tests, and required docs.
+- Key Changes:
+  - Extended native billing abstraction for restore lifecycle:
+    - `NativeSubscriptionPurchase` model added.
+    - `restoreSubscriptionPurchases()` added to `NativeBillingService`.
+    - In-app purchase implementation now:
+      - listens to restore purchase stream updates,
+      - completes pending transactions (`completePurchase`) for acknowledgement semantics,
+      - deduplicates restored purchases and returns collected restore payloads.
+  - Added mobile restore reconciliation in Firebase subscription repository:
+    - `refreshStatus()` on mobile now runs native restore path.
+    - Android restored purchases are revalidated with `verifyGooglePurchaseToken`.
+    - Added injectable Google verifier for isolated tests.
+    - Returns explicit no-purchase outcome (`plan=free`, `status=none`) when restore finds no purchases.
+  - Updated restore fallback UX signal in bloc:
+    - `SubscriptionBloc` now uses `ErrorMessages.restorePurchasesFailed` for restore failures.
+  - Added restore-focused test coverage:
+    - `test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart`
+      - restore verification success + no-purchase outcome.
+    - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`
+      - fake native billing service updated for restore interface compatibility.
+    - `test/subscription_bloc_test.dart`
+      - no-purchase restore state + restore fallback error assertion.
+    - `test/features/settings/presentation/widgets/settings_sections_test.dart`
+      - no-purchase restore status text visibility.
+  - Marked TODO task complete:
+    - `docs/TODO_STORE_GOOGLE.md` (`STORE-GPG-004`)
+  - Updated risk/architecture docs:
+    - `docs/risk_notes.md`
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Kept `SubscriptionRepository` contract stable; restore behavior is layered into existing `refreshStatus()` flow to avoid broad cross-feature API churn.
+  - Added Google verifier injection point in repository for deterministic unit tests without Firebase Functions runtime dependencies.
+- Risks/Mitigation:
+  - `R-055` remains open (ship blocker): Google restore/ack is now hardened, but Apple receipt/webhook lifecycle and final store-console compliance/reviewer setup remain pending.
+- Verification:
+  - `dart format lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/subscription_bloc_test.dart test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `flutter test test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/subscription_bloc_test.dart test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/subscription_bloc_test.dart test/features/settings/presentation/widgets/settings_sections_test.dart docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-005` (Play Console release compliance checklist).
+
+### T-2026-03-08-STORE-GOOGLE-STOREGPG005-PLAY-CONSOLE-RELEASE-COMPLIANCE-CHECKLIST
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STORE-GPG-005` by documenting Play Console release compliance requirements for billing disclosures, reviewer access, and internal testing.
+- Scope: `/Users/ace/my_first_project/docs/STORE_ASSETS.md`, `/Users/ace/my_first_project/docs/RELEASE_GUIDE.md`, `/Users/ace/my_first_project/docs/TODO_STORE_GOOGLE.md`, workflow/risk docs.
+- Key Changes:
+  - Updated `docs/STORE_ASSETS.md`:
+    - Added Google Play App Access reviewer instruction template.
+    - Added Play subscription disclosure block aligned to current in-app Plus pricing (`$9.99/month`).
+    - Added Play app-content declarations checklist (ads, app access, data safety, content rating, target audience, permissions).
+    - Expanded release checklist with recurring billing disclosure consistency checks.
+  - Updated `docs/RELEASE_GUIDE.md`:
+    - Added Android internal-testing-first release path.
+    - Added required Play app-content declaration and reviewer-instructions steps.
+    - Added subscription compliance section covering recurring terms and cancellation disclosures.
+    - Expanded store pre-release checklist with Play compliance items.
+  - Updated `docs/TODO_STORE_GOOGLE.md`:
+    - Marked `STORE-GPG-005` as completed.
+  - Updated `docs/risk_notes.md`:
+    - Refined `R-055` wording to reflect that Play checklist documentation is complete while console-side setup/submission remains pending.
+- Decisions/Handoffs:
+  - Kept this task doc-only (no runtime code changes) because acceptance criteria are release-metadata and policy checklist alignment.
+  - Preserved `R-055` as open ship blocker due to remaining Apple server validation/lifecycle work and pending store-console execution.
+- Risks/Mitigation:
+  - `R-055` remains open: Google policy checklist is documented, but Apple receipt/webhook lifecycle and final console submission execution are still outstanding.
+- Verification:
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_GOOGLE.md docs/STORE_ASSETS.md docs/RELEASE_GUIDE.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-003` (server-side Apple receipt validation).
+
+### T-2026-03-08-STORE-APPLE-STOREAPL003-SERVER-SIDE-APPLE-RECEIPT-VALIDATION
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STORE-APL-003` by implementing server-side Apple transaction validation and subscription-state reconciliation.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/appleReceiptValidation.test.js`, `/Users/ace/my_first_project/docs/TODO_STORE_APPLE.md`, architecture/risk/workflow docs.
+- Key Changes:
+  - Added Apple server config/runtime support in `functions/src/index.ts`:
+    - params: `APPLE_ISSUER_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_BUNDLE_ID`.
+    - helper layer for App Store Server auth JWT creation (`ES256`), signed transaction decoding, entitlement derivation, and production->sandbox transaction lookup fallback.
+  - Added duplicate-link protections for Apple identifiers:
+    - `applePurchase.originalTransactionId`
+    - `applePurchase.latestTransactionId`
+    - `applePurchase.webOrderLineItemId`
+  - Added callable endpoint:
+    - `verifyAppleTransaction`
+    - validates transaction via App Store Server API,
+    - enforces bundle/product consistency,
+    - reconciles `plan` + RTDB premium flag,
+    - persists additive `applePurchase` and `subscriptionLifecycle` metadata.
+  - Added helper test coverage:
+    - `functions/test/appleReceiptValidation.test.js` (new)
+    - covers private-key normalization, auth JWT claims, transaction payload decoding, entitlement mapping, and sandbox fallback lookup behavior.
+  - Marked TODO task complete:
+    - `docs/TODO_STORE_APPLE.md` (`STORE-APL-003`)
+  - Updated architecture/risk docs:
+    - `docs/risk_notes.md`
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Implemented Apple validation as callable-first to match current client callable integration patterns used by Google validation.
+  - Stored Apple metadata in additive maps (`applePurchase`, `subscriptionLifecycle`) to keep existing `plan`-based gates backward compatible.
+- Risks/Mitigation:
+  - `R-055` remains open (ship blocker): Apple transaction validation exists, but Apple lifecycle webhooks, client restore wiring to Apple validation, and final store-console submission steps remain pending.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/appleReceiptValidation.test.js test/googlePlayPurchaseValidation.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md functions/src/index.ts functions/test/appleReceiptValidation.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-004` (restore purchases compliance flow).
+
+### T-2026-03-08-STORE-APPLE-STOREAPL004-RESTORE-PURCHASES-COMPLIANCE-FLOW
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STORE-APL-004` by wiring Apple-compliant restore verification for iOS restored purchases and surfacing clear restore outcomes.
+- Scope: `/Users/ace/my_first_project/lib/features/subscription/data/services/native_billing_service.dart`, `/Users/ace/my_first_project/lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`, iOS subscription repository tests, and required docs.
+- Key Changes:
+  - Extended native restore payload in `NativeSubscriptionPurchase`:
+    - added optional `transactionId` populated from `PurchaseDetails.purchaseID`.
+  - Added iOS restore verification path in `FirebaseSubscriptionRepository.refreshStatus()`:
+    - restore flow now branches by platform and verifies iOS restored purchases through `verifyAppleTransaction`.
+    - added injectable `AppleTransactionVerifier` for deterministic tests.
+    - restore now throws a clear error when iOS restored purchases lack transaction IDs.
+  - Refactored restore verification loop:
+    - shared `_restoreStatusesFromPurchases()` helper now handles verification aggregation and no-purchase/error outcomes across providers.
+  - Added iOS restore-focused tests:
+    - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`
+      - verifies iOS restore callable payload wiring (`productId`, `transactionId`),
+      - verifies explicit no-purchase restore status,
+      - verifies failure when transaction ID is missing.
+  - Marked TODO task complete:
+    - `docs/TODO_STORE_APPLE.md` (`STORE-APL-004`).
+  - Updated risk/architecture docs:
+    - `docs/risk_notes.md`
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Kept restore verification callable-first (`verifyAppleTransaction`) to align with existing Google restore orchestration and avoid additional REST contract churn.
+  - Reused additive subscription metadata model (`applePurchase`, `subscriptionLifecycle`) introduced in `STORE-APL-003` rather than introducing new schema fields.
+- Risks/Mitigation:
+  - `R-055` remains open (ship blocker): Apple restore verification is now wired, but Apple lifecycle webhooks and final store-console/reviewer setup are still pending.
+- Verification:
+  - `dart format lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+  - `flutter test test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/subscription_bloc_test.dart test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-005` (Apple subscription review metadata checklist).
+
+### T-2026-03-08-STORE-APPLE-STOREAPL005-SUBSCRIPTION-REVIEW-METADATA-CHECKLIST
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `STORE-APL-005` by documenting Apple subscription disclosure and App Review metadata requirements aligned with in-app paywall copy.
+- Scope: `/Users/ace/my_first_project/docs/STORE_ASSETS.md`, `/Users/ace/my_first_project/docs/RELEASE_GUIDE.md`, `/Users/ace/my_first_project/docs/TODO_STORE_APPLE.md`, workflow/risk docs.
+- Key Changes:
+  - Updated `docs/STORE_ASSETS.md`:
+    - Refreshed iOS screenshot guidance (6.9" preferred, 6.5" fallback, iPad conditional requirements).
+    - Added App Store subscription disclosure template (title/length/price, renewal, cancellation, legal links).
+    - Added App Review Notes template for subscription test guidance.
+    - Added App Store in-app purchase metadata checklist (review screenshot, readiness, first-submission attachment).
+    - Expanded release checklist with iOS demo-account + subscription disclosure checks.
+  - Updated `docs/RELEASE_GUIDE.md`:
+    - Expanded iOS App Store Connect configuration to include subscription setup.
+    - Added App Store subscription compliance check section.
+    - Added iOS App Review submission checklist section.
+    - Expanded store requirements checklist with Apple subscription/reviewer metadata gates.
+  - Updated `docs/TODO_STORE_APPLE.md`:
+    - Marked `STORE-APL-005` as completed.
+  - Updated `docs/risk_notes.md`:
+    - Refined `R-055` to reflect Apple metadata checklist documentation completion while leaving console execution/lifecycle webhook work open.
+- Decisions/Handoffs:
+  - Kept this task doc-only because acceptance criteria are release-metadata and reviewer-instruction alignment.
+  - Preserved `R-055` as open ship blocker due to remaining Apple lifecycle webhook and console execution steps.
+- Risks/Mitigation:
+  - `R-055` remains open: metadata checklists are documented, but Apple webhook lifecycle sync and App Store Connect/Play Console execution are still pending.
+- Verification:
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_STORE_APPLE.md docs/STORE_ASSETS.md docs/RELEASE_GUIDE.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue store hardening with remaining Apple lifecycle/store-console execution work (outside `TODO_STORE_APPLE.md` checklist tasks).
+
+### T-2026-03-08-SUBSCRIPTION-SUB009-APPLE-S2S-LIFECYCLE-WEBHOOK
+- Date: 2026-03-08
+- Owner: Codex
+- Status: Completed
+- Goal: Advance `SUB-009` by implementing Apple App Store Server Notification lifecycle ingestion and reconciliation.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/appleS2sLifecycle.test.js`, `/Users/ace/my_first_project/docs/TODO_SUBSCRIPTION.md`, and required risk/architecture/workflow docs.
+- Key Changes:
+  - Added Apple S2S notification helper layer in `functions/src/index.ts`:
+    - JWS signature verification using header `x5c` certificate public key (`verifyAppleSignedPayloadSignature`).
+    - Signed payload decode helper (`decodeAppleServerNotificationPayload`).
+    - Lifecycle mapping (`mapAppleServerNotificationType`) and entitlement override logic (`applyAppleServerNotificationEntitlementOverride`).
+    - Notification signed-date parsing helper and user lookup by Apple transaction identifiers.
+  - Added webhook endpoint:
+    - `appleSubscriptionWebhook` (`https.onRequest`)
+    - validates HTTP method + signed payload,
+    - verifies Apple payload signature,
+    - decodes transaction payload,
+    - resolves user by Apple transaction/original transaction identifiers,
+    - maps lifecycle statuses and reconciles `plan` + `subscriptionLifecycle`/`applePurchase` metadata,
+    - handles unknown transaction and missing payload cases with explicit webhook responses.
+  - Added helper tests:
+    - `functions/test/appleS2sLifecycle.test.js` (new)
+    - covers lifecycle mapping, entitlement overrides, payload decode path, malformed signature payload rejection, and signed-date fallback parsing.
+  - Updated task/risk/architecture docs:
+    - `docs/TODO_SUBSCRIPTION.md` (`SUB-009` marked completed with acceptance criteria checkboxes)
+    - `docs/risk_notes.md`
+    - `docs/project_flowchart.md`
+    - `docs/project_dfd.md`
+    - `docs/project_er_diagram.md`
+- Decisions/Handoffs:
+  - Implemented Apple webhook as a first-class `onRequest` function in `functions/src/index.ts` to align with existing Google RTDN webhook structure.
+  - Reused additive user metadata fields (`applePurchase`, `subscriptionLifecycle`) instead of introducing new schema objects.
+- Risks/Mitigation:
+  - `R-055` remains open: backend lifecycle sync is implemented for both stores, but production store-console reviewer setup/submission execution remains the ship blocker.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `npm --prefix functions run test -- test/appleS2sLifecycle.test.js test/appleReceiptValidation.test.js test/googleRtdnLifecycle.test.js` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/TODO_SUBSCRIPTION.md functions/src/index.ts functions/test/appleS2sLifecycle.test.js docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue remaining `R-055` release-operations work (App Store Connect + Play Console reviewer configuration and submission execution).

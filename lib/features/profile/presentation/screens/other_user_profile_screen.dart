@@ -33,6 +33,99 @@ class OtherUserProfileArgs {
   });
 }
 
+@visibleForTesting
+const Key otherUserProfileContentConstraintKey = Key(
+  'other_user_profile_content_constraint',
+);
+
+@visibleForTesting
+const Key otherUserProfileActionsConstraintKey = Key(
+  'other_user_profile_actions_constraint',
+);
+
+@visibleForTesting
+double otherUserProfileMaxWidthFor(double screenWidth) {
+  return DsBreakpoints.contentMaxWidth(screenWidth);
+}
+
+enum ProfileReportReasonOption {
+  inappropriatePhotos,
+  fakeProfile,
+  harassment,
+  scamOrSpam,
+  underageUser,
+  other,
+}
+
+String profileReportReasonCode(ProfileReportReasonOption reason) {
+  switch (reason) {
+    case ProfileReportReasonOption.inappropriatePhotos:
+      return 'Inappropriate photos';
+    case ProfileReportReasonOption.fakeProfile:
+      return 'Fake profile';
+    case ProfileReportReasonOption.harassment:
+      return 'Harassment';
+    case ProfileReportReasonOption.scamOrSpam:
+      return 'Scam or spam';
+    case ProfileReportReasonOption.underageUser:
+      return 'Underage user';
+    case ProfileReportReasonOption.other:
+      return 'Other';
+  }
+}
+
+String profileReportReasonLabelFor(
+  AppLocalizations l10n,
+  ProfileReportReasonOption reason,
+) {
+  switch (reason) {
+    case ProfileReportReasonOption.inappropriatePhotos:
+      return l10n.profileReportReasonInappropriatePhotos;
+    case ProfileReportReasonOption.fakeProfile:
+      return l10n.safetyFakeProfile;
+    case ProfileReportReasonOption.harassment:
+      return l10n.safetyHarassment;
+    case ProfileReportReasonOption.scamOrSpam:
+      return l10n.profileReportReasonScamOrSpam;
+    case ProfileReportReasonOption.underageUser:
+      return l10n.profileReportReasonUnderageUser;
+    case ProfileReportReasonOption.other:
+      return l10n.safetyOther;
+  }
+}
+
+class ProfileReportSheetContent extends StatelessWidget {
+  const ProfileReportSheetContent({super.key, required this.onReasonSelected});
+
+  final Future<void> Function(ProfileReportReasonOption reason)
+  onReasonSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    const reasons = ProfileReportReasonOption.values;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            l10n.profileReportSheetTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+        ...reasons.map(
+          (reason) => ListTile(
+            title: Text(profileReportReasonLabelFor(l10n, reason)),
+            onTap: () => onReasonSelected(reason),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Screen for viewing another user's profile with privacy settings respected.
 class OtherUserProfileScreen extends StatelessWidget {
   final OtherUserProfileArgs args;
@@ -94,389 +187,419 @@ class OtherUserProfileScreen extends StatelessWidget {
           ),
           // Profile Content
           SliverToBoxAdapter(
-            child: Padding(
-              padding: DsEdgeInsets.screenPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name and basic info
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  privacy.showAge
-                                      ? '$displayName, ${profile.age}'
-                                      : displayName,
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                if (profile.isVerified) ...[
-                                  const SizedBox(width: 8),
-                                  const Icon(
-                                    Icons.verified,
-                                    color: DsColors.primary,
-                                    size: 24,
-                                  ),
-                                ],
-                              ],
-                            ),
-                            if (profile.livingIn != null &&
-                                profile.livingIn!.isNotEmpty) ...[
-                              DsGap.xs,
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.location_on,
-                                    size: 16,
-                                    color: DsColors.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    privacy.showExactLocation
-                                        ? profile.livingIn!
-                                        : '${profile.city}, ${profile.country}',
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.color,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                            if (privacy.showJobTitle &&
-                                (profile.jobTitle != null ||
-                                    profile.company != null)) ...[
-                              DsGap.xs,
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.work_outline,
-                                    size: 16,
-                                    color: DsColors.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Expanded(
-                                    child: Text(
-                                      [
-                                            if (privacy.showJobTitle)
-                                              profile.jobTitle,
-                                            if (privacy.showCompany)
-                                              profile.company,
-                                          ]
-                                          .where(
-                                            (s) => s != null && s.isNotEmpty,
-                                          )
-                                          .join(' at '),
-                                      style: TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall?.color,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  DsGap.lg,
-
-                  // About
-                  if (profile.bio.isNotEmpty) ...[
-                    _InfoSection(
-                      title: 'About',
-                      icon: Icons.person_outline,
-                      child: Text(
-                        profile.bio,
-                        style: const TextStyle(fontSize: 15, height: 1.5),
-                      ),
-                    ),
-                    DsGap.lg,
-                  ],
-
-                  // Profile Prompts
-                  if (profile.profilePrompts.isNotEmpty) ...[
-                    _InfoSection(
-                      title: 'Conversation Starters',
-                      icon: Icons.chat_bubble_outline,
-                      child: PromptCardColumn(prompts: profile.profilePrompts),
-                    ),
-                    DsGap.lg,
-                  ],
-
-                  // Interests
-                  if (profile.interests.isNotEmpty) ...[
-                    _InfoSection(
-                      title: 'Interests',
-                      icon: Icons.interests_outlined,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: profile.interests.map((interest) {
-                          return GlassChip(label: interest);
-                        }).toList(),
-                      ),
-                    ),
-                    DsGap.lg,
-                  ],
-
-                  // Dating Basics (respecting privacy)
-                  if (_hasDatingBasics(profile, privacy)) ...[
-                    _InfoSection(
-                      title: 'Dating Basics',
-                      icon: Icons.favorite_outline,
-                      child: Column(
-                        children: [
-                          if (privacy.showHeight && profile.heightCm != null)
-                            _InfoRow(
-                              icon: Icons.height,
-                              label: 'Height',
-                              value: ProfileFieldOptions.formatHeightDisplay(
-                                profile.heightCm!,
-                              ),
-                            ),
-                          if (privacy.showRelationshipGoals &&
-                              profile.relationshipGoals != null)
-                            _InfoRow(
-                              icon: Icons.favorite,
-                              label: 'Looking for',
-                              value:
-                                  ProfileFieldOptions.getRelationshipGoalLabel(
-                                    profile.relationshipGoals,
-                                  ) ??
-                                  '',
-                            ),
-                          if (privacy.showZodiacSign &&
-                              profile.zodiacSign != null)
-                            _InfoRow(
-                              icon: Icons.auto_awesome,
-                              label: 'Zodiac',
-                              value:
-                                  ProfileFieldOptions.getZodiacLabel(
-                                    profile.zodiacSign,
-                                  ) ??
-                                  '',
-                            ),
-                        ],
-                      ),
-                    ),
-                    DsGap.lg,
-                  ],
-
-                  // Languages
-                  if (privacy.showLanguages &&
-                      profile.languages.isNotEmpty) ...[
-                    _InfoSection(
-                      title: 'Languages',
-                      icon: Icons.language,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: profile.languages.map((lang) {
-                          return GlassChip(label: lang);
-                        }).toList(),
-                      ),
-                    ),
-                    DsGap.lg,
-                  ],
-
-                  // More About Me (respecting privacy)
-                  if (_hasAboutMe(profile, privacy)) ...[
-                    _InfoSection(
-                      title: 'More About Me',
-                      icon: Icons.psychology_outlined,
-                      child: Column(
-                        children: [
-                          if (privacy.showEducation &&
-                              profile.educationLevel != null)
-                            _InfoRow(
-                              icon: Icons.school_outlined,
-                              label: 'Education',
-                              value:
-                                  ProfileFieldOptions.getEducationLabel(
-                                    profile.educationLevel,
-                                  ) ??
-                                  '',
-                            ),
-                          if (privacy.showFamilyPlans &&
-                              profile.familyPlans != null)
-                            _InfoRow(
-                              icon: Icons.family_restroom,
-                              label: 'Family Plans',
-                              value:
-                                  ProfileFieldOptions.getFamilyPlanLabel(
-                                    profile.familyPlans,
-                                  ) ??
-                                  '',
-                            ),
-                          if (privacy.showPersonality &&
-                              profile.personalityType != null)
-                            _InfoRow(
-                              icon: Icons.emoji_people,
-                              label: 'Personality',
-                              value:
-                                  ProfileFieldOptions.getPersonalityLabel(
-                                    profile.personalityType,
-                                  ) ??
-                                  '',
-                            ),
-                          if (privacy.showReligion && profile.religion != null)
-                            _InfoRow(
-                              icon: Icons.self_improvement,
-                              label: 'Religion',
-                              value:
-                                  ProfileFieldOptions.getReligionLabel(
-                                    profile.religion,
-                                  ) ??
-                                  '',
-                            ),
-                        ],
-                      ),
-                    ),
-                    DsGap.lg,
-                  ],
-
-                  // Lifestyle (respecting privacy)
-                  if (_hasLifestyle(profile, privacy)) ...[
-                    _InfoSection(
-                      title: 'Lifestyle',
-                      icon: Icons.spa_outlined,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          if (privacy.showWorkout && profile.workout != null)
-                            GlassChip.icon(
-                              label:
-                                  ProfileFieldOptions.getWorkoutLabel(
-                                    profile.workout,
-                                  ) ??
-                                  '',
-                              icon: Icons.fitness_center,
-                            ),
-                          if (privacy.showSleepingHabits &&
-                              profile.sleepingHabits != null)
-                            GlassChip.icon(
-                              label:
-                                  ProfileFieldOptions.getSleepingLabel(
-                                    profile.sleepingHabits,
-                                  ) ??
-                                  '',
-                              icon: Icons.bedtime_outlined,
-                            ),
-                          if (privacy.showSmoking && profile.smoking != null)
-                            GlassChip.icon(
-                              label:
-                                  ProfileFieldOptions.getSmokingLabel(
-                                    profile.smoking,
-                                  ) ??
-                                  '',
-                              icon: Icons.smoking_rooms,
-                            ),
-                          if (privacy.showDrinking && profile.drinking != null)
-                            GlassChip.icon(
-                              label:
-                                  ProfileFieldOptions.getDrinkingLabel(
-                                    profile.drinking,
-                                  ) ??
-                                  '',
-                              icon: Icons.local_bar,
-                            ),
-                          if (privacy.showPets && profile.pets != null)
-                            GlassChip.icon(
-                              label:
-                                  ProfileFieldOptions.getPetLabel(
-                                    profile.pets,
-                                  ) ??
-                                  '',
-                              icon: Icons.pets,
-                            ),
-                        ],
-                      ),
-                    ),
-                    DsGap.lg,
-                  ],
-
-                  // Music (respecting privacy)
-                  if (_hasMusic(profile, privacy)) ...[
-                    _InfoSection(
-                      title: 'Music',
-                      icon: Icons.music_note_outlined,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final maxWidth = otherUserProfileMaxWidthFor(
+                  constraints.maxWidth,
+                );
+                return Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    key: otherUserProfileContentConstraintKey,
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    child: Padding(
+                      padding: DsEdgeInsets.screenPadding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (privacy.showFavoriteSinger &&
-                              profile.favoriteSinger != null)
-                            _InfoRow(
-                              icon: Icons.person,
-                              label: 'Favorite Artist',
-                              value: profile.favoriteSinger!,
+                          // Name and basic info
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          privacy.showAge
+                                              ? '$displayName, ${profile.age}'
+                                              : displayName,
+                                          style: const TextStyle(
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        if (profile.isVerified) ...[
+                                          const SizedBox(width: 8),
+                                          const Icon(
+                                            Icons.verified,
+                                            color: DsColors.primary,
+                                            size: 24,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    if (profile.livingIn != null &&
+                                        profile.livingIn!.isNotEmpty) ...[
+                                      DsGap.xs,
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.location_on,
+                                            size: 16,
+                                            color: DsColors.primary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            privacy.showExactLocation
+                                                ? profile.livingIn!
+                                                : '${profile.city}, ${profile.country}',
+                                            style: TextStyle(
+                                              color: Theme.of(
+                                                context,
+                                              ).textTheme.bodySmall?.color,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                    if (privacy.showJobTitle &&
+                                        (profile.jobTitle != null ||
+                                            profile.company != null)) ...[
+                                      DsGap.xs,
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.work_outline,
+                                            size: 16,
+                                            color: DsColors.primary,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              [
+                                                    if (privacy.showJobTitle)
+                                                      profile.jobTitle,
+                                                    if (privacy.showCompany)
+                                                      profile.company,
+                                                  ]
+                                                  .where(
+                                                    (s) =>
+                                                        s != null &&
+                                                        s.isNotEmpty,
+                                                  )
+                                                  .join(' at '),
+                                              style: TextStyle(
+                                                color: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall?.color,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          DsGap.lg,
+
+                          // About
+                          if (profile.bio.isNotEmpty) ...[
+                            _InfoSection(
+                              title: 'About',
+                              icon: Icons.person_outline,
+                              child: Text(
+                                profile.bio,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  height: 1.5,
+                                ),
+                              ),
                             ),
-                          if (privacy.showFavoriteSongs &&
-                              profile.favoriteSongs.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: profile.favoriteSongs.map((song) {
-                                return GlassChip.icon(
-                                  label: song,
-                                  icon: Icons.music_note,
-                                );
-                              }).toList(),
-                            ),
+                            DsGap.lg,
                           ],
+
+                          // Profile Prompts
+                          if (profile.profilePrompts.isNotEmpty) ...[
+                            _InfoSection(
+                              title: 'Conversation Starters',
+                              icon: Icons.chat_bubble_outline,
+                              child: PromptCardColumn(
+                                prompts: profile.profilePrompts,
+                              ),
+                            ),
+                            DsGap.lg,
+                          ],
+
+                          // Interests
+                          if (profile.interests.isNotEmpty) ...[
+                            _InfoSection(
+                              title: 'Interests',
+                              icon: Icons.interests_outlined,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: profile.interests.map((interest) {
+                                  return GlassChip(label: interest);
+                                }).toList(),
+                              ),
+                            ),
+                            DsGap.lg,
+                          ],
+
+                          // Dating Basics (respecting privacy)
+                          if (_hasDatingBasics(profile, privacy)) ...[
+                            _InfoSection(
+                              title: 'Dating Basics',
+                              icon: Icons.favorite_outline,
+                              child: Column(
+                                children: [
+                                  if (privacy.showHeight &&
+                                      profile.heightCm != null)
+                                    _InfoRow(
+                                      icon: Icons.height,
+                                      label: 'Height',
+                                      value:
+                                          ProfileFieldOptions.formatHeightDisplay(
+                                            profile.heightCm!,
+                                          ),
+                                    ),
+                                  if (privacy.showRelationshipGoals &&
+                                      profile.relationshipGoals != null)
+                                    _InfoRow(
+                                      icon: Icons.favorite,
+                                      label: 'Looking for',
+                                      value:
+                                          ProfileFieldOptions.getRelationshipGoalLabel(
+                                            profile.relationshipGoals,
+                                          ) ??
+                                          '',
+                                    ),
+                                  if (privacy.showZodiacSign &&
+                                      profile.zodiacSign != null)
+                                    _InfoRow(
+                                      icon: Icons.auto_awesome,
+                                      label: 'Zodiac',
+                                      value:
+                                          ProfileFieldOptions.getZodiacLabel(
+                                            profile.zodiacSign,
+                                          ) ??
+                                          '',
+                                    ),
+                                ],
+                              ),
+                            ),
+                            DsGap.lg,
+                          ],
+
+                          // Languages
+                          if (privacy.showLanguages &&
+                              profile.languages.isNotEmpty) ...[
+                            _InfoSection(
+                              title: 'Languages',
+                              icon: Icons.language,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: profile.languages.map((lang) {
+                                  return GlassChip(label: lang);
+                                }).toList(),
+                              ),
+                            ),
+                            DsGap.lg,
+                          ],
+
+                          // More About Me (respecting privacy)
+                          if (_hasAboutMe(profile, privacy)) ...[
+                            _InfoSection(
+                              title: 'More About Me',
+                              icon: Icons.psychology_outlined,
+                              child: Column(
+                                children: [
+                                  if (privacy.showEducation &&
+                                      profile.educationLevel != null)
+                                    _InfoRow(
+                                      icon: Icons.school_outlined,
+                                      label: 'Education',
+                                      value:
+                                          ProfileFieldOptions.getEducationLabel(
+                                            profile.educationLevel,
+                                          ) ??
+                                          '',
+                                    ),
+                                  if (privacy.showFamilyPlans &&
+                                      profile.familyPlans != null)
+                                    _InfoRow(
+                                      icon: Icons.family_restroom,
+                                      label: 'Family Plans',
+                                      value:
+                                          ProfileFieldOptions.getFamilyPlanLabel(
+                                            profile.familyPlans,
+                                          ) ??
+                                          '',
+                                    ),
+                                  if (privacy.showPersonality &&
+                                      profile.personalityType != null)
+                                    _InfoRow(
+                                      icon: Icons.emoji_people,
+                                      label: 'Personality',
+                                      value:
+                                          ProfileFieldOptions.getPersonalityLabel(
+                                            profile.personalityType,
+                                          ) ??
+                                          '',
+                                    ),
+                                  if (privacy.showReligion &&
+                                      profile.religion != null)
+                                    _InfoRow(
+                                      icon: Icons.self_improvement,
+                                      label: 'Religion',
+                                      value:
+                                          ProfileFieldOptions.getReligionLabel(
+                                            profile.religion,
+                                          ) ??
+                                          '',
+                                    ),
+                                ],
+                              ),
+                            ),
+                            DsGap.lg,
+                          ],
+
+                          // Lifestyle (respecting privacy)
+                          if (_hasLifestyle(profile, privacy)) ...[
+                            _InfoSection(
+                              title: 'Lifestyle',
+                              icon: Icons.spa_outlined,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  if (privacy.showWorkout &&
+                                      profile.workout != null)
+                                    GlassChip.icon(
+                                      label:
+                                          ProfileFieldOptions.getWorkoutLabel(
+                                            profile.workout,
+                                          ) ??
+                                          '',
+                                      icon: Icons.fitness_center,
+                                    ),
+                                  if (privacy.showSleepingHabits &&
+                                      profile.sleepingHabits != null)
+                                    GlassChip.icon(
+                                      label:
+                                          ProfileFieldOptions.getSleepingLabel(
+                                            profile.sleepingHabits,
+                                          ) ??
+                                          '',
+                                      icon: Icons.bedtime_outlined,
+                                    ),
+                                  if (privacy.showSmoking &&
+                                      profile.smoking != null)
+                                    GlassChip.icon(
+                                      label:
+                                          ProfileFieldOptions.getSmokingLabel(
+                                            profile.smoking,
+                                          ) ??
+                                          '',
+                                      icon: Icons.smoking_rooms,
+                                    ),
+                                  if (privacy.showDrinking &&
+                                      profile.drinking != null)
+                                    GlassChip.icon(
+                                      label:
+                                          ProfileFieldOptions.getDrinkingLabel(
+                                            profile.drinking,
+                                          ) ??
+                                          '',
+                                      icon: Icons.local_bar,
+                                    ),
+                                  if (privacy.showPets && profile.pets != null)
+                                    GlassChip.icon(
+                                      label:
+                                          ProfileFieldOptions.getPetLabel(
+                                            profile.pets,
+                                          ) ??
+                                          '',
+                                      icon: Icons.pets,
+                                    ),
+                                ],
+                              ),
+                            ),
+                            DsGap.lg,
+                          ],
+
+                          // Music (respecting privacy)
+                          if (_hasMusic(profile, privacy)) ...[
+                            _InfoSection(
+                              title: 'Music',
+                              icon: Icons.music_note_outlined,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (privacy.showFavoriteSinger &&
+                                      profile.favoriteSinger != null)
+                                    _InfoRow(
+                                      icon: Icons.person,
+                                      label: 'Favorite Artist',
+                                      value: profile.favoriteSinger!,
+                                    ),
+                                  if (privacy.showFavoriteSongs &&
+                                      profile.favoriteSongs.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: profile.favoriteSongs.map((
+                                        song,
+                                      ) {
+                                        return GlassChip.icon(
+                                          label: song,
+                                          icon: Icons.music_note,
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            DsGap.lg,
+                          ],
+
+                          // Contact info (only for matches and if public)
+                          if (isMatch) ...[
+                            if (privacy.showEmail ||
+                                privacy.showPhoneNumber) ...[
+                              _InfoSection(
+                                title: 'Contact',
+                                icon: Icons.contact_mail_outlined,
+                                child: Column(
+                                  children: [
+                                    // Email and phone are very sensitive - only show to matches
+                                    if (privacy.showEmail)
+                                      const _InfoRow(
+                                        icon: Icons.email_outlined,
+                                        label: 'Email',
+                                        value: 'Contact via chat first',
+                                      ),
+                                    if (privacy.showPhoneNumber)
+                                      const _InfoRow(
+                                        icon: Icons.phone_outlined,
+                                        label: 'Phone',
+                                        value: 'Contact via chat first',
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              DsGap.lg,
+                            ],
+                          ],
+
+                          DsGap.xxl,
                         ],
                       ),
                     ),
-                    DsGap.lg,
-                  ],
-
-                  // Contact info (only for matches and if public)
-                  if (isMatch) ...[
-                    if (privacy.showEmail || privacy.showPhoneNumber) ...[
-                      _InfoSection(
-                        title: 'Contact',
-                        icon: Icons.contact_mail_outlined,
-                        child: Column(
-                          children: [
-                            // Email and phone are very sensitive - only show to matches
-                            if (privacy.showEmail)
-                              const _InfoRow(
-                                icon: Icons.email_outlined,
-                                label: 'Email',
-                                value: 'Contact via chat first',
-                              ),
-                            if (privacy.showPhoneNumber)
-                              const _InfoRow(
-                                icon: Icons.phone_outlined,
-                                label: 'Phone',
-                                value: 'Contact via chat first',
-                              ),
-                          ],
-                        ),
-                      ),
-                      DsGap.lg,
-                    ],
-                  ],
-
-                  DsGap.xxl,
-                ],
-              ),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -495,88 +618,117 @@ class OtherUserProfileScreen extends StatelessWidget {
           ],
         ),
         child: SafeArea(
-          child: isMatch
-              ? SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () async {
-                      await _handleSendMessage(
-                        context,
-                        profile,
-                        isMatch: true,
-                        matchId: matchId,
-                      );
-                    },
-                    icon: const Icon(Icons.chat_bubble_outline),
-                    label: Text(AppLocalizations.of(context).sendMessage),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: DsColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                )
-              : Row(
-                  children: [
-                    // Dislike button
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          await _handlePass(context, profile);
-                        },
-                        icon: const Icon(Icons.close),
-                        label: Text(AppLocalizations.of(context).pass),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: DsColors.ink300),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FutureBuilder<bool>(
-                        future: _hasPendingMessageRequest(context, profile),
-                        builder: (context, snapshot) {
-                          final hasPending = snapshot.data ?? false;
-                          return FilledButton.icon(
-                            onPressed: hasPending
-                                ? null
-                                : () async {
-                                    await _handleSendMessage(
-                                      context,
-                                      profile,
-                                      isMatch: false,
-                                      matchId: matchId,
-                                    );
-                                  },
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final maxWidth = otherUserProfileMaxWidthFor(
+                constraints.maxWidth,
+              );
+              return Align(
+                alignment: Alignment.center,
+                child: ConstrainedBox(
+                  key: otherUserProfileActionsConstraintKey,
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: isMatch
+                      ? SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () async {
+                              await _handleSendMessage(
+                                context,
+                                profile,
+                                isMatch: true,
+                                matchId: matchId,
+                              );
+                            },
                             icon: const Icon(Icons.chat_bubble_outline),
                             label: Text(
-                              hasPending ? 'Request Sent' : 'Send Message',
+                              AppLocalizations.of(context).sendMessage,
                             ),
                             style: FilledButton.styleFrom(
-                              backgroundColor: DsColors.secondary,
+                              backgroundColor: DsColors.primary,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                             ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Like button
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: () async {
-                          await _handleLike(context, profile);
-                        },
-                        icon: const Icon(Icons.favorite),
-                        label: Text(AppLocalizations.of(context).like),
-                        style: FilledButton.styleFrom(
-                          backgroundColor: DsColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            // Dislike button
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () async {
+                                  await _handlePass(context, profile);
+                                },
+                                icon: const Icon(Icons.close),
+                                label: Text(AppLocalizations.of(context).pass),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  side: const BorderSide(
+                                    color: DsColors.ink300,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: FutureBuilder<bool>(
+                                future: _hasPendingMessageRequest(
+                                  context,
+                                  profile,
+                                ),
+                                builder: (context, snapshot) {
+                                  final hasPending = snapshot.data ?? false;
+                                  return FilledButton.icon(
+                                    onPressed: hasPending
+                                        ? null
+                                        : () async {
+                                            await _handleSendMessage(
+                                              context,
+                                              profile,
+                                              isMatch: false,
+                                              matchId: matchId,
+                                            );
+                                          },
+                                    icon: const Icon(Icons.chat_bubble_outline),
+                                    label: Text(
+                                      hasPending
+                                          ? 'Request Sent'
+                                          : 'Send Message',
+                                    ),
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: DsColors.secondary,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            // Like button
+                            Expanded(
+                              child: FilledButton.icon(
+                                onPressed: () async {
+                                  await _handleLike(context, profile);
+                                },
+                                icon: const Icon(Icons.favorite),
+                                label: Text(AppLocalizations.of(context).like),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: DsColors.primary,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                  ],
                 ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -930,6 +1082,7 @@ class OtherUserProfileScreen extends StatelessWidget {
   }
 
   void _showOptionsMenu(BuildContext context, Profile profile) {
+    final l10n = AppLocalizations.of(context);
     final currentUserId = context.read<AuthBloc>().state.user?.id;
     final safetyCubit = context.read<SafetyCubit>();
     final isBlocked = safetyCubit.isBlocked(profile.id);
@@ -950,14 +1103,11 @@ class OtherUserProfileScreen extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(isBlocked ? Icons.check_circle : Icons.block),
-              title: Text(isBlocked ? 'Unblock' : 'Block'),
+              title: Text(isBlocked ? l10n.commonUnblock : l10n.commonBlock),
               onTap: () async {
                 Navigator.pop(sheetContext);
                 if (currentUserId == null) {
-                  showErrorSnackBar(
-                    context,
-                    'Sign in again to manage safety actions.',
-                  );
+                  showErrorSnackBar(context, l10n.signInAgainToManage);
                   return;
                 }
                 await safetyCubit.toggleBlock(
@@ -969,7 +1119,7 @@ class OtherUserProfileScreen extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        isBlocked ? 'User unblocked' : 'User blocked',
+                        isBlocked ? l10n.safetyUnblocked : l10n.safetyBlocked,
                       ),
                     ),
                   );
@@ -1059,54 +1209,25 @@ class OtherUserProfileScreen extends StatelessWidget {
     SafetyCubit safetyCubit,
     String? currentUserId,
   ) {
-    final reasons = [
-      'Inappropriate photos',
-      'Fake profile',
-      'Harassment',
-      'Scam or spam',
-      'Underage user',
-      'Other',
-    ];
-
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Why are you reporting this profile?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            ...reasons.map(
-              (reason) => ListTile(
-                title: Text(reason),
-                onTap: () async {
-                  Navigator.pop(sheetContext);
-                  await safetyCubit.reportWithContext(
-                    reporterId: currentUserId ?? 'anonymous',
-                    reportedId: profile.id,
-                    reason: reason,
-                    source: 'profile_view',
-                  );
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(
-                            context,
-                          ).reportSubmittedThanksForKeeping,
-                        ),
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-          ],
+        child: ProfileReportSheetContent(
+          onReasonSelected: (reason) async {
+            Navigator.pop(sheetContext);
+            await safetyCubit.reportWithContext(
+              reporterId: currentUserId ?? 'anonymous',
+              reportedId: profile.id,
+              reason: profileReportReasonCode(reason),
+              source: 'profile_view',
+            );
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.reportSubmittedThanksForKeeping)),
+              );
+            }
+          },
         ),
       ),
     );

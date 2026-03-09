@@ -8,6 +8,7 @@ import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/features/auth/data/repositories/auth_repository.dart';
 import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+import 'package:crushhour/features/discovery/domain/usecases/matching_decision_engine.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:http/http.dart' as http;
@@ -876,7 +877,6 @@ class FakeProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -1031,7 +1031,6 @@ class FakeProfileRepository implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -1048,7 +1047,6 @@ class FakeProfileRepository implements ProfileRepository {
         company: company,
         school: school,
         interests: interests,
-        prompts: prompts,
         city: city,
         country: country,
         favourites: favourites,
@@ -1353,33 +1351,12 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
       return deck.take(10).toList();
     }
 
-    final showMe = prefs.showMeGenders.map((g) => g.toLowerCase()).toSet();
-    final targetAgeCenter = (prefs.minAge + prefs.maxAge) / 2;
-    final country = prefs.country.toLowerCase();
-    final city = prefs.city.toLowerCase();
-
-    bool matchesPrefs(Profile p) {
-      if (p.age < prefs.minAge || p.age > prefs.maxAge) return false;
-      if (showMe.isNotEmpty && !showMe.contains(p.gender.toLowerCase())) {
-        return false;
-      }
-      return true;
-    }
-
-    double score(Profile p) {
-      final sharedInterests = p.interests
-          .where((i) => interests.contains(i))
-          .length;
-      final ageScore = -((p.age - targetAgeCenter).abs());
-      final locationBoost =
-          (p.city.toLowerCase() == city ? 5 : 0) +
-          (p.country.toLowerCase() == country ? 2 : 0);
-      return sharedInterests * 10 + ageScore + locationBoost;
-    }
-
-    final filtered = deck.where(matchesPrefs).toList();
-    filtered.sort((a, b) => score(b).compareTo(score(a)));
-    return filtered.take(10).toList();
+    return MatchingDecisionEngine.rankTopPicks(
+      candidates: deck,
+      preferences: prefs,
+      userInterests: interests,
+      limit: 10,
+    );
   }
 
   @override

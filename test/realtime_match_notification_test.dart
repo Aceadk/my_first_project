@@ -27,5 +27,35 @@ void main() {
       expect(notification.otherUserPhotoUrl, isNull);
       expect(notification.createdAt, 0);
     });
+
+    test('coerces mixed payload types without throwing', () {
+      final notification = RealtimeMatchNotification.fromRtdb('match_3', {
+        'otherUserId': 42,
+        'otherUserName': true,
+        'otherUserPhotoUrl': 98765,
+        'createdAt': '1234567890',
+      });
+
+      expect(notification.matchId, 'match_3');
+      expect(notification.otherUserId, '42');
+      expect(notification.otherUserName, 'true');
+      expect(notification.otherUserPhotoUrl, '98765');
+      expect(notification.createdAt, 1234567890);
+    });
+
+    test('falls back safely for blank strings and invalid timestamp', () {
+      final notification = RealtimeMatchNotification.fromRtdb('match_4', {
+        'otherUserId': '   ',
+        'otherUserName': '',
+        'otherUserPhotoUrl': '   ',
+        'createdAt': 'not-a-number',
+      });
+
+      expect(notification.matchId, 'match_4');
+      expect(notification.otherUserId, '');
+      expect(notification.otherUserName, 'Someone');
+      expect(notification.otherUserPhotoUrl, isNull);
+      expect(notification.createdAt, 0);
+    });
   });
 }

@@ -52,6 +52,7 @@ class WebSocketConnection {
   Timer? _reconnectTimer;
   int _reconnectCount = 0;
   bool _intentionalDisconnect = false;
+  bool _isHandlingConnectionLoss = false;
   DateTime? _lastPongReceived; // RT-002: Track pong responses
 
   final _stateController = StreamController<ConnectionState>.broadcast();
@@ -124,12 +125,14 @@ class WebSocketConnection {
     _intentionalDisconnect = true;
     _stopHeartbeat();
     _cancelReconnect();
+    _isHandlingConnectionLoss = false;
 
     await _subscription?.cancel();
     _subscription = null;
 
     await _channel?.sink.close();
     _channel = null;
+    _lastPongReceived = null;
 
     _setState(ConnectionState.disconnected);
     AppLogger.debug('WebSocketConnection: Disconnected');
@@ -188,14 +191,7 @@ class WebSocketConnection {
 
   void _onDone() {
     AppLogger.debug('WebSocketConnection: Connection closed');
-    _stopHeartbeat();
-
-    if (!_intentionalDisconnect) {
-      _setState(ConnectionState.reconnecting);
-      _scheduleReconnect();
-    } else {
-      _setState(ConnectionState.disconnected);
-    }
+    unawaited(_handleConnectionLoss(forceCloseSocket: false));
   }
 
   void _setState(ConnectionState newState) {
@@ -216,7 +212,7 @@ class WebSocketConnection {
             AppLogger.warning(
               'WebSocketConnection: Pong timeout (${elapsed.inSeconds}s) — triggering reconnect',
             );
-            _onDone(); // Triggers reconnect logic
+            unawaited(_handleConnectionLoss(forceCloseSocket: true));
             return;
           }
         }
@@ -269,6 +265,39 @@ class WebSocketConnection {
   void _cancelReconnect() {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
+  }
+
+  Future<void> _handleConnectionLoss({required bool forceCloseSocket}) async {
+    if (_intentionalDisconnect) {
+      return;
+    }
+    if (_isHandlingConnectionLoss) {
+      return;
+    }
+    _isHandlingConnectionLoss = true;
+    try {
+      _stopHeartbeat();
+
+      await _subscription?.cancel();
+      _subscription = null;
+
+      if (forceCloseSocket && _channel != null) {
+        try {
+          await _channel!.sink.close();
+        } catch (e) {
+          AppLogger.debug(
+            'WebSocketConnection: Ignore close error during reconnect cleanup: $e',
+          );
+        }
+      }
+      _channel = null;
+      _lastPongReceived = null;
+
+      _setState(ConnectionState.reconnecting);
+      _scheduleReconnect();
+    } finally {
+      _isHandlingConnectionLoss = false;
+    }
   }
 
   /// Dispose resources.

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:flutter/foundation.dart';
 
 /// Firebase Firestore real-time sync service.
 ///
@@ -11,11 +12,17 @@ import 'package:crushhour/core/app_logger.dart';
 /// - Offline support with Firestore caching
 /// - Query-based listeners
 class FirebaseRealtimeService {
-  FirebaseRealtimeService._();
+  FirebaseRealtimeService._({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   static final FirebaseRealtimeService instance = FirebaseRealtimeService._();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  @visibleForTesting
+  factory FirebaseRealtimeService.test({required FirebaseFirestore firestore}) {
+    return FirebaseRealtimeService._(firestore: firestore);
+  }
+
+  final FirebaseFirestore _firestore;
   final Map<String, StreamSubscription> _subscriptions = {};
 
   bool _isInitialized = false;
@@ -191,6 +198,14 @@ class FirebaseRealtimeService {
       case FilterOperator.whereNotIn:
         return query.where(filter.field, whereNotIn: filter.value as List);
     }
+  }
+
+  @visibleForTesting
+  Query<Map<String, dynamic>> applyFilterForTesting(
+    Query<Map<String, dynamic>> query,
+    QueryFilter filter,
+  ) {
+    return _applyFilter(query, filter);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

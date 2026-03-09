@@ -4,14 +4,11 @@ import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_event.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_state.dart';
+import 'package:crushhour/features/profile/presentation/models/profile_edit_form_model.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/data/models/profile.dart';
-import 'package:crushhour/data/models/preferences.dart';
-import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
-import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
-import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
@@ -77,183 +74,23 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
   String? _lookingFor; // Who to show in deck (male, female, everyone)
   List<ProfilePrompt> _profilePrompts = [];
 
-  Profile _fallbackProfile(ProfileState state) {
-    // Use AuthBloc as fallback for user ID when ProfileBloc state doesn't have it
-    final authUserId = context.read<AuthBloc>().state.user?.id;
-    return Profile(
-      id: state.user?.id ?? authUserId ?? 'TEMP',
-      name: '',
-      lastName: state.user?.profile?.lastName,
-      age: state.user?.profile?.age ?? 18,
-      gender: _gender ?? state.user?.profile?.gender ?? '',
-      sexualOrientation:
-          _sexualOrientation ?? state.user?.profile?.sexualOrientation,
-      dateOfBirth: _dateOfBirth ?? state.user?.profile?.dateOfBirth,
-      bio: '',
-      photoUrls: List.of(_photos),
-      videoUrls: List.of(_videos),
+  ProfileEditFormSnapshot _buildFormSnapshot() {
+    return ProfileEditFormSnapshot(
+      firstName: _firstNameController.text,
+      lastName: _lastNameController.text,
+      bio: _bioController.text,
+      jobTitle: _jobTitleController.text,
+      company: _companyController.text,
+      school: _schoolController.text,
+      livingIn: _livingInController.text,
+      favoriteSinger: _favoriteSingerController.text,
+      country: _countryController.text,
+      city: _cityController.text,
+      photos: _photos,
+      videos: _videos,
       primaryPhotoIndex: _primaryPhotoIndex,
-      isVerified: state.user?.profile?.isVerified ?? false,
-      jobTitle: _jobTitleController.text.isNotEmpty
-          ? _jobTitleController.text
-          : state.user?.profile?.jobTitle,
-      company: _companyController.text.isNotEmpty
-          ? _companyController.text
-          : state.user?.profile?.company,
-      school: _schoolController.text.isNotEmpty
-          ? _schoolController.text
-          : state.user?.profile?.school,
-      interests: _interests.isNotEmpty
-          ? _interests
-          : (state.user?.profile?.interests ?? []),
-      profilePrompts: _profilePrompts.isNotEmpty
-          ? _profilePrompts
-          : (state.user?.profile?.profilePrompts ?? []),
-      heightCm: _heightCm ?? state.user?.profile?.heightCm,
-      relationshipGoals:
-          _relationshipGoals ?? state.user?.profile?.relationshipGoals,
-      languages: _languages.isNotEmpty
-          ? _languages
-          : (state.user?.profile?.languages ?? []),
-      zodiacSign: _zodiacSign ?? state.user?.profile?.zodiacSign,
-      educationLevel: _educationLevel ?? state.user?.profile?.educationLevel,
-      familyPlans: _familyPlans ?? state.user?.profile?.familyPlans,
-      personalityType: _personalityType ?? state.user?.profile?.personalityType,
-      religion: _religion ?? state.user?.profile?.religion,
-      workout: _workout ?? state.user?.profile?.workout,
-      socialMedia: _socialMedia ?? state.user?.profile?.socialMedia,
-      sleepingHabits: _sleepingHabits ?? state.user?.profile?.sleepingHabits,
-      smoking: _smoking ?? state.user?.profile?.smoking,
-      drinking: _drinking ?? state.user?.profile?.drinking,
-      pets: _pets ?? state.user?.profile?.pets,
-      livingIn: _livingInController.text.isNotEmpty
-          ? _livingInController.text
-          : state.user?.profile?.livingIn,
-      favoriteSongs: _favoriteSongs.isNotEmpty
-          ? _favoriteSongs
-          : (state.user?.profile?.favoriteSongs ?? []),
-      favoriteSinger: _favoriteSingerController.text.isNotEmpty
-          ? _favoriteSingerController.text
-          : state.user?.profile?.favoriteSinger,
-      country: state.user?.profile?.country ?? 'Unknown',
-      city: state.user?.profile?.city ?? 'Unknown',
-      latitude: state.user?.profile?.latitude,
-      longitude: state.user?.profile?.longitude,
-      preferences:
-          state.user?.profile?.preferences ??
-          const DiscoveryPreferences(
-            minAge: 18,
-            maxAge: 45,
-            maxDistanceKm: 50,
-            showMeGenders: ['female', 'male'],
-            showMyDistance: true,
-            showMyAge: true,
-            hideFromDiscovery: false,
-            incognitoMode: false,
-            country: 'Unknown',
-            city: 'Unknown',
-          ),
-      privacySettings:
-          state.user?.profile?.privacySettings ??
-          const ProfilePrivacySettings(),
-    );
-  }
-
-  Future<void> _save(ProfileState state) async {
-    if (_uploading || state.isSaving) return;
-    if (_photos.length < ProfileMediaLimits.minPhotos) {
-      showErrorSnackBar(
-        context,
-        'Add at least one photo to keep your profile visible.',
-      );
-      return;
-    }
-
-    final base = state.profile ?? _fallbackProfile(state);
-    // Try ProfileBloc state first, then fall back to AuthBloc for user ID
-    final userId =
-        state.user?.id ??
-        state.profile?.id ??
-        context.read<AuthBloc>().state.user?.id;
-    if (userId == null) {
-      showErrorSnackBar(context, 'You need to be signed in to save changes.');
-      return;
-    }
-
-    setState(() => _uploading = true);
-    final uploadResult = await Result.guard(
-      () => _mediaService.ensureRemoteUrls(
-        userId: userId,
-        photoPaths: _photos,
-        videoPaths: _videos,
-      ),
-      logLabel: 'ProfileMediaService.ensureRemoteUrls',
-      fallbackError: 'Could not upload photos. Please try again.',
-    );
-    if (!mounted) return;
-    if (!uploadResult.isSuccess || uploadResult.data == null) {
-      showErrorSnackBar(
-        context,
-        uploadResult.errorMessage ??
-            'Could not upload photos. Please try again.',
-      );
-      setState(() => _uploading = false);
-      return;
-    }
-
-    final uploads = uploadResult.data!;
-
-    // Check if some photos were lost (e.g., temp files cleaned up)
-    final photosLost = _photos.length - uploads.photoUrls.length;
-    if (photosLost > 0) {
-      // Update local photos list to match what was actually uploaded
-      setState(() {
-        _photos.clear();
-        _photos.addAll(uploads.photoUrls);
-        // Adjust primary photo index if needed
-        if (_primaryPhotoIndex >= _photos.length) {
-          _primaryPhotoIndex = _photos.isNotEmpty ? 0 : 0;
-        }
-      });
-    }
-
-    // Check if we still have minimum required photos
-    if (uploads.photoUrls.length < ProfileMediaLimits.minPhotos) {
-      showErrorSnackBar(
-        context,
-        'Some photos could not be uploaded. Please add at least one photo.',
-      );
-      setState(() => _uploading = false);
-      return;
-    }
-    final newFirstName = _firstNameController.text.trim();
-    final newLastName = _lastNameController.text.trim();
-    final baseLastName = base.lastName?.trim() ?? '';
-    final nameChanged =
-        newFirstName != base.name || newLastName != baseLastName;
-    final dobChanged = _dateOfBirth != base.dateOfBirth;
-    final updatedPrivacy = base.privacySettings.copyWith(
       showFirstName: _showFirstName,
       showLastName: _showLastName,
-    );
-    // Update preferences with "looking for" selection
-    final updatedPreferences = base.preferences.copyWith(
-      showMeGenders: _lookingFor != null
-          ? ProfileFieldOptions.lookingForToShowMeGenders(_lookingFor!)
-          : base.preferences.showMeGenders,
-    );
-    final updated = base.copyWith(
-      name: newFirstName,
-      lastName: newLastName.isEmpty ? null : newLastName,
-      bio: _bioController.text.trim(),
-      photoUrls: uploads.photoUrls,
-      videoUrls: uploads.videoUrls,
-      primaryPhotoIndex: _primaryPhotoIndex,
-      // Track name change date if name was modified
-      lastNameChangeAt: nameChanged ? DateTime.now() : base.lastNameChangeAt,
-      // Track DOB change date if DOB was modified
-      lastDobChangeAt: dobChanged ? DateTime.now() : base.lastDobChangeAt,
-      // New fields
       heightCm: _heightCm,
       relationshipGoals: _relationshipGoals,
       languages: _languages,
@@ -268,36 +105,88 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       smoking: _smoking,
       drinking: _drinking,
       pets: _pets,
-      interests: _interests,
-      profilePrompts: _profilePrompts,
-      jobTitle: _jobTitleController.text.trim().isNotEmpty
-          ? _jobTitleController.text.trim()
-          : null,
-      company: _companyController.text.trim().isNotEmpty
-          ? _companyController.text.trim()
-          : null,
-      school: _schoolController.text.trim().isNotEmpty
-          ? _schoolController.text.trim()
-          : null,
-      livingIn: _livingInController.text.trim().isNotEmpty
-          ? _livingInController.text.trim()
-          : null,
       favoriteSongs: _favoriteSongs,
-      favoriteSinger: _favoriteSingerController.text.trim().isNotEmpty
-          ? _favoriteSingerController.text.trim()
-          : base.favoriteSinger,
+      interests: _interests,
       dateOfBirth: _dateOfBirth,
       gender: _gender,
       sexualOrientation: _sexualOrientation,
-      privacySettings: updatedPrivacy,
-      preferences: updatedPreferences,
-      // Location fields
-      country: _countryController.text.trim().isNotEmpty
-          ? _countryController.text.trim()
-          : base.country,
-      city: _cityController.text.trim().isNotEmpty
-          ? _cityController.text.trim()
-          : base.city,
+      lookingFor: _lookingFor,
+      profilePrompts: _profilePrompts,
+    );
+  }
+
+  Profile _fallbackProfile(ProfileState state) {
+    final authUserId = context.read<AuthBloc>().state.user?.id;
+    return ProfileEditFormModel.buildFallbackProfile(
+      form: _buildFormSnapshot(),
+      stateUserId: state.user?.id,
+      authUserId: authUserId,
+      existingProfile: state.user?.profile,
+    );
+  }
+
+  Future<void> _save(ProfileState state) async {
+    if (_uploading || state.isSaving) return;
+    final form = _buildFormSnapshot();
+    final mediaValidation = ProfileEditFormModel.validateSelectedPhotos(
+      form.photos,
+    );
+    if (!mediaValidation.isValid) {
+      showErrorSnackBar(context, mediaValidation.message ?? 'Invalid profile.');
+      return;
+    }
+
+    final base = state.profile ?? _fallbackProfile(state);
+    final userId = ProfileEditFormModel.resolveUserId(
+      stateUserId: state.user?.id,
+      stateProfileId: state.profile?.id,
+      authUserId: context.read<AuthBloc>().state.user?.id,
+    );
+    final userValidation = ProfileEditFormModel.validateUserId(userId);
+    if (!userValidation.isValid) {
+      showErrorSnackBar(context, userValidation.message ?? 'Invalid profile.');
+      return;
+    }
+
+    setState(() => _uploading = true);
+    final uploads = await _mediaService.ensureRemoteUrls(
+      userId: userId!,
+      photoPaths: form.photos,
+      videoPaths: form.videos,
+    );
+    if (!mounted) return;
+
+    // Check if some photos were lost (e.g., temp files cleaned up)
+    final photosLost = form.photos.length - uploads.photoUrls.length;
+    if (photosLost > 0) {
+      // Update local photos list to match what was actually uploaded
+      setState(() {
+        _photos.clear();
+        _photos.addAll(uploads.photoUrls);
+        // Adjust primary photo index if needed
+        if (_primaryPhotoIndex >= _photos.length) {
+          _primaryPhotoIndex = _photos.isNotEmpty ? 0 : 0;
+        }
+      });
+    }
+
+    final uploadedMediaValidation = ProfileEditFormModel.validateUploadedPhotos(
+      uploads.photoUrls,
+    );
+    if (!uploadedMediaValidation.isValid) {
+      showErrorSnackBar(
+        context,
+        'Some photos could not be uploaded. Please add at least one photo.',
+      );
+      setState(() => _uploading = false);
+      return;
+    }
+    final saveForm = _buildFormSnapshot();
+    final updated = ProfileEditFormModel.buildUpdatedProfile(
+      base: base,
+      form: saveForm,
+      uploadedPhotoUrls: uploads.photoUrls,
+      uploadedVideoUrls: uploads.videoUrls,
     );
 
     context.read<ProfileBloc>().add(ProfileSaveRequested(profile: updated));

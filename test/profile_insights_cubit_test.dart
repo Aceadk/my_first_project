@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/analytics/data/models/profile_insights_dto.dart';
 import 'package:crushhour/features/analytics/data/services/profile_insights_service.dart';
@@ -9,6 +10,15 @@ import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart
 import 'package:flutter_test/flutter_test.dart';
 
 import 'mock/firebase_mock.dart';
+
+CrushUser _makeAuthUser(String id) => CrushUser(
+  id: id,
+  phoneNumber: '+10000000000',
+  isEmailVerified: true,
+  isPhoneVerified: true,
+  isIdVerified: false,
+  plan: SubscriptionPlan.free,
+);
 
 void main() {
   setupFirebaseAnalyticsMocks();
@@ -413,6 +423,32 @@ void main() {
         await authController.close();
         await cubit.close();
       });
+
+      test('resets state when auth user switches accounts', () async {
+        final authController = StreamController<CrushUser?>.broadcast();
+        final cubit = ProfileInsightsCubit(
+          authRepository: _StubAuthRepository(
+            userStreamController: authController,
+          ),
+          insightsRepository: ProfileInsightsService.instance,
+        );
+
+        await cubit.loadInsights('user-1');
+        await Future<void>.delayed(const Duration(milliseconds: 700));
+        expect(cubit.state.insights, isNotNull);
+
+        authController.add(_makeAuthUser('user-a'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(cubit.state.insights, isNotNull);
+
+        authController.add(_makeAuthUser('user-b'));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+
+        expect(cubit.state, const ProfileInsightsState());
+
+        await authController.close();
+        await cubit.close();
+      });
     });
 
     group('Lifecycle', () {
@@ -783,7 +819,7 @@ class _StubAuthRepository implements AuthRepository {
   Future<void> schedulePhoneDeletion() async {}
 
   @override
-@override
+  @override
   Future<void> verifyPassword(String password) async {}
 
   @override

@@ -109,14 +109,15 @@
 ---
 
 ## SUB-009: Handle Subscription Webhooks (Server-to-Server Notifications)
-**Files:** `functions/src/subscription/apple_s2s_handler.ts` (new), `functions/src/subscription/google_rtdn_handler.ts` (new)
+**Files:** `functions/src/index.ts`, `functions/test/googleRtdnLifecycle.test.js`, `functions/test/appleS2sLifecycle.test.js`
 **Description:** Implement webhook handlers for subscription lifecycle events (renewal, cancellation, billing retry, grace period, refund).
+**Status:** Completed (2026-03-08)
 **Acceptance Criteria:**
-- [ ] Apple S2S v2 webhook: handles DID_RENEW, DID_FAIL_TO_RENEW, EXPIRED, REFUND, GRACE_PERIOD_EXPIRED
-- [ ] Google RTDN webhook: handles SUBSCRIPTION_RENEWED, SUBSCRIPTION_CANCELED, SUBSCRIPTION_ON_HOLD
-- [ ] JWT signature verification for Apple notifications
-- [ ] Firestore subscription document updated on each event
-- [ ] Grace period and refund handling implemented
+- [x] Apple S2S v2 webhook: handles DID_RENEW, DID_FAIL_TO_RENEW, EXPIRED, REFUND, GRACE_PERIOD_EXPIRED
+- [x] Google RTDN webhook: handles SUBSCRIPTION_RENEWED, SUBSCRIPTION_CANCELED, SUBSCRIPTION_ON_HOLD
+- [x] JWT signature verification for Apple notifications
+- [x] Firestore user subscription metadata updated on each event (`users/{uid}` with `subscriptionLifecycle`)
+- [x] Grace period and refund handling implemented
 **Testing:** Cloud Function unit tests with sample webhook payloads; integration test with sandbox.
 
 ---

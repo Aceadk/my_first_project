@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/utils/auth_state_reset_policy.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/core/utils/result.dart';
@@ -65,11 +66,14 @@ class BoostCubit extends Cubit<BoostState> {
   }) : _boostRepository = boostRepository,
        super(const BoostState()) {
     _authSubscription = authRepository.authStateChanges().listen((user) {
-      if (user == null) _resetOnLogout();
+      if (_authResetPolicy.shouldResetFor(user)) {
+        _resetOnLogout();
+      }
     });
   }
 
   final BoostRepository _boostRepository;
+  final AuthStateResetPolicy _authResetPolicy = AuthStateResetPolicy();
   StreamSubscription? _authSubscription;
   Timer? _countdownTimer;
   String? _userId;

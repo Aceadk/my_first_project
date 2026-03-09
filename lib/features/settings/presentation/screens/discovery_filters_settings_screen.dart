@@ -8,11 +8,20 @@ import 'package:crushhour/features/discovery/domain/models/filter_options.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+
+const Key discoveryFiltersContentConstraintKey = ValueKey<String>(
+  'discovery_filters_content_constraint',
+);
+
+double discoveryFiltersContentMaxWidthFor(double screenWidth) {
+  return DsBreakpoints.contentMaxWidth(screenWidth);
+}
 
 class DiscoveryFiltersSettingsScreen extends StatelessWidget {
   const DiscoveryFiltersSettingsScreen({super.key});
@@ -25,20 +34,29 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(AppLocalizations.of(context).discoveryFilters),
       ),
-      body: BlocBuilder<DiscoverySettingsCubit, DiscoverySettingsState>(
-        builder: (context, discoveryState) {
-          final cubit = context.read<DiscoverySettingsCubit>();
-          final ageRange = RangeValues(
-            discoveryState.minAge.toDouble(),
-            discoveryState.maxAge.toDouble(),
-          );
+      body: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: ConstrainedBox(
+            key: discoveryFiltersContentConstraintKey,
+            constraints: BoxConstraints(
+              maxWidth: discoveryFiltersContentMaxWidthFor(
+                constraints.maxWidth,
+              ),
+            ),
+            child: BlocBuilder<DiscoverySettingsCubit, DiscoverySettingsState>(
+              builder: (context, discoveryState) {
+                final cubit = context.read<DiscoverySettingsCubit>();
+                final ageRange = RangeValues(
+                  discoveryState.minAge.toDouble(),
+                  discoveryState.maxAge.toDouble(),
+                );
 
-          return BlocBuilder<SubscriptionBloc, SubscriptionState>(
-            builder: (context, subState) {
-              final isPlus = subState.plan == SubscriptionPlan.plus;
+                return BlocBuilder<SubscriptionBloc, SubscriptionState>(
+                  builder: (context, subState) {
+                    final isPlus = subState.plan == SubscriptionPlan.plus;
 
-              return ListView(
-                children: [
+                    return ListView(
+                      children: [
                   // Header
                   Container(
                     padding: DsEdgeInsets.allLg,
@@ -385,11 +403,14 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                     ),
                   ),
                   DsGap.xl,
-                ],
-              );
-            },
-          );
-        },
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }

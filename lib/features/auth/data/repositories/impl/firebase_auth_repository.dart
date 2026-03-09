@@ -5,6 +5,8 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/errors/auth_failures.dart';
+import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/security/secure_logger.dart';
 import 'package:crushhour/core/utils/result.dart' as app_result;
 import 'package:crushhour/data/models/favourites.dart';
@@ -284,11 +286,15 @@ class FirebaseAuthRepository
             firebaseUser.displayName ??
             firebaseUser.email?.split('@').first ??
             'User';
+        final username = InputSanitizer.sanitizeUsername(
+          firebaseUser.displayName,
+        );
 
         await docRef.set({
           'phoneNumber': firebaseUser.phoneNumber ?? '',
           'email': firebaseUser.email,
-          'username': firebaseUser.displayName,
+          'username': username.isEmpty ? null : username,
+          'usernameLower': username.isEmpty ? null : username,
           'isEmailVerified': firebaseUser.emailVerified,
           'isPhoneVerified': firebaseUser.phoneNumber != null,
           'isIdVerified': false,
@@ -1827,10 +1833,11 @@ class FirebaseAuthRepository
     required String email,
     required String password,
   }) {
-    return app_result.Result.guard(
+    return _guardAuthResult(
       () => signInWithEmailPassword(email: email, password: password),
       logLabel: 'FirebaseAuthRepository.signInWithEmailPasswordResult',
       fallbackError: 'Unable to sign in. Please check your credentials.',
+      fallbackType: AuthFailureType.invalidCredentials,
     );
   }
 
@@ -1838,10 +1845,11 @@ class FirebaseAuthRepository
     required String identifier,
     required String password,
   }) {
-    return app_result.Result.guard(
+    return _guardAuthResult(
       () => loginWithPassword(identifier: identifier, password: password),
       logLabel: 'FirebaseAuthRepository.loginWithPasswordResult',
       fallbackError: 'Unable to sign in. Please check your credentials.',
+      fallbackType: AuthFailureType.invalidCredentials,
     );
   }
 
@@ -1850,7 +1858,7 @@ class FirebaseAuthRepository
     required String email,
     required String password,
   }) {
-    return app_result.Result.guard(
+    return _guardAuthResult(
       () => signUpWithPassword(
         username: username,
         email: email,
@@ -1858,30 +1866,57 @@ class FirebaseAuthRepository
       ),
       logLabel: 'FirebaseAuthRepository.signUpWithPasswordResult',
       fallbackError: 'Unable to create account. Please try again.',
+      fallbackType: AuthFailureType.unknown,
     );
   }
 
   Future<app_result.Result<void>> signOutResult() {
-    return app_result.Result.guard(
+    return _guardAuthResult(
       () => signOut(),
       logLabel: 'FirebaseAuthRepository.signOutResult',
       fallbackError: 'Unable to sign out. Please try again.',
+      fallbackType: AuthFailureType.sessionMissing,
     );
   }
 
   Future<app_result.Result<CrushUser>> signInWithAppleResult() {
-    return app_result.Result.guard(
+    return _guardAuthResult(
       () => signInWithApple(),
       logLabel: 'FirebaseAuthRepository.signInWithAppleResult',
       fallbackError: 'Apple Sign-In failed. Please try again.',
+      fallbackType: AuthFailureType.unsupportedProvider,
     );
   }
 
   Future<app_result.Result<CrushUser>> signInWithGoogleResult() {
-    return app_result.Result.guard(
+    return _guardAuthResult(
       () => signInWithGoogle(),
       logLabel: 'FirebaseAuthRepository.signInWithGoogleResult',
       fallbackError: 'Google Sign-In failed. Please try again.',
+      fallbackType: AuthFailureType.unsupportedProvider,
+    );
+  }
+
+  Future<app_result.Result<T>> _guardAuthResult<T>(
+    Future<T> Function() run, {
+    required String logLabel,
+    required String fallbackError,
+    required AuthFailureType fallbackType,
+  }) {
+    return app_result.Result.guard(
+      () async {
+        try {
+          return await run();
+        } catch (error) {
+          throw AuthFailureMapper.from(
+            error,
+            fallbackType: fallbackType,
+            fallbackMessage: fallbackError,
+          );
+        }
+      },
+      logLabel: logLabel,
+      fallbackError: fallbackError,
     );
   }
 

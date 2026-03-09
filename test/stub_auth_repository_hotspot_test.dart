@@ -443,6 +443,8 @@ void main() {
           restored.profile!.preferences.showMeGenders,
           containsAll(<String>['male', 'female']),
         );
+        expect(restored.profile!.profilePrompts.length, 1);
+        expect(restored.profile!.profilePrompts.first.answer, 'prompt 1');
         expect(restored.profile!.privacySettings.showEmail, isTrue);
 
         final accepted = await repo.acceptTermsAndConditions();
@@ -456,6 +458,7 @@ void main() {
         expect(persisted['hasAcceptedTerms'], isTrue);
         final persistedProfile = persisted['profile'] as Map<String, dynamic>;
         expect(persistedProfile['name'], 'Ava');
+        expect((persistedProfile['profilePrompts'] as List).length, 1);
         expect(persistedProfile['privacySettings']['showEmail'], isTrue);
         expect(persistedProfile['preferences']['maxDistanceKm'], 42.5);
       },

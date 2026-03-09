@@ -13,7 +13,6 @@ class SaveProfileDetailsParams {
   final String? company;
   final String? school;
   final List<String> interests;
-  final List<String>? prompts;
   final String? city;
   final String? country;
   final ProfileFavourites? favourites;
@@ -26,7 +25,6 @@ class SaveProfileDetailsParams {
     this.company,
     this.school,
     required this.interests,
-    this.prompts,
     this.city,
     this.country,
     this.favourites,
@@ -72,7 +70,6 @@ class SaveProfileDetailsUseCase
         company: params.company?.trim(),
         school: params.school?.trim(),
         interests: params.interests,
-        prompts: params.prompts,
         city: params.city?.trim(),
         country: params.country?.trim(),
         favourites: params.favourites,

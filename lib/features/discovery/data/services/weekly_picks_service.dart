@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:math';
-import '../models/weekly_picks.dart';
+import 'package:crushhour/features/discovery/domain/models/weekly_picks.dart';
 
 /// Service for managing weekly curated picks.
 import 'package:crushhour/features/discovery/domain/repositories/weekly_picks_repository.dart';

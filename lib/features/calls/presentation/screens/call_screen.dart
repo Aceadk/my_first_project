@@ -43,6 +43,55 @@ class CallScreenArgs {
   });
 }
 
+const Key callScreenContentConstraintKey = ValueKey<String>(
+  'call_screen_content_constraint',
+);
+
+double callScreenContentMaxWidthFor(double screenWidth) {
+  return DsBreakpoints.contentMaxWidth(screenWidth);
+}
+
+enum CallReportReasonOption {
+  spamOrScams,
+  harassmentOrHate,
+  inappropriateContent,
+  fakeProfile,
+  other,
+}
+
+String callReportReasonCode(CallReportReasonOption reason) {
+  switch (reason) {
+    case CallReportReasonOption.spamOrScams:
+      return 'Spam or scams';
+    case CallReportReasonOption.harassmentOrHate:
+      return 'Harassment or hate';
+    case CallReportReasonOption.inappropriateContent:
+      return 'Inappropriate content';
+    case CallReportReasonOption.fakeProfile:
+      return 'Fake profile';
+    case CallReportReasonOption.other:
+      return 'Other';
+  }
+}
+
+String callReportReasonLabelFor(
+  AppLocalizations l10n,
+  CallReportReasonOption reason,
+) {
+  switch (reason) {
+    case CallReportReasonOption.spamOrScams:
+      return l10n.chatReportReasonSpamScams;
+    case CallReportReasonOption.harassmentOrHate:
+      return l10n.chatReportReasonHarassmentHate;
+    case CallReportReasonOption.inappropriateContent:
+      return l10n.chatReportReasonInappropriateContent;
+    case CallReportReasonOption.fakeProfile:
+      return l10n.chatReportReasonFakeProfile;
+    case CallReportReasonOption.other:
+      return l10n.chatReportReasonOther;
+  }
+}
+
 /// Full-featured call screen with CallService integration.
 ///
 /// Features:
@@ -89,14 +138,6 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   bool _showSafetyTip = false;
   bool _hasHandledCallEnded = false;
   bool _isScreenRecordingDetected = false;
-
-  static const List<String> _reportReasons = <String>[
-    'Spam or scams',
-    'Harassment or hate',
-    'Inappropriate content',
-    'Fake profile',
-    'Other',
-  ];
 
   bool get _isIOSRuntime =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
@@ -343,39 +384,56 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
             // Main content
             SafeArea(
-              child: Column(
-                children: [
-                  const SizedBox(height: 60),
-                  // Call status and user info
-                  _buildCallInfo(),
-                  BlocBuilder<SafetyCubit, SafetyState>(
-                    builder: (context, safetyState) {
-                      return CallSafetyControls(
-                        showSafetyTip: _showSafetyTip,
-                        onDismissTip: () {
-                          unawaited(_dismissSafetyTip());
-                        },
-                        onOpenGuidelines: () =>
-                            context.push(CrushRoutes.safetyGuidelines),
-                        onReportPressed: () => _showReportSheet(
-                          context,
-                          context.read<SafetyCubit>(),
-                        ),
-                        onBlockPressed: _blockUserFromCall,
-                        isBlocked: safetyState.blockedUsers.contains(
-                          widget.matchId,
-                        ),
-                        isReportedRecently: safetyState.reportedUsers
-                            .containsKey(widget.matchId),
-                        matchName: widget.matchName,
-                      );
-                    },
-                  ),
-                  const Spacer(),
-                  // Call controls with glass effect
-                  _buildCallControls(),
-                  const SizedBox(height: 50),
-                ],
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxContentWidth = callScreenContentMaxWidthFor(
+                    constraints.maxWidth,
+                  );
+                  return Align(
+                    alignment: AlignmentDirectional.topCenter,
+                    child: ConstrainedBox(
+                      key: callScreenContentConstraintKey,
+                      constraints: BoxConstraints(
+                        maxWidth: maxContentWidth,
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 60),
+                          // Call status and user info
+                          _buildCallInfo(),
+                          BlocBuilder<SafetyCubit, SafetyState>(
+                            builder: (context, safetyState) {
+                              return CallSafetyControls(
+                                showSafetyTip: _showSafetyTip,
+                                onDismissTip: () {
+                                  unawaited(_dismissSafetyTip());
+                                },
+                                onOpenGuidelines: () =>
+                                    context.push(CrushRoutes.safetyGuidelines),
+                                onReportPressed: () => _showReportSheet(
+                                  context,
+                                  context.read<SafetyCubit>(),
+                                ),
+                                onBlockPressed: _blockUserFromCall,
+                                isBlocked: safetyState.blockedUsers.contains(
+                                  widget.matchId,
+                                ),
+                                isReportedRecently: safetyState.reportedUsers
+                                    .containsKey(widget.matchId),
+                                matchName: widget.matchName,
+                              );
+                            },
+                          ),
+                          const Spacer(),
+                          // Call controls with glass effect
+                          _buildCallControls(),
+                          const SizedBox(height: 50),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
 
@@ -1039,6 +1097,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     final safety = context.read<SafetyCubit>();
     final isAlreadyBlocked = safety.isBlocked(widget.matchId);
     if (isAlreadyBlocked) return;
+    final l10n = AppLocalizations.of(context);
 
     await showModalBottomSheet<void>(
       context: context,
@@ -1065,9 +1124,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Did you feel safe on this call?',
-                        style: TextStyle(
+                      Text(
+                        l10n.callSafetyPostCallPromptTitle,
+                        style: const TextStyle(
                           color: DsColors.surfaceLight,
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -1075,7 +1134,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'If anything felt off, report or block now.',
+                        l10n.callSafetyPostCallPromptSubtitle,
                         style: TextStyle(
                           color: DsColors.surfaceLight.withValues(alpha: 0.78),
                           fontSize: 13,
@@ -1125,13 +1184,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _blockUserFromCall() async {
+    final l10n = AppLocalizations.of(context);
     final uid = _currentUserId;
     if (uid == null || uid.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).signInAgainToManage),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.signInAgainToManage)));
       return;
     }
 
@@ -1141,10 +1199,12 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
     final error = safety.state.errorMessage;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(SnackBar(content: Text(error ?? 'User blocked.')));
+    ).showSnackBar(SnackBar(content: Text(error ?? l10n.safetyBlocked)));
   }
 
   void _showReportSheet(BuildContext context, SafetyCubit safetyCubit) {
+    final l10n = AppLocalizations.of(context);
+    const reasons = CallReportReasonOption.values;
     final messenger = ScaffoldMessenger.of(context);
     showModalBottomSheet<void>(
       context: context,
@@ -1154,34 +1214,37 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                title: const Text(
-                  'Report user',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                title: Text(
+                  l10n.reportUser,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: Text(
-                  AppLocalizations.of(context).reportsAreAnonymousAndReviewed,
-                ),
+                subtitle: Text(l10n.reportsAreAnonymousAndReviewed),
               ),
-              ..._reportReasons.map(
+              ...reasons.map(
                 (reason) => ListTile(
-                  title: Text(reason),
+                  title: Text(callReportReasonLabelFor(l10n, reason)),
                   onTap: () async {
                     Navigator.of(sheetContext).pop();
-                    if (reason == 'Other') {
+                    if (reason == CallReportReasonOption.other) {
                       _showCustomReportDialog(context, safetyCubit);
                       return;
                     }
                     await safetyCubit.reportWithContext(
                       reporterId: _currentUserId ?? 'anonymous',
                       reportedId: widget.matchId,
-                      reason: reason,
+                      reason: callReportReasonCode(reason),
                       source: 'call',
                     );
                     if (!mounted) return;
                     final error = safetyCubit.state.errorMessage;
                     messenger.showSnackBar(
                       SnackBar(
-                        content: Text(error ?? 'Report submitted: $reason'),
+                        content: Text(
+                          error ??
+                              l10n.chatReportSubmittedReason(
+                                callReportReasonLabelFor(l10n, reason),
+                              ),
+                        ),
                       ),
                     );
                   },
@@ -1192,9 +1255,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 child: TextButton.icon(
                   onPressed: () => context.push(CrushRoutes.safetyGuidelines),
                   icon: const Icon(Icons.shield_outlined),
-                  label: Text(
-                    AppLocalizations.of(context).viewCommunityGuidelines,
-                  ),
+                  label: Text(l10n.viewCommunityGuidelines),
                 ),
               ),
               const SizedBox(height: 4),
@@ -1206,6 +1267,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   void _showCustomReportDialog(BuildContext context, SafetyCubit safetyCubit) {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController();
     final messenger = ScaffoldMessenger.of(context);
     showDialog<void>(
@@ -1213,19 +1275,17 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       builder: (dialogContext) {
         final navigator = Navigator.of(dialogContext);
         return AlertDialog(
-          title: Text(AppLocalizations.of(context).reportDetails),
+          title: Text(l10n.reportDetails),
           content: TextField(
             controller: controller,
             minLines: 2,
             maxLines: 4,
-            decoration: const InputDecoration(
-              hintText: 'Tell us what happened',
-            ),
+            decoration: InputDecoration(hintText: l10n.chatReportDetailsHint),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(AppLocalizations.of(context).cancel),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -1234,19 +1294,19 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                   await safetyCubit.reportWithContext(
                     reporterId: _currentUserId ?? 'anonymous',
                     reportedId: widget.matchId,
-                    reason: 'Other',
+                    reason: callReportReasonCode(CallReportReasonOption.other),
                     description: details,
                     source: 'call',
                   );
                   if (!mounted) return;
                   final error = safetyCubit.state.errorMessage;
                   messenger.showSnackBar(
-                    SnackBar(content: Text(error ?? 'Report submitted')),
+                    SnackBar(content: Text(error ?? l10n.chatReportSubmitted)),
                   );
                 }
                 navigator.pop();
               },
-              child: Text(AppLocalizations.of(context).submit),
+              child: Text(l10n.submit),
             ),
           ],
         );

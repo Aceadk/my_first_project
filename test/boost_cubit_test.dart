@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/data/repositories/boost_repository.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +11,40 @@ import 'package:flutter_test/flutter_test.dart';
 import 'mock/firebase_mock.dart';
 import 'mock/noop_auth_repository.dart';
 import 'mock/stub_analytics_service.dart';
+
+CrushUser _makeAuthUser(String id) => CrushUser(
+  id: id,
+  phoneNumber: '+10000000000',
+  isEmailVerified: true,
+  isPhoneVerified: true,
+  isIdVerified: false,
+  plan: SubscriptionPlan.free,
+);
+
+class _AuthStreamRepository implements AuthRepository {
+  final _controller = StreamController<CrushUser?>.broadcast();
+
+  void emitUser(CrushUser? user) => _controller.add(user);
+  Future<void> dispose() => _controller.close();
+
+  @override
+  bool get isVerificationBypassEnabled => false;
+
+  @override
+  bool get supportsUsernameLogin => false;
+
+  @override
+  bool get supportsAppleSignIn => false;
+
+  @override
+  Future<void> bootstrapSession() async {}
+
+  @override
+  Stream<CrushUser?> authStateChanges() => _controller.stream;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   setupFirebaseAnalyticsMocks();
@@ -46,10 +85,7 @@ void main() {
 
     test('canBoost is false when loading even if status allows', () {
       const state = BoostState(
-        status: BoostStatus(
-          canBoost: true,
-          nextBoostAvailableAt: null,
-        ),
+        status: BoostStatus(canBoost: true, nextBoostAvailableAt: null),
         isLoading: true,
       );
       expect(state.canBoost, false);
@@ -72,19 +108,13 @@ void main() {
 
     test('isBoostActive false when no active session', () {
       const state = BoostState(
-        status: BoostStatus(
-          canBoost: true,
-          nextBoostAvailableAt: null,
-        ),
+        status: BoostStatus(canBoost: true, nextBoostAvailableAt: null),
       );
       expect(state.isBoostActive, false);
     });
 
     test('copyWith preserves values when no overrides', () {
-      const state = BoostState(
-        isLoading: true,
-        tick: 5,
-      );
+      const state = BoostState(isLoading: true, tick: 5);
       final copied = state.copyWith();
       expect(copied.isLoading, true);
       expect(copied.tick, 5);
@@ -149,20 +179,17 @@ void main() {
     });
 
     test('cooldownRemaining returns Duration.zero when canBoost', () {
-      const status = BoostStatus(
-        canBoost: true,
-        nextBoostAvailableAt: null,
-      );
+      const status = BoostStatus(canBoost: true, nextBoostAvailableAt: null);
       expect(status.cooldownRemaining, Duration.zero);
     });
 
-    test('cooldownRemaining returns Duration.zero when nextBoostAvailableAt is null', () {
-      const status = BoostStatus(
-        canBoost: false,
-        nextBoostAvailableAt: null,
-      );
-      expect(status.cooldownRemaining, Duration.zero);
-    });
+    test(
+      'cooldownRemaining returns Duration.zero when nextBoostAvailableAt is null',
+      () {
+        const status = BoostStatus(canBoost: false, nextBoostAvailableAt: null);
+        expect(status.cooldownRemaining, Duration.zero);
+      },
+    );
 
     test('cooldownRemaining returns positive duration when on cooldown', () {
       final futureTime = DateTime.now().add(const Duration(hours: 2));
@@ -173,14 +200,17 @@ void main() {
       expect(status.cooldownRemaining.inMinutes, greaterThan(0));
     });
 
-    test('cooldownRemaining returns Duration.zero when cooldown has passed', () {
-      final pastTime = DateTime.now().subtract(const Duration(hours: 1));
-      final status = BoostStatus(
-        canBoost: false,
-        nextBoostAvailableAt: pastTime,
-      );
-      expect(status.cooldownRemaining, Duration.zero);
-    });
+    test(
+      'cooldownRemaining returns Duration.zero when cooldown has passed',
+      () {
+        final pastTime = DateTime.now().subtract(const Duration(hours: 1));
+        final status = BoostStatus(
+          canBoost: false,
+          nextBoostAvailableAt: pastTime,
+        );
+        expect(status.cooldownRemaining, Duration.zero);
+      },
+    );
   });
 
   // ===========================================================================
@@ -321,8 +351,9 @@ void main() {
         await cubit.initialize('user-1');
         await Future<void>.delayed(const Duration(milliseconds: 50));
 
-        final errorStates =
-            states.where((s) => s.errorMessage != null).toList();
+        final errorStates = states
+            .where((s) => s.errorMessage != null)
+            .toList();
         expect(errorStates, isNotEmpty);
         expect(errorStates.last.isLoading, false);
 
@@ -369,8 +400,9 @@ void main() {
         final loadingStates = states.where((s) => s.isLoading).toList();
         expect(loadingStates, isNotEmpty);
 
-        final activeStates =
-            states.where((s) => !s.isLoading && s.isBoostActive).toList();
+        final activeStates = states
+            .where((s) => !s.isLoading && s.isBoostActive)
+            .toList();
         expect(activeStates, isNotEmpty);
         expect(activeStates.last.status.activeSession, isNotNull);
 
@@ -447,13 +479,46 @@ void main() {
         await cubit.activateBoost();
         await Future<void>.delayed(const Duration(milliseconds: 50));
 
-        final errorStates =
-            states.where((s) => s.errorMessage != null).toList();
+        final errorStates = states
+            .where((s) => s.errorMessage != null)
+            .toList();
         expect(errorStates, isNotEmpty);
         expect(errorStates.last.isLoading, false);
 
         await sub.cancel();
         await cubit.close();
+      });
+    });
+
+    group('Auth reset contract', () {
+      test('switching authenticated user resets boost state', () async {
+        final authRepository = _AuthStreamRepository();
+        final cubit = BoostCubit(
+          authRepository: authRepository,
+          boostRepository: _StubBoostRepository(
+            statusToReturn: const BoostStatus(
+              canBoost: true,
+              nextBoostAvailableAt: null,
+              boostsRemaining: 1,
+            ),
+          ),
+        );
+
+        await cubit.initialize('user-1');
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        expect(cubit.state.status.canBoost, isTrue);
+
+        authRepository.emitUser(_makeAuthUser('user-a'));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(cubit.state.status.canBoost, isTrue);
+
+        authRepository.emitUser(_makeAuthUser('user-b'));
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        expect(cubit.state, const BoostState());
+
+        await cubit.close();
+        await authRepository.dispose();
       });
     });
 

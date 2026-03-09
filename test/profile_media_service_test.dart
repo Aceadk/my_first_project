@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:crushhour/features/profile/data/services/profile_media_service.dart';
+import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
 import 'core/services/firebase_mocks.dart';
 
 const _firebaseTestOptions = FirebaseOptions(
@@ -46,36 +47,24 @@ void main() {
       expect(service.isLocalFile('http://example.com/photo.jpg'), isFalse);
     });
 
-    test('uploadPhoto throws when file does not exist', () async {
-      expect(
-        () => service.uploadPhoto(
-          userId: 'user-1',
-          filePath: '${tempDir.path}/missing.jpg',
-        ),
-        throwsA(
-          isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Photo file not found'),
-          ),
-        ),
+    test('uploadPhoto returns failure when file does not exist', () async {
+      final result = await service.uploadPhoto(
+        userId: 'user-1',
+        filePath: '${tempDir.path}/missing.jpg',
       );
+      expect(result.isSuccess, isFalse);
+      expect(result.error?.code, ProfileMediaErrorCode.fileNotFound);
+      expect(result.error?.message, contains('Photo file not found'));
     });
 
-    test('uploadVideo throws when file does not exist', () async {
-      expect(
-        () => service.uploadVideo(
-          userId: 'user-1',
-          filePath: '${tempDir.path}/missing.mp4',
-        ),
-        throwsA(
-          isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Video file not found'),
-          ),
-        ),
+    test('uploadVideo returns failure when file does not exist', () async {
+      final result = await service.uploadVideo(
+        userId: 'user-1',
+        filePath: '${tempDir.path}/missing.mp4',
       );
+      expect(result.isSuccess, isFalse);
+      expect(result.error?.code, ProfileMediaErrorCode.fileNotFound);
+      expect(result.error?.message, contains('Video file not found'));
     });
 
     test(
@@ -89,7 +78,10 @@ void main() {
           filePath: file.path,
         );
 
-        expect(result, file.path);
+        expect(result.isSuccess, isTrue);
+        expect(result.url, file.path);
+        expect(result.usedLocalFallback, isTrue);
+        expect(result.error?.code, ProfileMediaErrorCode.uploadFailed);
       },
     );
 
@@ -104,19 +96,28 @@ void main() {
           filePath: file.path,
         );
 
-        expect(result, file.path);
+        expect(result.isSuccess, isTrue);
+        expect(result.url, file.path);
+        expect(result.usedLocalFallback, isTrue);
+        expect(result.error?.code, ProfileMediaErrorCode.uploadFailed);
       },
     );
 
     test('deleteMedia skips non-firebase URLs and does not throw', () async {
-      await service.deleteMedia('https://example.com/not-firebase.jpg');
-      await service.deleteMedia('/local/path/photo.jpg');
+      final nonFirebase = await service.deleteMedia(
+        'https://example.com/not-firebase.jpg',
+      );
+      final localPath = await service.deleteMedia('/local/path/photo.jpg');
+      expect(nonFirebase.skipped, isTrue);
+      expect(localPath.skipped, isTrue);
     });
 
     test('deleteMedia swallows errors for firebase URLs', () async {
-      await service.deleteMedia(
+      final result = await service.deleteMedia(
         'https://firebasestorage.googleapis.com/v0/b/demo/o/users%2Fuser-1%2Fphotos%2F1.jpg',
       );
+      expect(result.isSuccess, isFalse);
+      expect(result.error?.code, ProfileMediaErrorCode.deleteFailed);
     });
 
     test(
@@ -147,12 +148,20 @@ void main() {
           result.photoUrls,
           isNot(contains('${tempDir.path}/missing_photo.jpg')),
         );
+        expect(
+          result.issues.where((i) => i.mediaType == ProfileMediaType.photo),
+          isNotEmpty,
+        );
 
         expect(result.videoUrls, contains(localVideo.path));
         expect(result.videoUrls, contains('https://cdn.example.com/video.mp4'));
         expect(
           result.videoUrls,
           isNot(contains('${tempDir.path}/missing_video.mp4')),
+        );
+        expect(
+          result.issues.where((i) => i.mediaType == ProfileMediaType.video),
+          isNotEmpty,
         );
       },
     );
@@ -168,6 +177,7 @@ void main() {
 
         expect(result.photoUrls, isEmpty);
         expect(result.videoUrls, isEmpty);
+        expect(result.hasIssues, isTrue);
       },
     );
   });

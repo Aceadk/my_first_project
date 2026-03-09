@@ -67,23 +67,39 @@ class HttpProfileRepository with CachingMixin implements ProfileRepository {
 
           _circuitBreaker.recordSuccess();
 
-          final profileDto = ProfileDto.fromJson(result.data!);
+          final payload = result.data!;
+          final profileDto = ProfileDto.fromJson(payload);
           final profile = ProfileMapper.profileFromDto(profileDto);
+          final nestedProfile = payload['profile'];
+          final nestedUsername = nestedProfile is Map<String, dynamic>
+              ? nestedProfile['username'] as String?
+              : null;
+          final canonicalUsername = (payload['username'] as String?)?.trim();
+          final fallbackUsername = nestedUsername?.trim();
+          final legacyUsername = (payload['usernameLower'] as String?)?.trim();
+          final username =
+              (canonicalUsername != null && canonicalUsername.isNotEmpty)
+              ? canonicalUsername
+              : (fallbackUsername != null && fallbackUsername.isNotEmpty)
+              ? fallbackUsername
+              : (legacyUsername != null && legacyUsername.isNotEmpty)
+              ? legacyUsername
+              : profile.name;
 
           return CrushUser(
             id: profile.id,
-            phoneNumber: result.data!['phone_number'] as String? ?? '',
-            email: result.data!['email'] as String?,
-            username: profile.name,
-            isEmailVerified: result.data!['email_verified'] as bool? ?? false,
-            isPhoneVerified: result.data!['phone_verified'] as bool? ?? true,
+            phoneNumber: payload['phone_number'] as String? ?? '',
+            email: payload['email'] as String?,
+            username: username,
+            isEmailVerified: payload['email_verified'] as bool? ?? false,
+            isPhoneVerified: payload['phone_verified'] as bool? ?? true,
             isIdVerified: profile.isVerified,
-            plan: result.data!['is_premium'] == true
+            plan: payload['is_premium'] == true
                 ? SubscriptionPlan.plus
                 : SubscriptionPlan.free,
             themePreference:
-                result.data!['theme_preference'] as String? ??
-                result.data!['themePreference'] as String?,
+                payload['theme_preference'] as String? ??
+                payload['themePreference'] as String?,
             profile: profile,
           );
         },
@@ -154,7 +170,6 @@ class HttpProfileRepository with CachingMixin implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -573,7 +588,6 @@ class HttpProfileRepository with CachingMixin implements ProfileRepository {
     String? company,
     String? school,
     required List<String> interests,
-    List<String>? prompts,
     String? city,
     String? country,
     ProfileFavourites? favourites,
@@ -590,7 +604,6 @@ class HttpProfileRepository with CachingMixin implements ProfileRepository {
         company: company,
         school: school,
         interests: interests,
-        prompts: prompts,
         city: city,
         country: country,
         favourites: favourites,

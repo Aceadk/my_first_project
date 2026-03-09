@@ -569,6 +569,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authCreateAccount => 'Create account';
 
   @override
+  String get authContinueWithGoogle => 'Continue with Google';
+
+  @override
+  String get authContinueWithApple => 'Continue with Apple';
+
+  @override
   String get authNoAccount => 'Don\'t have an account?';
 
   @override
@@ -576,6 +582,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authOrContinueWith => 'or continue with';
+
+  @override
+  String get authGatewayTagline => 'Find your Perfect Match';
+
+  @override
+  String get authGatewayFeatureVerifiedProfiles =>
+      'Verified profiles for safety';
+
+  @override
+  String get authGatewayFeatureSendMessages => 'Send messages before matching';
+
+  @override
+  String get authGatewayFeatureMeetNearby => 'Meet people near you';
+
+  @override
+  String get authGatewayAgeVerificationTitle => 'Age Verification';
+
+  @override
+  String get authGatewayAgeVerificationDescription =>
+      'Crush is a dating app for adults only. You must be at least 18 years old to create an account.';
+
+  @override
+  String get authGatewayAgeVerificationQuestion => 'Are you 18 years or older?';
+
+  @override
+  String get authGatewayAgeVerificationLegalNotice =>
+      'By continuing, you confirm that you are at least 18 years old and agree to our Terms of Service.';
+
+  @override
+  String get authGatewayAgeUnderageError =>
+      'You must be at least 18 years old to use Crush.';
 
   @override
   String get authPhone => 'Phone';
@@ -849,6 +886,1001 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsRestorePurchases => 'Restore purchases';
+
+  @override
+  String settingsNotificationsEnabledCount(int enabled, int total) {
+    return '$enabled of $total enabled';
+  }
+
+  @override
+  String settingsLanguageRegionSummary(String language, String region) {
+    return '$language - $region';
+  }
+
+  @override
+  String settingsDiscoverySummary(int distanceKm, int minAge, int maxAge) {
+    return '$distanceKm km, $minAge-$maxAge years';
+  }
+
+  @override
+  String settingsCacheSummary(int sizeMb) {
+    return 'Cache: $sizeMb MB';
+  }
+
+  @override
+  String get settingsAccountNoEmail => 'No email added';
+
+  @override
+  String get settingsAccountEmailVerified => 'Email verified';
+
+  @override
+  String get settingsAccountEmailNotVerified => 'Email not verified';
+
+  @override
+  String get settingsIdVerification => 'ID Verification';
+
+  @override
+  String get settingsIdVerificationVerifiedSubtitle =>
+      'Verified - Badge active';
+
+  @override
+  String get settingsIdVerificationPromptSubtitle =>
+      'Verify to unlock 50% more swipes';
+
+  @override
+  String get settingsChatSettingsSubtitle => 'Message retention & auto-delete';
+
+  @override
+  String get settingsCallHistorySubtitle => 'Recent audio and video calls';
+
+  @override
+  String get settingsIncognitoActivePremium => 'Active (Premium)';
+
+  @override
+  String get settingsIncognitoBrowsePrivately => 'Browse profiles privately';
+
+  @override
+  String settingsSubscriptionStatus(String status) {
+    return 'Status: $status';
+  }
+
+  @override
+  String settingsSubscriptionAccessEndsOn(String date) {
+    return 'Access ends on $date';
+  }
+
+  @override
+  String settingsSubscriptionRenewsOn(String date) {
+    return 'Renews on $date';
+  }
+
+  @override
+  String get settingsSubscriptionManageBillingSubtitle =>
+      'Manage billing or renew your Plus plan.';
+
+  @override
+  String get settingsSubscriptionUpgradePitchSubtitle =>
+      'Upgrade to Plus for unlimited likes, rewinds, and Passport.';
+
+  @override
+  String get settingsSubscriptionFirstMonthDiscount =>
+      '50% off your first month!';
+
+  @override
+  String get settingsManageSubscription => 'Manage subscription';
+
+  @override
+  String get settingsSafetyBlocking => 'Safety & Blocking';
+
+  @override
+  String get settingsHelpSubtitle => 'FAQ, contact support, and more';
+
+  @override
+  String get settingsSignOutSubtitle => 'Sign out of your account';
+
+  @override
+  String get settingsLegalSection => 'Legal';
+
+  @override
+  String get settingsAboutCrush => 'About Crush';
+
+  @override
+  String get settingsManageBlockedUsers => 'Manage blocked users';
+
+  @override
+  String get settingsThemeDarkLuxuryRoyal => 'Dark Luxury (Royal)';
+
+  @override
+  String get settingsThemeDarkLuxuryModern => 'Dark Luxury (Modern)';
+
+  @override
+  String get settingsIncognitoBrowseWithoutSeen =>
+      'Browse profiles without being seen';
+
+  @override
+  String get settingsIncognitoIsActive => 'Incognito is active';
+
+  @override
+  String get settingsIncognitoHideFromLikedYou => 'Hide from \"Liked You\"';
+
+  @override
+  String get settingsIncognitoHideFromLikedYouSubtitle =>
+      'Your likes won\'t appear in their list';
+
+  @override
+  String get settingsIncognitoHideLastActive => 'Hide last active';
+
+  @override
+  String get settingsIncognitoHideLastActiveSubtitle =>
+      'Others won\'t see when you were online';
+
+  @override
+  String get settingsIncognitoHideReadReceipts => 'Hide read receipts';
+
+  @override
+  String get settingsIncognitoHideReadReceiptsSubtitle =>
+      'Messages won\'t show as read';
+
+  @override
+  String get settingsIncognitoFeatureHideFromLikedYou =>
+      'Your likes won\'t appear in \"Liked You\"';
+
+  @override
+  String get settingsIncognitoFeatureHideLastActive =>
+      'Hide your last active status';
+
+  @override
+  String get settingsIncognitoFeatureHideReadReceipts =>
+      'Hide read receipts in chats';
+
+  @override
+  String get settingsIncognitoFreeTierNotice =>
+      'Free users get 1 hour. Upgrade for unlimited.';
+
+  @override
+  String get settingsSubscriptionFreeSummary =>
+      'Free Plan - Upgrade for unlimited likes';
+
+  @override
+  String get settingsSubscriptionPlusActiveSummary => 'Plus Member - Active';
+
+  @override
+  String settingsSubscriptionPlusEndsSummary(String date) {
+    return 'Plus Member - Ends on $date';
+  }
+
+  @override
+  String settingsSubscriptionPlusRenewsSummary(String date) {
+    return 'Plus Member - Renews on $date';
+  }
+
+  @override
+  String get settingsNotificationsHeaderTitle => 'Stay Connected';
+
+  @override
+  String get settingsNotificationsHeaderSubtitle =>
+      'Get notified about matches, messages, and more.';
+
+  @override
+  String get settingsNotificationsPushSubtitle =>
+      'Messages, matches, and app updates';
+
+  @override
+  String get settingsNotificationsPushEnabled => 'Push notifications enabled.';
+
+  @override
+  String get settingsNotificationsPushDisabled =>
+      'Push notifications disabled.';
+
+  @override
+  String get settingsNotificationsEmailSubtitle => 'Updates sent to your inbox';
+
+  @override
+  String get settingsNotificationsSoundSubtitle => 'Play sounds for alerts';
+
+  @override
+  String get settingsNotificationsVibrationSubtitle =>
+      'Vibrate on new messages or matches';
+
+  @override
+  String get settingsNotificationCategoriesTitle => 'Notification Categories';
+
+  @override
+  String settingsNotificationCategoriesEnabledCount(int enabled, int total) {
+    return '$enabled of $total enabled';
+  }
+
+  @override
+  String get settingsNotificationCategoryMatchesTitle => 'Matches';
+
+  @override
+  String get settingsNotificationCategoryMatchesSubtitle =>
+      'New match notifications';
+
+  @override
+  String get settingsNotificationCategoryMessagesTitle => 'Messages';
+
+  @override
+  String get settingsNotificationCategoryMessagesSubtitle =>
+      'New message notifications';
+
+  @override
+  String get settingsNotificationCategoryLikesTitle => 'Likes';
+
+  @override
+  String get settingsNotificationCategoryLikesSubtitle =>
+      'When someone likes your profile';
+
+  @override
+  String get settingsNotificationCategoryProfileViewsTitle => 'Profile Views';
+
+  @override
+  String get settingsNotificationCategoryProfileViewsSubtitle =>
+      'When someone views your profile';
+
+  @override
+  String get settingsNotificationCategoryPromotionsTitle => 'Promotions';
+
+  @override
+  String get settingsNotificationCategoryPromotionsSubtitle =>
+      'Special offers and features';
+
+  @override
+  String get settingsNotificationCategorySafetyAlertsTitle => 'Safety Alerts';
+
+  @override
+  String get settingsNotificationCategorySafetyAlertsSubtitle =>
+      'Always on — cannot be disabled';
+
+  @override
+  String get settingsNotificationQuietHoursTitle => 'Quiet Hours';
+
+  @override
+  String get settingsNotificationQuietHoursTileTitle => 'Quiet hours';
+
+  @override
+  String get settingsNotificationDisabled => 'Disabled';
+
+  @override
+  String get settingsNotificationsDeviceSettingsInfo =>
+      'You can also manage notifications in your device settings.';
+
+  @override
+  String get settingsPrivacySnackAllPublic => 'All information set to public';
+
+  @override
+  String get settingsPrivacySnackAllPrivate => 'All information set to private';
+
+  @override
+  String get settingsPrivacySnackResetDefaults =>
+      'Privacy settings reset to defaults';
+
+  @override
+  String get settingsPrivacyHeaderTitle => 'Control Your Privacy';
+
+  @override
+  String get settingsPrivacyHeaderSubtitle =>
+      'Choose what others can see when they view your profile.';
+
+  @override
+  String get settingsPrivacySectionNameVisibilityTitle => 'Name Visibility';
+
+  @override
+  String get settingsPrivacySectionNameVisibilitySubtitle =>
+      'Control how your name appears';
+
+  @override
+  String get settingsPrivacyFirstNameTitle => 'First Name';
+
+  @override
+  String get settingsPrivacyFirstNameSubtitle =>
+      'Show your first name on your profile';
+
+  @override
+  String get settingsPrivacyLastNameTitle => 'Last Name';
+
+  @override
+  String get settingsPrivacyLastNameSubtitle =>
+      'Show your last name on your profile';
+
+  @override
+  String get settingsPrivacySectionSensitiveInfoTitle =>
+      'Sensitive Information';
+
+  @override
+  String get settingsPrivacySectionSensitiveInfoSubtitle =>
+      'These are private by default';
+
+  @override
+  String get settingsPrivacyAgeTitle => 'Age';
+
+  @override
+  String get settingsPrivacyAgeSubtitle => 'Show your age on your profile';
+
+  @override
+  String get settingsPrivacyDateOfBirthTitle => 'Date of Birth';
+
+  @override
+  String get settingsPrivacyDateOfBirthSubtitle => 'Show your exact birth date';
+
+  @override
+  String get settingsPrivacyEmailTitle => 'Email';
+
+  @override
+  String get settingsPrivacyEmailSubtitle => 'Show your email address';
+
+  @override
+  String get settingsPrivacyPhoneNumberTitle => 'Phone Number';
+
+  @override
+  String get settingsPrivacyPhoneNumberSubtitle => 'Show your phone number';
+
+  @override
+  String get settingsPrivacyExactLocationTitle => 'Exact Location';
+
+  @override
+  String get settingsPrivacyExactLocationSubtitle =>
+      'Show exact location instead of city only';
+
+  @override
+  String get settingsPrivacySectionDatingBasicsTitle => 'Dating Basics';
+
+  @override
+  String get settingsPrivacySectionDatingBasicsSubtitle =>
+      'Basic dating profile information';
+
+  @override
+  String get settingsPrivacyHeightTitle => 'Height';
+
+  @override
+  String get settingsPrivacyHeightSubtitle => 'Show your height';
+
+  @override
+  String get settingsPrivacyRelationshipGoalsTitle => 'Relationship Goals';
+
+  @override
+  String get settingsPrivacyRelationshipGoalsSubtitle =>
+      'Show what you\'re looking for';
+
+  @override
+  String get settingsPrivacyZodiacSignTitle => 'Zodiac Sign';
+
+  @override
+  String get settingsPrivacyZodiacSignSubtitle => 'Show your zodiac sign';
+
+  @override
+  String get settingsPrivacySectionAboutMeTitle => 'About Me';
+
+  @override
+  String get settingsPrivacySectionAboutMeSubtitle =>
+      'Personal characteristics';
+
+  @override
+  String get settingsPrivacyEducationTitle => 'Education';
+
+  @override
+  String get settingsPrivacyEducationSubtitle => 'Show your education level';
+
+  @override
+  String get settingsPrivacyFamilyPlansTitle => 'Family Plans';
+
+  @override
+  String get settingsPrivacyFamilyPlansSubtitle => 'Show your family plans';
+
+  @override
+  String get settingsPrivacyPersonalityTypeTitle => 'Personality Type';
+
+  @override
+  String get settingsPrivacyPersonalityTypeSubtitle =>
+      'Show your MBTI or personality';
+
+  @override
+  String get settingsPrivacySectionLifestyleTitle => 'Lifestyle';
+
+  @override
+  String get settingsPrivacySectionLifestyleSubtitle =>
+      'Your habits and preferences';
+
+  @override
+  String get settingsPrivacyWorkoutTitle => 'Workout';
+
+  @override
+  String get settingsPrivacyWorkoutSubtitle => 'Show your exercise habits';
+
+  @override
+  String get settingsPrivacySmokingTitle => 'Smoking';
+
+  @override
+  String get settingsPrivacySmokingSubtitle => 'Show your smoking habits';
+
+  @override
+  String get settingsPrivacyDrinkingTitle => 'Drinking';
+
+  @override
+  String get settingsPrivacyDrinkingSubtitle => 'Show your drinking habits';
+
+  @override
+  String get settingsPrivacyDietTitle => 'Diet';
+
+  @override
+  String get settingsPrivacyDietSubtitle => 'Show your dietary preferences';
+
+  @override
+  String get settingsPrivacySleepingHabitsTitle => 'Sleeping Habits';
+
+  @override
+  String get settingsPrivacySleepingHabitsSubtitle =>
+      'Show your sleep schedule';
+
+  @override
+  String get settingsPrivacyPetsTitle => 'Pets';
+
+  @override
+  String get settingsPrivacyPetsSubtitle => 'Show your pet preferences';
+
+  @override
+  String get settingsPrivacySectionWorkEducationTitle => 'Work & Education';
+
+  @override
+  String get settingsPrivacySectionWorkEducationSubtitle =>
+      'Professional information';
+
+  @override
+  String get settingsPrivacyJobTitleTitle => 'Job Title';
+
+  @override
+  String get settingsPrivacyJobTitleSubtitle => 'Show your job title';
+
+  @override
+  String get settingsPrivacyCompanyTitle => 'Company';
+
+  @override
+  String get settingsPrivacyCompanySubtitle => 'Show where you work';
+
+  @override
+  String get settingsPrivacySchoolTitle => 'School';
+
+  @override
+  String get settingsPrivacySchoolSubtitle => 'Show your school or university';
+
+  @override
+  String get settingsPrivacySectionMusicTitle => 'Music';
+
+  @override
+  String get settingsPrivacySectionMusicSubtitle => 'Your music taste';
+
+  @override
+  String get settingsPrivacyFavoriteSingerTitle => 'Favorite Singer';
+
+  @override
+  String get settingsPrivacyFavoriteSingerSubtitle =>
+      'Show your favorite artist';
+
+  @override
+  String get settingsPrivacyFavoriteSongsTitle => 'Favorite Songs';
+
+  @override
+  String get settingsPrivacyFavoriteSongsSubtitle => 'Show your favorite songs';
+
+  @override
+  String get settingsPrivacySectionSocialTitle => 'Social';
+
+  @override
+  String get settingsPrivacySectionSocialSubtitle => 'Social information';
+
+  @override
+  String get settingsPrivacyLanguagesTitle => 'Languages';
+
+  @override
+  String get settingsPrivacyLanguagesSubtitle => 'Show languages you speak';
+
+  @override
+  String get settingsPrivacySocialMediaTitle => 'Social Media';
+
+  @override
+  String get settingsPrivacySocialMediaSubtitle =>
+      'Show your social media links';
+
+  @override
+  String get settingsPrivacySectionActivityStatusTitle => 'Activity Status';
+
+  @override
+  String get settingsPrivacySectionActivityStatusSubtitle => 'Online presence';
+
+  @override
+  String get settingsPrivacyOnlineStatusTitle => 'Online Status';
+
+  @override
+  String get settingsPrivacyOnlineStatusSubtitle => 'Show when you\'re online';
+
+  @override
+  String get settingsPrivacyLastActiveTitle => 'Last Active';
+
+  @override
+  String get settingsPrivacyLastActiveSubtitle =>
+      'Show when you were last active';
+
+  @override
+  String get settingsPrivacySensitiveBadge => 'Sensitive';
+
+  @override
+  String get settingsPrivacyInfoNote =>
+      'Hidden information will only be visible to you. Matches can see public information.';
+
+  @override
+  String get accountActionsHeaderTitle => 'Manage Your Account';
+
+  @override
+  String get accountActionsHeaderSubtitle =>
+      'Manage security, password, and account status.';
+
+  @override
+  String get accountActionsSectionSecurity => 'Security';
+
+  @override
+  String get accountActionsPhoneVerifiedTitle => 'Phone verified';
+
+  @override
+  String get accountActionsPhoneVerifyTitle => 'Verify phone number';
+
+  @override
+  String get accountActionsPhoneAddTitle => 'Add phone number';
+
+  @override
+  String get accountActionsPhoneVerifiedSubtitle =>
+      'Your phone is verified and secured';
+
+  @override
+  String get accountActionsPhoneVerifySubtitle =>
+      'Verify your phone for account security';
+
+  @override
+  String get accountActionsChangePasswordSubtitle =>
+      'Update your account password';
+
+  @override
+  String get accountActionsSectionAccountStatus => 'Account Status';
+
+  @override
+  String get accountActionsSnoozeProfileTitle => 'Snooze profile';
+
+  @override
+  String get accountActionsSnoozeProfileSubtitle =>
+      'Hide profile but keep messaging active matches';
+
+  @override
+  String get accountActionsDeactivateSubtitle =>
+      'Hide your profile temporarily';
+
+  @override
+  String get accountActionsSectionDataPrivacy => 'Data & Privacy';
+
+  @override
+  String get accountActionsExportDataTitle => 'Export your data';
+
+  @override
+  String get accountActionsExportDataSubtitle =>
+      'Download a copy of your personal data';
+
+  @override
+  String get accountActionsSectionDangerZone => 'Danger zone';
+
+  @override
+  String get accountActionsAboutDeactivationTitle => 'About Deactivation';
+
+  @override
+  String get accountActionsAboutDeactivationBody =>
+      'When you deactivate your account, your profile will be hidden. You can reactivate anytime by signing back in. If you don\'t sign in for 6 months, your account will be permanently deleted.';
+
+  @override
+  String get accountActionsAboutDeletionTitle => 'About Deletion';
+
+  @override
+  String get accountActionsAboutDeletionBody =>
+      'When you delete your account, you have 14 days to change your mind. Simply sign in within 14 days to recover your account. After 14 days, all your data will be permanently deleted.';
+
+  @override
+  String get accountActionsExportSignInRequired =>
+      'Please sign in again to export data.';
+
+  @override
+  String accountActionsExportNextAvailableOn(String date) {
+    return 'You can request your next export on $date.';
+  }
+
+  @override
+  String get accountActionsExportFallbackEmail => 'your email';
+
+  @override
+  String get accountActionsExportItemProfileMedia =>
+      'Profile, photos, and media';
+
+  @override
+  String get accountActionsExportItemLikesMatches => 'Likes and matches';
+
+  @override
+  String get accountActionsExportItemMessagesMetadata =>
+      'Messages and chat metadata';
+
+  @override
+  String get accountActionsExportItemPreferences =>
+      'Preferences and account settings';
+
+  @override
+  String accountActionsExportRateLimitNotice(int days) {
+    return 'This request is rate-limited to once every $days days. We will notify you when export generation completes.';
+  }
+
+  @override
+  String accountActionsExportPrimaryContact(String email) {
+    return 'Primary contact: $email';
+  }
+
+  @override
+  String get accountActionsExportRequestedSuccess =>
+      'Data export requested. We will send a push notification when it is ready.';
+
+  @override
+  String get accountActionsExportRequestFailed =>
+      'Could not request data export.';
+
+  @override
+  String get accountActionsExportCloudUnavailable =>
+      'Cloud export is not available in this environment. Generating local export now.';
+
+  @override
+  String get accountActionsExportProgressStarting => 'Starting export...';
+
+  @override
+  String accountActionsExportProgressPercentComplete(int percent) {
+    return '$percent% complete';
+  }
+
+  @override
+  String get accountActionsExportGenerateFailed =>
+      'Could not generate data export. Please try again.';
+
+  @override
+  String accountActionsExportCompletedNextRequest(int days) {
+    return 'Data export request completed. Next request available in $days days.';
+  }
+
+  @override
+  String get accountActionsChangePasswordPrompt =>
+      'Enter your current password and choose a new one.';
+
+  @override
+  String get accountActionsCurrentPasswordLabel => 'Current password';
+
+  @override
+  String get accountActionsCurrentPasswordRequired =>
+      'Enter your current password';
+
+  @override
+  String get accountActionsNewPasswordLabel => 'New password';
+
+  @override
+  String get accountActionsNewPasswordRequired => 'Enter a new password';
+
+  @override
+  String get accountActionsNewPasswordMinLength =>
+      'Password must be at least 8 characters';
+
+  @override
+  String get accountActionsNewPasswordMustDiffer =>
+      'New password must be different from current password';
+
+  @override
+  String get accountActionsConfirmNewPasswordLabel => 'Confirm new password';
+
+  @override
+  String get accountActionsConfirmNewPasswordRequired =>
+      'Confirm your new password';
+
+  @override
+  String get accountActionsPasswordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get accountActionsPasswordChangeFallbackError =>
+      'Could not change password. Please try again.';
+
+  @override
+  String get accountActionsPasswordChangedSuccess =>
+      'Password changed successfully!';
+
+  @override
+  String get accountActionsPasswordChangeFailed => 'Password change failed.';
+
+  @override
+  String get accountActionsGenericErrorTryAgain =>
+      'An error occurred. Please try again.';
+
+  @override
+  String get accountActionsDeactivateReasonTitle => 'Why are you leaving?';
+
+  @override
+  String get accountActionsReasonTakingBreakFromDating =>
+      'Taking a break from dating';
+
+  @override
+  String get accountActionsReasonFoundSomeoneSpecial => 'Found someone special';
+
+  @override
+  String get accountActionsReasonTooManyNotifications =>
+      'Too many notifications';
+
+  @override
+  String get accountActionsReasonNotFindingGoodMatches =>
+      'Not finding good matches';
+
+  @override
+  String get accountActionsReasonPrivacyConcerns => 'Privacy concerns';
+
+  @override
+  String get accountActionsReasonOther => 'Other reason';
+
+  @override
+  String get accountActionsDeactivateBulletHiddenFromDiscovery =>
+      'Your profile will be hidden from discovery';
+
+  @override
+  String get accountActionsDeactivateBulletNoNewMatches =>
+      'You won\'t receive new matches';
+
+  @override
+  String get accountActionsDeactivateBulletKeepMatchesMessages =>
+      'Your existing matches and messages are preserved';
+
+  @override
+  String get accountActionsDeactivateBulletReactivateAnytime =>
+      'You can reactivate anytime by signing in';
+
+  @override
+  String get accountActionsDeactivateAutoDeleteWarning =>
+      'If you don\'t sign in for 6 months, your account will be permanently deleted.';
+
+  @override
+  String get accountActionsDeactivateFailedTryAgain =>
+      'Could not deactivate account. Please try again.';
+
+  @override
+  String get accountActionsDeactivateSuccess =>
+      'Your account has been deactivated. Sign in anytime to reactivate.';
+
+  @override
+  String get accountActionsDeactivationFailed => 'Deactivation failed.';
+
+  @override
+  String get accountActionsDeleteSignInRequired =>
+      'Please sign in again to continue.';
+
+  @override
+  String get accountActionsDeleteWarningMatches => 'All your matches';
+
+  @override
+  String get accountActionsDeleteWarningMessages => 'All your messages';
+
+  @override
+  String get accountActionsDeleteWarningProfile => 'Your profile and photos';
+
+  @override
+  String get accountActionsDeleteWarningSubscription =>
+      'Your subscription (if any)';
+
+  @override
+  String accountActionsDeleteScheduledOn(String date) {
+    return 'Deleted on $date. Sign back in within 14 days to cancel.';
+  }
+
+  @override
+  String get accountActionsDeleteReasonTitle =>
+      'Optional: Why are you deleting your account?';
+
+  @override
+  String get accountActionsReasonFoundRelationship => 'Found a relationship';
+
+  @override
+  String get accountActionsReasonNotHappyWithApp => 'Not happy with the app';
+
+  @override
+  String get accountActionsReasonTooExpensive => 'Too expensive';
+
+  @override
+  String get accountActionsReasonCreatingNewAccount => 'Creating a new account';
+
+  @override
+  String get accountActionsDeleteNoReasonProvided => 'No reason provided';
+
+  @override
+  String accountActionsDeleteTypeToConfirm(String value) {
+    return 'Type \"$value\" to confirm account deletion.';
+  }
+
+  @override
+  String get accountActionsDeleteTypeUsernameLabel => 'Type username';
+
+  @override
+  String get accountActionsDeletePasswordLabel => 'Password';
+
+  @override
+  String get accountActionsDeleteFailedCheckPassword =>
+      'Could not delete account. Please check your password.';
+
+  @override
+  String accountActionsDeleteScheduledSuccess(String date) {
+    return 'Your account is scheduled for deletion on $date. Sign in within 14 days to recover it.';
+  }
+
+  @override
+  String get accountActionsDeletionFailed => 'Deletion failed.';
+
+  @override
+  String get accountActionsReasonOtherHint => 'Please tell us more...';
+
+  @override
+  String get accountActionsReasonOtherPrefix => 'Other: ';
+
+  @override
+  String settingsSecurityProviderLinkUnavailable(String provider) {
+    return '$provider linking is not available.';
+  }
+
+  @override
+  String settingsSecurityProviderLinkedSuccess(String provider) {
+    return '$provider linked successfully.';
+  }
+
+  @override
+  String settingsSecurityProviderUnlinkUnavailable(String provider) {
+    return '$provider unlink is not available.';
+  }
+
+  @override
+  String settingsSecurityProviderUnlinkedSuccess(String provider) {
+    return '$provider unlinked successfully.';
+  }
+
+  @override
+  String settingsSecurityProviderAlreadyLinked(String provider) {
+    return '$provider is already linked.';
+  }
+
+  @override
+  String settingsSecurityProviderLinkedAnotherAccount(String provider) {
+    return '$provider is already linked to another account.';
+  }
+
+  @override
+  String settingsSecurityProviderNotEnabledEnvironment(String provider) {
+    return '$provider is not enabled for this environment.';
+  }
+
+  @override
+  String settingsSecurityProviderLinkCanceled(String provider) {
+    return '$provider linking was canceled.';
+  }
+
+  @override
+  String get settingsSecurityProviderUpdateFailed =>
+      'Could not update linked account.';
+
+  @override
+  String get settingsSecurityHeaderTitle => 'Protect Your Account';
+
+  @override
+  String get settingsSecurityHeaderSubtitle =>
+      'Add extra layers of security to keep your account safe.';
+
+  @override
+  String get settingsSecurityPhoneNotVerified => 'Phone not verified';
+
+  @override
+  String get settingsSecurityNoPhoneAdded => 'No phone added';
+
+  @override
+  String get settingsSecurityEmailProtectionLocked =>
+      'Email protection (Locked)';
+
+  @override
+  String get settingsSecurityEmailProtection => 'Email protection';
+
+  @override
+  String get settingsSecurityVerifiedAndLocked => 'Verified and locked';
+
+  @override
+  String get settingsSecurityVerifyYourEmail => 'Verify your email';
+
+  @override
+  String get settingsSecurityAddEmailRecoveryOtp =>
+      'Add an email for recovery and OTP';
+
+  @override
+  String get settingsSecurityPhoneProtectionLocked =>
+      'Phone protection (Locked)';
+
+  @override
+  String get settingsSecurityPhoneProtection => 'Phone protection';
+
+  @override
+  String get settingsSecurityVerifyYourPhone => 'Verify your phone';
+
+  @override
+  String get settingsSecurityAddPhoneForSecurity =>
+      'Add a phone number for security';
+
+  @override
+  String settingsSecurityBiometricLockTitle(String biometric) {
+    return '$biometric Lock';
+  }
+
+  @override
+  String settingsSecurityBiometricUnlockWith(String biometric) {
+    return 'Unlock Crush with $biometric';
+  }
+
+  @override
+  String settingsSecurityBiometricRequireToOpen(String biometric) {
+    return 'Require $biometric to open Crush';
+  }
+
+  @override
+  String get settingsSecurityLinkedAccounts => 'Linked Accounts';
+
+  @override
+  String get settingsSecurityProviderEmail => 'Email';
+
+  @override
+  String get settingsSecurityProviderPhone => 'Phone';
+
+  @override
+  String get settingsSecurityProviderGoogle => 'Google';
+
+  @override
+  String get settingsSecurityProviderApple => 'Apple';
+
+  @override
+  String get settingsSecurityLinkedVerified => 'Linked · Verified';
+
+  @override
+  String get settingsSecurityLinkedUnverified => 'Linked · Unverified';
+
+  @override
+  String get settingsSecurityNotLinked => 'Not linked';
+
+  @override
+  String get settingsSecurityChecking => 'Checking...';
+
+  @override
+  String get settingsSecurityActionManage => 'Manage';
+
+  @override
+  String get settingsSecurityActionLink => 'Link';
+
+  @override
+  String get settingsSecurityActionLinked => 'Linked';
+
+  @override
+  String get settingsSecurityAddVerifyEmailHint =>
+      'Add and verify an email in Email Protection.';
+
+  @override
+  String get settingsSecurityAddVerifyPhoneHint =>
+      'Add and verify a phone in Phone Protection.';
+
+  @override
+  String get settingsSecurityTipsTitle => 'Security tips';
+
+  @override
+  String get settingsSecurityTipsUniquePassword =>
+      'Use a unique password for this app';
+
+  @override
+  String get settingsSecurityTipsEnableEmailRecovery =>
+      'Enable email verification for account recovery';
+
+  @override
+  String get settingsSecurityTipsNeverShareCodes =>
+      'Never share your verification codes';
 
   @override
   String get discoveryTitle => 'Discover';
@@ -1176,6 +2208,158 @@ class AppLocalizationsEn extends AppLocalizations {
   String get onboardingSelectGender => 'Select your gender';
 
   @override
+  String get onboardingBasicInfoTitle => 'Basic Info';
+
+  @override
+  String get onboardingBasicInfoSubtitle => 'Tell us about you';
+
+  @override
+  String get onboardingBasicInfoUsernameLabel => 'Username';
+
+  @override
+  String get onboardingBasicInfoUsernameHint => 'Choose a unique username';
+
+  @override
+  String get onboardingBasicInfoFirstNameLabel => 'Your First Name';
+
+  @override
+  String get onboardingBasicInfoFirstNameHint => 'Enter your first name';
+
+  @override
+  String get onboardingBasicInfoLastNameLabel => 'Last Name';
+
+  @override
+  String get onboardingBasicInfoLastNameHint =>
+      'Enter your last name (optional)';
+
+  @override
+  String get onboardingBasicInfoBirthdateLabel => 'Date of Birth';
+
+  @override
+  String get onboardingBasicInfoSelectBirthdate => 'Select your birthdate';
+
+  @override
+  String get onboardingBasicInfoBirthdateHelpText => 'Select your birthdate';
+
+  @override
+  String onboardingBasicInfoYearsOld(int age) {
+    return '$age years old';
+  }
+
+  @override
+  String get onboardingBasicInfoUsernameCheckingAvailability =>
+      'Checking username availability...';
+
+  @override
+  String get onboardingBasicInfoUsernameAvailable => 'Username is available';
+
+  @override
+  String get onboardingBasicInfoUsernameRules =>
+      '3-20 characters, letters, numbers, or underscore';
+
+  @override
+  String get onboardingBasicInfoUsernameRequired =>
+      'Choose a username to continue';
+
+  @override
+  String get onboardingBasicInfoUsernameFormatError =>
+      'Use 3-20 letters, numbers, or underscore';
+
+  @override
+  String get onboardingBasicInfoUsernameTaken =>
+      'This username is already taken';
+
+  @override
+  String get onboardingBasicInfoBirthdateRequired =>
+      'Select your date of birth';
+
+  @override
+  String get onboardingBasicInfoBirthdateInvalid => 'Select a valid date';
+
+  @override
+  String get onboardingBasicInfoBirthdateTooYoung =>
+      'You must be at least 18 years old';
+
+  @override
+  String get onboardingBasicInfoBirthdateTooOld => 'Maximum age allowed is 75';
+
+  @override
+  String get onboardingBasicInfoOrientationOptionalSemantics =>
+      'Orientation is optional. You can skip this for now.';
+
+  @override
+  String get onboardingBasicInfoOrientationOptionalHelper =>
+      'Optional - skip for now, add later in Settings';
+
+  @override
+  String get onboardingBasicInfoAgeWarningBody =>
+      'You\'re a bit too old to be using a dating app, don\'t you think?\n\nJust kidding! Love has no age limit. Are you sure you want to continue?';
+
+  @override
+  String get onboardingEmailVerificationTitle => 'Verify Your Email';
+
+  @override
+  String get onboardingEmailVerificationSentTo =>
+      'We\'ve sent a verification link to:';
+
+  @override
+  String get onboardingEmailVerificationFallbackEmail => 'your email';
+
+  @override
+  String get onboardingEmailVerificationInstruction =>
+      'Click the link in the email to verify your account and continue.';
+
+  @override
+  String get onboardingEmailVerificationSent =>
+      'Verification email sent! Check your inbox.';
+
+  @override
+  String get onboardingEmailVerificationSuccessRedirecting =>
+      'Email verified successfully! Redirecting...';
+
+  @override
+  String get onboardingEmailVerificationTooManyAttempts =>
+      'Too many attempts. Please wait about a minute and try again.';
+
+  @override
+  String get onboardingEmailVerificationSendFailed =>
+      'Failed to send email. Please try again.';
+
+  @override
+  String get onboardingEmailVerificationCheckingStatus =>
+      'Checking verification status...';
+
+  @override
+  String get onboardingEmailVerificationResendSemantics =>
+      'Resend verification email';
+
+  @override
+  String get onboardingEmailVerificationResendButton =>
+      'Resend Verification Email';
+
+  @override
+  String onboardingEmailVerificationResendIn(int seconds) {
+    return 'Resend in ${seconds}s';
+  }
+
+  @override
+  String get onboardingEmailVerificationCheckNowSemantics =>
+      'I have verified, check now';
+
+  @override
+  String get onboardingEmailVerificationCheckNowButton =>
+      'I\'ve Verified - Check Now';
+
+  @override
+  String onboardingEmailVerificationAutoCheckStopped(int minutes) {
+    return 'Auto-check stopped after $minutes minutes. Tap \"I\'ve Verified\" to check manually.';
+  }
+
+  @override
+  String get onboardingOrientationOptionalPrompt =>
+      'Select orientation (optional)';
+
+  @override
   String get onboardingAddPhotos => 'Add your best photos';
 
   @override
@@ -1195,6 +2379,501 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingStartSwiping => 'Start swiping';
+
+  @override
+  String get onboardingTermsSaveFailed => 'Failed to save. Please try again.';
+
+  @override
+  String get onboardingTermsReadAndAccept => 'Please read and accept';
+
+  @override
+  String get onboardingTermsScrollToContinue => 'Scroll to continue';
+
+  @override
+  String get onboardingTermsWelcomeTitle => 'Welcome to Crush';
+
+  @override
+  String get onboardingTermsWelcomeBody =>
+      'By using our dating app, you agree to these Terms and Conditions. Please read them carefully before proceeding.';
+
+  @override
+  String get onboardingTermsEligibilityTitle => '1. Eligibility';
+
+  @override
+  String get onboardingTermsEligibilityBody =>
+      'You must be at least 18 years old to use Crush. By creating an account, you confirm that you are of legal age and have the right to enter into this agreement.';
+
+  @override
+  String get onboardingTermsAccountSecurityTitle => '2. Account Security';
+
+  @override
+  String get onboardingTermsAccountSecurityBody =>
+      'You are responsible for maintaining the confidentiality of your account credentials. Notify us immediately if you suspect unauthorized access to your account.';
+
+  @override
+  String get onboardingTermsUserConductTitle => '3. User Conduct';
+
+  @override
+  String get onboardingTermsUserConductBody =>
+      'You agree to:\n• Provide accurate information\n• Treat other users with respect\n• Not engage in harassment, hate speech, or illegal activities\n• Not impersonate others or create fake profiles\n• Not share inappropriate or explicit content';
+
+  @override
+  String get onboardingTermsPrivacyTitle => '4. Privacy';
+
+  @override
+  String get onboardingTermsPrivacyBody =>
+      'Your privacy is important to us. We collect and process your personal data in accordance with our Privacy Policy. By using Crush, you consent to our data practices as described in the Privacy Policy.';
+
+  @override
+  String get onboardingTermsContentOwnershipTitle => '5. Content Ownership';
+
+  @override
+  String get onboardingTermsContentOwnershipBody =>
+      'You retain ownership of content you post. However, you grant Crush a non-exclusive license to use, display, and distribute your content within the app for the purpose of providing our services.';
+
+  @override
+  String get onboardingTermsSafetyTitle => '6. Safety';
+
+  @override
+  String get onboardingTermsSafetyBody =>
+      'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your plans.';
+
+  @override
+  String get onboardingTermsTerminationTitle => '7. Termination';
+
+  @override
+  String get onboardingTermsTerminationBody =>
+      'We reserve the right to suspend or terminate your account if you violate these terms. You may also delete your account at any time through the app settings.';
+
+  @override
+  String get onboardingTermsDisclaimerTitle => '8. Disclaimer';
+
+  @override
+  String get onboardingTermsDisclaimerBody =>
+      'Crush is provided \"as is\" without warranties. We do not guarantee that you will find a match or that other users\' information is accurate.';
+
+  @override
+  String get onboardingTermsChangesTitle => '9. Changes to Terms';
+
+  @override
+  String get onboardingTermsChangesBody =>
+      'We may update these terms from time to time. Continued use of the app after changes constitutes acceptance of the new terms.';
+
+  @override
+  String get onboardingTermsContactTitle => '10. Contact';
+
+  @override
+  String get onboardingTermsContactBody =>
+      'If you have questions about these terms, please contact us through the app\'s support feature or email support@crushhour.app.';
+
+  @override
+  String get onboardingTermsEndLabel => 'End of Terms';
+
+  @override
+  String get onboardingTermsAgreementLabel =>
+      'I have read and agree to the Terms and Conditions and Privacy Policy';
+
+  @override
+  String get onboardingTermsAgreementToggleHint =>
+      'Double tap to toggle agreement';
+
+  @override
+  String get onboardingTermsContinueSemantics => 'Continue';
+
+  @override
+  String get onboardingTermsScrollHint =>
+      'Please scroll down to read all terms before agreeing';
+
+  @override
+  String get onboardingSignUpPhoneCodeSent => 'Code sent. Check your messages.';
+
+  @override
+  String get onboardingSignUpContinueWithGoogle => 'Continue with Google';
+
+  @override
+  String get onboardingSignUpOrSignUpWithEmail => 'or sign up with email';
+
+  @override
+  String get onboardingSignUpOrSignUpWith => 'or sign up with';
+
+  @override
+  String get onboardingSignUpPhoneErrorRequired => 'Enter your phone number';
+
+  @override
+  String get onboardingSignUpPhoneErrorMinDigits => 'Add at least 6 digits';
+
+  @override
+  String get onboardingSignUpOtpErrorRequired => 'Enter the verification code';
+
+  @override
+  String get onboardingSignUpOtpErrorInvalidLength => 'Enter the 6-digit code';
+
+  @override
+  String onboardingSignUpWaitBeforeRequestingCode(int seconds) {
+    return 'Please wait ${seconds}s before requesting another code.';
+  }
+
+  @override
+  String get onboardingSignUpPhoneInvalid => 'Enter a valid phone number.';
+
+  @override
+  String onboardingSignUpWaitBeforeResendingEmail(int seconds) {
+    return 'Please wait ${seconds}s before resending the verification email.';
+  }
+
+  @override
+  String get onboardingSignUpUsernameRequired => 'Username is required';
+
+  @override
+  String get onboardingSignUpEmailRequired => 'Email is required';
+
+  @override
+  String get onboardingSignUpGoogleSignInFailed =>
+      'Google Sign-In failed. Please try again.';
+
+  @override
+  String get onboardingSignUpInvalidUsernameFormat => 'Invalid username format';
+
+  @override
+  String get onboardingSignUpInvalidEmailFormat => 'Invalid email format';
+
+  @override
+  String get onboardingSignUpPasswordRequired => 'Please create a password';
+
+  @override
+  String get onboardingSignUpPasswordMinLength =>
+      'Password must be at least 8 characters';
+
+  @override
+  String onboardingSignUpCompleteRequiredFields(String fields) {
+    return 'Please complete all required fields: $fields';
+  }
+
+  @override
+  String get onboardingSignUpEmailAlreadyExists =>
+      'An account with this email already exists. Please sign in instead, or use a different email address.';
+
+  @override
+  String get onboardingSignUpAccountCreated =>
+      'Account created! Welcome to Crush.';
+
+  @override
+  String get onboardingSignUpSendVerificationFailed =>
+      'Could not send verification email. Please try again.';
+
+  @override
+  String get onboardingSignUpRequestFailed => 'Request failed.';
+
+  @override
+  String get onboardingSignUpVerificationEmailResent =>
+      'Verification email resent successfully.';
+
+  @override
+  String get onboardingSignUpVerificationEmailSent =>
+      'A verification email has been sent to your inbox.';
+
+  @override
+  String get onboardingSignUpOpenEmailAppFailed =>
+      'Could not open email app. Please check your email manually.';
+
+  @override
+  String get onboardingSignUpCheckEmailStatusFailed =>
+      'Could not verify email status.';
+
+  @override
+  String get onboardingSignUpEmailVerifiedWelcome =>
+      'Email verified! Welcome to Crush.';
+
+  @override
+  String get onboardingSignUpEmailNotVerified =>
+      'Email not verified yet. Please click the link in your email, then try again.';
+
+  @override
+  String onboardingSignUpPercent(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get onboardingSignUpStepOne => 'Step 1';
+
+  @override
+  String get onboardingSignUpChooseUsername => 'Choose your username';
+
+  @override
+  String get onboardingSignUpUsernameDescription =>
+      'This is how others will find you on Crush.';
+
+  @override
+  String get onboardingSignUpUsernameHint => 'e.g., john_doe123';
+
+  @override
+  String get onboardingSignUpUsernameRules =>
+      '3-20 characters, letters, numbers, and underscore only';
+
+  @override
+  String get onboardingSignUpEmailTitle => 'What\'s your email?';
+
+  @override
+  String get onboardingSignUpBypassHint =>
+      'Test mode: verification is disabled.';
+
+  @override
+  String get onboardingSignUpEmailHint =>
+      'We\'ll send you a verification link to confirm your email.';
+
+  @override
+  String get onboardingSignUpEmailAddressLabel => 'Email address';
+
+  @override
+  String get onboardingSignUpEmailAddressHint => 'you@example.com';
+
+  @override
+  String get onboardingSignUpPasswordTitle => 'Create a password';
+
+  @override
+  String get onboardingSignUpPasswordDescription =>
+      'Make it strong with at least 8 characters.';
+
+  @override
+  String onboardingSignUpMissingRequiredFields(String fields) {
+    return 'Missing required fields: $fields. Go back to fill them before creating your account.';
+  }
+
+  @override
+  String get onboardingSignUpEmailInstructionOpenInbox =>
+      'Open your email inbox';
+
+  @override
+  String get onboardingSignUpEmailInstructionFindEmail =>
+      'Find the email from Crush';
+
+  @override
+  String get onboardingSignUpEmailInstructionClickLink =>
+      'Click the verification link';
+
+  @override
+  String get onboardingSignUpEmailIgnoreNotice =>
+      'If you didn\'t request this, please ignore the email.';
+
+  @override
+  String get onboardingSignUpDidntReceiveEmailResend =>
+      'Didn\'t receive email? Resend';
+
+  @override
+  String get onboardingSignUpCheckSpam =>
+      'Check your spam folder if you don\'t see it';
+
+  @override
+  String get onboardingSignUpPhoneTitle => 'Enter your phone number';
+
+  @override
+  String get onboardingSignUpPhoneSubtitle =>
+      'We\'ll send you a code to verify your account.';
+
+  @override
+  String get onboardingSignUpCodeLabel => 'Code';
+
+  @override
+  String get onboardingSignUpPhoneHint => '(555) 123-4567';
+
+  @override
+  String get onboardingSignUpSmsRates =>
+      'SMS rates may apply. We only use this to secure your account.';
+
+  @override
+  String get onboardingSignUpOtpTitle => 'Enter verification code';
+
+  @override
+  String onboardingSignUpOtpSentTo(String phoneNumber) {
+    return 'We sent a 6-digit code to $phoneNumber';
+  }
+
+  @override
+  String get onboardingSignUpVerificationCodeHint => '000000';
+
+  @override
+  String get onboardingSignUpDidntReceiveCodeResend =>
+      'Didn\'t receive code? Resend';
+
+  @override
+  String get onboardingSignUpPasswordStrengthWeak => 'Weak';
+
+  @override
+  String get onboardingSignUpPasswordStrengthFair => 'Fair';
+
+  @override
+  String get onboardingSignUpPasswordStrengthGood => 'Good';
+
+  @override
+  String get onboardingSignUpPasswordStrengthStrong => 'Strong';
+
+  @override
+  String get onboardingProfileLocationRationaleTitle => 'Find matches near you';
+
+  @override
+  String get onboardingProfileLocationRationaleDescription =>
+      'CRUSH uses your location to show you people nearby. Your exact location is never shared with other users.';
+
+  @override
+  String get onboardingProfileSignInRequired =>
+      'You need to be signed in to continue.';
+
+  @override
+  String get onboardingProfileAllFieldsOptional =>
+      'All fields are optional. You can complete your profile later in Settings.';
+
+  @override
+  String get onboardingProfileYourPhotosTitle => 'Your Photos';
+
+  @override
+  String get onboardingProfileYourPhotosSubtitle =>
+      'Optional - helps you get more matches';
+
+  @override
+  String get onboardingProfileAboutYouSubtitle => 'Tell others about yourself';
+
+  @override
+  String get onboardingProfileLookingForTitle => 'I Am Looking For';
+
+  @override
+  String get onboardingProfileLookingForSubtitle =>
+      'Who would you like to see?';
+
+  @override
+  String get onboardingProfileLocationSubtitle => 'Where are you based?';
+
+  @override
+  String get onboardingProfileWorkEducationTitle => 'Work & Education';
+
+  @override
+  String get onboardingProfileOptionalSubtitle => 'Optional';
+
+  @override
+  String get onboardingProfileSchoolUniversity => 'School / University';
+
+  @override
+  String get onboardingProfileSelectUpToFive => 'Select up to 5';
+
+  @override
+  String get onboardingProfileFavouritesTitle => 'Favourites';
+
+  @override
+  String get onboardingProfileFavouritesSubtitle => 'Share what you love';
+
+  @override
+  String get onboardingProfileSettingUpProfile => 'Setting up your profile...';
+
+  @override
+  String get onboardingProfileCompleteTitle => 'Profile Complete!';
+
+  @override
+  String get onboardingProfileBasicCompleteTitle => 'Basic Profile Complete';
+
+  @override
+  String get onboardingProfileEligibleToStartMatching =>
+      'You\'re eligible to start matching!';
+
+  @override
+  String get onboardingProfileRecommendCompleteAll =>
+      'We recommend completing all fields to get more matches and build trust with other users.';
+
+  @override
+  String get onboardingProfileCompletionLabel => 'Profile Completion';
+
+  @override
+  String onboardingProfileCompletionCount(int filled, int total, int percent) {
+    return '$filled/$total fields ($percent%)';
+  }
+
+  @override
+  String get onboardingProfileFromBasicInfoStep => 'From your profile setup';
+
+  @override
+  String get onboardingProfileYourUsernameTitle => 'Your Username';
+
+  @override
+  String get onboardingProfileUsernameChangeEvery28Days =>
+      'You can change this once every 28 days';
+
+  @override
+  String onboardingProfileUsernameLockedForDays(int days) {
+    return 'Locked for $days more days';
+  }
+
+  @override
+  String get onboardingProfileEnterUsername => 'Enter username';
+
+  @override
+  String onboardingProfileUsernameChangeAgainInDays(int days) {
+    return 'You can change your username again in $days days';
+  }
+
+  @override
+  String get onboardingProfileNotSet => 'Not set';
+
+  @override
+  String onboardingProfileDaysRemaining(int days) {
+    return '$days days';
+  }
+
+  @override
+  String onboardingProfileUsernameChangesLimited(int days) {
+    return 'Username changes are limited to once every 28 days. You can change it again in $days days.';
+  }
+
+  @override
+  String get onboardingProfileFavouriteAthlete => 'Favourite Athlete';
+
+  @override
+  String get onboardingProfileFavouriteFood => 'Favourite Food';
+
+  @override
+  String get onboardingProfileFavouriteSport => 'Favourite Sport';
+
+  @override
+  String get onboardingProfileFavouriteTvShow => 'Favourite TV Show';
+
+  @override
+  String get onboardingProfileFavouriteActor => 'Favourite Actor';
+
+  @override
+  String get onboardingProfileFavouriteSinger => 'Favourite Singer';
+
+  @override
+  String get onboardingProfileFavouriteMovie => 'Favourite Movie';
+
+  @override
+  String get onboardingProfileFavouriteHobby => 'Favourite Hobby';
+
+  @override
+  String get onboardingProfileSelectPlaceholder => 'Select...';
+
+  @override
+  String get onboardingProfileOrTypeYourOwn => 'Or type your own...';
+
+  @override
+  String get onboardingProfileAddPhotoBeforeSkip =>
+      'Please add at least 1 photo before skipping. This is required for dating apps.';
+
+  @override
+  String get onboardingProfileStartMatching => 'Start Matching';
+
+  @override
+  String onboardingProfileStartMatchingWithPercent(int percent) {
+    return 'Start Matching ($percent% complete)';
+  }
+
+  @override
+  String get onboardingProfileCompleteLaterInSettings =>
+      'You can always complete your profile later in Settings';
+
+  @override
+  String get onboardingProfileSaveAndStartMatchingSemantics =>
+      'Save profile and start matching';
+
+  @override
+  String get onboardingProfileSkipSemantics =>
+      'Skip profile setup for now. Requires at least one photo.';
 
   @override
   String get subscriptionFree => 'Free';
@@ -3925,6 +5604,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wordFemale => 'Female';
 
   @override
+  String get wordNonBinary => 'Non-binary';
+
+  @override
+  String get orientationStraight => 'Straight';
+
+  @override
+  String get orientationGay => 'Gay';
+
+  @override
+  String get orientationLesbian => 'Lesbian';
+
+  @override
+  String get orientationBisexual => 'Bisexual';
+
+  @override
+  String get orientationPansexual => 'Pansexual';
+
+  @override
+  String get orientationAsexual => 'Asexual';
+
+  @override
+  String get orientationQueer => 'Queer';
+
+  @override
+  String get orientationQuestioning => 'Questioning';
+
+  @override
+  String get orientationPreferNotToSay => 'Prefer not to say';
+
+  @override
   String get wordMan => 'Man';
 
   @override
@@ -4073,6 +5782,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Reports are anonymous and reviewed by our team.';
 
   @override
+  String chatReportLastMatch(String matchId) {
+    return 'Last match: $matchId';
+  }
+
+  @override
   String get signInAgainToManage => 'Sign in again to manage safety actions.';
 
   @override
@@ -4080,6 +5794,42 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportUser => 'Report user';
+
+  @override
+  String get chatReportReasonSpamScams => 'Spam or scams';
+
+  @override
+  String get chatReportReasonHarassmentHate => 'Harassment or hate';
+
+  @override
+  String get chatReportReasonInappropriateContent => 'Inappropriate content';
+
+  @override
+  String get chatReportReasonFakeProfile => 'Fake profile';
+
+  @override
+  String get chatReportReasonOther => 'Other';
+
+  @override
+  String chatReportSubmittedReason(String reason) {
+    return 'Report submitted: $reason';
+  }
+
+  @override
+  String get chatReportSubmitted => 'Report submitted';
+
+  @override
+  String get chatReportDetailsHint => 'Tell us what happened';
+
+  @override
+  String chatSafetyBlockedUser(String name) {
+    return 'Blocked $name.';
+  }
+
+  @override
+  String chatSafetyUnblockedUser(String name) {
+    return 'Unblocked $name.';
+  }
 
   @override
   String get iFeltSafe => 'I felt safe';
@@ -4105,6 +5855,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get viewSafetyGuidelines => 'View safety guidelines';
+
+  @override
+  String get callSafetyTipFallbackPerson => 'this person';
+
+  @override
+  String get callSafetyTipTitle => 'Safety reminder';
+
+  @override
+  String get callSafetyTipDismissTooltip => 'Dismiss safety tip';
+
+  @override
+  String callSafetyTipBody(String name) {
+    return 'On your first call with $name, avoid sharing private details. If anything feels unsafe, report or block immediately.';
+  }
+
+  @override
+  String get callSafetyActionReported => 'Reported';
+
+  @override
+  String get callSafetyPostCallPromptTitle => 'Did you feel safe on this call?';
+
+  @override
+  String get callSafetyPostCallPromptSubtitle =>
+      'If anything felt off, report or block now.';
 
   @override
   String get later => 'Later';
@@ -4651,6 +6425,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get report => 'Report';
+
+  @override
+  String get profileReportSheetTitle => 'Why are you reporting this profile?';
+
+  @override
+  String get profileReportReasonInappropriatePhotos => 'Inappropriate photos';
+
+  @override
+  String get profileReportReasonScamOrSpam => 'Scam or spam';
+
+  @override
+  String get profileReportReasonUnderageUser => 'Underage user';
 
   @override
   String get messageRequestSent => 'Message request sent.';
@@ -5348,6 +7134,12 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
   String get authCreateAccount => 'Create account xxxx';
 
   @override
+  String get authContinueWithGoogle => 'Continue with Google xxxxxxxx';
+
+  @override
+  String get authContinueWithApple => 'Continue with Apple xxxxxxx';
+
+  @override
   String get authNoAccount => 'Don\'t have an account? xxxxxxx';
 
   @override
@@ -5355,6 +7147,39 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
 
   @override
   String get authOrContinueWith => 'or continue with xxxxx';
+
+  @override
+  String get authGatewayTagline => 'Find your Perfect Match xxxxxxxxxx';
+
+  @override
+  String get authGatewayFeatureVerifiedProfiles =>
+      'Verified profiles for safety xxxxxxxxxx';
+
+  @override
+  String get authGatewayFeatureSendMessages =>
+      'Send messages before matching xxxxxxxxx';
+
+  @override
+  String get authGatewayFeatureMeetNearby => 'Meet people near you xxxxxxxx';
+
+  @override
+  String get authGatewayAgeVerificationTitle => 'Age Verification xxxxxxx';
+
+  @override
+  String get authGatewayAgeVerificationDescription =>
+      'Crush is a dating app for adults only. You must be at least 18 years old to create an account. xxxxxxxxxxxxxxxxx';
+
+  @override
+  String get authGatewayAgeVerificationQuestion =>
+      'Are you 18 years or older? xxxxxxxxx';
+
+  @override
+  String get authGatewayAgeVerificationLegalNotice =>
+      'By continuing, you confirm that you are at least 18 years old and agree to our Terms of Service. xxxxxxxxxxxxxx';
+
+  @override
+  String get authGatewayAgeUnderageError =>
+      'You must be at least 18 years old to use Crush. xxxxxxxxx';
 
   @override
   String get authPhone => 'Phone xxxx';
@@ -5633,6 +7458,1035 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
 
   @override
   String get settingsRestorePurchases => 'Restore purchases xxxxx';
+
+  @override
+  String settingsNotificationsEnabledCount(int enabled, int total) {
+    return '$enabled of $total enabled xxxxx';
+  }
+
+  @override
+  String settingsLanguageRegionSummary(String language, String region) {
+    return '$language - $region xxxxx';
+  }
+
+  @override
+  String settingsDiscoverySummary(int distanceKm, int minAge, int maxAge) {
+    return '$distanceKm km, $minAge-$maxAge years xxxxx';
+  }
+
+  @override
+  String settingsCacheSummary(int sizeMb) {
+    return 'Cache: $sizeMb MB xxxx';
+  }
+
+  @override
+  String get settingsAccountNoEmail => 'No email added xxxx';
+
+  @override
+  String get settingsAccountEmailVerified => 'Email verified xxxx';
+
+  @override
+  String get settingsAccountEmailNotVerified => 'Email not verified xxxxx';
+
+  @override
+  String get settingsIdVerification => 'ID Verification xxxx';
+
+  @override
+  String get settingsIdVerificationVerifiedSubtitle =>
+      'Verified - Badge active xxxxx';
+
+  @override
+  String get settingsIdVerificationPromptSubtitle =>
+      'Verify to unlock 50% more swipes xxxxx';
+
+  @override
+  String get settingsChatSettingsSubtitle =>
+      'Message retention & auto-delete xxxxx';
+
+  @override
+  String get settingsCallHistorySubtitle =>
+      'Recent audio and video calls xxxxx';
+
+  @override
+  String get settingsIncognitoActivePremium => 'Active (Premium) xxxx';
+
+  @override
+  String get settingsIncognitoBrowsePrivately =>
+      'Browse profiles privately xxxxx';
+
+  @override
+  String settingsSubscriptionStatus(String status) {
+    return 'Status: $status xxxx';
+  }
+
+  @override
+  String settingsSubscriptionAccessEndsOn(String date) {
+    return 'Access ends on $date xxxx';
+  }
+
+  @override
+  String settingsSubscriptionRenewsOn(String date) {
+    return 'Renews on $date xxxx';
+  }
+
+  @override
+  String get settingsSubscriptionManageBillingSubtitle =>
+      'Manage billing or renew your Plus plan. xxxxx';
+
+  @override
+  String get settingsSubscriptionUpgradePitchSubtitle =>
+      'Upgrade to Plus for unlimited likes, rewinds, and Passport. xxxxx';
+
+  @override
+  String get settingsSubscriptionFirstMonthDiscount =>
+      '50% off your first month! xxxxx';
+
+  @override
+  String get settingsManageSubscription => 'Manage subscription xxxx';
+
+  @override
+  String get settingsSafetyBlocking => 'Safety & Blocking xxxx';
+
+  @override
+  String get settingsHelpSubtitle => 'FAQ, contact support, and more xxxxx';
+
+  @override
+  String get settingsSignOutSubtitle => 'Sign out of your account xxxxx';
+
+  @override
+  String get settingsLegalSection => 'Legal xxxx';
+
+  @override
+  String get settingsAboutCrush => 'About Crush xxxx';
+
+  @override
+  String get settingsManageBlockedUsers => 'Manage blocked users xxxx';
+
+  @override
+  String get settingsThemeDarkLuxuryRoyal => 'Dark Luxury (Royal) xxxx';
+
+  @override
+  String get settingsThemeDarkLuxuryModern => 'Dark Luxury (Modern) xxxx';
+
+  @override
+  String get settingsIncognitoBrowseWithoutSeen =>
+      'Browse profiles without being seen xxxxx';
+
+  @override
+  String get settingsIncognitoIsActive => 'Incognito is active xxxx';
+
+  @override
+  String get settingsIncognitoHideFromLikedYou =>
+      'Hide from \"Liked You\" xxxx';
+
+  @override
+  String get settingsIncognitoHideFromLikedYouSubtitle =>
+      'Your likes won\'t appear in their list xxxxx';
+
+  @override
+  String get settingsIncognitoHideLastActive => 'Hide last active xxxx';
+
+  @override
+  String get settingsIncognitoHideLastActiveSubtitle =>
+      'Others won\'t see when you were online xxxxx';
+
+  @override
+  String get settingsIncognitoHideReadReceipts => 'Hide read receipts xxxx';
+
+  @override
+  String get settingsIncognitoHideReadReceiptsSubtitle =>
+      'Messages won\'t show as read xxxxx';
+
+  @override
+  String get settingsIncognitoFeatureHideFromLikedYou =>
+      'Your likes won\'t appear in \"Liked You\" xxxxx';
+
+  @override
+  String get settingsIncognitoFeatureHideLastActive =>
+      'Hide your last active status xxxxx';
+
+  @override
+  String get settingsIncognitoFeatureHideReadReceipts =>
+      'Hide read receipts in chats xxxxx';
+
+  @override
+  String get settingsIncognitoFreeTierNotice =>
+      'Free users get 1 hour. Upgrade for unlimited. xxxxx';
+
+  @override
+  String get settingsSubscriptionFreeSummary =>
+      'Free Plan - Upgrade for unlimited likes xxxxx';
+
+  @override
+  String get settingsSubscriptionPlusActiveSummary =>
+      'Plus Member - Active xxxx';
+
+  @override
+  String settingsSubscriptionPlusEndsSummary(String date) {
+    return 'Plus Member - Ends on $date xxxx';
+  }
+
+  @override
+  String settingsSubscriptionPlusRenewsSummary(String date) {
+    return 'Plus Member - Renews on $date xxxx';
+  }
+
+  @override
+  String get settingsNotificationsHeaderTitle => 'Stay Connected xxxx';
+
+  @override
+  String get settingsNotificationsHeaderSubtitle =>
+      'Get notified about matches, messages, and more. xxxxx';
+
+  @override
+  String get settingsNotificationsPushSubtitle =>
+      'Messages, matches, and app updates xxxxx';
+
+  @override
+  String get settingsNotificationsPushEnabled =>
+      'Push notifications enabled. xxxx';
+
+  @override
+  String get settingsNotificationsPushDisabled =>
+      'Push notifications disabled. xxxx';
+
+  @override
+  String get settingsNotificationsEmailSubtitle =>
+      'Updates sent to your inbox xxxxx';
+
+  @override
+  String get settingsNotificationsSoundSubtitle =>
+      'Play sounds for alerts xxxxx';
+
+  @override
+  String get settingsNotificationsVibrationSubtitle =>
+      'Vibrate on new messages or matches xxxxx';
+
+  @override
+  String get settingsNotificationCategoriesTitle =>
+      'Notification Categories xxxx';
+
+  @override
+  String settingsNotificationCategoriesEnabledCount(int enabled, int total) {
+    return '$enabled of $total enabled xxxx';
+  }
+
+  @override
+  String get settingsNotificationCategoryMatchesTitle => 'Matches xxxx';
+
+  @override
+  String get settingsNotificationCategoryMatchesSubtitle =>
+      'New match notifications xxxx';
+
+  @override
+  String get settingsNotificationCategoryMessagesTitle => 'Messages xxxx';
+
+  @override
+  String get settingsNotificationCategoryMessagesSubtitle =>
+      'New message notifications xxxx';
+
+  @override
+  String get settingsNotificationCategoryLikesTitle => 'Likes xxxx';
+
+  @override
+  String get settingsNotificationCategoryLikesSubtitle =>
+      'When someone likes your profile xxxxx';
+
+  @override
+  String get settingsNotificationCategoryProfileViewsTitle =>
+      'Profile Views xxxx';
+
+  @override
+  String get settingsNotificationCategoryProfileViewsSubtitle =>
+      'When someone views your profile xxxxx';
+
+  @override
+  String get settingsNotificationCategoryPromotionsTitle => 'Promotions xxxx';
+
+  @override
+  String get settingsNotificationCategoryPromotionsSubtitle =>
+      'Special offers and features xxxxx';
+
+  @override
+  String get settingsNotificationCategorySafetyAlertsTitle =>
+      'Safety Alerts xxxx';
+
+  @override
+  String get settingsNotificationCategorySafetyAlertsSubtitle =>
+      'Always on — cannot be disabled xxxxx';
+
+  @override
+  String get settingsNotificationQuietHoursTitle => 'Quiet Hours xxxx';
+
+  @override
+  String get settingsNotificationQuietHoursTileTitle => 'Quiet hours xxxx';
+
+  @override
+  String get settingsNotificationDisabled => 'Disabled xxxx';
+
+  @override
+  String get settingsNotificationsDeviceSettingsInfo =>
+      'You can also manage notifications in your device settings. xxxxx';
+
+  @override
+  String get settingsPrivacySnackAllPublic =>
+      'All information set to public xxxx';
+
+  @override
+  String get settingsPrivacySnackAllPrivate =>
+      'All information set to private xxxx';
+
+  @override
+  String get settingsPrivacySnackResetDefaults =>
+      'Privacy settings reset to defaults xxxx';
+
+  @override
+  String get settingsPrivacyHeaderTitle => 'Control Your Privacy xxxx';
+
+  @override
+  String get settingsPrivacyHeaderSubtitle =>
+      'Choose what others can see when they view your profile. xxxxx';
+
+  @override
+  String get settingsPrivacySectionNameVisibilityTitle =>
+      'Name Visibility xxxx';
+
+  @override
+  String get settingsPrivacySectionNameVisibilitySubtitle =>
+      'Control how your name appears xxxx';
+
+  @override
+  String get settingsPrivacyFirstNameTitle => 'First Name xxxx';
+
+  @override
+  String get settingsPrivacyFirstNameSubtitle =>
+      'Show your first name on your profile xxxx';
+
+  @override
+  String get settingsPrivacyLastNameTitle => 'Last Name xxxx';
+
+  @override
+  String get settingsPrivacyLastNameSubtitle =>
+      'Show your last name on your profile xxxx';
+
+  @override
+  String get settingsPrivacySectionSensitiveInfoTitle =>
+      'Sensitive Information xxxx';
+
+  @override
+  String get settingsPrivacySectionSensitiveInfoSubtitle =>
+      'These are private by default xxxx';
+
+  @override
+  String get settingsPrivacyAgeTitle => 'Age xxxx';
+
+  @override
+  String get settingsPrivacyAgeSubtitle => 'Show your age on your profile xxxx';
+
+  @override
+  String get settingsPrivacyDateOfBirthTitle => 'Date of Birth xxxx';
+
+  @override
+  String get settingsPrivacyDateOfBirthSubtitle =>
+      'Show your exact birth date xxxx';
+
+  @override
+  String get settingsPrivacyEmailTitle => 'Email xxxx';
+
+  @override
+  String get settingsPrivacyEmailSubtitle => 'Show your email address xxxx';
+
+  @override
+  String get settingsPrivacyPhoneNumberTitle => 'Phone Number xxxx';
+
+  @override
+  String get settingsPrivacyPhoneNumberSubtitle =>
+      'Show your phone number xxxx';
+
+  @override
+  String get settingsPrivacyExactLocationTitle => 'Exact Location xxxx';
+
+  @override
+  String get settingsPrivacyExactLocationSubtitle =>
+      'Show exact location instead of city only xxxx';
+
+  @override
+  String get settingsPrivacySectionDatingBasicsTitle => 'Dating Basics xxxx';
+
+  @override
+  String get settingsPrivacySectionDatingBasicsSubtitle =>
+      'Basic dating profile information xxxx';
+
+  @override
+  String get settingsPrivacyHeightTitle => 'Height xxxx';
+
+  @override
+  String get settingsPrivacyHeightSubtitle => 'Show your height xxxx';
+
+  @override
+  String get settingsPrivacyRelationshipGoalsTitle => 'Relationship Goals xxxx';
+
+  @override
+  String get settingsPrivacyRelationshipGoalsSubtitle =>
+      'Show what you\'re looking for xxxx';
+
+  @override
+  String get settingsPrivacyZodiacSignTitle => 'Zodiac Sign xxxx';
+
+  @override
+  String get settingsPrivacyZodiacSignSubtitle => 'Show your zodiac sign xxxx';
+
+  @override
+  String get settingsPrivacySectionAboutMeTitle => 'About Me xxxx';
+
+  @override
+  String get settingsPrivacySectionAboutMeSubtitle =>
+      'Personal characteristics xxxx';
+
+  @override
+  String get settingsPrivacyEducationTitle => 'Education xxxx';
+
+  @override
+  String get settingsPrivacyEducationSubtitle =>
+      'Show your education level xxxx';
+
+  @override
+  String get settingsPrivacyFamilyPlansTitle => 'Family Plans xxxx';
+
+  @override
+  String get settingsPrivacyFamilyPlansSubtitle =>
+      'Show your family plans xxxx';
+
+  @override
+  String get settingsPrivacyPersonalityTypeTitle => 'Personality Type xxxx';
+
+  @override
+  String get settingsPrivacyPersonalityTypeSubtitle =>
+      'Show your MBTI or personality xxxx';
+
+  @override
+  String get settingsPrivacySectionLifestyleTitle => 'Lifestyle xxxx';
+
+  @override
+  String get settingsPrivacySectionLifestyleSubtitle =>
+      'Your habits and preferences xxxx';
+
+  @override
+  String get settingsPrivacyWorkoutTitle => 'Workout xxxx';
+
+  @override
+  String get settingsPrivacyWorkoutSubtitle => 'Show your exercise habits xxxx';
+
+  @override
+  String get settingsPrivacySmokingTitle => 'Smoking xxxx';
+
+  @override
+  String get settingsPrivacySmokingSubtitle => 'Show your smoking habits xxxx';
+
+  @override
+  String get settingsPrivacyDrinkingTitle => 'Drinking xxxx';
+
+  @override
+  String get settingsPrivacyDrinkingSubtitle =>
+      'Show your drinking habits xxxx';
+
+  @override
+  String get settingsPrivacyDietTitle => 'Diet xxxx';
+
+  @override
+  String get settingsPrivacyDietSubtitle =>
+      'Show your dietary preferences xxxx';
+
+  @override
+  String get settingsPrivacySleepingHabitsTitle => 'Sleeping Habits xxxx';
+
+  @override
+  String get settingsPrivacySleepingHabitsSubtitle =>
+      'Show your sleep schedule xxxx';
+
+  @override
+  String get settingsPrivacyPetsTitle => 'Pets xxxx';
+
+  @override
+  String get settingsPrivacyPetsSubtitle => 'Show your pet preferences xxxx';
+
+  @override
+  String get settingsPrivacySectionWorkEducationTitle =>
+      'Work & Education xxxx';
+
+  @override
+  String get settingsPrivacySectionWorkEducationSubtitle =>
+      'Professional information xxxx';
+
+  @override
+  String get settingsPrivacyJobTitleTitle => 'Job Title xxxx';
+
+  @override
+  String get settingsPrivacyJobTitleSubtitle => 'Show your job title xxxx';
+
+  @override
+  String get settingsPrivacyCompanyTitle => 'Company xxxx';
+
+  @override
+  String get settingsPrivacyCompanySubtitle => 'Show where you work xxxx';
+
+  @override
+  String get settingsPrivacySchoolTitle => 'School xxxx';
+
+  @override
+  String get settingsPrivacySchoolSubtitle =>
+      'Show your school or university xxxx';
+
+  @override
+  String get settingsPrivacySectionMusicTitle => 'Music xxxx';
+
+  @override
+  String get settingsPrivacySectionMusicSubtitle => 'Your music taste xxxx';
+
+  @override
+  String get settingsPrivacyFavoriteSingerTitle => 'Favorite Singer xxxx';
+
+  @override
+  String get settingsPrivacyFavoriteSingerSubtitle =>
+      'Show your favorite artist xxxx';
+
+  @override
+  String get settingsPrivacyFavoriteSongsTitle => 'Favorite Songs xxxx';
+
+  @override
+  String get settingsPrivacyFavoriteSongsSubtitle =>
+      'Show your favorite songs xxxx';
+
+  @override
+  String get settingsPrivacySectionSocialTitle => 'Social xxxx';
+
+  @override
+  String get settingsPrivacySectionSocialSubtitle => 'Social information xxxx';
+
+  @override
+  String get settingsPrivacyLanguagesTitle => 'Languages xxxx';
+
+  @override
+  String get settingsPrivacyLanguagesSubtitle =>
+      'Show languages you speak xxxx';
+
+  @override
+  String get settingsPrivacySocialMediaTitle => 'Social Media xxxx';
+
+  @override
+  String get settingsPrivacySocialMediaSubtitle =>
+      'Show your social media links xxxx';
+
+  @override
+  String get settingsPrivacySectionActivityStatusTitle =>
+      'Activity Status xxxx';
+
+  @override
+  String get settingsPrivacySectionActivityStatusSubtitle =>
+      'Online presence xxxx';
+
+  @override
+  String get settingsPrivacyOnlineStatusTitle => 'Online Status xxxx';
+
+  @override
+  String get settingsPrivacyOnlineStatusSubtitle =>
+      'Show when you\'re online xxxx';
+
+  @override
+  String get settingsPrivacyLastActiveTitle => 'Last Active xxxx';
+
+  @override
+  String get settingsPrivacyLastActiveSubtitle =>
+      'Show when you were last active xxxx';
+
+  @override
+  String get settingsPrivacySensitiveBadge => 'Sensitive xxxx';
+
+  @override
+  String get settingsPrivacyInfoNote =>
+      'Hidden information will only be visible to you. Matches can see public information. xxxxx';
+
+  @override
+  String get accountActionsHeaderTitle => 'Manage Your Account xxxx';
+
+  @override
+  String get accountActionsHeaderSubtitle =>
+      'Manage security, password, and account status. xxxxx';
+
+  @override
+  String get accountActionsSectionSecurity => 'Security xxxx';
+
+  @override
+  String get accountActionsPhoneVerifiedTitle => 'Phone verified xxxx';
+
+  @override
+  String get accountActionsPhoneVerifyTitle => 'Verify phone number xxxx';
+
+  @override
+  String get accountActionsPhoneAddTitle => 'Add phone number xxxx';
+
+  @override
+  String get accountActionsPhoneVerifiedSubtitle =>
+      'Your phone is verified and secured xxxx';
+
+  @override
+  String get accountActionsPhoneVerifySubtitle =>
+      'Verify your phone for account security xxxx';
+
+  @override
+  String get accountActionsChangePasswordSubtitle =>
+      'Update your account password xxxx';
+
+  @override
+  String get accountActionsSectionAccountStatus => 'Account Status xxxx';
+
+  @override
+  String get accountActionsSnoozeProfileTitle => 'Snooze profile xxxx';
+
+  @override
+  String get accountActionsSnoozeProfileSubtitle =>
+      'Hide profile but keep messaging active matches xxxxx';
+
+  @override
+  String get accountActionsDeactivateSubtitle =>
+      'Hide your profile temporarily xxxx';
+
+  @override
+  String get accountActionsSectionDataPrivacy => 'Data & Privacy xxxx';
+
+  @override
+  String get accountActionsExportDataTitle => 'Export your data xxxx';
+
+  @override
+  String get accountActionsExportDataSubtitle =>
+      'Download a copy of your personal data xxxx';
+
+  @override
+  String get accountActionsSectionDangerZone => 'Danger zone xxxx';
+
+  @override
+  String get accountActionsAboutDeactivationTitle => 'About Deactivation xxxx';
+
+  @override
+  String get accountActionsAboutDeactivationBody =>
+      'When you deactivate your account, your profile will be hidden. You can reactivate anytime by signing back in. If you don\'t sign in for 6 months, your account will be permanently deleted. xxxxx';
+
+  @override
+  String get accountActionsAboutDeletionTitle => 'About Deletion xxxx';
+
+  @override
+  String get accountActionsAboutDeletionBody =>
+      'When you delete your account, you have 14 days to change your mind. Simply sign in within 14 days to recover your account. After 14 days, all your data will be permanently deleted. xxxxx';
+
+  @override
+  String get accountActionsExportSignInRequired =>
+      'Please sign in again to export data. xxxx';
+
+  @override
+  String accountActionsExportNextAvailableOn(String date) {
+    return 'You can request your next export on $date. xxxx';
+  }
+
+  @override
+  String get accountActionsExportFallbackEmail => 'your email xxxx';
+
+  @override
+  String get accountActionsExportItemProfileMedia =>
+      'Profile, photos, and media xxxx';
+
+  @override
+  String get accountActionsExportItemLikesMatches => 'Likes and matches xxxx';
+
+  @override
+  String get accountActionsExportItemMessagesMetadata =>
+      'Messages and chat metadata xxxx';
+
+  @override
+  String get accountActionsExportItemPreferences =>
+      'Preferences and account settings xxxx';
+
+  @override
+  String accountActionsExportRateLimitNotice(int days) {
+    return 'This request is rate-limited to once every $days days. We will notify you when export generation completes. xxxxx';
+  }
+
+  @override
+  String accountActionsExportPrimaryContact(String email) {
+    return 'Primary contact: $email xxxx';
+  }
+
+  @override
+  String get accountActionsExportRequestedSuccess =>
+      'Data export requested. We will send a push notification when it is ready. xxxxx';
+
+  @override
+  String get accountActionsExportRequestFailed =>
+      'Could not request data export. xxxx';
+
+  @override
+  String get accountActionsExportCloudUnavailable =>
+      'Cloud export is not available in this environment. Generating local export now. xxxxx';
+
+  @override
+  String get accountActionsExportProgressStarting => 'Starting export... xxxx';
+
+  @override
+  String accountActionsExportProgressPercentComplete(int percent) {
+    return '$percent% complete xxxx';
+  }
+
+  @override
+  String get accountActionsExportGenerateFailed =>
+      'Could not generate data export. Please try again. xxxx';
+
+  @override
+  String accountActionsExportCompletedNextRequest(int days) {
+    return 'Data export request completed. Next request available in $days days. xxxx';
+  }
+
+  @override
+  String get accountActionsChangePasswordPrompt =>
+      'Enter your current password and choose a new one. xxxx';
+
+  @override
+  String get accountActionsCurrentPasswordLabel => 'Current password xxxx';
+
+  @override
+  String get accountActionsCurrentPasswordRequired =>
+      'Enter your current password xxxx';
+
+  @override
+  String get accountActionsNewPasswordLabel => 'New password xxxx';
+
+  @override
+  String get accountActionsNewPasswordRequired => 'Enter a new password xxxx';
+
+  @override
+  String get accountActionsNewPasswordMinLength =>
+      'Password must be at least 8 characters xxxx';
+
+  @override
+  String get accountActionsNewPasswordMustDiffer =>
+      'New password must be different from current password xxxx';
+
+  @override
+  String get accountActionsConfirmNewPasswordLabel =>
+      'Confirm new password xxxx';
+
+  @override
+  String get accountActionsConfirmNewPasswordRequired =>
+      'Confirm your new password xxxx';
+
+  @override
+  String get accountActionsPasswordsDoNotMatch => 'Passwords do not match xxxx';
+
+  @override
+  String get accountActionsPasswordChangeFallbackError =>
+      'Could not change password. Please try again. xxxx';
+
+  @override
+  String get accountActionsPasswordChangedSuccess =>
+      'Password changed successfully! xxxx';
+
+  @override
+  String get accountActionsPasswordChangeFailed =>
+      'Password change failed. xxxx';
+
+  @override
+  String get accountActionsGenericErrorTryAgain =>
+      'An error occurred. Please try again. xxxx';
+
+  @override
+  String get accountActionsDeactivateReasonTitle => 'Why are you leaving? xxxx';
+
+  @override
+  String get accountActionsReasonTakingBreakFromDating =>
+      'Taking a break from dating xxxx';
+
+  @override
+  String get accountActionsReasonFoundSomeoneSpecial =>
+      'Found someone special xxxx';
+
+  @override
+  String get accountActionsReasonTooManyNotifications =>
+      'Too many notifications xxxx';
+
+  @override
+  String get accountActionsReasonNotFindingGoodMatches =>
+      'Not finding good matches xxxx';
+
+  @override
+  String get accountActionsReasonPrivacyConcerns => 'Privacy concerns xxxx';
+
+  @override
+  String get accountActionsReasonOther => 'Other reason xxxx';
+
+  @override
+  String get accountActionsDeactivateBulletHiddenFromDiscovery =>
+      'Your profile will be hidden from discovery xxxx';
+
+  @override
+  String get accountActionsDeactivateBulletNoNewMatches =>
+      'You won\'t receive new matches xxxx';
+
+  @override
+  String get accountActionsDeactivateBulletKeepMatchesMessages =>
+      'Your existing matches and messages are preserved xxxx';
+
+  @override
+  String get accountActionsDeactivateBulletReactivateAnytime =>
+      'You can reactivate anytime by signing in xxxx';
+
+  @override
+  String get accountActionsDeactivateAutoDeleteWarning =>
+      'If you don\'t sign in for 6 months, your account will be permanently deleted. xxxx';
+
+  @override
+  String get accountActionsDeactivateFailedTryAgain =>
+      'Could not deactivate account. Please try again. xxxx';
+
+  @override
+  String get accountActionsDeactivateSuccess =>
+      'Your account has been deactivated. Sign in anytime to reactivate. xxxx';
+
+  @override
+  String get accountActionsDeactivationFailed => 'Deactivation failed. xxxx';
+
+  @override
+  String get accountActionsDeleteSignInRequired =>
+      'Please sign in again to continue. xxxx';
+
+  @override
+  String get accountActionsDeleteWarningMatches => 'All your matches xxxx';
+
+  @override
+  String get accountActionsDeleteWarningMessages => 'All your messages xxxx';
+
+  @override
+  String get accountActionsDeleteWarningProfile =>
+      'Your profile and photos xxxx';
+
+  @override
+  String get accountActionsDeleteWarningSubscription =>
+      'Your subscription (if any) xxxx';
+
+  @override
+  String accountActionsDeleteScheduledOn(String date) {
+    return 'Deleted on $date. Sign back in within 14 days to cancel. xxxx';
+  }
+
+  @override
+  String get accountActionsDeleteReasonTitle =>
+      'Optional: Why are you deleting your account? xxxx';
+
+  @override
+  String get accountActionsReasonFoundRelationship =>
+      'Found a relationship xxxx';
+
+  @override
+  String get accountActionsReasonNotHappyWithApp =>
+      'Not happy with the app xxxx';
+
+  @override
+  String get accountActionsReasonTooExpensive => 'Too expensive xxxx';
+
+  @override
+  String get accountActionsReasonCreatingNewAccount =>
+      'Creating a new account xxxx';
+
+  @override
+  String get accountActionsDeleteNoReasonProvided => 'No reason provided xxxx';
+
+  @override
+  String accountActionsDeleteTypeToConfirm(String value) {
+    return 'Type \"$value\" to confirm account deletion. xxxx';
+  }
+
+  @override
+  String get accountActionsDeleteTypeUsernameLabel => 'Type username xxxx';
+
+  @override
+  String get accountActionsDeletePasswordLabel => 'Password xxxx';
+
+  @override
+  String get accountActionsDeleteFailedCheckPassword =>
+      'Could not delete account. Please check your password. xxxx';
+
+  @override
+  String accountActionsDeleteScheduledSuccess(String date) {
+    return 'Your account is scheduled for deletion on $date. Sign in within 14 days to recover it. xxxx';
+  }
+
+  @override
+  String get accountActionsDeletionFailed => 'Deletion failed. xxxx';
+
+  @override
+  String get accountActionsReasonOtherHint => 'Please tell us more... xxxx';
+
+  @override
+  String get accountActionsReasonOtherPrefix => 'Other: xxxx ';
+
+  @override
+  String settingsSecurityProviderLinkUnavailable(String provider) {
+    return '$provider linking is not available. xxxx';
+  }
+
+  @override
+  String settingsSecurityProviderLinkedSuccess(String provider) {
+    return '$provider linked successfully. xxxx';
+  }
+
+  @override
+  String settingsSecurityProviderUnlinkUnavailable(String provider) {
+    return '$provider unlink is not available. xxxx';
+  }
+
+  @override
+  String settingsSecurityProviderUnlinkedSuccess(String provider) {
+    return '$provider unlinked successfully. xxxx';
+  }
+
+  @override
+  String settingsSecurityProviderAlreadyLinked(String provider) {
+    return '$provider is already linked. xxxx';
+  }
+
+  @override
+  String settingsSecurityProviderLinkedAnotherAccount(String provider) {
+    return '$provider is already linked to another account. xxxx';
+  }
+
+  @override
+  String settingsSecurityProviderNotEnabledEnvironment(String provider) {
+    return '$provider is not enabled for this environment. xxxx';
+  }
+
+  @override
+  String settingsSecurityProviderLinkCanceled(String provider) {
+    return '$provider linking was canceled. xxxx';
+  }
+
+  @override
+  String get settingsSecurityProviderUpdateFailed =>
+      'Could not update linked account. xxxx';
+
+  @override
+  String get settingsSecurityHeaderTitle => 'Protect Your Account xxxx';
+
+  @override
+  String get settingsSecurityHeaderSubtitle =>
+      'Add extra layers of security to keep your account safe. xxxxx';
+
+  @override
+  String get settingsSecurityPhoneNotVerified => 'Phone not verified xxxx';
+
+  @override
+  String get settingsSecurityNoPhoneAdded => 'No phone added xxxx';
+
+  @override
+  String get settingsSecurityEmailProtectionLocked =>
+      'Email protection (Locked) xxxx';
+
+  @override
+  String get settingsSecurityEmailProtection => 'Email protection xxxx';
+
+  @override
+  String get settingsSecurityVerifiedAndLocked => 'Verified and locked xxxx';
+
+  @override
+  String get settingsSecurityVerifyYourEmail => 'Verify your email xxxx';
+
+  @override
+  String get settingsSecurityAddEmailRecoveryOtp =>
+      'Add an email for recovery and OTP xxxx';
+
+  @override
+  String get settingsSecurityPhoneProtectionLocked =>
+      'Phone protection (Locked) xxxx';
+
+  @override
+  String get settingsSecurityPhoneProtection => 'Phone protection xxxx';
+
+  @override
+  String get settingsSecurityVerifyYourPhone => 'Verify your phone xxxx';
+
+  @override
+  String get settingsSecurityAddPhoneForSecurity =>
+      'Add a phone number for security xxxx';
+
+  @override
+  String settingsSecurityBiometricLockTitle(String biometric) {
+    return '$biometric Lock xxxx';
+  }
+
+  @override
+  String settingsSecurityBiometricUnlockWith(String biometric) {
+    return 'Unlock Crush with $biometric xxxx';
+  }
+
+  @override
+  String settingsSecurityBiometricRequireToOpen(String biometric) {
+    return 'Require $biometric to open Crush xxxx';
+  }
+
+  @override
+  String get settingsSecurityLinkedAccounts => 'Linked Accounts xxxx';
+
+  @override
+  String get settingsSecurityProviderEmail => 'Email xxxx';
+
+  @override
+  String get settingsSecurityProviderPhone => 'Phone xxxx';
+
+  @override
+  String get settingsSecurityProviderGoogle => 'Google xxxx';
+
+  @override
+  String get settingsSecurityProviderApple => 'Apple xxxx';
+
+  @override
+  String get settingsSecurityLinkedVerified => 'Linked · Verified xxxx';
+
+  @override
+  String get settingsSecurityLinkedUnverified => 'Linked · Unverified xxxx';
+
+  @override
+  String get settingsSecurityNotLinked => 'Not linked xxxx';
+
+  @override
+  String get settingsSecurityChecking => 'Checking... xxxx';
+
+  @override
+  String get settingsSecurityActionManage => 'Manage xxxx';
+
+  @override
+  String get settingsSecurityActionLink => 'Link xxxx';
+
+  @override
+  String get settingsSecurityActionLinked => 'Linked xxxx';
+
+  @override
+  String get settingsSecurityAddVerifyEmailHint =>
+      'Add and verify an email in Email Protection. xxxxx';
+
+  @override
+  String get settingsSecurityAddVerifyPhoneHint =>
+      'Add and verify a phone in Phone Protection. xxxxx';
+
+  @override
+  String get settingsSecurityTipsTitle => 'Security tips xxxx';
+
+  @override
+  String get settingsSecurityTipsUniquePassword =>
+      'Use a unique password for this app xxxx';
+
+  @override
+  String get settingsSecurityTipsEnableEmailRecovery =>
+      'Enable email verification for account recovery xxxx';
+
+  @override
+  String get settingsSecurityTipsNeverShareCodes =>
+      'Never share your verification codes xxxx';
 
   @override
   String get discoveryTitle => 'Discover xxxx';
@@ -5960,6 +8814,164 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
   String get onboardingSelectGender => 'Select your gender xxxxxx';
 
   @override
+  String get onboardingBasicInfoTitle => 'Basic Info xxxx';
+
+  @override
+  String get onboardingBasicInfoSubtitle => 'Tell us about you xxxxxxx';
+
+  @override
+  String get onboardingBasicInfoUsernameLabel => 'Username xxxx';
+
+  @override
+  String get onboardingBasicInfoUsernameHint =>
+      'Choose a unique username xxxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoFirstNameLabel => 'Your First Name xxxxx';
+
+  @override
+  String get onboardingBasicInfoFirstNameHint =>
+      'Enter your first name xxxxxxx';
+
+  @override
+  String get onboardingBasicInfoLastNameLabel => 'Last Name xxxx';
+
+  @override
+  String get onboardingBasicInfoLastNameHint =>
+      'Enter your last name (optional) xxxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoBirthdateLabel => 'Date of Birth xxxxx';
+
+  @override
+  String get onboardingBasicInfoSelectBirthdate =>
+      'Select your birthdate xxxxxxx';
+
+  @override
+  String get onboardingBasicInfoBirthdateHelpText =>
+      'Select your birthdate xxxxxxx';
+
+  @override
+  String onboardingBasicInfoYearsOld(int age) {
+    return '$age years old xxxxx';
+  }
+
+  @override
+  String get onboardingBasicInfoUsernameCheckingAvailability =>
+      'Checking username availability... xxxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoUsernameAvailable =>
+      'Username is available xxxxx';
+
+  @override
+  String get onboardingBasicInfoUsernameRules =>
+      '3-20 characters, letters, numbers, or underscore xxxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoUsernameRequired =>
+      'Choose a username to continue xxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoUsernameFormatError =>
+      'Use 3-20 letters, numbers, or underscore xxxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoUsernameTaken =>
+      'This username is already taken xxxxxxx';
+
+  @override
+  String get onboardingBasicInfoBirthdateRequired =>
+      'Select your date of birth xxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoBirthdateInvalid => 'Select a valid date xxxxx';
+
+  @override
+  String get onboardingBasicInfoBirthdateTooYoung =>
+      'You must be at least 18 years old xxxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoBirthdateTooOld =>
+      'Maximum age allowed is 75 xxxxxxx';
+
+  @override
+  String get onboardingBasicInfoOrientationOptionalSemantics =>
+      'Orientation is optional. You can skip this for now. xxxxxxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoOrientationOptionalHelper =>
+      'Optional - skip for now, add later in Settings xxxxxxxxxxx';
+
+  @override
+  String get onboardingBasicInfoAgeWarningBody =>
+      'You\'re a bit too old to be using a dating app, don\'t you think?\n\nJust kidding! Love has no age limit. Are you sure you want to continue? xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationTitle => 'Verify Your Email xxxxx';
+
+  @override
+  String get onboardingEmailVerificationSentTo =>
+      'We\'ve sent a verification link to: xxxxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationFallbackEmail => 'your email xxxx';
+
+  @override
+  String get onboardingEmailVerificationInstruction =>
+      'Click the link in the email to verify your account and continue. xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationSent =>
+      'Verification email sent! Check your inbox. xxxxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationSuccessRedirecting =>
+      'Email verified successfully! Redirecting... xxxxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationTooManyAttempts =>
+      'Too many attempts. Please wait about a minute and try again. xxxxxxxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationSendFailed =>
+      'Failed to send email. Please try again. xxxxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationCheckingStatus =>
+      'Checking verification status... xxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationResendSemantics =>
+      'Resend verification email xxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationResendButton =>
+      'Resend Verification Email xxxxxxx';
+
+  @override
+  String onboardingEmailVerificationResendIn(int seconds) {
+    return 'Resend in ${seconds}s xxxxx';
+  }
+
+  @override
+  String get onboardingEmailVerificationCheckNowSemantics =>
+      'I have verified, check now xxxxxxx';
+
+  @override
+  String get onboardingEmailVerificationCheckNowButton =>
+      'I\'ve Verified - Check Now xxxxxxx';
+
+  @override
+  String onboardingEmailVerificationAutoCheckStopped(int minutes) {
+    return 'Auto-check stopped after $minutes minutes. Tap \"I\'ve Verified\" to check manually. xxxxxxxxxxxxx';
+  }
+
+  @override
+  String get onboardingOrientationOptionalPrompt =>
+      'Select orientation (optional) xxxxxxxxx';
+
+  @override
   String get onboardingAddPhotos => 'Add your best photos xxxxxxx';
 
   @override
@@ -5980,6 +8992,520 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
 
   @override
   String get onboardingStartSwiping => 'Start swiping xxxx';
+
+  @override
+  String get onboardingTermsSaveFailed =>
+      'Failed to save. Please try again. xxxxxxx';
+
+  @override
+  String get onboardingTermsReadAndAccept => 'Please read and accept xxxxxxx';
+
+  @override
+  String get onboardingTermsScrollToContinue => 'Scroll to continue xxxxxx';
+
+  @override
+  String get onboardingTermsWelcomeTitle => 'Welcome to Crush xxxxx';
+
+  @override
+  String get onboardingTermsWelcomeBody =>
+      'By using our dating app, you agree to these Terms and Conditions. Please read them carefully before proceeding. xxxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsEligibilityTitle => '1. Eligibility xxxx';
+
+  @override
+  String get onboardingTermsEligibilityBody =>
+      'You must be at least 18 years old to use Crush. By creating an account, you confirm that you are of legal age and have the right to enter into this agreement. xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsAccountSecurityTitle => '2. Account Security xxxxx';
+
+  @override
+  String get onboardingTermsAccountSecurityBody =>
+      'You are responsible for maintaining the confidentiality of your account credentials. Notify us immediately if you suspect unauthorized access to your account. xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsUserConductTitle => '3. User Conduct xxxx';
+
+  @override
+  String get onboardingTermsUserConductBody =>
+      'You agree to:\n• Provide accurate information\n• Treat other users with respect\n• Not engage in harassment, hate speech, or illegal activities\n• Not impersonate others or create fake profiles\n• Not share inappropriate or explicit content xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsPrivacyTitle => '4. Privacy xxxx';
+
+  @override
+  String get onboardingTermsPrivacyBody =>
+      'Your privacy is important to us. We collect and process your personal data in accordance with our Privacy Policy. By using Crush, you consent to our data practices as described in the Privacy Policy. xxxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsContentOwnershipTitle =>
+      '5. Content Ownership xxxxx';
+
+  @override
+  String get onboardingTermsContentOwnershipBody =>
+      'You retain ownership of content you post. However, you grant Crush a non-exclusive license to use, display, and distribute your content within the app for the purpose of providing our services. xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsSafetyTitle => '6. Safety xxxx';
+
+  @override
+  String get onboardingTermsSafetyBody =>
+      'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your plans. xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsTerminationTitle => '7. Termination xxxx';
+
+  @override
+  String get onboardingTermsTerminationBody =>
+      'We reserve the right to suspend or terminate your account if you violate these terms. You may also delete your account at any time through the app settings. xxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsDisclaimerTitle => '8. Disclaimer xxxx';
+
+  @override
+  String get onboardingTermsDisclaimerBody =>
+      'Crush is provided \"as is\" without warranties. We do not guarantee that you will find a match or that other users\' information is accurate. xxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsChangesTitle => '9. Changes to Terms xxxxx';
+
+  @override
+  String get onboardingTermsChangesBody =>
+      'We may update these terms from time to time. Continued use of the app after changes constitutes acceptance of the new terms. xxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsContactTitle => '10. Contact xxxx';
+
+  @override
+  String get onboardingTermsContactBody =>
+      'If you have questions about these terms, please contact us through the app\'s support feature or email support@crushhour.app. xxxxxxxxxxx';
+
+  @override
+  String get onboardingTermsEndLabel => 'End of Terms xxxx';
+
+  @override
+  String get onboardingTermsAgreementLabel =>
+      'I have read and agree to the Terms and Conditions and Privacy Policy xxxxxxxxx';
+
+  @override
+  String get onboardingTermsAgreementToggleHint =>
+      'Double tap to toggle agreement xxxxxxxxx';
+
+  @override
+  String get onboardingTermsContinueSemantics => 'Continue xxxx';
+
+  @override
+  String get onboardingTermsScrollHint =>
+      'Please scroll down to read all terms before agreeing xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpPhoneCodeSent =>
+      'Code sent. Check your messages. xxxxxxx';
+
+  @override
+  String get onboardingSignUpContinueWithGoogle =>
+      'Continue with Google xxxxxxxx';
+
+  @override
+  String get onboardingSignUpOrSignUpWithEmail =>
+      'or sign up with email xxxxxxxx';
+
+  @override
+  String get onboardingSignUpOrSignUpWith => 'or sign up with xxxxx';
+
+  @override
+  String get onboardingSignUpPhoneErrorRequired =>
+      'Enter your phone number xxxxxxx';
+
+  @override
+  String get onboardingSignUpPhoneErrorMinDigits =>
+      'Add at least 6 digits xxxxx';
+
+  @override
+  String get onboardingSignUpOtpErrorRequired =>
+      'Enter the verification code xxxxxxx';
+
+  @override
+  String get onboardingSignUpOtpErrorInvalidLength =>
+      'Enter the 6-digit code xxxxx';
+
+  @override
+  String onboardingSignUpWaitBeforeRequestingCode(int seconds) {
+    return 'Please wait ${seconds}s before requesting another code. xxxxxxxxx';
+  }
+
+  @override
+  String get onboardingSignUpPhoneInvalid =>
+      'Enter a valid phone number. xxxxx';
+
+  @override
+  String onboardingSignUpWaitBeforeResendingEmail(int seconds) {
+    return 'Please wait ${seconds}s before resending the verification email. xxxxxxxxx';
+  }
+
+  @override
+  String get onboardingSignUpUsernameRequired => 'Username is required xxxxx';
+
+  @override
+  String get onboardingSignUpEmailRequired => 'Email is required xxxxx';
+
+  @override
+  String get onboardingSignUpGoogleSignInFailed =>
+      'Google Sign-In failed. Please try again. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpInvalidUsernameFormat =>
+      'Invalid username format xxxxx';
+
+  @override
+  String get onboardingSignUpInvalidEmailFormat => 'Invalid email format xxxxx';
+
+  @override
+  String get onboardingSignUpPasswordRequired =>
+      'Please create a password xxxxx';
+
+  @override
+  String get onboardingSignUpPasswordMinLength =>
+      'Password must be at least 8 characters xxxxxxx';
+
+  @override
+  String onboardingSignUpCompleteRequiredFields(String fields) {
+    return 'Please complete all required fields: $fields xxxxxxxxx';
+  }
+
+  @override
+  String get onboardingSignUpEmailAlreadyExists =>
+      'An account with this email already exists. Please sign in instead, or use a different email address. xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingSignUpAccountCreated =>
+      'Account created! Welcome to Crush. xxxxxxx';
+
+  @override
+  String get onboardingSignUpSendVerificationFailed =>
+      'Could not send verification email. Please try again. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpRequestFailed => 'Request failed. xxxx';
+
+  @override
+  String get onboardingSignUpVerificationEmailResent =>
+      'Verification email resent successfully. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpVerificationEmailSent =>
+      'A verification email has been sent to your inbox. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpOpenEmailAppFailed =>
+      'Could not open email app. Please check your email manually. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpCheckEmailStatusFailed =>
+      'Could not verify email status. xxxxxxx';
+
+  @override
+  String get onboardingSignUpEmailVerifiedWelcome =>
+      'Email verified! Welcome to Crush. xxxxxxx';
+
+  @override
+  String get onboardingSignUpEmailNotVerified =>
+      'Email not verified yet. Please click the link in your email, then try again. xxxxxxxxxxxx';
+
+  @override
+  String onboardingSignUpPercent(int percent) {
+    return '$percent% xxxx';
+  }
+
+  @override
+  String get onboardingSignUpStepOne => 'Step 1 xxxx';
+
+  @override
+  String get onboardingSignUpChooseUsername => 'Choose your username xxxxxxx';
+
+  @override
+  String get onboardingSignUpUsernameDescription =>
+      'This is how others will find you on Crush. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpUsernameHint => 'e.g., john_doe123 xxxx';
+
+  @override
+  String get onboardingSignUpUsernameRules =>
+      '3-20 characters, letters, numbers, and underscore only xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpEmailTitle => 'What\'s your email? xxxxx';
+
+  @override
+  String get onboardingSignUpBypassHint =>
+      'Test mode: verification is disabled. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpEmailHint =>
+      'We\'ll send you a verification link to confirm your email. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpEmailAddressLabel => 'Email address xxxx';
+
+  @override
+  String get onboardingSignUpEmailAddressHint => 'you@example.com xxxx';
+
+  @override
+  String get onboardingSignUpPasswordTitle => 'Create a password xxxxx';
+
+  @override
+  String get onboardingSignUpPasswordDescription =>
+      'Make it strong with at least 8 characters. xxxxxxxxx';
+
+  @override
+  String onboardingSignUpMissingRequiredFields(String fields) {
+    return 'Missing required fields: $fields. Go back to fill them before creating your account. xxxxxxxxxxxxx';
+  }
+
+  @override
+  String get onboardingSignUpEmailInstructionOpenInbox =>
+      'Open your email inbox xxxxxxx';
+
+  @override
+  String get onboardingSignUpEmailInstructionFindEmail =>
+      'Find the email from Crush xxxxxxx';
+
+  @override
+  String get onboardingSignUpEmailInstructionClickLink =>
+      'Click the verification link xxxxxxx';
+
+  @override
+  String get onboardingSignUpEmailIgnoreNotice =>
+      'If you didn\'t request this, please ignore the email. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpDidntReceiveEmailResend =>
+      'Didn\'t receive email? Resend xxxxxxx';
+
+  @override
+  String get onboardingSignUpCheckSpam =>
+      'Check your spam folder if you don\'t see it xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpPhoneTitle => 'Enter your phone number xxxxxxx';
+
+  @override
+  String get onboardingSignUpPhoneSubtitle =>
+      'We\'ll send you a code to verify your account. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpCodeLabel => 'Code xxxx';
+
+  @override
+  String get onboardingSignUpPhoneHint => '(555) 123-4567 xxxx';
+
+  @override
+  String get onboardingSignUpSmsRates =>
+      'SMS rates may apply. We only use this to secure your account. xxxxxxxxx';
+
+  @override
+  String get onboardingSignUpOtpTitle => 'Enter verification code xxxxx';
+
+  @override
+  String onboardingSignUpOtpSentTo(String phoneNumber) {
+    return 'We sent a 6-digit code to $phoneNumber xxxxxxx';
+  }
+
+  @override
+  String get onboardingSignUpVerificationCodeHint => '000000 xxxx';
+
+  @override
+  String get onboardingSignUpDidntReceiveCodeResend =>
+      'Didn\'t receive code? Resend xxxxxxx';
+
+  @override
+  String get onboardingSignUpPasswordStrengthWeak => 'Weak xxxx';
+
+  @override
+  String get onboardingSignUpPasswordStrengthFair => 'Fair xxxx';
+
+  @override
+  String get onboardingSignUpPasswordStrengthGood => 'Good xxxx';
+
+  @override
+  String get onboardingSignUpPasswordStrengthStrong => 'Strong xxxx';
+
+  @override
+  String get onboardingProfileLocationRationaleTitle =>
+      'Find matches near you xxxxxxx';
+
+  @override
+  String get onboardingProfileLocationRationaleDescription =>
+      'CRUSH uses your location to show you people nearby. Your exact location is never shared with other users. xxxxxxxxxxxx';
+
+  @override
+  String get onboardingProfileSignInRequired =>
+      'You need to be signed in to continue. xxxxxxx';
+
+  @override
+  String get onboardingProfileAllFieldsOptional =>
+      'All fields are optional. You can complete your profile later in Settings. xxxxxxxxxxxx';
+
+  @override
+  String get onboardingProfileYourPhotosTitle => 'Your Photos xxxx';
+
+  @override
+  String get onboardingProfileYourPhotosSubtitle =>
+      'Optional - helps you get more matches xxxxxxxxx';
+
+  @override
+  String get onboardingProfileAboutYouSubtitle =>
+      'Tell others about yourself xxxxxxx';
+
+  @override
+  String get onboardingProfileLookingForTitle => 'I Am Looking For xxxxx';
+
+  @override
+  String get onboardingProfileLookingForSubtitle =>
+      'Who would you like to see? xxxxxxx';
+
+  @override
+  String get onboardingProfileLocationSubtitle =>
+      'Where are you based? xxxxxxx';
+
+  @override
+  String get onboardingProfileWorkEducationTitle => 'Work & Education xxxxx';
+
+  @override
+  String get onboardingProfileOptionalSubtitle => 'Optional xxxx';
+
+  @override
+  String get onboardingProfileSchoolUniversity => 'School / University xxxxx';
+
+  @override
+  String get onboardingProfileSelectUpToFive => 'Select up to 5 xxxxx';
+
+  @override
+  String get onboardingProfileFavouritesTitle => 'Favourites xxxx';
+
+  @override
+  String get onboardingProfileFavouritesSubtitle =>
+      'Share what you love xxxxxxx';
+
+  @override
+  String get onboardingProfileSettingUpProfile =>
+      'Setting up your profile... xxxxxxx';
+
+  @override
+  String get onboardingProfileCompleteTitle => 'Profile Complete! xxxxx';
+
+  @override
+  String get onboardingProfileBasicCompleteTitle =>
+      'Basic Profile Complete xxxxx';
+
+  @override
+  String get onboardingProfileEligibleToStartMatching =>
+      'You\'re eligible to start matching! xxxxxxx';
+
+  @override
+  String get onboardingProfileRecommendCompleteAll =>
+      'We recommend completing all fields to get more matches and build trust with other users. xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingProfileCompletionLabel => 'Profile Completion xxxxx';
+
+  @override
+  String onboardingProfileCompletionCount(int filled, int total, int percent) {
+    return '$filled/$total fields ($percent%) xxxxxxx';
+  }
+
+  @override
+  String get onboardingProfileFromBasicInfoStep =>
+      'From your profile setup xxxxxxx';
+
+  @override
+  String get onboardingProfileYourUsernameTitle => 'Your Username xxxxx';
+
+  @override
+  String get onboardingProfileUsernameChangeEvery28Days =>
+      'You can change this once every 28 days xxxxxxxxx';
+
+  @override
+  String onboardingProfileUsernameLockedForDays(int days) {
+    return 'Locked for $days more days xxxxxxx';
+  }
+
+  @override
+  String get onboardingProfileEnterUsername => 'Enter username xxxxx';
+
+  @override
+  String onboardingProfileUsernameChangeAgainInDays(int days) {
+    return 'You can change your username again in $days days xxxxxxxxx';
+  }
+
+  @override
+  String get onboardingProfileNotSet => 'Not set xxxx';
+
+  @override
+  String onboardingProfileDaysRemaining(int days) {
+    return '$days days xxxx';
+  }
+
+  @override
+  String onboardingProfileUsernameChangesLimited(int days) {
+    return 'Username changes are limited to once every 28 days. You can change it again in $days days. xxxxxxxxxxxxx';
+  }
+
+  @override
+  String get onboardingProfileFavouriteAthlete => 'Favourite Athlete xxxxx';
+
+  @override
+  String get onboardingProfileFavouriteFood => 'Favourite Food xxxxx';
+
+  @override
+  String get onboardingProfileFavouriteSport => 'Favourite Sport xxxxx';
+
+  @override
+  String get onboardingProfileFavouriteTvShow => 'Favourite TV Show xxxxx';
+
+  @override
+  String get onboardingProfileFavouriteActor => 'Favourite Actor xxxxx';
+
+  @override
+  String get onboardingProfileFavouriteSinger => 'Favourite Singer xxxxx';
+
+  @override
+  String get onboardingProfileFavouriteMovie => 'Favourite Movie xxxxx';
+
+  @override
+  String get onboardingProfileFavouriteHobby => 'Favourite Hobby xxxxx';
+
+  @override
+  String get onboardingProfileSelectPlaceholder => 'Select... xxxx';
+
+  @override
+  String get onboardingProfileOrTypeYourOwn => 'Or type your own... xxxxx';
+
+  @override
+  String get onboardingProfileAddPhotoBeforeSkip =>
+      'Please add at least 1 photo before skipping. This is required for dating apps. xxxxxxxxxxxxx';
+
+  @override
+  String get onboardingProfileStartMatching => 'Start Matching xxxxx';
+
+  @override
+  String onboardingProfileStartMatchingWithPercent(int percent) {
+    return 'Start Matching ($percent% complete) xxxxxxx';
+  }
+
+  @override
+  String get onboardingProfileCompleteLaterInSettings =>
+      'You can always complete your profile later in Settings xxxxxxxxx';
+
+  @override
+  String get onboardingProfileSaveAndStartMatchingSemantics =>
+      'Save profile and start matching xxxxxxx';
+
+  @override
+  String get onboardingProfileSkipSemantics =>
+      'Skip profile setup for now. Requires at least one photo. xxxxxxxxx';
 
   @override
   String get subscriptionFree => 'Free xxxx';
@@ -8711,6 +12237,36 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
   String get wordFemale => 'Female xxxx';
 
   @override
+  String get wordNonBinary => 'Non-binary xxxxx';
+
+  @override
+  String get orientationStraight => 'Straight xxxx';
+
+  @override
+  String get orientationGay => 'Gay xxxx';
+
+  @override
+  String get orientationLesbian => 'Lesbian xxxx';
+
+  @override
+  String get orientationBisexual => 'Bisexual xxxx';
+
+  @override
+  String get orientationPansexual => 'Pansexual xxxx';
+
+  @override
+  String get orientationAsexual => 'Asexual xxxx';
+
+  @override
+  String get orientationQueer => 'Queer xxxx';
+
+  @override
+  String get orientationQuestioning => 'Questioning xxxx';
+
+  @override
+  String get orientationPreferNotToSay => 'Prefer not to say xxxxxxx';
+
+  @override
   String get wordMan => 'Man xxxx';
 
   @override
@@ -8832,4 +12388,85 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
     );
     return '$_temp0 (expanded string to test overflow xxxx)';
   }
+
+  @override
+  String chatReportLastMatch(String matchId) {
+    return 'Last match: $matchId xxxx';
+  }
+
+  @override
+  String get chatReportReasonSpamScams => 'Spam or scams xxxx';
+
+  @override
+  String get chatReportReasonHarassmentHate => 'Harassment or hate xxxx';
+
+  @override
+  String get chatReportReasonInappropriateContent =>
+      'Inappropriate content xxxx';
+
+  @override
+  String get chatReportReasonFakeProfile => 'Fake profile xxxx';
+
+  @override
+  String get chatReportReasonOther => 'Other xxxx';
+
+  @override
+  String chatReportSubmittedReason(String reason) {
+    return 'Report submitted: $reason xxxx';
+  }
+
+  @override
+  String get chatReportSubmitted => 'Report submitted xxxx';
+
+  @override
+  String get chatReportDetailsHint => 'Tell us what happened xxxx';
+
+  @override
+  String chatSafetyBlockedUser(String name) {
+    return 'Blocked $name. xxxx';
+  }
+
+  @override
+  String chatSafetyUnblockedUser(String name) {
+    return 'Unblocked $name. xxxx';
+  }
+
+  @override
+  String get callSafetyTipFallbackPerson => 'this person xxxx';
+
+  @override
+  String get callSafetyTipTitle => 'Safety reminder xxxx';
+
+  @override
+  String get callSafetyTipDismissTooltip => 'Dismiss safety tip xxxx';
+
+  @override
+  String callSafetyTipBody(String name) {
+    return 'On your first call with $name, avoid sharing private details. If anything feels unsafe, report or block immediately. xxxx';
+  }
+
+  @override
+  String get callSafetyActionReported => 'Reported xxxx';
+
+  @override
+  String get callSafetyPostCallPromptTitle =>
+      'Did you feel safe on this call? xxxx';
+
+  @override
+  String get callSafetyPostCallPromptSubtitle =>
+      'If anything felt off, report or block now. xxxx';
+
+  @override
+  String get profileReportSheetTitle =>
+      'Why are you reporting this profile? xxxx';
+
+  @override
+  String get profileReportReasonInappropriatePhotos =>
+      'Inappropriate photos xxxx';
+
+  @override
+  String get profileReportReasonScamOrSpam => 'Scam or spam xxxx';
+
+  @override
+  String get profileReportReasonUnderageUser => 'Underage user xxxx';
 }
