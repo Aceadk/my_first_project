@@ -15,7 +15,7 @@ import 'package:crushhour/core/app_logger.dart';
 ///   --dart-define=SMTP_PORT=587 \
 ///   --dart-define=SMTP_EMAIL=your-email@gmail.com \
 ///   --dart-define=SMTP_PASSWORD=your-app-password \
-///   --dart-define=SMTP_SENDER_NAME=CrushHour
+///   --dart-define=SMTP_SENDER_NAME=Crush
 /// ```
 ///
 /// For CI/CD, set these as secrets and inject them during build.

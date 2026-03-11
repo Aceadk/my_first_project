@@ -448,6 +448,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final keyboardVisible = _isKeyboardVisible(context);
 
     return Scaffold(
       body: LayoutBuilder(
@@ -565,11 +566,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             child: Column(
                               children: [
                                 _buildAppBar(context, isDark),
-                                DsGap.lg,
-                                _buildProgressIndicator(context, isDark, state),
-                                DsGap.lg,
+                                if (!keyboardVisible) ...[
+                                  DsGap.lg,
+                                  _buildProgressIndicator(
+                                    context,
+                                    isDark,
+                                    state,
+                                  ),
+                                  DsGap.lg,
+                                ] else
+                                  DsGap.sm,
                                 Expanded(
                                   child: SingleChildScrollView(
+                                    keyboardDismissBehavior:
+                                        ScrollViewKeyboardDismissBehavior
+                                            .onDrag,
                                     padding: DsEdgeInsets.horizontalXxl,
                                     child: Column(
                                       crossAxisAlignment:
@@ -776,6 +787,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                   isDark,
                                   saving,
                                   state,
+                                  keyboardVisible,
                                 ),
                               ],
                             ),
@@ -2030,6 +2042,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     bool isDark,
     bool saving,
     ProfileState state,
+    bool keyboardVisible,
   ) {
     final l10n = AppLocalizations.of(context);
     final completeness = _calculateFormCompleteness(state);
@@ -2042,8 +2055,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ? l10n.onboardingProfileStartMatching
         : l10n.onboardingProfileStartMatchingWithPercent(percentDisplay);
 
-    // Detect if keyboard is open - hide button completely to prevent overlap with text fields
-    final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
     if (keyboardVisible) {
       return const SizedBox.shrink();
     }
@@ -2145,5 +2156,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ],
       ),
     );
+  }
+
+  bool _isKeyboardVisible(BuildContext context) {
+    final mediaQueryInsetBottom =
+        MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
+    final view = View.maybeOf(context);
+    final viewInsetBottom = view == null
+        ? 0.0
+        : view.viewInsets.bottom / view.devicePixelRatio;
+    return mediaQueryInsetBottom > 0 || viewInsetBottom > 0;
   }
 }

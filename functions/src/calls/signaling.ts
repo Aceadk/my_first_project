@@ -311,7 +311,7 @@ export const initiateCall = makeCallable<InitiateCallRequest>(
     try {
       await sendPushToUser(receiverId, {
         title: type === "video" ? "Incoming video call" : "Incoming audio call",
-        body: "Open CrushHour to answer.",
+        body: "Open Crush to answer.",
         data: {
           type: "incoming_call",
           callId: callRef.id,

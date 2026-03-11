@@ -1204,7 +1204,7 @@
   "onboardingSignUpPasswordStrengthGood": "Good xxxx",
   "onboardingSignUpPasswordStrengthStrong": "Strong xxxx",
   "onboardingProfileLocationRationaleTitle": "Find matches near you xxxxxxx",
-  "onboardingProfileLocationRationaleDescription": "CRUSH uses your location to show you people nearby. Your exact location is never shared with other users. xxxxxxxxxxxx",
+  "onboardingProfileLocationRationaleDescription": "Crush uses your location to show you people nearby. Your exact location is never shared with other users. xxxxxxxxxxxx",
   "onboardingProfileSignInRequired": "You need to be signed in to continue. xxxxxxx",
   "onboardingProfileAllFieldsOptional": "All fields are optional. You can complete your profile later in Settings. xxxxxxxxxxxx",
   "onboardingProfileYourPhotosTitle": "Your Photos xxxx",

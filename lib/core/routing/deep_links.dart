@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/routing/crush_routes.dart';
 
 /// Deep link configuration for the app.
 ///
@@ -13,6 +13,7 @@ import 'package:crushhour/core/router.dart';
 /// - /match/:matchId - View a match (routes to chat)
 /// - /settings - Open settings
 /// - /premium or /upgrade - Open settings (subscription section)
+/// - /support/category/:categoryId - Open support category detail page
 /// - /auth/login - Login
 /// - /auth/signup - Signup
 /// - /auth/reset - Password reset
@@ -40,6 +41,7 @@ class DeepLinkConfig {
 
     switch (firstSegment) {
       case 'profile':
+      case 'user-profile':
         if (pathSegments.length >= 2) {
           final userId = pathSegments[1];
           return DeepLinkResult(
@@ -77,6 +79,16 @@ class DeepLinkConfig {
           route: CrushRoutes.settings,
           requiresAuth: true,
         );
+
+      case 'support':
+        if (pathSegments.length >= 3 && pathSegments[1] == 'category') {
+          final categoryId = pathSegments[2];
+          return DeepLinkResult(
+            route: CrushRoutes.supportCategoryPath(categoryId),
+            params: {'categoryId': categoryId},
+          );
+        }
+        return const DeepLinkResult(route: CrushRoutes.support);
 
       case 'premium':
       case 'upgrade':

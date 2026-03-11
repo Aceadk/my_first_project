@@ -1310,3 +1310,183 @@ Last Reviewed:
 ```
 
 ---
+
+### R-057 — Deep-Link Handling Split Across Bootstrap and Route Parser (MITIGATED)
+
+Category: Routing/navigation
+
+Description:
+Deep-link route handling was previously split and duplicated between `lib/core/deep_link_bootstrap.dart` and `lib/core/routing/deep_links.dart`. Bootstrap now delegates route decisions to shared `DeepLinkHandler`, including queued processing for auth-required links after authentication.
+App shell now passes explicit `onNavigate` callback from `lib/app.dart`. Guarded-route and deep-link regressions now cover chat/profile/settings/support-category links, `match` alias mapping, `premium/upgrade` auth-replay flows, and unauthenticated access rules for public legal/support routes.
+
+Impact: Low (residual risk is mainly integration permutation coverage)
+
+Likelihood: Low
+
+Affected Areas:
+* lib/core/deep_link_bootstrap.dart
+* lib/core/routing/deep_links.dart
+* lib/app.dart
+* test/core/deep_link_bootstrap_test.dart
+* test/core/routing/deep_links_test.dart
+* test/core/deep_link_auth_transition_integration_test.dart
+
+Mitigation Plan:
+* Keep route deep-link handling centralized through `DeepLinkHandler`.
+* Keep app-shell integration regression for pending-link replay green in CI.
+* Expand integration coverage when new deep-link routes are added.
+* Document accepted platform-specific deep-link differences explicitly.
+
+Status: Mitigated (expanded coverage on 2026-03-11)
+
+Owner: AI
+
+Created: 2026-03-10
+Updated: 2026-03-11
+
+---
+
+### R-058 — User Document Schema Dual-Shape Compatibility Migration Tail (MONITORING)
+
+Category: Architecture / Security & privacy
+
+Description:
+Canonicalization safeguards are now in place:
+* app auth repository normalizes legacy flat user docs into nested `profile.*` and persists cleanup,
+* Firestore rules now block new/mutated legacy flat profile writes on `/users/{uid}`,
+* backend preferences updates remove the top-level `preferences` mirror.
+Legacy read compatibility is now instrumented and time-bounded:
+* Cloud Functions logs `legacy_profile_preferences_fallback_read` when legacy top-level `preferences` fallback is used,
+* fallback is cutoff-controlled by `PROFILE_PREFERENCES_LEGACY_FALLBACK_CUTOFF` (default `2026-06-30T00:00:00.000Z`),
+* after cutoff, backend stops returning legacy fallback preferences and logs `legacy_profile_preferences_fallback_blocked_after_cutoff`.
+
+Impact: Medium (reduced from high; residual migration/deprecation execution risk)
+
+Likelihood: Low
+
+Affected Areas:
+* firestore.rules
+* functions/firestore.rules
+* functions/src/index.ts
+* lib/features/auth/data/repositories/impl/firebase_auth_repository.dart
+* lib/core/schema/user_document_schema.dart
+
+Mitigation Plan:
+* Monitor legacy fallback telemetry logs and confirm zero legacy reads.
+* Keep cutoff date explicit via env param and adjust only through controlled rollout.
+* Remove fallback code path and associated logs once telemetry is consistently zero.
+
+Status: Monitoring (telemetry + cutoff implemented on 2026-03-10)
+
+Owner: AI
+
+Created: 2026-03-10
+Updated: 2026-03-10
+
+---
+
+### R-059 — Branding and Localization Drift Across Runtime and Legal Surfaces (MITIGATED)
+
+Category: UX/product
+
+Description:
+Branding has been normalized to `Crush` on high-visibility app/web/backend runtime surfaces and localized ARB value strings.
+Legal and high-traffic non-legal runtime surfaces are normalized and covered by regression tests (`Crush` product naming, `CrushHour Inc.` legal entity wording in legal contexts), including onboarding/discovery/premium hotspots and contiguous-script localization cases (`zh`, `yue`).
+Residual risk is limited to future-copy drift and intentional noun-style localization vocabulary (`wordCrush`) that is tracked separately as glossary policy.
+
+Impact: Low (user-facing product-brand inconsistency significantly reduced)
+
+Likelihood: Low
+
+Affected Areas:
+* lib/l10n/app_*.arb
+* lib/l10n/generated/*
+* lib/presentation/screens/terms_of_service_screen.dart
+* lib/presentation/screens/privacy_policy_screen.dart
+* test/presentation/screens/legal_branding_copy_test.dart
+* lib/core/widgets/update_dialog.dart
+* test/core/update_dialog_branding_test.dart
+* test/brand_copy_case_regression_test.dart
+* lib/presentation/screens/safety_screen.dart
+* lib/presentation/screens/community_guidelines_screen.dart
+* lib/presentation/screens/home/settings_screen.dart
+* lib/features/about/presentation/screens/pricing_screen.dart
+* lib/features/about/presentation/screens/product_features_screen.dart
+* lib/features/discovery/presentation/screens/likes_you_screen.dart
+* lib/features/chat/presentation/screens/matches_screen.dart
+* lib/features/auth/presentation/screens/email_auth_screen.dart
+* lib/features/auth/presentation/screens/auth_gateway_screen.dart
+* lib/features/auth/presentation/widgets/biometric_prompt.dart
+
+Mitigation Plan:
+* Keep runtime/localized brand references on `Crush`.
+* Preserve legal entity wording as `CrushHour Inc.` in legal/policy contexts.
+* Maintain regression coverage for legal + update-dialog + onboarding/discovery/localization brand copy contracts.
+* Run periodic copy sweeps for new high-traffic screens and update localization glossary policy as needed.
+
+Status: Mitigated (2026-03-10; monitor long-tail glossary/regression coverage)
+
+Owner: AI
+
+Created: 2026-03-10
+Updated: 2026-03-10
+
+---
+
+### R-060 — Overlapping Environment Entry Points Caused Flavor/Mode Drift (MITIGATED)
+
+Category: Architecture / Configuration
+
+Description:
+`AppConfig` and `AppEnvConfig` previously resolved runtime mode from different sources with conflicting defaults (`FLAVOR=development` vs `APP_ENV=prod`). This could produce inconsistent behavior for dev-only gates and made environment setup brittle across local/dev pipelines.
+Canonical key policy and deprecation dates are now documented in `docs/ENV_KEY_MATRIX.md`, and release-script compatibility warnings are in place for `APP_ENV`.
+CI now enforces deprecated-alias usage boundaries via `scripts/check_deprecated_env_aliases.sh` and operator migration checkpoints via `scripts/check_env_alias_migration_status.sh`.
+Operator audit artifacts are now generated via `scripts/generate_env_alias_migration_audit_report.sh` and stored in `docs/reports/`.
+
+Impact: Low-Medium (behavior drift in development/debug safeguards; low production impact)
+
+Likelihood: Low (after mitigation)
+
+Affected Areas:
+* lib/config/app_config.dart
+* lib/core/app_env.dart
+* lib/core/utils/constants.dart
+* test/config/app_config_env_resolution_test.dart
+* test/core/app_env_mode_resolution_test.dart
+
+Mitigation Plan:
+* Keep one canonical flavor resolver in `AppConfig` (`FLAVOR` -> legacy `APP_ENV` -> fallback `development`).
+* Derive `AppEnvConfig` mode from resolved `AppConfig.flavor` instead of parsing `APP_ENV` independently.
+* Preserve legacy key compatibility for migration safety and keep regression tests for precedence/mapping behavior.
+* Enforce migration timeline from `docs/ENV_KEY_MATRIX.md`:
+  * freeze canonical-key migration by 2026-06-30,
+  * remove legacy fallback aliases by 2026-09-30 unless explicitly re-approved.
+* Keep deprecated-alias allowlist guard green in CI and only extend allowlist through explicit risk review.
+* Keep migration checkpoint guard green in CI and treat any emitter hit as release-blocking remediation work.
+* Require dated migration audit artifact generation before production release cutover.
+* Apply explicit release go/no-go gates from `docs/RELEASE_GUIDE.md`:
+  - `Checkpoint status: PASS`
+  - `Allowlist guard status: PASS`
+  - pass markers present in artifact output sections.
+* Enforce cutover ticket contract:
+  - keep `scripts/check_release_cutover_ticket_contract.sh` green in CI (template contract),
+  - validate each concrete cutover ticket includes exact dated audit artifact reference + `PASS` statuses.
+* Use `scripts/create_production_cutover_ticket.sh` to reduce manual ticket-path/date entry errors before validation.
+* Enforce concrete ticket validation on release refs via CI gate:
+  - `scripts/check_release_cutover_ticket_release_ref_gate.sh` (release branches/tags).
+* Keep release-ref gate regression script green in CI:
+  - `scripts/test_release_cutover_ticket_release_ref_gate.sh`.
+* Keep cutover scaffold/contract invalid-input regression script green in CI:
+  - `scripts/test_release_cutover_ticket_invalid_input_cases.sh`.
+* Keep release-ref gate fallback-no-ticket scenario covered by regression tests (custom empty-glob override path).
+* Keep release-ref gate `GITHUB_REF`-unset + path-over-glob precedence scenarios covered by regression tests.
+* Keep path-precedence failure semantics covered: invalid `RELEASE_CUTOVER_TICKET_PATH` must fail even if glob fallback would resolve a valid ticket.
+
+Status: Mitigated (2026-03-11)
+
+Owner: AI
+
+Created: 2026-03-11
+Updated: 2026-03-11
+
+---

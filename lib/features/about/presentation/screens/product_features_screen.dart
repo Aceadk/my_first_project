@@ -93,7 +93,7 @@ class ProductFeaturesScreen extends StatelessWidget {
                 // Premium Features
                 const _SectionHeader(
                   'Premium Features',
-                  subtitle: 'Crush+ & Platinum',
+                  subtitle: 'Crush Plus & Platinum',
                 ),
                 const SizedBox(height: DsSpacing.md),
                 Container(

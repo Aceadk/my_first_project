@@ -96,8 +96,15 @@ const agoraCertificateParam = defineString("AGORA_APP_CERTIFICATE", {
 const otpSecretParam = defineString("OTP_SECRET");
 const resendApiKeyParam = defineString("RESEND_API_KEY", { default: "" });
 const emailFromParam = defineString("EMAIL_FROM", {
-  default: "CrushHour <no-reply@crushhour.app>",
+  default: "Crush <no-reply@crushhour.app>",
 });
+const profilePreferencesLegacyFallbackCutoffParam = defineString(
+  "PROFILE_PREFERENCES_LEGACY_FALLBACK_CUTOFF",
+  {
+    // Cutoff for retiring legacy top-level `preferences` read fallback.
+    default: "2026-06-30T00:00:00.000Z",
+  },
+);
 
 const getCorsAllowedOrigins = () =>
   corsAllowedOriginsParam.value().split(",").filter(Boolean);
@@ -115,6 +122,8 @@ const getAgoraCertificate = () => agoraCertificateParam.value();
 const getOtpSecret = () => otpSecretParam.value();
 const getEmailResendKey = () => resendApiKeyParam.value();
 const getEmailFrom = () => emailFromParam.value();
+const getProfilePreferencesLegacyFallbackCutoffRaw = () =>
+  profilePreferencesLegacyFallbackCutoffParam.value().trim();
 const getEmailConfig = () => ({
   resendKey: getEmailResendKey(),
   from: getEmailFrom(),
@@ -1190,15 +1199,161 @@ function validateProfilePreferencesPayload(
   return normalized;
 }
 
+type CanonicalProfilePreferencesOptions = {
+  uid?: string | null;
+  source?: string;
+  now?: Date;
+  legacyFallbackCutoff?: Date | null;
+};
+
+const LEGACY_PROFILE_PREFERENCES_FALLBACK_LOG_CACHE_LIMIT = 2000;
+const loggedLegacyProfilePreferencesFallbackKeys = new Set<string>();
+const loggedLegacyProfilePreferencesCutoffBlockedKeys = new Set<string>();
+let hasLoggedInvalidLegacyProfilePreferencesFallbackCutoff = false;
+
+function rememberLegacyProfilePreferencesLogKey(
+  cache: Set<string>,
+  key: string,
+): boolean {
+  if (cache.has(key)) {
+    return false;
+  }
+  if (cache.size >= LEGACY_PROFILE_PREFERENCES_FALLBACK_LOG_CACHE_LIMIT) {
+    cache.clear();
+  }
+  cache.add(key);
+  return true;
+}
+
+function buildLegacyProfilePreferencesFallbackLogKey(
+  uid?: string | null,
+  source?: string,
+): string {
+  const normalizedUid =
+    typeof uid === "string" && uid.trim().length > 0 ? uid.trim() : "unknown";
+  const normalizedSource =
+    typeof source === "string" && source.trim().length > 0
+      ? source.trim()
+      : "unknown";
+  return `${normalizedUid}|${normalizedSource}`;
+}
+
+function resolveLegacyPreferencesFallbackCutoff(
+  options: CanonicalProfilePreferencesOptions,
+): Date | null {
+  if (options.legacyFallbackCutoff instanceof Date) {
+    if (!Number.isNaN(options.legacyFallbackCutoff.getTime())) {
+      return options.legacyFallbackCutoff;
+    }
+    return null;
+  }
+  if (options.legacyFallbackCutoff === null) {
+    return null;
+  }
+
+  const cutoffRaw = getProfilePreferencesLegacyFallbackCutoffRaw();
+  if (!cutoffRaw) {
+    return null;
+  }
+
+  const parsedCutoff = new Date(cutoffRaw);
+  if (!Number.isNaN(parsedCutoff.getTime())) {
+    return parsedCutoff;
+  }
+
+  if (!hasLoggedInvalidLegacyProfilePreferencesFallbackCutoff) {
+    hasLoggedInvalidLegacyProfilePreferencesFallbackCutoff = true;
+    console.error(
+      "Invalid PROFILE_PREFERENCES_LEGACY_FALLBACK_CUTOFF; keeping fallback enabled.",
+      { cutoffRaw },
+    );
+  }
+  return null;
+}
+
+function logLegacyProfilePreferencesFallback(params: {
+  uid?: string | null;
+  source?: string;
+  now: Date;
+  legacyFallbackCutoff: Date | null;
+  isFallbackEnabled: boolean;
+}): void {
+  const logKey = buildLegacyProfilePreferencesFallbackLogKey(
+    params.uid,
+    params.source,
+  );
+  const nowIso = params.now.toISOString();
+  const cutoffIso = params.legacyFallbackCutoff
+    ? params.legacyFallbackCutoff.toISOString()
+    : null;
+
+  if (params.isFallbackEnabled) {
+    if (
+      !rememberLegacyProfilePreferencesLogKey(
+        loggedLegacyProfilePreferencesFallbackKeys,
+        logKey,
+      )
+    ) {
+      return;
+    }
+    console.warn("legacy_profile_preferences_fallback_read", {
+      uid: params.uid ?? null,
+      source: params.source ?? null,
+      nowIso,
+      cutoffIso,
+    });
+    return;
+  }
+
+  if (
+    !rememberLegacyProfilePreferencesLogKey(
+      loggedLegacyProfilePreferencesCutoffBlockedKeys,
+      logKey,
+    )
+  ) {
+    return;
+  }
+  console.warn("legacy_profile_preferences_fallback_blocked_after_cutoff", {
+    uid: params.uid ?? null,
+    source: params.source ?? null,
+    nowIso,
+    cutoffIso,
+  });
+}
+
 function getCanonicalProfilePreferences(
   userData: Record<string, unknown>,
+  options: CanonicalProfilePreferencesOptions = {},
 ): Record<string, unknown> {
   const profile = asRecord(userData.profile);
   const nestedPreferences = asRecord(profile.preferences);
   if (Object.keys(nestedPreferences).length > 0) {
     return nestedPreferences;
   }
-  return asRecord(userData.preferences);
+
+  const legacyPreferences = asRecord(userData.preferences);
+  if (Object.keys(legacyPreferences).length === 0) {
+    return legacyPreferences;
+  }
+
+  const now = options.now ?? new Date();
+  const legacyFallbackCutoff = resolveLegacyPreferencesFallbackCutoff(options);
+  const isFallbackEnabled =
+    !legacyFallbackCutoff || now.getTime() < legacyFallbackCutoff.getTime();
+
+  logLegacyProfilePreferencesFallback({
+    uid: options.uid,
+    source: options.source,
+    now,
+    legacyFallbackCutoff,
+    isFallbackEnabled,
+  });
+
+  if (!isFallbackEnabled) {
+    return {};
+  }
+
+  return legacyPreferences;
 }
 
 function httpStatusFromHttpsErrorCode(code: string): number {
@@ -1858,17 +2013,17 @@ async function sendOtpEmail(params: {
     console.warn("RESEND_API_KEY not set; skipping email send.");
     return;
   }
-  const subject = "Your CrushHour verification code";
+  const subject = "Your Crush verification code";
   const text = [
     "Hello,",
     "",
-    `Your CrushHour verification code is: ${params.otp}`,
+    `Your Crush verification code is: ${params.otp}`,
     "This code expires in 10 minutes and can only be used once.",
     "",
     "If you did not request this, you can ignore this email.",
     "",
     "Thanks,",
-    "CrushHour Security",
+    "Crush Security",
   ].join("\\n");
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -1899,7 +2054,7 @@ async function sendPasswordChangedEmail(params: {
     console.warn("RESEND_API_KEY not set; skipping email send.");
     return;
   }
-  const subject = "Your CrushHour password was changed";
+  const subject = "Your Crush password was changed";
   const methodText =
     params.method === "forgot_password"
       ? "using the forgot password feature"
@@ -1907,7 +2062,7 @@ async function sendPasswordChangedEmail(params: {
   const text = [
     "Hello,",
     "",
-    `Your CrushHour account password was recently changed ${methodText}.`,
+    `Your Crush account password was recently changed ${methodText}.`,
     "",
     "If you made this change, you can safely ignore this email.",
     "",
@@ -1919,7 +2074,7 @@ async function sendPasswordChangedEmail(params: {
     "Your account security is important to us.",
     "",
     "Thanks,",
-    "CrushHour Security Team",
+    "Crush Security Team",
   ].join("\\n");
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -1958,11 +2113,11 @@ async function sendDatePlanEmail(params: {
       "Email notifications are not configured.",
     );
   }
-  const subject = `${params.creatorName} shared a CrushHour date plan`;
+  const subject = `${params.creatorName} shared a Crush date plan`;
   const lines = [
     `Hi ${params.contactName},`,
     "",
-    `${params.creatorName} shared their date plan with you in CrushHour.`,
+    `${params.creatorName} shared their date plan with you in Crush.`,
     "",
     `Who: ${params.matchName}`,
     `When: ${params.dateLabel} at ${params.timeLabel}`,
@@ -1976,7 +2131,7 @@ async function sendDatePlanEmail(params: {
     "You are listed as an emergency contact.",
     "If you are concerned about their safety, please contact them directly.",
     "",
-    "CrushHour Safety Team",
+    "Crush Safety Team",
   );
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -5256,7 +5411,7 @@ export const notifyDatePlanContact = callable<DatePlanEmailRequest>(
     const creatorNameRaw =
       (typeof profile.name === "string" && profile.name.trim()) ||
       (typeof userData.username === "string" && userData.username.trim()) ||
-      "A CrushHour user";
+      "A Crush user";
     const creatorName = truncateString(creatorNameRaw, 80);
 
     const safeOffset = Math.max(
@@ -5780,7 +5935,7 @@ export const onMatchCreated = functions.firestore
           tokens,
           notification: {
             title: "You have a new match!",
-            body: "Open CrushHour to start chatting.",
+            body: "Open Crush to start chatting.",
           },
           data: {
             matchId: context.params.matchId,
@@ -8068,7 +8223,10 @@ app.get(
 
       const data = userDoc.data() || {};
       const profile = data.profile || {};
-      const preferences = getCanonicalProfilePreferences(data);
+      const preferences = getCanonicalProfilePreferences(data, {
+        uid: req.uid,
+        source: "rest:/v1/profile/me",
+      });
       const username =
         (typeof data.username === "string" && data.username.trim()) ||
         (typeof profile.username === "string" && profile.username.trim()) ||
@@ -8351,7 +8509,10 @@ app.patch(
       }
 
       const currentData = userDoc.data() || {};
-      const existingPreferences = getCanonicalProfilePreferences(currentData);
+      const existingPreferences = getCanonicalProfilePreferences(currentData, {
+        uid: req.uid,
+        source: "rest:/v1/profile/preferences",
+      });
       const mergedPreferences = {
         ...existingPreferences,
         ...normalizedPreferences,
@@ -8368,7 +8529,8 @@ app.patch(
 
       await userRef.update({
         "profile.preferences": mergedPreferences,
-        preferences: mergedPreferences, // Legacy mirror for backward compatibility.
+        // Remove legacy flat mirror to keep canonical nested profile schema.
+        preferences: deleteField(),
         "profile.updatedAt": serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -8445,7 +8607,10 @@ app.get(
     try {
       const userDoc = await db.collection("users").doc(req.uid!).get();
       const userData = userDoc.data() || {};
-      const preferences = getCanonicalProfilePreferences(userData);
+      const preferences = getCanonicalProfilePreferences(userData, {
+        uid: req.uid,
+        source: "rest:/v1/discovery/deck",
+      });
 
       // Get users the current user has already swiped on (bounded to last 1000 to prevent memory exhaustion)
       const swipesSnap = await db
@@ -8999,7 +9164,7 @@ app.get("/v1/subscription/plans", async (req: Request, res: Response) => {
           },
           {
             id: "plus",
-            name: "CrushHour+",
+            name: "Crush+",
             price_monthly: 9.99,
             price_yearly: 59.99,
             features: [

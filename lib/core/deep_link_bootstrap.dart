@@ -5,11 +5,15 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_links/app_links.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
+import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:crushhour/core/routing/deep_links.dart';
 
 class DeepLinkBootstrap extends StatefulWidget {
   const DeepLinkBootstrap({
@@ -24,6 +28,9 @@ class DeepLinkBootstrap extends StatefulWidget {
     this.secureStorageRead,
     this.onAuthEvent,
     this.onSubscriptionEvent,
+    this.onNavigate,
+    this.isAuthenticated,
+    this.authStatusStream,
     this.isWebOverride,
   });
 
@@ -37,6 +44,9 @@ class DeepLinkBootstrap extends StatefulWidget {
   final Future<String?> Function(String key)? secureStorageRead;
   final void Function(AuthEvent event)? onAuthEvent;
   final void Function(SubscriptionEvent event)? onSubscriptionEvent;
+  final void Function(String route, {Object? extra})? onNavigate;
+  final bool Function()? isAuthenticated;
+  final Stream<bool>? authStatusStream;
   final bool? isWebOverride;
 
   @override
@@ -58,8 +68,14 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
   late final Future<String?> Function(String key) _secureStorageRead =
       widget.secureStorageRead ?? ((key) => _secureStorage.read(key: key));
   late final bool _isWeb = widget.isWebOverride ?? kIsWeb;
+  late final DeepLinkHandler _deepLinkHandler = DeepLinkHandler(
+    onNavigate: _navigateTo,
+    onAuthRequired: _onAuthRequired,
+  );
   static const _pendingEmailKey = 'pending_email_link_email';
+  bool _didBindAuthStatusStream = false;
   StreamSubscription<Uri?>? _sub;
+  StreamSubscription<bool>? _authSub;
 
   @override
   void initState() {
@@ -68,6 +84,18 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     if (!_isWeb) {
       _sub = _uriLinkStream.listen(_handleUri, onError: (_) {});
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didBindAuthStatusStream) return;
+    _didBindAuthStatusStream = true;
+    _authSub = _resolveAuthStatusStream()?.listen((isAuthenticated) {
+      if (isAuthenticated) {
+        _deepLinkHandler.processPendingLink();
+      }
+    });
   }
 
   Future<void> _listenInitial() async {
@@ -121,6 +149,11 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     if (isBillingCallback || status != null) {
       _dispatchSubscriptionEvent(SubscriptionRestoreRequested());
     }
+
+    _deepLinkHandler.handleDeepLink(
+      uri,
+      isAuthenticated: _isCurrentlyAuthenticated(),
+    );
   }
 
   /// Check if the link is an email verification magic link.
@@ -152,9 +185,54 @@ class _DeepLinkBootstrapState extends State<DeepLinkBootstrap> {
     context.read<SubscriptionBloc>().add(event);
   }
 
+  Stream<bool>? _resolveAuthStatusStream() {
+    final override = widget.authStatusStream;
+    if (override != null) return override;
+    final authBloc = _maybeAuthBloc();
+    return authBloc?.stream
+        .map((state) => state.status == AuthStatus.authenticated)
+        .distinct();
+  }
+
+  bool _isCurrentlyAuthenticated() {
+    final override = widget.isAuthenticated;
+    if (override != null) {
+      return override();
+    }
+    final authBloc = _maybeAuthBloc();
+    // In test/preview contexts where AuthBloc is not mounted, default to true
+    // so deep-link route behavior remains deterministic.
+    if (authBloc == null) return true;
+    return authBloc.state.status == AuthStatus.authenticated;
+  }
+
+  AuthBloc? _maybeAuthBloc() {
+    try {
+      return BlocProvider.of<AuthBloc>(context, listen: false);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _onAuthRequired(DeepLinkResult _) {
+    _navigateTo(CrushRoutes.authGateway);
+  }
+
+  void _navigateTo(String route, {Object? extra}) {
+    final callback = widget.onNavigate;
+    if (callback != null) {
+      callback(route, extra: extra);
+      return;
+    }
+
+    final router = GoRouter.maybeOf(context);
+    router?.go(route, extra: extra);
+  }
+
   @override
   void dispose() {
     _sub?.cancel();
+    _authSub?.cancel();
     super.dispose();
   }
 

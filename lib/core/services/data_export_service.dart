@@ -127,8 +127,8 @@ class DataExportService {
     final file = XFile(filePath);
     await Share.shareXFiles(
       [file],
-      subject: 'CrushHour Data Export',
-      text: 'Your personal data export from CrushHour',
+      subject: 'Crush Data Export',
+      text: 'Your personal data export from Crush',
     );
   }
 

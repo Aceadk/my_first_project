@@ -554,6 +554,9 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
                 screenName: 'App',
                 showHomeButton: false,
                 child: DeepLinkBootstrap(
+                  onNavigate: (route, {extra}) {
+                    _router.go(route, extra: extra);
+                  },
                   child: MaterialApp.router(
                     title: 'Crush',
                     theme: lightTheme,

@@ -51,7 +51,7 @@ class WidgetCatalogScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'CrushHour Design System',
+          'Crush Design System',
           style: theme.textTheme.headlineMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),

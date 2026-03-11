@@ -69,6 +69,13 @@ void main() {
           CrushRoutes.authGateway,
         );
         expect(
+          resolveRouteRedirect(
+            authState: unauth,
+            path: CrushRoutes.weeklyPicks,
+          ),
+          CrushRoutes.authGateway,
+        );
+        expect(
           resolveRouteRedirect(authState: unauth, path: CrushRoutes.login),
           isNull,
         );
@@ -78,6 +85,40 @@ void main() {
         );
       },
     );
+
+    test('unauthenticated users can access public legal/support routes', () {
+      final unauth = buildState(status: AuthStatus.unauthenticated);
+
+      expect(
+        resolveRouteRedirect(
+          authState: unauth,
+          path: CrushRoutes.privacyPolicy,
+        ),
+        isNull,
+      );
+      expect(
+        resolveRouteRedirect(
+          authState: unauth,
+          path: CrushRoutes.termsOfService,
+        ),
+        isNull,
+      );
+      expect(
+        resolveRouteRedirect(authState: unauth, path: CrushRoutes.support),
+        isNull,
+      );
+      expect(
+        resolveRouteRedirect(
+          authState: unauth,
+          path: CrushRoutes.supportCategoryPath('billing'),
+        ),
+        isNull,
+      );
+      expect(
+        resolveRouteRedirect(authState: unauth, path: CrushRoutes.pricing),
+        isNull,
+      );
+    });
 
     test('splash redirects logged-in users through onboarding in order', () {
       final needsTerms = buildState(
@@ -165,6 +206,13 @@ void main() {
           isNull,
         );
         expect(
+          resolveRouteRedirect(
+            authState: state,
+            path: CrushRoutes.supportCategoryPath('billing'),
+          ),
+          isNull,
+        );
+        expect(
           resolveRouteRedirect(authState: state, path: CrushRoutes.home),
           CrushRoutes.termsConditions,
         );
@@ -249,6 +297,13 @@ void main() {
           isNull,
         );
         expect(
+          resolveRouteRedirect(
+            authState: state,
+            path: CrushRoutes.supportCategoryPath('technical'),
+          ),
+          isNull,
+        );
+        expect(
           resolveRouteRedirect(authState: state, path: CrushRoutes.login),
           isNull,
         );
@@ -293,6 +348,13 @@ void main() {
         );
         expect(
           resolveRouteRedirect(authState: state, path: CrushRoutes.support),
+          isNull,
+        );
+        expect(
+          resolveRouteRedirect(
+            authState: state,
+            path: CrushRoutes.supportCategoryPath('privacy'),
+          ),
           isNull,
         );
         expect(

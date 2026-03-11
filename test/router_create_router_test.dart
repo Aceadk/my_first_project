@@ -66,6 +66,7 @@ import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart'
 import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
 import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
+import 'package:crushhour/features/settings/presentation/screens/support_category_detail_screen.dart';
 import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
 import 'package:crushhour/features/social/domain/models/date_idea.dart';
 import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
@@ -848,6 +849,10 @@ void main() {
         widgetType: SupportScreen,
       );
       await assertRouteShows(
+        route: CrushRoutes.supportCategoryPath('billing'),
+        widgetType: SupportCategoryDetailScreen,
+      );
+      await assertRouteShows(
         route: CrushRoutes.pricing,
         widgetType: PricingScreen,
       );
@@ -974,6 +979,35 @@ void main() {
         profileCompleter.complete(_testProfile('user-200'));
         await tester.pumpAndSettle();
         expect(find.byType(OtherUserProfileScreen), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'user profile deep-link route opens ProfileViewScreen for current user id',
+      (tester) async {
+        final authRepository = _NoopAuthRepository();
+        final signedInUser = buildUser();
+        final authBloc = _TestAuthBloc(
+          buildState(status: AuthStatus.authenticated, user: signedInUser),
+        );
+        final profileCompleter = Completer<Profile?>();
+        final discoveryRepository = _TestDiscoveryRepository(
+          fetchMatchesHandler: (_) async => const [],
+          fetchProfileByIdHandler: (_) => profileCompleter.future,
+        );
+
+        await pumpRouterApp(
+          tester,
+          authBloc: authBloc,
+          authRepository: authRepository,
+          discoveryRepository: discoveryRepository,
+          initialRoute: '${CrushRoutes.userProfile}/${signedInUser.id}',
+          settle: false,
+        );
+
+        await tester.pump();
+        drainRouterTestExceptions(tester);
+        expect(find.byType(ProfileViewScreen), findsOneWidget);
       },
     );
 

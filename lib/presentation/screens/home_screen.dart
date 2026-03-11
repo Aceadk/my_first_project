@@ -1,14 +1,15 @@
+import 'package:crushhour/core/services/badge_counter_service.dart';
+import 'package:crushhour/features/chat/presentation/screens/chat_list_screen.dart';
+import 'package:crushhour/features/chat/presentation/screens/matches_screen.dart';
+import 'package:crushhour/features/discovery/presentation/screens/deck_screen.dart';
+import 'package:crushhour/features/profile/presentation/screens/profile_view_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../design_system/tokens/breakpoints.dart';
 import '../../design_system/tokens/colors.dart';
 import '../../design_system/tokens/gradients.dart';
 import '../../design_system/widgets/glass_bottom_nav_bar.dart';
-import 'package:crushhour/features/discovery/presentation/screens/deck_screen.dart';
-import 'package:crushhour/features/chat/presentation/screens/matches_screen.dart';
-import 'package:crushhour/features/chat/presentation/screens/chat_list_screen.dart';
-import 'package:crushhour/features/profile/presentation/screens/profile_view_screen.dart';
-import 'package:crushhour/core/services/badge_counter_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,8 +20,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
+  final Set<int> _visitedIndices = {0};
 
-  void _goToDeck() => setState(() => _index = 0);
+  void _goToDeck() {
+    setState(() {
+      _index = 0;
+      _visitedIndices.add(0);
+    });
+  }
 
   /// Build navigation items with badge counts from state.
   List<GlassNavItem> _buildNavItems(BadgeCountState badgeState) {
@@ -126,12 +133,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 body: Stack(
                   children: [
                     _buildBackground(isDark),
-                    Positioned.fill(child: screens[_index]),
+                    Positioned.fill(
+                      child: IndexedStack(
+                        index: _index,
+                        children: List.generate(screens.length, (i) {
+                          if (_visitedIndices.contains(i)) {
+                            return screens[i];
+                          }
+                          return const SizedBox.shrink();
+                        }),
+                      ),
+                    ),
                   ],
                 ),
                 bottomNavigationBar: GlassBottomNavBar(
                   currentIndex: _index,
-                  onTap: (index) => setState(() => _index = index),
+                  onTap: (index) {
+                    setState(() {
+                      _index = index;
+                      _visitedIndices.add(index);
+                    });
+                  },
                   items: navItems,
                 ),
               );
@@ -147,8 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         NavigationRail(
                           selectedIndex: _index,
-                          onDestinationSelected: (index) =>
-                              setState(() => _index = index),
+                          onDestinationSelected: (index) {
+                            setState(() {
+                              _index = index;
+                              _visitedIndices.add(index);
+                            });
+                          },
                           extended: isDesktop,
                           minWidth: 72,
                           minExtendedWidth: 200,
@@ -159,7 +185,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               : NavigationRailLabelType.selected,
                         ),
                         const VerticalDivider(width: 1, thickness: 0.5),
-                        Expanded(child: screens[_index]),
+                        Expanded(
+                          child: IndexedStack(
+                            index: _index,
+                            children: List.generate(screens.length, (i) {
+                              if (_visitedIndices.contains(i)) {
+                                return screens[i];
+                              }
+                              return const SizedBox.shrink();
+                            }),
+                          ),
+                        ),
                       ],
                     ),
                   ),

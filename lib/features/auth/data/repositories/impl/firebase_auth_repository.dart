@@ -8,6 +8,7 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/errors/auth_failures.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/security/secure_logger.dart';
+import 'package:crushhour/core/schema/user_document_schema.dart';
 import 'package:crushhour/core/utils/result.dart' as app_result;
 import 'package:crushhour/data/models/favourites.dart';
 import 'package:crushhour/data/models/preferences.dart';
@@ -96,34 +97,48 @@ class FirebaseAuthRepository
           .get();
       final userData = userDoc.data();
       if (userData == null) return false;
+      final canonicalUserData = _canonicalizeUserData(
+        uid: firebaseUser.uid,
+        userData: userData,
+      );
 
       // CR-AUD-010: Check for pending deletion and auto-recover within grace period
-      final isPendingDeletion = userData['isPendingDeletion'] as bool? ?? false;
-      final isDeactivated = userData['isDeactivated'] as bool? ?? false;
+      final isPendingDeletion =
+          canonicalUserData['isPendingDeletion'] as bool? ?? false;
+      final isDeactivated =
+          canonicalUserData['isDeactivated'] as bool? ?? false;
       if (isPendingDeletion || isDeactivated) {
-        await _recoverAccountIfWithinGracePeriod(firebaseUser.uid, userData);
+        await _recoverAccountIfWithinGracePeriod(
+          firebaseUser.uid,
+          canonicalUserData,
+        );
       }
 
       final firestoreEmailVerified =
-          userData['isEmailVerified'] as bool? ?? false;
+          canonicalUserData['isEmailVerified'] as bool? ?? false;
       final emailVerifiedViaOtp =
-          userData['emailVerifiedViaOtp'] as bool? ?? false;
+          canonicalUserData['emailVerifiedViaOtp'] as bool? ?? false;
       // Read phone verification status from Firestore
       final firestorePhoneVerified =
-          userData['isPhoneVerified'] as bool? ?? false;
-      final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
+          canonicalUserData['isPhoneVerified'] as bool? ?? false;
+      final hasAcceptedTerms =
+          canonicalUserData['hasAcceptedTerms'] as bool? ?? false;
       await _cacheTermsAccepted(firebaseUser.uid, hasAcceptedTerms);
       // Read skip flags for onboarding steps
       final hasSkippedBasicInfo =
-          userData['hasSkippedBasicInfo'] as bool? ?? false;
+          canonicalUserData['hasSkippedBasicInfo'] as bool? ?? false;
       final hasSkippedProfileSetup =
-          userData['hasSkippedProfileSetup'] as bool? ?? false;
-      final plan = userData['plan'] == 'plus'
+          canonicalUserData['hasSkippedProfileSetup'] as bool? ?? false;
+      final plan = canonicalUserData['plan'] == 'plus'
           ? SubscriptionPlan.plus
           : SubscriptionPlan.free;
       final themePreference =
-          userData['themePreference'] ?? userData['theme_preference'];
-      final profile = _profileFromFirestore(firebaseUser.uid, userData);
+          canonicalUserData['themePreference'] ??
+          canonicalUserData['theme_preference'];
+      final profile = _profileFromFirestore(
+        firebaseUser.uid,
+        canonicalUserData,
+      );
 
       // Determine if we need to update email verification status
       final needsEmailVerificationUpdate =
@@ -1413,7 +1428,9 @@ class FirebaseAuthRepository
       age: profileData['age'] ?? 0,
       gender: profileData['gender'] ?? '',
       sexualOrientation: profileData['sexualOrientation'],
-      dateOfBirth: _parseTimestamp(profileData['dateOfBirth']),
+      dateOfBirth:
+          _parseTimestamp(profileData['birthDate']) ??
+          _parseTimestamp(profileData['dateOfBirth']),
       lastDobChangeAt: _parseTimestamp(profileData['lastDobChangeAt']),
       lastNameChangeAt: _parseTimestamp(profileData['lastNameChangeAt']),
       bio: profileData['bio'] ?? '',
@@ -1587,26 +1604,32 @@ class FirebaseAuthRepository
       final userData = userDoc.data();
 
       if (userData != null) {
+        final canonicalUserData = _canonicalizeUserData(
+          uid: updatedFirebaseUser.uid,
+          userData: userData,
+        );
         final firestoreEmailVerified =
-            userData['isEmailVerified'] as bool? ?? false;
+            canonicalUserData['isEmailVerified'] as bool? ?? false;
         final emailVerifiedViaOtp =
-            userData['emailVerifiedViaOtp'] as bool? ?? false;
+            canonicalUserData['emailVerifiedViaOtp'] as bool? ?? false;
         final firestorePhoneVerified =
-            userData['isPhoneVerified'] as bool? ?? false;
-        final hasAcceptedTerms = userData['hasAcceptedTerms'] as bool? ?? false;
+            canonicalUserData['isPhoneVerified'] as bool? ?? false;
+        final hasAcceptedTerms =
+            canonicalUserData['hasAcceptedTerms'] as bool? ?? false;
         await _cacheTermsAccepted(updatedFirebaseUser.uid, hasAcceptedTerms);
         final hasSkippedBasicInfo =
-            userData['hasSkippedBasicInfo'] as bool? ?? false;
+            canonicalUserData['hasSkippedBasicInfo'] as bool? ?? false;
         final hasSkippedProfileSetup =
-            userData['hasSkippedProfileSetup'] as bool? ?? false;
-        final plan = userData['plan'] == 'plus'
+            canonicalUserData['hasSkippedProfileSetup'] as bool? ?? false;
+        final plan = canonicalUserData['plan'] == 'plus'
             ? SubscriptionPlan.plus
             : SubscriptionPlan.free;
         final themePreference =
-            userData['themePreference'] ?? userData['theme_preference'];
+            canonicalUserData['themePreference'] ??
+            canonicalUserData['theme_preference'];
         final profile = _profileFromFirestore(
           updatedFirebaseUser.uid,
-          userData,
+          canonicalUserData,
         );
 
         _currentUser = CrushUser(
@@ -1642,6 +1665,48 @@ class FirebaseAuthRepository
     _currentUser = _mapFirebaseUser(updatedFirebaseUser);
     _authStateController.add(_currentUser);
     return _currentUser;
+  }
+
+  Map<String, dynamic> _canonicalizeUserData({
+    required String uid,
+    required Map<String, dynamic> userData,
+  }) {
+    final result = canonicalizeUserDocumentSchema(userData);
+    if (result.shouldPersistMigration) {
+      unawaited(_persistCanonicalUserData(uid: uid, result: result));
+    }
+    return result.canonicalUserData;
+  }
+
+  Future<void> _persistCanonicalUserData({
+    required String uid,
+    required UserDocumentCanonicalizationResult result,
+  }) async {
+    try {
+      final updates = <String, dynamic>{
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+      if (result.canonicalProfile.isNotEmpty) {
+        updates['profile'] = result.canonicalProfile;
+      }
+
+      for (final key in result.legacyRootKeysToDelete) {
+        updates[key] = FieldValue.delete();
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .set(updates, SetOptions(merge: true));
+      AppLogger.info(
+        '[FirebaseAuthRepo] Canonicalized legacy user schema for: $uid',
+      );
+    } catch (e) {
+      AppLogger.error(
+        '[FirebaseAuthRepo] Failed to canonicalize legacy user schema',
+        error: e,
+      );
+    }
   }
 
   @override

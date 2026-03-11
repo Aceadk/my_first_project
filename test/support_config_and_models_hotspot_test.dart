@@ -42,6 +42,36 @@ void main() {
       );
     });
 
+    test('category articles are available for every support category', () {
+      for (final category in SupportConfig.categories) {
+        final article = SupportConfig.articleForCategory(category.id);
+        expect(article.overview, isNotEmpty);
+        expect(article.quickSteps, isNotEmpty);
+        expect(article.escalationHints, isNotEmpty);
+      }
+    });
+
+    test('matching and messaging help questions include populated answers', () {
+      const requiredQuestions = <MapEntry<String, String>>[
+        MapEntry('How do I get more matches?', 'matching'),
+        MapEntry('Why am I not seeing new profiles?', 'matching'),
+        MapEntry('What is a Super Like?', 'matching'),
+        MapEntry('How do I undo a swipe?', 'matching'),
+        MapEntry('Why can\'t I send messages?', 'messaging'),
+        MapEntry('How do I know if someone read my message?', 'messaging'),
+        MapEntry('Can I unsend a message?', 'messaging'),
+        MapEntry('How do I report a conversation?', 'messaging'),
+      ];
+
+      for (final item in requiredQuestions) {
+        final faq = SupportConfig.frequentlyAsked.firstWhere(
+          (entry) => entry.question == item.key && entry.category == item.value,
+          orElse: () => throw TestFailure('Missing FAQ: ${item.key}'),
+        );
+        expect(faq.answer.trim(), isNotEmpty, reason: faq.question);
+      }
+    });
+
     test(
       'openSupportEmail launches default support and safety mailto links',
       () async {
@@ -71,17 +101,19 @@ void main() {
     test('openHelpCenter and openSafetyCenter launch expected URLs', () async {
       await SupportConfig.openHelpCenter();
       await SupportConfig.openHelpCenter('safety');
+      await SupportConfig.openHelpCenter('guidelines');
       await SupportConfig.openHelpCenter('unknown');
       await SupportConfig.openSafetyCenter();
 
       final launches = calls
           .where((c) => c.method == 'launch' || c.method == 'launchUrl')
           .toList();
-      expect(launches.length, 4);
+      expect(launches.length, 5);
 
       final launchText = launches.map((c) => c.arguments.toString()).join(' ');
       expect(launchText, contains(SupportConfig.helpCenterBaseUrl));
       expect(launchText, contains(SupportConfig.safetyCenterUrl));
+      expect(launchText, contains(SupportConfig.guidelinesUrl));
       expect(launchText, contains(SupportConfig.faqUrl));
     });
 

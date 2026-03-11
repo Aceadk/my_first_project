@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:crushhour/design_system/design_system.dart';
 
-/// Permission types that CRUSH may request from the user.
+/// Permission types that Crush may request from the user.
 enum PermissionType { location, notifications, camera, photos }
 
 /// A reusable pre-permission rationale screen shown BEFORE requesting a
@@ -16,7 +16,7 @@ enum PermissionType { location, notifications, camera, photos }
 ///   builder: (_) => PermissionRationaleScreen(
 ///     permissionType: PermissionType.location,
 ///     title: 'Find matches near you',
-///     description: 'CRUSH uses your location to show you people nearby. '
+///     description: 'Crush uses your location to show you people nearby. '
 ///         'Your exact location is never shared with other users.',
 ///     icon: Icons.location_on_rounded,
 ///     onAllow: () { /* request system permission */ },

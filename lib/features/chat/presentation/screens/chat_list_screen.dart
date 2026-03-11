@@ -1,35 +1,36 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/services/badge_counter_service.dart';
 import 'package:crushhour/core/utils/date_time_formatter.dart';
-import 'package:crushhour/design_system/tokens/breakpoints.dart';
-import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
-import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
-import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/chat/presentation/bloc/matches_bloc.dart';
-import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
-import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
-import 'package:crushhour/features/chat/presentation/bloc/message_requests_cubit.dart';
-import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/gradients.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
-import 'package:crushhour/shared/widgets/cached_image.dart';
-import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
-import 'package:crushhour/core/services/badge_counter_service.dart';
-import 'chat_screen.dart';
+import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/presentation/bloc/matches_bloc.dart';
+import 'package:crushhour/features/chat/presentation/bloc/matches_event.dart';
+import 'package:crushhour/features/chat/presentation/bloc/matches_state.dart';
+import 'package:crushhour/features/chat/presentation/bloc/message_requests_cubit.dart';
+import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
+import 'package:crushhour/shared/widgets/cached_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import 'chat_screen.dart';
 
 @visibleForTesting
 double chatListPaneWidthFor(double screenWidth) {
@@ -529,8 +530,7 @@ class _ChatTileState extends State<_ChatTile>
     // Store references before any async operations
     _badgeCounterCubit = context.read<BadgeCounterCubit>();
     _chatRepository = context.read<ChatRepository>();
-    _subscribeToMessages();
-    _subscribeToPresence();
+    _fetchInitialData();
   }
 
   @override
@@ -558,54 +558,50 @@ class _ChatTileState extends State<_ChatTile>
     _updateBadgeCounterSafe();
   }
 
-  void _subscribeToMessages() {
+  Future<void> _fetchInitialData() async {
     final chatRepo = _chatRepository;
-    if (chatRepo == null) return;
-    _messagesSubscription = chatRepo
-        .watchMessages(widget.match.id)
-        .listen(
-          (messages) {
-            if (!mounted) return;
-            setState(() {
-              if (messages.isNotEmpty) {
-                // Sort by sentAt to get the most recent
-                final sorted = List<Message>.from(messages)
-                  ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
-                _lastMessage = sorted.first;
-                // Count unread messages sent to current user
-                _unreadCount = messages
-                    .where(
-                      (m) => m.toUserId == widget.currentUserId && !m.isRead,
-                    )
-                    .length;
-                // Update static map and badge counter
-                _unreadCounts[widget.match.id] = _unreadCount;
-                _updateBadgeCounter();
-              }
-            });
-          },
-          onError: (_) {
-            // Silently handle errors - just show default text
-          },
-        );
-  }
+    if (chatRepo == null || !mounted) return;
 
-  void _subscribeToPresence() {
-    final chatRepo = _chatRepository;
-    if (chatRepo == null) return;
-    _presenceSubscription = chatRepo
-        .watchPresence(widget.match.otherUserId)
-        .listen(
-          (isOnline) {
-            if (!mounted) return;
-            setState(() {
-              _isOnline = isOnline;
-            });
-          },
-          onError: (_) {
-            // Silently handle errors - default to offline
-          },
-        );
+    try {
+      // 1. Fetch presence
+      final isOnline = await chatRepo
+          .watchPresence(widget.match.otherUserId)
+          .first;
+      if (mounted) {
+        setState(() {
+          _isOnline = isOnline;
+        });
+      }
+
+      // 2. Fetch latest message instead of continuous polling
+      final result = await chatRepo.fetchMessagesPaginated(
+        widget.match.id,
+        limit: 1, // We only need the latest message for the preview
+      );
+
+      if (mounted) {
+        final messages = result.items;
+        if (messages.isNotEmpty) {
+          // Sort by sentAt to get the most recent, just in case
+          final sorted = List<Message>.from(messages)
+            ..sort((a, b) => b.sentAt.compareTo(a.sentAt));
+
+          setState(() {
+            _lastMessage = sorted.first;
+            // Count unread messages sent to current user
+            _unreadCount = messages
+                .where((m) => m.toUserId == widget.currentUserId && !m.isRead)
+                .length;
+
+            // Update static map and badge counter
+            _unreadCounts[widget.match.id] = _unreadCount;
+            _updateBadgeCounter();
+          });
+        }
+      }
+    } catch (_) {
+      // Silently handle errors - just show default text/offline state
+    }
   }
 
   @override

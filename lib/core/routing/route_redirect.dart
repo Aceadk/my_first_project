@@ -37,9 +37,21 @@ String? resolveRouteRedirect({
       path == CrushRoutes.productFeatures ||
       path == CrushRoutes.pricing ||
       path == CrushRoutes.support ||
+      path.startsWith('${CrushRoutes.supportCategoryBase}/') ||
       path == CrushRoutes.weeklyPicks ||
       path == CrushRoutes.safety ||
       path == CrushRoutes.logout;
+
+  // Public routes that must remain accessible without authentication.
+  final isPublicUnauthRoute =
+      path == CrushRoutes.privacyPolicy ||
+      path == CrushRoutes.termsOfService ||
+      path == CrushRoutes.safetyGuidelines ||
+      path == CrushRoutes.communityGuidelines ||
+      path == CrushRoutes.productFeatures ||
+      path == CrushRoutes.pricing ||
+      path == CrushRoutes.support ||
+      path.startsWith('${CrushRoutes.supportCategoryBase}/');
 
   // Check if user needs account verification
   // Only require verification for users who have neither email nor phone verified
@@ -98,7 +110,7 @@ String? resolveRouteRedirect({
   }
 
   // Not logged in and trying to access protected route
-  if (!isLoggedIn && !isAuthRoute) {
+  if (!isLoggedIn && !isAuthRoute && !isPublicUnauthRoute) {
     return CrushRoutes.authGateway;
   }
 

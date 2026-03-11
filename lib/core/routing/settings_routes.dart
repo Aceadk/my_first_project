@@ -12,7 +12,9 @@ import 'package:crushhour/features/settings/presentation/screens/account_securit
 import 'package:crushhour/features/settings/presentation/screens/account_actions_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/chat_settings_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
+import 'package:crushhour/features/settings/presentation/screens/support_category_detail_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/subscription_settings_screen.dart';
+import 'package:crushhour/config/support_config.dart';
 import 'package:crushhour/features/settings/presentation/bloc/chat_settings_cubit.dart';
 import 'package:crushhour/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
@@ -98,5 +100,13 @@ List<RouteBase> settingsRoutes() => [
   GoRoute(
     path: CrushRoutes.support,
     pageBuilder: (context, state) => buildPage(state, const SupportScreen()),
+  ),
+  GoRoute(
+    path: CrushRoutes.supportCategory,
+    pageBuilder: (context, state) {
+      final categoryId = state.pathParameters['categoryId'] ?? '';
+      final category = SupportConfig.categoryById(categoryId);
+      return buildPage(state, SupportCategoryDetailScreen(category: category));
+    },
   ),
 ];

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../config/support_config.dart';
 import '../../../../design_system/design_system.dart';
 import '../../../../design_system/widgets/adaptive_dialog.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import '../../../../core/routing/crush_routes.dart';
 
 /// Customer support screen with help categories, FAQ, and contact options.
 class SupportScreen extends StatefulWidget {
@@ -95,7 +97,7 @@ class _SupportScreenState extends State<SupportScreen> {
                 // App Info
                 Center(
                   child: Text(
-                    'CrushHour v$_appVersion',
+                    'Crush v$_appVersion',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: isDark
                           ? DsColors.textMutedDark
@@ -137,19 +139,40 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   Widget _buildCategoryGrid(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: DsSpacing.md,
-      crossAxisSpacing: DsSpacing.md,
-      childAspectRatio: 1.5,
-      children: SupportConfig.categories.map((category) {
-        return _CategoryCard(
-          category: category,
-          onTap: () => SupportConfig.openHelpCenter(category.id),
+    final textScale = MediaQuery.textScalerOf(
+      context,
+    ).scale(1.0).clamp(1.0, 1.4).toDouble();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth >= 900
+            ? 4
+            : constraints.maxWidth >= 640
+            ? 3
+            : 2;
+        final mainAxisExtent = 138.0 + ((textScale - 1.0) * 36.0);
+
+        return GridView.builder(
+          itemCount: SupportConfig.categories.length,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            mainAxisSpacing: DsSpacing.md,
+            crossAxisSpacing: DsSpacing.md,
+            mainAxisExtent: mainAxisExtent,
+          ),
+          itemBuilder: (context, index) {
+            final category = SupportConfig.categories[index];
+            return _CategoryCard(
+              category: category,
+              onTap: () {
+                context.push(CrushRoutes.supportCategoryPath(category.id));
+              },
+            );
+          },
         );
-      }).toList(),
+      },
     );
   }
 
@@ -321,7 +344,6 @@ class _CategoryCard extends StatelessWidget {
           padding: const EdgeInsets.all(DsSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 _iconData,
@@ -529,10 +551,7 @@ class _ContactSupportSheetState extends State<_ContactSupportSheet> {
   }
 
   void _sendSupportEmail() {
-    final category = SupportConfig.categories.firstWhere(
-      (c) => c.id == _selectedCategory,
-      orElse: () => SupportConfig.categories.last,
-    );
+    final category = SupportConfig.categoryById(_selectedCategory);
 
     final body = SupportConfig.generateSupportBody(
       category: category.title,
@@ -540,7 +559,7 @@ class _ContactSupportSheetState extends State<_ContactSupportSheet> {
     );
 
     SupportConfig.openSupportEmail(
-      subject: 'CrushHour Support: ${category.title}',
+      subject: 'Crush Support: ${category.title}',
       body: body,
       category: _selectedCategory,
     );

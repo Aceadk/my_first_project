@@ -34,6 +34,12 @@ cp .env.example .env
 # Edit with production values
 ```
 
+Canonical key reference:
+- App/web-shell keys: `docs/ENV_KEY_MATRIX.md`
+- Functions keys: `functions/.env.example`
+
+Legacy aliases (`APP_ENV`, `CRUSH_API_BASE_URL`, `USE_EMULATORS`, `EMULATOR_HOST`) are migration-only and should not be used in new release commands.
+
 ### 2. Build-Time Configuration
 
 Use `--dart-define` flags for production builds:
@@ -41,6 +47,7 @@ Use `--dart-define` flags for production builds:
 ```bash
 flutter build appbundle --release \
   --dart-define=FLAVOR=production \
+  --dart-define=API_BASE_URL=https://us-central1-crushhour.cloudfunctions.net \
   --dart-define=AGORA_APP_ID=your_agora_id \
   --dart-define=ENABLE_ANALYTICS=true \
   --dart-define=ENABLE_CRASHLYTICS=true \
@@ -240,6 +247,9 @@ version: 1.0.0+1  # version+buildNumber
 - [ ] App Check enabled
 - [ ] Environment variables set
 - [ ] API endpoints pointing to production
+- [ ] `scripts/check_env_alias_migration_status.sh` passes (no deprecated alias emitters in release/CI paths)
+- [ ] `scripts/generate_env_alias_migration_audit_report.sh` generated and archived under `docs/reports/`
+- [ ] Production cutover ticket created from `docs/PRODUCTION_CUTOVER_TICKET_TEMPLATE.md` and validated with `scripts/check_release_cutover_ticket_contract.sh <ticket-path>`
 
 ### Legal Compliance
 - [ ] Privacy Policy URL accessible
@@ -260,6 +270,49 @@ version: 1.0.0+1  # version+buildNumber
 - [ ] Play App content declarations are complete and current
 - [ ] Reviewer app-access instructions are valid and tested
 - [ ] Subscription disclosure copy matches in-app checkout wording
+
+## Operator Runbook: Env Alias Migration Go/No-Go
+
+This runbook is mandatory before production cutover and uses the Pass 19 audit artifact format.
+
+### Run
+
+```bash
+scripts/generate_env_alias_migration_audit_report.sh
+```
+
+Expected output file:
+- `docs/reports/ENV_ALIAS_MIGRATION_AUDIT_YYYY-MM-DD.md`
+
+Create cutover ticket from template and validate it:
+
+```bash
+scripts/create_production_cutover_ticket.sh
+# Fill remaining real values (owner/build links/approvals), then validate.
+scripts/check_release_cutover_ticket_contract.sh docs/reports/PRODUCTION_CUTOVER_$(date -u +%F).md
+```
+
+CI release-ref gate:
+- For release branches/tags, CI runs `scripts/check_release_cutover_ticket_release_ref_gate.sh`.
+- Optional override for non-standard ticket path: set repo variable `RELEASE_CUTOVER_TICKET_PATH`.
+
+### Go/No-Go Criteria
+
+| Gate | GO (required) | NO-GO (block release) |
+| --- | --- | --- |
+| Artifact recency | Artifact date matches release day or was regenerated after the last release-config change. | Missing artifact or stale artifact date. |
+| Top-level statuses | `Checkpoint status: PASS` and `Allowlist guard status: PASS`. | Either status is `FAIL`. |
+| Checkpoint evidence | `Checkpoint Output` includes `Env alias migration checkpoint passed.` | Missing checkpoint-pass line or script error text. |
+| Allowlist evidence | `Allowlist Guard Output` includes `Deprecated env alias guard passed.` | Missing allowlist-pass line or alias violations reported. |
+| Milestone semantics | After `2026-06-30`, output should show freeze checkpoint active. After `2026-09-30`, checkpoint must pass with no legacy compatibility references remaining. | Any post-milestone mismatch, alias emitter hit, or legacy-reference failure reported by checkpoint script. |
+| Cutover ticket evidence | `scripts/check_release_cutover_ticket_contract.sh <ticket-path>` passes with exact dated audit artifact reference. | Missing/invalid dated artifact reference, missing `PASS` statuses, or referenced artifact file not found. |
+| Release-ref CI gate | On `release*` branches and release tags (`v*`, `release-*`), CI gate `scripts/check_release_cutover_ticket_release_ref_gate.sh` passes. | Release ref detected and concrete ticket validation fails or no ticket path can be resolved. |
+
+### Release Log Note (Required)
+
+Record the audited file and result in the release ticket/notes, for example:
+
+`docs/reports/ENV_ALIAS_MIGRATION_AUDIT_2026-03-11.md (checkpoint=PASS, allowlist=PASS)`
 
 ## Troubleshooting
 

@@ -24,8 +24,55 @@ echo "Project root: $PROJECT_ROOT"
 # CONFIGURATION
 # =============================================================================
 
-# Build flavor (default: production)
-FLAVOR="${FLAVOR:-production}"
+resolve_flavor() {
+    local raw_value="$1"
+    local normalized
+    normalized=$(echo "$raw_value" | tr '[:upper:]' '[:lower:]')
+
+    case "$normalized" in
+        dev|development)
+            echo "development"
+            ;;
+        stage|staging)
+            echo "staging"
+            ;;
+        prod|production)
+            echo "production"
+            ;;
+        *)
+            echo ""
+            ;;
+    esac
+}
+
+# Build flavor resolution:
+# 1) Canonical FLAVOR
+# 2) Legacy APP_ENV (deprecated fallback)
+# 3) Default production
+if [ -n "${FLAVOR:-}" ]; then
+    RESOLVED_FLAVOR=$(resolve_flavor "$FLAVOR")
+    if [ -z "$RESOLVED_FLAVOR" ]; then
+        echo -e "${YELLOW}Warning: Unknown FLAVOR='$FLAVOR'. Falling back to production.${NC}"
+        FLAVOR="production"
+    else
+        FLAVOR="$RESOLVED_FLAVOR"
+    fi
+
+    if [ -n "${APP_ENV:-}" ]; then
+        echo -e "${YELLOW}Warning: APP_ENV is deprecated and ignored because FLAVOR is set.${NC}"
+    fi
+elif [ -n "${APP_ENV:-}" ]; then
+    RESOLVED_FLAVOR=$(resolve_flavor "$APP_ENV")
+    if [ -z "$RESOLVED_FLAVOR" ]; then
+        echo -e "${YELLOW}Warning: Unknown APP_ENV='$APP_ENV'. Falling back to production.${NC}"
+        FLAVOR="production"
+    else
+        FLAVOR="$RESOLVED_FLAVOR"
+        echo -e "${YELLOW}Warning: APP_ENV is deprecated. Use FLAVOR instead (mapped to '$FLAVOR').${NC}"
+    fi
+else
+    FLAVOR="production"
+fi
 
 # Version from pubspec.yaml
 VERSION=$(grep 'version:' pubspec.yaml | awk '{print $2}')
@@ -154,6 +201,7 @@ show_help() {
     echo ""
     echo "Environment variables:"
     echo "  FLAVOR           Build flavor (development/staging/production)"
+    echo "  APP_ENV          Legacy flavor alias (deprecated; use FLAVOR)"
     echo "  AGORA_APP_ID     Agora App ID for video calls"
     echo ""
     echo "Examples:"

@@ -39,9 +39,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: DsSpacing.sm),
                 Text(
-                  'CrushHour ("we", "our", or "us") is committed to protecting your privacy. '
+                  'Crush is operated by CrushHour Inc. ("we", "our", or "us"). '
                   'This Privacy Policy explains how we collect, use, disclose, and safeguard '
-                  'your information when you use our mobile application.',
+                  'your information when you use the Crush mobile application.',
                   style: theme.textTheme.bodyLarge,
                 ),
                 const SizedBox(height: DsSpacing.xxl),
@@ -183,7 +183,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 // Children's Privacy
                 const _SectionHeader("Children's Privacy"),
                 const Text(
-                  'CrushHour is intended for users 18 years of age and older. We do not '
+                  'Crush is intended for users 18 years of age and older. We do not '
                   'knowingly collect information from anyone under 18. If we learn that '
                   'we have collected personal information from a child under 18, we will '
                   'delete that information immediately.',

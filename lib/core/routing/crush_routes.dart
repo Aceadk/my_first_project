@@ -1,4 +1,4 @@
-/// Centralized route path constants for the CRUSH app.
+/// Centralized route path constants for the Crush app.
 ///
 /// All route path strings are defined here so that navigation calls,
 /// redirect logic, and route definitions share a single source of truth.
@@ -59,8 +59,14 @@ class CrushRoutes {
   static const privacyPolicy = '/privacy-policy';
   static const termsOfService = '/terms-of-service';
   static const support = '/support';
+  static const supportCategoryBase = '/support/category';
+  static const supportCategory = '$supportCategoryBase/:categoryId';
   static const communityGuidelines = '/community-guidelines';
   static const productFeatures = '/product-features';
   static const pricing = '/pricing';
   static const notificationCenter = '/notifications';
+
+  static String supportCategoryPath(String categoryId) {
+    return '$supportCategoryBase/${Uri.encodeComponent(categoryId)}';
+  }
 }

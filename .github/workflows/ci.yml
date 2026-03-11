@@ -1,7 +1,8 @@
 name: CI
 on:
   push:
-    branches: [ main ]
+    branches: [ main, release, 'release/**', 'release-*' ]
+    tags: [ 'v*', 'release-*' ]
   pull_request:
     branches: [ main ]
 
@@ -94,6 +95,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify Firestore rules parity
+        run: scripts/check_firestore_rules_sync.sh
+      - name: Verify deprecated env aliases allowlist
+        run: scripts/check_deprecated_env_aliases.sh
+      - name: Verify env alias migration checkpoint
+        run: scripts/check_env_alias_migration_status.sh
+      - name: Verify production cutover ticket template contract
+        run: scripts/check_release_cutover_ticket_contract.sh
+      - name: Verify concrete cutover ticket on release refs
+        run: scripts/check_release_cutover_ticket_release_ref_gate.sh
+        env:
+          RELEASE_CUTOVER_TICKET_PATH: ${{ vars.RELEASE_CUTOVER_TICKET_PATH }}
+      - name: Test release-ref gate script behavior
+        run: scripts/test_release_cutover_ticket_release_ref_gate.sh
+      - name: Test release cutover invalid-input cases
+        run: scripts/test_release_cutover_ticket_invalid_input_cases.sh
       - name: Check for secrets in code
         run: |
           # Search for common secret patterns (fail if found)

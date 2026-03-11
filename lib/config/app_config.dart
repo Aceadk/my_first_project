@@ -1,6 +1,34 @@
 import 'package:flutter/foundation.dart';
 import 'package:crushhour/core/app_logger.dart';
 
+String resolveFlavorForEnv({
+  required String flavor,
+  required String legacyAppEnv,
+  String fallback = 'development',
+}) {
+  final normalizedFlavor = flavor.trim().toLowerCase();
+  if (normalizedFlavor == 'development' ||
+      normalizedFlavor == 'staging' ||
+      normalizedFlavor == 'production') {
+    return normalizedFlavor;
+  }
+  if (normalizedFlavor == 'dev') return 'development';
+  if (normalizedFlavor == 'prod') return 'production';
+
+  final normalizedLegacy = legacyAppEnv.trim().toLowerCase();
+  if (normalizedLegacy == 'development' || normalizedLegacy == 'dev') {
+    return 'development';
+  }
+  if (normalizedLegacy == 'staging' || normalizedLegacy == 'stage') {
+    return 'staging';
+  }
+  if (normalizedLegacy == 'production' || normalizedLegacy == 'prod') {
+    return 'production';
+  }
+
+  return fallback;
+}
+
 /// Centralized application configuration for different environments.
 /// Use --dart-define to override values at build time.
 ///
@@ -25,11 +53,18 @@ class AppConfig {
   // BUILD-TIME CONSTANTS (from --dart-define)
   // ===========================================================================
 
-  /// Current environment flavor
-  static const String flavor = String.fromEnvironment(
+  static const String _flavorRaw = String.fromEnvironment(
     'FLAVOR',
-    defaultValue: 'development',
+    defaultValue: '',
   );
+  static const String _legacyAppEnvRaw = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: '',
+  );
+
+  /// Current environment flavor
+  static String get flavor =>
+      resolveFlavorForEnv(flavor: _flavorRaw, legacyAppEnv: _legacyAppEnvRaw);
 
   /// Whether this is a production build
   static bool get isProduction => flavor == 'production';
@@ -47,7 +82,10 @@ class AppConfig {
   /// Base URL for REST API calls
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://us-central1-crushhour-dev.cloudfunctions.net',
+    defaultValue: String.fromEnvironment(
+      'CRUSH_API_BASE_URL',
+      defaultValue: 'https://us-central1-crushhour-dev.cloudfunctions.net',
+    ),
   );
 
   /// API version prefix
@@ -68,14 +106,17 @@ class AppConfig {
 
   /// Whether to use Firebase emulators
   static const bool useEmulators = bool.fromEnvironment(
-    'USE_EMULATORS',
-    defaultValue: false,
+    'USE_FIREBASE_EMULATOR',
+    defaultValue: bool.fromEnvironment('USE_EMULATORS', defaultValue: false),
   );
 
   /// Firebase emulator host (for local development)
   static const String emulatorHost = String.fromEnvironment(
-    'EMULATOR_HOST',
-    defaultValue: 'localhost',
+    'FIREBASE_EMULATOR_HOST',
+    defaultValue: String.fromEnvironment(
+      'EMULATOR_HOST',
+      defaultValue: 'localhost',
+    ),
   );
 
   /// Firebase Auth emulator port

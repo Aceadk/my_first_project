@@ -31,9 +31,42 @@ describe('profile REST validation helpers', () => {
     const canonical = getCanonicalProfilePreferences({
       preferences: { minAge: 25, maxAge: 40 },
       profile: {},
+    }, {
+      now: new Date('2026-03-10T00:00:00.000Z'),
+      legacyFallbackCutoff: new Date('2026-06-30T00:00:00.000Z'),
     });
 
     expect(canonical).to.deep.equal({ minAge: 25, maxAge: 40 });
+  });
+
+  it('returns empty preferences when legacy fallback cutoff has passed', () => {
+    const canonical = getCanonicalProfilePreferences({
+      preferences: { minAge: 25, maxAge: 40 },
+      profile: {},
+    }, {
+      now: new Date('2026-07-01T00:00:00.000Z'),
+      legacyFallbackCutoff: new Date('2026-06-30T00:00:00.000Z'),
+    });
+
+    expect(canonical).to.deep.equal({});
+  });
+
+  it('still uses nested profile.preferences even after legacy cutoff', () => {
+    const canonical = getCanonicalProfilePreferences({
+      preferences: { minAge: 30, maxAge: 45 },
+      profile: {
+        preferences: { minAge: 21, maxAge: 35, showMyAge: true },
+      },
+    }, {
+      now: new Date('2026-07-01T00:00:00.000Z'),
+      legacyFallbackCutoff: new Date('2026-06-30T00:00:00.000Z'),
+    });
+
+    expect(canonical).to.deep.equal({
+      minAge: 21,
+      maxAge: 35,
+      showMyAge: true,
+    });
   });
 
   it('rejects unsupported profile patch fields', () => {

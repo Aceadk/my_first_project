@@ -118,9 +118,9 @@ class _PricingScreenState extends State<PricingScreen> {
 
                 const SizedBox(height: DsSpacing.lg),
 
-                // Crush+ Plan
+                // Crush Plus Plan
                 _PlanCard(
-                  title: 'Crush+',
+                  title: 'Crush Plus',
                   price: _crushPlusPrice,
                   period: _periodLabel,
                   savings: _crushPlusSavings,
@@ -148,7 +148,7 @@ class _PricingScreenState extends State<PricingScreen> {
                   savings: _platinumSavings,
                   description: 'The ultimate experience',
                   features: const [
-                    'Everything in Crush+',
+                    'Everything in Crush Plus',
                     'Unlimited Super Likes',
                     '5 Boosts per month',
                     'Incognito mode',

@@ -4934,7 +4934,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingProfileLocationRationaleDescription.
   ///
   /// In en, this message translates to:
-  /// **'CRUSH uses your location to show you people nearby. Your exact location is never shared with other users.'**
+  /// **'Crush uses your location to show you people nearby. Your exact location is never shared with other users.'**
   String get onboardingProfileLocationRationaleDescription;
 
   /// No description provided for @onboardingProfileSignInRequired.

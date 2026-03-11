@@ -5,11 +5,11 @@ import 'package:flutter/foundation.dart';
 
 const bool kUseFirebaseEmulators = bool.fromEnvironment(
   'USE_FIREBASE_EMULATOR',
-  defaultValue: false,
+  defaultValue: bool.fromEnvironment('USE_EMULATORS', defaultValue: false),
 );
 const String kEmulatorHostOverride = String.fromEnvironment(
   'FIREBASE_EMULATOR_HOST',
-  defaultValue: '',
+  defaultValue: String.fromEnvironment('EMULATOR_HOST', defaultValue: ''),
 );
 const int kAuthEmulatorPort = int.fromEnvironment(
   'FIREBASE_AUTH_EMULATOR_PORT',
@@ -25,6 +25,14 @@ const int kFirestoreEmulatorPort = int.fromEnvironment(
 );
 
 bool _configured = false;
+
+String resolveEmulatorHostOverrideForEnv({
+  required String emulatorHostOverride,
+  required String legacyEmulatorHost,
+}) {
+  if (emulatorHostOverride.isNotEmpty) return emulatorHostOverride;
+  return legacyEmulatorHost;
+}
 
 Future<void> configureFirebaseEmulators() async {
   if (!kUseFirebaseEmulators || _configured) return;

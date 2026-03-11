@@ -27,9 +27,22 @@ import '../models/subscription.dart';
 import '../models/user.dart';
 
 const _uuid = Uuid();
-const _backendBaseUrl = String.fromEnvironment(
-  'CRUSH_API_BASE_URL',
-  defaultValue: 'https://api.crushhour.dev',
+String resolveBackendBaseUrlForEnv({
+  required String apiBaseUrl,
+  required String legacyApiBaseUrl,
+  String fallback = 'https://api.crushhour.dev',
+}) {
+  if (apiBaseUrl.isNotEmpty) return apiBaseUrl;
+  if (legacyApiBaseUrl.isNotEmpty) return legacyApiBaseUrl;
+  return fallback;
+}
+
+final _backendBaseUrl = resolveBackendBaseUrlForEnv(
+  apiBaseUrl: const String.fromEnvironment('API_BASE_URL', defaultValue: ''),
+  legacyApiBaseUrl: const String.fromEnvironment(
+    'CRUSH_API_BASE_URL',
+    defaultValue: '',
+  ),
 );
 
 class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {

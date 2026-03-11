@@ -84,7 +84,8 @@ class DeckScreenAppBar extends StatelessWidget implements PreferredSizeWidget {
                         const SizedBox(width: DsSpacing.xs),
                         GlassIconButton(
                           icon: Icons.auto_awesome,
-                          onPressed: () => context.push(CrushRoutes.weeklyPicks),
+                          onPressed: () =>
+                              context.push(CrushRoutes.weeklyPicks),
                           size: 40,
                         ),
                       ],

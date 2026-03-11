@@ -36,8 +36,8 @@ class TermsOfServiceScreen extends StatelessWidget {
                 Text('Terms of Service', style: theme.textTheme.displaySmall),
                 const SizedBox(height: DsSpacing.sm),
                 Text(
-                  'Welcome to CrushHour! These Terms of Service ("Terms") govern your use '
-                  'of the CrushHour mobile application ("App" or "Service") operated by '
+                  'Welcome to Crush! These Terms of Service ("Terms") govern your use '
+                  'of the Crush mobile application ("App" or "Service") operated by '
                   'CrushHour Inc. ("we", "us", or "our"). By accessing or using our App, '
                   'you agree to be bound by these Terms.',
                   style: theme.textTheme.bodyLarge,
@@ -46,7 +46,7 @@ class TermsOfServiceScreen extends StatelessWidget {
 
                 // Eligibility
                 const _SectionHeader('1. Eligibility'),
-                const Text('To use CrushHour, you must:'),
+                const Text('To use Crush, you must:'),
                 const SizedBox(height: DsSpacing.sm),
                 const _Bullet('Be at least 18 years of age'),
                 const _Bullet(
@@ -136,7 +136,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                 // Subscriptions and Payments
                 const _SectionHeader('5. Subscriptions and Payments'),
                 const Text(
-                  'CrushHour offers free and premium subscription options:',
+                  'Crush offers free and premium subscription options:',
                 ),
                 const SizedBox(height: DsSpacing.sm),
                 const _Bullet(
@@ -160,7 +160,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                 // Safety and Interactions
                 const _SectionHeader('6. Safety and Interactions'),
                 const Text(
-                  'CrushHour is a platform for connecting people. We do not:',
+                  'Crush is a platform for connecting people. We do not:',
                 ),
                 const SizedBox(height: 8),
                 const _Bullet('Conduct background checks on users'),
@@ -202,7 +202,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                 // Indemnification
                 const _SectionHeader('9. Indemnification'),
                 const Text(
-                  'You agree to indemnify and hold harmless CrushHour and its officers, '
+                  'You agree to indemnify and hold harmless CrushHour Inc. and its officers, '
                   'directors, employees, and agents from any claims, damages, losses, '
                   'or expenses arising from your use of the Service, violation of these '
                   'Terms, or infringement of any third-party rights.',
@@ -282,7 +282,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'By using CrushHour, you acknowledge that you have read, understood, '
+                  'By using Crush, you acknowledge that you have read, understood, '
                   'and agree to be bound by these Terms of Service.',
                   style: TextStyle(fontWeight: FontWeight.w500),
                 ),

@@ -249,6 +249,10 @@ List<RouteBase> _mainAppRoutes(AuthBloc authBloc) => [
       if (userId.isEmpty) {
         return buildPage(state, const HomeScreen());
       }
+      final currentUserId = authBloc.state.user?.id;
+      if (currentUserId != null && currentUserId == userId) {
+        return buildPage(state, const ProfileViewScreen());
+      }
       return buildPage(state, _UserProfileDeepLinkLoader(userId: userId));
     },
   ),
@@ -275,7 +279,7 @@ List<RouteBase> _mainAppRoutes(AuthBloc authBloc) => [
 // Deep-link loader widgets
 // ---------------------------------------------------------------------------
 
-class _ChatDeepLinkLoader extends StatelessWidget {
+class _ChatDeepLinkLoader extends StatefulWidget {
   const _ChatDeepLinkLoader({
     required this.matchId,
     required this.currentUserId,
@@ -285,10 +289,26 @@ class _ChatDeepLinkLoader extends StatelessWidget {
   final String currentUserId;
 
   @override
+  State<_ChatDeepLinkLoader> createState() => _ChatDeepLinkLoaderState();
+}
+
+class _ChatDeepLinkLoaderState extends State<_ChatDeepLinkLoader> {
+  static const _deepLinkLoadTimeout = Duration(seconds: 12);
+  late final Future<List<CrushMatch>> _matchesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _matchesFuture = context
+        .read<DiscoveryRepository>()
+        .fetchMatches(widget.currentUserId)
+        .timeout(_deepLinkLoadTimeout);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final discoveryRepo = context.read<DiscoveryRepository>();
     return FutureBuilder<List<CrushMatch>>(
-      future: discoveryRepo.fetchMatches(currentUserId),
+      future: _matchesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const _DeepLinkLoadingScaffold(message: 'Opening chat...');
@@ -300,7 +320,7 @@ class _ChatDeepLinkLoader extends StatelessWidget {
         }
         CrushMatch? match;
         try {
-          match = snapshot.data!.firstWhere((m) => m.id == matchId);
+          match = snapshot.data!.firstWhere((m) => m.id == widget.matchId);
         } catch (_) {
           match = null;
         }
@@ -309,7 +329,7 @@ class _ChatDeepLinkLoader extends StatelessWidget {
         }
         final args = ChatScreenArgs(
           matchId: match.id,
-          currentUserId: currentUserId,
+          currentUserId: widget.currentUserId,
           otherUserId: match.otherUserId,
           otherName: match.otherUserName ?? 'Someone',
           otherPhotoUrl: match.otherUserPhotoUrl,
@@ -320,16 +340,34 @@ class _ChatDeepLinkLoader extends StatelessWidget {
   }
 }
 
-class _UserProfileDeepLinkLoader extends StatelessWidget {
+class _UserProfileDeepLinkLoader extends StatefulWidget {
   const _UserProfileDeepLinkLoader({required this.userId});
 
   final String userId;
 
   @override
+  State<_UserProfileDeepLinkLoader> createState() =>
+      _UserProfileDeepLinkLoaderState();
+}
+
+class _UserProfileDeepLinkLoaderState
+    extends State<_UserProfileDeepLinkLoader> {
+  static const _deepLinkLoadTimeout = Duration(seconds: 12);
+  late final Future<Profile?> _profileFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileFuture = context
+        .read<DiscoveryRepository>()
+        .fetchProfileById(widget.userId)
+        .timeout(_deepLinkLoadTimeout, onTimeout: () => null);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final discoveryRepo = context.read<DiscoveryRepository>();
     return FutureBuilder<Profile?>(
-      future: discoveryRepo.fetchProfileById(userId),
+      future: _profileFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const _DeepLinkLoadingScaffold(message: 'Loading profile...');

@@ -480,8 +480,8 @@ class DefaultAccountActionCommands implements AccountActionCommands {
   static Future<void> _defaultShareDataExport(String filePath) async {
     await Share.shareXFiles(
       [XFile(filePath)],
-      subject: 'CrushHour Data Export',
-      text: 'Your personal data export from CrushHour',
+      subject: 'Crush Data Export',
+      text: 'Your personal data export from Crush',
     );
   }
 }

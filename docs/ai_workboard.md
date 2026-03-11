@@ -3415,3 +3415,1408 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `flutter analyze lib/presentation/screens/home/settings_screen.dart` (pass)
   - `scripts/check_ai_docs_sync.sh --files lib/presentation/screens/home/settings_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
 - Next Step: None.
+
+### T-2026-03-10-TOOLING-FLUTTER-SDK-PATH-VALIDATION
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Resolve the reported invalid `dart.flutterSdkPath` warning by validating configured SDK paths and confirming a valid Flutter SDK directory.
+- Scope: Project workspace settings validation, VS Code user settings validation, and workflow docs sync.
+- Key Changes:
+  - Confirmed project workspace setting in `.vscode/settings.json` points to a valid path:
+    - `"dart.flutterSdkPath": "/Users/ace/Development/flutter"`
+  - Confirmed VS Code user setting also points to the same valid path.
+  - Verified installed Flutter toolchain resolves from `/Users/ace/Development/flutter/bin/flutter` (Flutter 3.41.2).
+  - Searched for the reported typo path (`/Users/ace/Developmentflutter`) and identified occurrences in VS Code history/chat-session artifacts, not active settings.
+  - Updated `docs/Developer_agent_chat.md` with Task #174.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Kept this as a validation + documentation task because active configuration was already correct; no runtime/source changes were required.
+- Risks/Mitigation:
+  - No new app risk introduced.
+  - If warning persists, mitigate via VS Code cache refresh (`Reload Window` + `Dart: Restart Analysis Server`).
+- Verification:
+  - `cat .vscode/settings.json` (valid path)
+  - `cat "$HOME/Library/Application Support/Code/User/settings.json"` (valid path)
+  - `test -d /Users/ace/Development/flutter && echo valid` (pass)
+  - `flutter --version` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: None.
+
+### T-2026-03-10-OPS-WIPE-ALL-ACCOUNTS-AND-USER-DATA
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Delete all existing app/web user accounts and their user-generated Firebase data while keeping non-user project resources intact.
+- Scope: Firebase project `crush-265f7` cleanup across Auth, Firestore, Realtime Database, and Firebase Storage user-data prefixes; required workflow docs updates.
+- Key Changes:
+  - Exported Auth users pre-wipe and identified `9` accounts.
+  - Deleted user-data Firestore collections recursively (including `users`, `matches`, `message_requests`, `likes`, `swipes`, `blocks`, `reports`, `fcmTokens`, `account_*`, `auth_*`, `notification*`, `presence`, `typing`, `redeemedCodes`, `boosts`, and related user-data collections).
+  - Deleted RTDB user-data paths: `/users`, `/presence`, `/typing`, `/last_seen`, `/premium_users`, `/chat_settings`, `/message_deletion_queue`, `/matches`.
+  - Deleted Storage user-data prefixes from `gs://crush-265f7.firebasestorage.app`: `users/`, `photos/`, `chat_media/`, `chat/`, `moderation_images/`, `verification/`, `exports/`.
+  - Deleted all exported Auth UIDs using Identity Toolkit `accounts:batchDelete` (`9/9`, no errors).
+  - Updated `docs/Developer_agent_chat.md` with Task #175.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Performed targeted data-plane wipe only; did not delete project config/infrastructure resources such as rules, functions, hosting config, indexes, or non-user buckets.
+  - Verified post-wipe state with explicit Auth/Firestore/RTDB/Storage checks.
+- Risks/Mitigation:
+  - Destructive operation risk was intentional per request; mitigated by scoping deletes to user-account/user-generated data paths only.
+  - Post-operation verification confirms target paths are empty and Auth users are zero.
+- Verification:
+  - `firebase auth:export /tmp/crush_users_after.json --project crush-265f7 --format=json` -> `auth_users_after=0`
+  - Storage checks (`gsutil ls`) -> `users=0`, `photos=0`, `chat_media=0`, `chat=0`, `moderation_images=0`, `verification=0`, `exports=0`
+  - Firestore verification query -> `users/matches/likes/swipes/blocks/reports/message_requests/auth_credentials/account_deletions/notificationQueue` all `EMPTY`
+  - RTDB verification query -> `users/presence/typing/last_seen/premium_users/chat_settings/message_deletion_queue/matches` all `null`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: None.
+
+### T-2026-03-10-SETTINGS-SUPPORT-OVERFLOW-AND-CATEGORY-ANSWERS
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Fix Help & Support category card overflow and ensure category taps provide immediate, relevant answers in-app.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/support_screen.dart`, `/Users/ace/my_first_project/lib/config/support_config.dart`, workflow docs.
+- Key Changes:
+  - Updated `lib/features/settings/presentation/screens/support_screen.dart`:
+    - Replaced fixed `GridView.count` + `childAspectRatio` with responsive `GridView.builder` and adaptive `mainAxisExtent` to prevent card overflow on smaller devices and larger text scales.
+    - Added category-filter state and FAQ anchor behavior so tapping a category jumps users to the FAQ section with category-specific answers.
+    - Auto-expands the first relevant FAQ answer after category tap for immediate guidance.
+    - Added category filter banner (`Showing answers for ...`) with `Show all` reset.
+    - Added in-app fallback state for categories with no local instant answer, including Help Center CTA.
+  - Updated `lib/config/support_config.dart`:
+    - Added missing FAQ entries for `technical` and `other` categories.
+    - Added helper methods `categoryById` and `faqsForCategory`.
+    - Fixed `openHelpCenter` routing for special ids (`guidelines`, `faq`) so links resolve correctly.
+  - Updated `docs/Developer_agent_chat.md` with Task #176.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Chose in-app FAQ filtering over direct external navigation for category taps to satisfy the requirement that taps return answers immediately.
+  - Kept existing external Help Center and contact-email flows as fallback paths.
+- Risks/Mitigation:
+  - No new architecture/data-model risk introduced.
+  - Mitigated UI regression risk by using adaptive card sizing and validating with analysis/tests.
+- Verification:
+  - `dart format lib/config/support_config.dart lib/features/settings/presentation/screens/support_screen.dart` (pass)
+  - `flutter analyze lib/config/support_config.dart lib/features/settings/presentation/screens/support_screen.dart` (pass)
+  - `flutter test test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `flutter test test/support_config_and_models_hotspot_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/config/support_config.dart lib/features/settings/presentation/screens/support_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Manual on-device check with increased font size accessibility setting to validate spacing on the smallest supported viewport.
+
+### T-2026-03-10-SETTINGS-SUPPORT-CATEGORY-DETAIL-PAGE
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Add a dedicated support category detail page so each category card opens a full article view instead of filtering FAQ inline.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/support_screen.dart`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/support_category_detail_screen.dart`, `/Users/ace/my_first_project/lib/config/support_config.dart`, targeted support tests, workflow docs.
+- Key Changes:
+  - Updated `lib/features/settings/presentation/screens/support_screen.dart`:
+    - Removed category-filter state/UI flow introduced in prior iteration.
+    - Kept responsive grid overflow fix.
+    - Rewired category-card taps to open a dedicated `SupportCategoryDetailScreen`.
+  - Added `lib/features/settings/presentation/screens/support_category_detail_screen.dart`:
+    - New category-specific help page with:
+      - overview section,
+      - recommended step-by-step guidance,
+      - escalation criteria,
+      - related FAQ answers,
+      - Help Center + Email Support actions.
+  - Updated `lib/config/support_config.dart`:
+    - Added structured per-category article content (`categoryArticles`).
+    - Added `articleForCategory` helper with safe fallback.
+  - Added `test/features/settings/presentation/screens/support_category_detail_screen_test.dart`:
+    - Verifies article-section rendering and FAQ-empty fallback state.
+  - Updated `test/support_config_and_models_hotspot_test.dart`:
+    - Added article-content coverage for all categories.
+    - Added `guidelines` route assertion for support URL launching.
+  - Updated `docs/Developer_agent_chat.md` with Task #177.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Used local `MaterialPageRoute` push from support screen for fast, low-risk delivery without changing global router contract.
+  - Kept external Help Center and support email actions accessible both from list screen and detail screen.
+- Risks/Mitigation:
+  - No new architecture/data-model risk introduced.
+  - Navigation-risk kept low by limiting change to one originating screen and adding targeted widget tests.
+- Verification:
+  - `dart format lib/features/settings/presentation/screens/support_screen.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart lib/config/support_config.dart test/support_config_and_models_hotspot_test.dart test/features/settings/presentation/screens/support_category_detail_screen_test.dart` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/support_screen.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart lib/config/support_config.dart test/support_config_and_models_hotspot_test.dart test/features/settings/presentation/screens/support_category_detail_screen_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/support_category_detail_screen_test.dart` (pass)
+  - `flutter test test/support_config_and_models_hotspot_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/settings/presentation/screens/support_screen.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart lib/config/support_config.dart test/support_config_and_models_hotspot_test.dart test/features/settings/presentation/screens/support_category_detail_screen_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Optional deep-link route wiring if category detail pages should be directly addressable by URL/share links.
+
+### T-2026-03-10-SETTINGS-SUPPORT-CATEGORY-DEEPLINK-ROUTE
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Make support category detail pages router-addressable with canonical deep-link URLs and route-based navigation.
+- Scope: `/Users/ace/my_first_project/lib/core/routing/crush_routes.dart`, `/Users/ace/my_first_project/lib/core/routing/settings_routes.dart`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/support_screen.dart`, `/Users/ace/my_first_project/lib/core/routing/route_redirect.dart`, `/Users/ace/my_first_project/lib/core/routing/deep_links.dart`, targeted router/support tests, workflow docs.
+- Key Changes:
+  - Updated `lib/core/routing/crush_routes.dart`:
+    - Added `supportCategoryBase` and `supportCategory` constants.
+    - Added typed helper `supportCategoryPath(String categoryId)`.
+  - Updated `lib/core/routing/settings_routes.dart`:
+    - Registered `CrushRoutes.supportCategory` (`/support/category/:categoryId`) route.
+    - Added page builder mapping `categoryId` URL param to `SupportCategoryDetailScreen`.
+  - Updated `lib/features/settings/presentation/screens/support_screen.dart`:
+    - Replaced local `MaterialPageRoute` navigation with router navigation via `context.push(CrushRoutes.supportCategoryPath(category.id))`.
+  - Updated `lib/core/routing/route_redirect.dart`:
+    - Added `/support/category/...` to public-route allowances for onboarding/account-verification gating.
+  - Updated `lib/core/routing/deep_links.dart`:
+    - Added support-category path documentation in deep-link path list.
+  - Updated tests:
+    - `test/router_create_router_test.dart` now asserts route resolution for `/support/category/billing` -> `SupportCategoryDetailScreen`.
+    - `test/router_redirect_test.dart` now asserts support-category paths remain accessible in relevant onboarding/verification gates.
+  - Updated `docs/Developer_agent_chat.md` with Task #178.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Chose standalone top-level route (`/support/category/:categoryId`) to provide stable shareable URLs without requiring nested `/settings` context.
+  - Kept existing support list screen route unchanged (`/support`) for backward compatibility.
+- Risks/Mitigation:
+  - Routing/navigation is high-risk area; mitigated via explicit route constant, route registration, redirect-policy update, and targeted router tests.
+  - No data model or backend contract changes introduced.
+- Verification:
+  - `dart format lib/core/routing/crush_routes.dart lib/core/routing/settings_routes.dart lib/features/settings/presentation/screens/support_screen.dart lib/core/routing/route_redirect.dart lib/core/routing/deep_links.dart test/router_create_router_test.dart test/router_redirect_test.dart` (pass)
+  - `flutter analyze lib/core/routing/crush_routes.dart lib/core/routing/settings_routes.dart lib/features/settings/presentation/screens/support_screen.dart lib/core/routing/route_redirect.dart lib/core/routing/deep_links.dart test/router_create_router_test.dart test/router_redirect_test.dart` (pass)
+  - `flutter test test/router_redirect_test.dart` (pass)
+  - `flutter test test/router_create_router_test.dart --plain-name "authenticated non-onboarding routes render expected screens"` (pass)
+  - `flutter test test/features/settings/presentation/screens/support_category_detail_screen_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `flutter test test/support_config_and_models_hotspot_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/routing/crush_routes.dart lib/core/routing/settings_routes.dart lib/features/settings/presentation/screens/support_screen.dart lib/core/routing/route_redirect.dart lib/core/routing/deep_links.dart test/router_create_router_test.dart test/router_redirect_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Limitations:
+  - Full `test/router_create_router_test.dart` run has existing unrelated failures (chat deep-link pending timers and pre-existing call/profile widget-tree/provider issues). Targeted route-regression case for this change passes.
+- Next Step: Optional enhancement: add explicit `DeepLinkConfig.buildSupportCategoryLink(categoryId)` helper for article-share UX.
+
+### T-2026-03-10-SETTINGS-APPEARANCE-THEME-CARD-OVERFLOW-FIX
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Resolve Appearance & Themes card render overflow (`RIGHT OVERFLOWED BY 12 PIXELS`) seen on theme option rows.
+- Scope: `/Users/ace/my_first_project/lib/features/settings/presentation/screens/appearance_settings_screen.dart`, workflow docs.
+- Key Changes:
+  - Updated `lib/features/settings/presentation/screens/appearance_settings_screen.dart`:
+    - In `_ThemeOptionCard`, changed title layout to be width-safe on narrow cards:
+      - `Text(title)` moved inside `Expanded`
+      - Added `maxLines: 1` and `TextOverflow.ellipsis`
+    - This allows premium/applied badges to remain visible without forcing horizontal overflow.
+  - Updated `docs/Developer_agent_chat.md` with Task #179.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Chose a targeted text-layout constraint fix rather than broad card redesign to keep scope minimal and regression risk low.
+- Risks/Mitigation:
+  - No new architecture/state-management risk introduced.
+  - Mitigated UI regression risk by preserving existing card structure and validating with analysis + settings/theme tests.
+- Verification:
+  - `dart format lib/features/settings/presentation/screens/appearance_settings_screen.dart` (pass)
+  - `flutter analyze lib/features/settings/presentation/screens/appearance_settings_screen.dart` (pass)
+  - `flutter test test/features/settings/presentation/widgets/settings_sections_test.dart` (pass)
+  - `flutter test test/theme_cubit_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/settings/presentation/screens/appearance_settings_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Optional narrow-width widget regression test for `AppearanceSettingsScreen` to enforce no-overflow behavior across premium theme rows.
+
+### T-2026-03-10-PROFILE-SETUP-KEYBOARD-BOTTOM-OVERFLOW-FIX
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Resolve `BOTTOM OVERFLOWED BY 13 PIXELS` on profile setup (`Complete Your Profile`) when keyboard is open.
+- Scope: `/Users/ace/my_first_project/lib/features/profile/presentation/screens/profile_setup_screen.dart`, workflow docs.
+- Key Changes:
+  - Updated `lib/features/profile/presentation/screens/profile_setup_screen.dart`:
+    - Added resilient keyboard-visibility check via `_isKeyboardVisible` using both `MediaQuery` and `View` insets.
+    - Hid top progress summary block while keyboard is visible to reduce fixed-height pressure.
+    - Added compact spacing path for keyboard-open state.
+    - Enabled drag-to-dismiss keyboard on form scroll (`keyboardDismissBehavior: onDrag`).
+    - Updated `_buildBottomButton` to take `keyboardVisible` and fully hide bottom CTA/skip actions while typing.
+  - Updated `docs/Developer_agent_chat.md` with Task #180.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Chose a targeted, keyboard-state adaptive layout change instead of broad screen refactor to keep risk low and resolve the specific runtime overflow quickly.
+- Risks/Mitigation:
+  - UX/layout regression risk (medium) due conditional visibility of progress/CTA while typing.
+  - Mitigated by preserving normal closed-keyboard layout and validating with analyze + targeted router render test.
+  - No architecture, routing, or data-model changes introduced.
+- Verification:
+  - `dart format lib/features/profile/presentation/screens/profile_setup_screen.dart` (pass)
+  - `flutter analyze lib/features/profile/presentation/screens/profile_setup_screen.dart` (pass)
+  - `flutter test test/router_create_router_test.dart --plain-name "authenticated non-onboarding routes render expected screens"` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/features/profile/presentation/screens/profile_setup_screen.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Manual on-device check of profile setup text-field editing with keyboard open to confirm no overflow across smallest supported display heights.
+
+### T-2026-03-10-PROFILE-SETUP-KEYBOARD-REGRESSION-TEST
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Add dedicated widget regression coverage for the profile setup keyboard-open overflow fix.
+- Scope: `/Users/ace/my_first_project/test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`, workflow docs.
+- Key Changes:
+  - Added `test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`:
+    - New widget regression test that simulates keyboard-open state via `TestFlutterView.viewInsets`.
+    - Forces `MediaQuery.viewInsets` to zero to validate fallback detection via `View` insets.
+    - Asserts keyboard-sensitive fixed sections remain hidden while typing:
+      - `Start Matching` CTA hidden.
+      - `Profile Completion` summary hidden.
+    - Includes focused no-op repository/bloc test doubles and stub analytics wiring for deterministic execution.
+  - Updated `docs/Developer_agent_chat.md` with Task #181.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Selected a fallback-path regression (View insets > 0, MediaQuery insets = 0) to directly guard the keyboard detection logic added in Task #180.
+  - Chose localized widget-level verification over broad router/integration flows for speed and stability.
+- Risks/Mitigation:
+  - Test fragility risk from localization/layout variance mitigated by forcing locale (`en`) and using tablet-width test viewport.
+  - No architecture, routing, or data model changes introduced.
+- Verification:
+  - `dart format test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart` (pass)
+  - `flutter analyze test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart` (pass)
+  - `flutter test test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Optional follow-up: expand keyboard-open regression coverage to small-height + large text scale after unrelated horizontal overflow hotspots on this screen are addressed.
+
+### T-2026-03-10-WEB-PROFILE-DEEPLINK-LOADER-STUCK-FIX
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Fix web profile navigation getting stuck on `Loading profile...` when opening profile/edit flow via deep-link-style routes.
+- Scope: `/Users/ace/my_first_project/lib/core/router.dart`, `/Users/ace/my_first_project/test/router_create_router_test.dart`, workflow docs.
+- Key Changes:
+  - Updated `lib/core/router.dart`:
+    - Added self-profile shortcut in `'/user-profile/:userId'` route:
+      - If deep-link `userId` matches authenticated user id, route directly to `ProfileViewScreen`.
+    - Converted deep-link loaders from stateless to stateful, single-future execution:
+      - `_ChatDeepLinkLoader` and `_UserProfileDeepLinkLoader` now initialize fetch futures once in `initState`.
+    - Added deep-link load timeout guard (`12s`) to prevent unresolved request spinner lock.
+  - Updated `test/router_create_router_test.dart`:
+    - Added regression case:
+      - `user profile deep-link route opens ProfileViewScreen for current user id`
+    - Revalidated existing user-profile deep-link loader tests.
+  - Updated `docs/Developer_agent_chat.md` with Task #182.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Chose route-level self-profile bypass to remove unnecessary repository dependency for own profile navigation.
+  - Chose stateful one-time futures to avoid repeated deep-link refetch loops on rebuild.
+- Risks/Mitigation:
+  - Routing/navigation risk (medium): mitigated with targeted router tests covering both loader and self-profile branches.
+  - No data model/schema changes introduced.
+- Verification:
+  - `dart format lib/core/router.dart test/router_create_router_test.dart` (pass)
+  - `flutter analyze lib/core/router.dart test/router_create_router_test.dart` (pass)
+  - `flutter test test/router_create_router_test.dart --plain-name "user profile deep-link loader shows loading then error state"` (pass)
+  - `flutter test test/router_create_router_test.dart --plain-name "user profile deep-link loader renders profile when repository returns data"` (pass)
+  - `flutter test test/router_create_router_test.dart --plain-name "user profile deep-link route opens ProfileViewScreen for current user id"` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/router.dart test/router_create_router_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Optional: surface a dedicated timeout error message for stalled deep-link profile fetches.
+
+### T-2026-03-10-SUPPORT-FAQ-ANSWERS-AND-INTERACTION-UPDATE
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Populate missing support answers for the displayed Matches/Discovery and Messages/Chat questions and ensure each question row reveals its answer when tapped.
+- Scope: `/Users/ace/my_first_project/lib/config/support_config.dart`, `/Users/ace/my_first_project/lib/features/settings/presentation/screens/support_category_detail_screen.dart`, support tests, workflow docs.
+- Key Changes:
+  - Updated `lib/config/support_config.dart`:
+    - Added complete answer entries for these support questions:
+      - `How do I get more matches?`
+      - `Why am I not seeing new profiles?`
+      - `What is a Super Like?`
+      - `How do I undo a swipe?`
+      - `Why can't I send messages?`
+      - `How do I know if someone read my message?`
+      - `Can I unsend a message?`
+      - `How do I report a conversation?`
+  - Updated `lib/features/settings/presentation/screens/support_category_detail_screen.dart`:
+    - Converted to `StatefulWidget`.
+    - Added expandable FAQ rows in "Related questions" with single-expanded-item behavior.
+  - Updated `test/features/settings/presentation/screens/support_category_detail_screen_test.dart`:
+    - Added widget regression for tap-to-expand/tap-to-collapse answer behavior.
+  - Updated `test/support_config_and_models_hotspot_test.dart`:
+    - Added content guard test for required matching/messaging support questions and non-empty answers.
+  - Updated `docs/Developer_agent_chat.md` with Task #183.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Kept changes localized to support content + UI behavior to minimize risk while directly addressing missing answer coverage.
+  - Implemented one-expanded-row interaction for predictable mobile behavior and cleaner readability.
+- Risks/Mitigation:
+  - UX behavior change risk (low): mitigated via dedicated widget regression for expand/collapse interaction.
+  - Content drift risk (low): mitigated via hotspot test requiring specific questions and answers.
+  - No routing/auth/session/data-model changes introduced.
+- Verification:
+  - `dart format lib/config/support_config.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart test/features/settings/presentation/screens/support_category_detail_screen_test.dart test/support_config_and_models_hotspot_test.dart` (pass)
+  - `flutter analyze lib/config/support_config.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart test/features/settings/presentation/screens/support_category_detail_screen_test.dart test/support_config_and_models_hotspot_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/support_category_detail_screen_test.dart` (pass)
+  - `flutter test test/support_config_and_models_hotspot_test.dart --plain-name "matching and messaging help questions include populated answers"` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/config/support_config.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart test/features/settings/presentation/screens/support_category_detail_screen_test.dart test/support_config_and_models_hotspot_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Optional: add localized string coverage for newly added FAQ question/answer text if this screen should be fully translated.
+
+### T-2026-03-10-SUPPORT-CATEGORY-LABEL-ALIGNMENT
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Align support category labels/subtitles to the screenshot wording requested in follow-up.
+- Scope: `/Users/ace/my_first_project/lib/config/support_config.dart`, workflow docs.
+- Key Changes:
+  - Updated `lib/config/support_config.dart` category text:
+    - `matching`: title `Matches & Discovery`, description `Learn how matching works`
+    - `messaging`: title `Messages & Chat`, description `Messaging tips and troubleshooting`
+  - Updated `docs/Developer_agent_chat.md` with Task #184.
+  - Updated `docs/ai_workboard.md` with this entry.
+- Decisions/Handoffs:
+  - Kept change strictly copy-level (no ID/route/model changes) to avoid flow regressions.
+- Risks/Mitigation:
+  - UX copy regression risk (low): mitigated with targeted support screen/detail tests and analyzer pass.
+  - No architecture/state/routing/data-model risks introduced.
+- Verification:
+  - `dart format lib/config/support_config.dart` (pass)
+  - `flutter analyze lib/config/support_config.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart test/features/settings/presentation/screens/support_category_detail_screen_test.dart test/support_config_and_models_hotspot_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/support_category_detail_screen_test.dart` (pass)
+  - `flutter test test/support_config_and_models_hotspot_test.dart --plain-name "matching and messaging help questions include populated answers"` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/config/support_config.dart docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Optional: align remaining support category copy to a final approved content sheet if you want full visual/content parity.
+
+### T-2026-03-10-CRUSH-APP-WEB-PARITY-RESTORATION-PASS1
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed (Pass 1)
+- Goal: Execute the master parity directive across CRUSH app/web with evidence-backed mismatch detection, immediate fixes, and a structured restoration report.
+- Scope: `/Users/ace/my_first_project/lib`, `/Users/ace/my_first_project/functions`, `/Users/ace/my_first_project/firestore.rules`, `/Users/ace/my_first_project/storage.rules`, parity docs and tests.
+- Key Changes:
+  - Env/config parity fixes:
+    - `lib/data/repositories/fake_repositories.dart`
+      - Added `resolveBackendBaseUrlForEnv(...)`.
+      - Prefer `API_BASE_URL` with fallback to legacy `CRUSH_API_BASE_URL`.
+    - `lib/core/firebase_emulator.dart`
+      - Added fallback support for legacy emulator keys (`USE_EMULATORS`, `EMULATOR_HOST`) while preserving modern keys.
+      - Added `resolveEmulatorHostOverrideForEnv(...)` helper.
+  - Backend rules parity hardening:
+    - Synced `functions/firestore.rules` to canonical root `firestore.rules`.
+    - Added `scripts/check_firestore_rules_sync.sh` guard script.
+  - New parity regression tests:
+    - `test/core/firebase_emulator_env_parity_test.dart`
+    - `test/fake_repositories_env_parity_test.dart`
+  - Parity documentation/reporting:
+    - Added `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` with requested sectioned output and prioritized roadmap.
+  - Updated workflow docs:
+    - `docs/Developer_agent_chat.md` Task #185 entry.
+    - `docs/ai_workboard.md` (this entry).
+    - `docs/risk_notes.md` for newly identified parity risks.
+- Decisions/Handoffs:
+  - Prioritized drift sources that create silent parity breakage over broad UI rewrites: env keys, rules duplication, and governance/reporting.
+  - Kept fixes backward-compatible to avoid build/runtime disruption.
+  - Deferred deep-link unification and schema migration closure to dedicated pass due higher behavioral risk.
+- Risks/Mitigation:
+  - `functions/firestore.rules` drift risk: mitigated via file sync + guard script.
+  - Config-key drift risk: mitigated via compatibility fallback and regression tests.
+  - Remaining high risks (open): deep-link split and dual user-schema compatibility; tracked in `docs/risk_notes.md`.
+- Verification:
+  - `dart format lib/core/firebase_emulator.dart lib/data/repositories/fake_repositories.dart test/core/firebase_emulator_env_parity_test.dart test/fake_repositories_env_parity_test.dart` (pass)
+  - `flutter analyze lib/core/firebase_emulator.dart lib/data/repositories/fake_repositories.dart test/core/firebase_emulator_env_parity_test.dart test/fake_repositories_env_parity_test.dart` (pass)
+  - `flutter test test/core/firebase_emulator_env_parity_test.dart test/fake_repositories_env_parity_test.dart` (pass)
+  - `scripts/check_firestore_rules_sync.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/firebase_emulator.dart lib/data/repositories/fake_repositories.dart functions/firestore.rules scripts/check_firestore_rules_sync.sh test/core/firebase_emulator_env_parity_test.dart test/fake_repositories_env_parity_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 2 parity implementation for deep-link system unification and canonical user-schema migration completion (with integration tests).
+
+### T-2026-03-10-DEEPLINK-PARITY-INTEGRATION-PASS2
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity roadmap step immediately by unifying runtime deep-link handling with shared parser logic.
+- Scope: `/Users/ace/my_first_project/lib/core/deep_link_bootstrap.dart`, `/Users/ace/my_first_project/lib/core/routing/deep_links.dart`, deep-link tests, parity docs.
+- Key Changes:
+  - Updated `lib/core/deep_link_bootstrap.dart`:
+    - Added route deep-link processing using `DeepLinkConfig.parse(...)`.
+    - Added `onNavigate` callback support and router fallback navigation.
+  - Updated `lib/core/routing/deep_links.dart`:
+    - Added support for `user-profile` deep-link path segment.
+    - Added support for `/support/category/:categoryId` parsing.
+  - Updated tests:
+    - `test/core/deep_link_bootstrap_test.dart` (new navigation regression case)
+    - `test/core/routing/deep_links_test.dart` (new parser regression suite)
+  - Updated parity docs:
+    - `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` (Pass 2 updates)
+    - `docs/risk_notes.md` (`R-057` moved to Monitoring)
+  - Updated workflow docs:
+    - `docs/Developer_agent_chat.md` Task #186
+    - `docs/ai_workboard.md` (this entry)
+- Decisions/Handoffs:
+  - Chose incremental integration (bootstrap -> parser) instead of full rewrite to reduce immediate regression risk.
+  - Kept auth-email and billing callback paths intact while enabling route deep-link navigation.
+- Risks/Mitigation:
+  - Routing regression risk (medium): mitigated via targeted bootstrap/parser test coverage.
+  - Residual architecture debt remains: deep-link responsibilities still split across two modules (tracked in risk register as Monitoring).
+- Verification:
+  - `dart format lib/core/deep_link_bootstrap.dart lib/core/routing/deep_links.dart test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart` (pass)
+  - `flutter analyze lib/core/deep_link_bootstrap.dart lib/core/routing/deep_links.dart test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart` (pass)
+  - `flutter test test/core/deep_link_bootstrap_test.dart` (pass)
+  - `flutter test test/core/routing/deep_links_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/deep_link_bootstrap.dart lib/core/routing/deep_links.dart test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 3 should address canonical user-schema parity and migration enforcement.
+
+### T-2026-03-10-SCHEMA-PARITY-HARDENING-PASS3
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Reduce app/web schema drift by enforcing canonical nested user profile shape and adding migration-safe normalization.
+- Scope: `/Users/ace/my_first_project/lib/core/schema/user_document_schema.dart`, `/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/firebase_auth_repository.dart`, `/Users/ace/my_first_project/firestore.rules`, `/Users/ace/my_first_project/functions/firestore.rules`, schema tests, parity/risk docs.
+- Key Changes:
+  - Canonical schema helper hardening:
+    - Updated `lib/core/schema/user_document_schema.dart` to normalize `dateOfBirth -> birthDate` and clean nested legacy DOB keys.
+    - Added delete-intent for empty/null legacy root keys during migration cleanup.
+  - Auth repository migration integration:
+    - Updated `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart` to run schema canonicalization before parsing user data.
+    - Persist canonicalized profile + legacy key deletions asynchronously with safe merge updates.
+    - Added DOB parse fallback priority for canonical `profile.birthDate`.
+  - Rules enforcement + sync:
+    - Updated `firestore.rules` to reject legacy flat profile keys on create/update for `/users/{uid}`.
+    - Synced `functions/firestore.rules` to root canonical rules.
+  - Regression coverage:
+    - Updated `test/core/schema/user_document_schema_test.dart` with nested DOB normalization assertions.
+  - Parity governance docs:
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 1 + Pass 2 + Pass 3.
+    - Updated `docs/risk_notes.md` (`R-058` moved to Monitoring).
+    - Updated `docs/Developer_agent_chat.md` with Task #187.
+- Decisions/Handoffs:
+  - Chose migration-safe enforcement: block new legacy writes while retaining read compatibility during cleanup window.
+  - Kept canonicalization inside auth refresh/state path to normalize active users without one-time global migration risk.
+- Risks/Mitigation:
+  - Schema migration tail risk (medium): mitigated by canonicalization + write blocking; remaining read-compatibility tracked in `R-058`.
+  - Rules drift risk (low): mitigated via synced rules and guard script.
+- Verification:
+  - `dart format lib/core/schema/user_document_schema.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart test/core/schema/user_document_schema_test.dart` (pass)
+  - `flutter analyze lib/core/schema/user_document_schema.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart test/core/schema/user_document_schema_test.dart` (pass)
+  - `flutter test test/core/schema/user_document_schema_test.dart` (pass)
+  - `npm --prefix functions run build` (pass)
+  - `scripts/check_firestore_rules_sync.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/schema/user_document_schema.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart test/core/schema/user_document_schema_test.dart firestore.rules functions/firestore.rules docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 4 deep-link contract consolidation + integration coverage expansion.
+
+### T-2026-03-10-DEEPLINK-CONTRACT-CONSOLIDATION-PASS4
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Consolidate deep-link runtime ownership to a single shared contract and reduce app/web routing drift risk.
+- Scope: `/Users/ace/my_first_project/lib/core/deep_link_bootstrap.dart`, `/Users/ace/my_first_project/lib/core/routing/deep_links.dart`, deep-link tests, parity/risk workflow docs.
+- Key Changes:
+  - Consolidated deep-link route handling:
+    - Updated `lib/core/deep_link_bootstrap.dart` to delegate route deep links to `DeepLinkHandler` from `core/routing/deep_links.dart`.
+    - Added pending auth-required deep-link replay using auth status stream subscription.
+    - Added safe auth-bloc fallback for test/non-auth contexts.
+  - Reduced deep-link module coupling:
+    - Updated `lib/core/routing/deep_links.dart` to import `crush_routes.dart` directly.
+  - Regression tests:
+    - Updated `test/core/deep_link_bootstrap_test.dart` with auth-required pending-link replay scenario.
+    - Updated `test/core/routing/deep_links_test.dart` with `DeepLinkHandler` pending/replay contract tests.
+  - Governance docs:
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 4.
+    - Updated `docs/risk_notes.md` (`R-057` set to Mitigated).
+    - Updated `docs/Developer_agent_chat.md` with Task #188.
+- Decisions/Handoffs:
+  - Chose incremental consolidation through existing `DeepLinkHandler` rather than introducing a new deep-link service type to keep risk low.
+  - Kept email-link and billing callback handling in bootstrap while unifying route deep-link processing.
+- Risks/Mitigation:
+  - Deep-link ownership drift risk (previously medium) mitigated by single route deep-link contract and new regression coverage.
+  - Residual risk is primarily app-shell integration permutations; tracked in parity report next steps.
+- Verification:
+  - `dart format lib/core/deep_link_bootstrap.dart lib/core/routing/deep_links.dart test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart` (pass)
+  - `flutter analyze lib/core/deep_link_bootstrap.dart lib/core/routing/deep_links.dart test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart` (pass)
+  - `flutter test test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/deep_link_bootstrap.dart lib/core/routing/deep_links.dart test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 5 app-shell deep-link auth transition integration tests and parity matrix execution on remaining medium-risk domains.
+
+### T-2026-03-10-DEEPLINK-AUTH-TRANSITION-INTEGRATION-PASS5
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Add app-shell regression coverage for deep-link auth transition replay and harden bootstrap auth stream lifecycle binding.
+- Scope: `/Users/ace/my_first_project/lib/core/deep_link_bootstrap.dart`, `/Users/ace/my_first_project/test/core/deep_link_auth_transition_integration_test.dart`, parity/risk/workflow docs.
+- Key Changes:
+  - Deep-link bootstrap lifecycle hardening:
+    - Updated `lib/core/deep_link_bootstrap.dart` to bind auth-status stream in `didChangeDependencies` (instead of `initState`) to avoid early provider timing misses.
+  - Integration regression coverage:
+    - Added `test/core/deep_link_auth_transition_integration_test.dart` validating auth-required deep links are queued and replayed post-authentication in app-shell flow (`DeepLinkBootstrap + AuthBloc + GoRouter`).
+  - Governance docs:
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to include Pass 5.
+    - Updated `docs/risk_notes.md` `R-057` mitigation details.
+    - Updated `docs/Developer_agent_chat.md` with Task #189.
+- Decisions/Handoffs:
+  - Used a deterministic integration shell router for pending/replay contract validation while keeping full-app router expansion as a next-step coverage item.
+  - Kept changes localized to bootstrap lifecycle + tests to minimize routing regressions.
+- Risks/Mitigation:
+  - Deep-link auth replay timing risk (low): mitigated with lifecycle-safe stream binding and integration regression test.
+  - Remaining low risk: broader route permutation coverage (profile/settings/support) still pending.
+- Verification:
+  - `dart format lib/core/deep_link_bootstrap.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `flutter analyze lib/core/deep_link_bootstrap.dart lib/core/routing/deep_links.dart test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `flutter test test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/deep_link_bootstrap.dart test/core/deep_link_auth_transition_integration_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 6 expand deep-link auth-transition integration coverage to profile/settings/support routes.
+
+### T-2026-03-10-DEEPLINK-APP-SHELL-WIRING-AND-ROUTE-COVERAGE-PASS6
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Ensure app-shell deep-link route navigation is explicitly wired and extend auth-transition deep-link integration coverage across key route types.
+- Scope: `/Users/ace/my_first_project/lib/app.dart`, `/Users/ace/my_first_project/test/core/deep_link_auth_transition_integration_test.dart`, parity/risk/workflow docs.
+- Key Changes:
+  - App-shell routing wiring:
+    - Updated `lib/app.dart` to pass `onNavigate` callback into `DeepLinkBootstrap`, delegating deep-link route navigation to `_router.go(...)`.
+  - Integration coverage expansion:
+    - Updated `test/core/deep_link_auth_transition_integration_test.dart` with deterministic harness and route permutation coverage:
+      - `/chat/:matchId` (auth-required replay)
+      - `/user-profile/:userId` (auth-required replay)
+      - `/settings` (auth-required replay)
+      - `/support/category/:categoryId` (public direct navigation)
+  - Governance docs:
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 6.
+    - Updated `docs/risk_notes.md` (`R-057` mitigation detail refresh).
+    - Updated `docs/Developer_agent_chat.md` with Task #190.
+- Decisions/Handoffs:
+  - Chose explicit app-shell callback wiring rather than relying on implicit router discovery to eliminate context ambiguity.
+  - Kept integration harness deterministic to avoid flakiness from full-screen/provider-heavy route trees.
+- Risks/Mitigation:
+  - Deep-link runtime routing drop risk (low) mitigated by explicit callback wiring and expanded integration coverage.
+  - Remaining major parity risk now centered on schema migration tail (`R-058`).
+- Verification:
+  - `dart format lib/app.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `flutter analyze lib/app.dart lib/core/deep_link_bootstrap.dart lib/core/routing/deep_links.dart test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `flutter test test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/app.dart lib/core/deep_link_bootstrap.dart test/core/deep_link_auth_transition_integration_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 7 implement schema migration telemetry and deprecation cutoff plan for legacy profile read compatibility.
+
+### T-2026-03-10-SCHEMA-MIGRATION-TELEMETRY-CUTOFF-PASS7
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Reduce remaining schema migration tail risk (`R-058`) by instrumenting legacy preferences fallback usage and enforcing a configurable fallback cutoff.
+- Scope: `/Users/ace/my_first_project/functions/src/index.ts`, `/Users/ace/my_first_project/functions/test/profileRestValidation.test.js`, parity/risk/workflow docs.
+- Key Changes:
+  - Backend migration telemetry + cutoff control:
+    - Added Functions param `PROFILE_PREFERENCES_LEGACY_FALLBACK_CUTOFF` (default `2026-06-30T00:00:00.000Z`).
+    - Updated `getCanonicalProfilePreferences(...)` to:
+      - log one-time-per-user/source telemetry when legacy fallback is used (`legacy_profile_preferences_fallback_read`),
+      - stop returning legacy top-level preferences after cutoff and log (`legacy_profile_preferences_fallback_blocked_after_cutoff`),
+      - keep canonical nested `profile.preferences` as primary source always.
+    - Wired request context (`uid`, route source) from:
+      - `GET /v1/profile/me`
+      - `PATCH /v1/profile/preferences`
+      - `GET /v1/discovery/deck`
+  - Regression coverage:
+    - Updated `functions/test/profileRestValidation.test.js` with deterministic pre/post-cutoff helper tests for legacy fallback behavior.
+  - Governance docs:
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to include Pass 7.
+    - Updated `docs/risk_notes.md` (`R-058` mitigation progress + cutoff detail).
+    - Updated `docs/Developer_agent_chat.md` with Task #191.
+- Decisions/Handoffs:
+  - Implemented a configurable cutoff param instead of hard-removing fallback to allow controlled rollout.
+  - Used deduplicated structured logs for telemetry to avoid high-volume logging noise while preserving migration visibility.
+- Risks/Mitigation:
+  - Residual migration risk (low): users still on legacy shape after cutoff will receive empty fallback preferences until migrated.
+  - Mitigated by explicit telemetry, route-context logging, and configurable cutoff date.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx eslint --ext .ts src/index.ts` (pass)
+  - `cd functions && FIREBASE_CONFIG='{"databaseURL":"https://demo.firebaseio.com"}' npx mocha test/profileRestValidation.test.js --grep "top-level preferences when nested preferences are absent|legacy fallback cutoff has passed|nested profile.preferences even after legacy cutoff" --exit` (pass)
+  - `scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/profileRestValidation.test.js docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 8 remove legacy fallback path entirely after telemetry confirms sustained zero usage.
+
+### T-2026-03-10-CI-FIRESTORE-RULES-PARITY-GUARD-PASS8
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Close parity drift gap by enforcing Firestore rules file synchronization in CI on every push/PR.
+- Scope: `/Users/ace/my_first_project/.github/workflows/ci.yml`, parity/workflow docs.
+- Key Changes:
+  - CI enforcement:
+    - Updated `.github/workflows/ci.yml` (`security` job) to run `scripts/check_firestore_rules_sync.sh` as a required check step.
+    - This fails CI when `firestore.rules` and `functions/firestore.rules` diverge.
+  - Governance docs:
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` with Pass 8 progress.
+    - Updated `docs/Developer_agent_chat.md` with Task #192.
+- Decisions/Handoffs:
+  - Chose CI gating in existing `security` job to keep workflow simple and always-on without introducing another job matrix.
+  - Kept parity validation delegated to `scripts/check_firestore_rules_sync.sh` as single source of truth.
+- Risks/Mitigation:
+  - Duplicate rules maintenance drift risk reduced from medium to low by mandatory CI execution.
+  - Residual risk: human intent errors in canonical source rules still require review.
+- Verification:
+  - `scripts/check_firestore_rules_sync.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files .github/workflows/ci.yml docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 9 continue parity cleanup on copy/branding normalization across app/web shells.
+
+### T-2026-03-10-BRANDING-COPY-NORMALIZATION-PASS9
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Reduce app/web/backend branding drift by normalizing high-visibility runtime copy to `CRUSH`.
+- Scope: app/web shell titles + support copy + export copy + backend transactional copy + parity/workflow docs.
+- Key Changes:
+  - App/web shell branding:
+    - Updated `lib/app.dart` app title to `CRUSH`.
+    - Updated `web/index.html` SEO/PWA title meta to `CRUSH`.
+    - Updated `web/manifest.json` app `name`, `short_name`, and description to `CRUSH`.
+  - Support and account-action branding:
+    - Updated support app-version label and support-email subjects in:
+      - `lib/features/settings/presentation/screens/support_screen.dart`
+      - `lib/features/settings/presentation/screens/support_category_detail_screen.dart`
+    - Updated support FAQ/support-mail defaults in `lib/config/support_config.dart` (`CRUSH Plus`, `CRUSH Support Request`).
+    - Updated data-export share copy in:
+      - `lib/features/settings/data/commands/default_account_action_commands.dart`
+      - `lib/core/services/data_export_service.dart`
+  - Backend transactional copy:
+    - Updated high-visibility user-facing strings in:
+      - `functions/src/index.ts` (email subjects/body/signatures, age-gate wording, push payload labels, default sender display name)
+      - `functions/src/calls/signaling.ts` (incoming call push body)
+  - Governance docs:
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` with Pass 9 branding work.
+    - Updated `docs/Developer_agent_chat.md` with Task #193.
+- Decisions/Handoffs:
+  - Limited this pass to high-visibility runtime copy and avoided legal-text entity renames (`CrushHour Inc.`) to prevent policy/legal regressions.
+  - Deferred full localization (`.arb`) brand-string migration to a dedicated follow-up pass.
+- Risks/Mitigation:
+  - Branding drift risk reduced on primary app/web/support/runtime surfaces.
+  - Residual risk remains in legal docs/localized copy and generated localization artifacts.
+- Verification:
+  - `dart format lib/app.dart lib/features/settings/presentation/screens/support_screen.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart lib/config/support_config.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/core/services/data_export_service.dart` (pass)
+  - `flutter analyze lib/app.dart lib/features/settings/presentation/screens/support_screen.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart lib/config/support_config.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/core/services/data_export_service.dart` (pass)
+  - `flutter test test/support_config_and_models_hotspot_test.dart` (pass)
+  - `flutter test test/features/settings/presentation/screens/support_category_detail_screen_test.dart` (pass)
+  - `flutter test test/data_export_test.dart` (pass)
+  - `npm --prefix functions run build` (pass)
+  - `cd functions && npx eslint --ext .ts src/index.ts src/calls/signaling.ts` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/app.dart web/index.html web/manifest.json lib/features/settings/presentation/screens/support_screen.dart lib/features/settings/presentation/screens/support_category_detail_screen.dart lib/config/support_config.dart lib/features/settings/data/commands/default_account_action_commands.dart lib/core/services/data_export_service.dart functions/src/index.ts functions/src/calls/signaling.ts docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 10 normalize remaining legal/localization brand strings with controlled i18n regeneration and verification.
+
+### T-2026-03-10-LOCALIZATION-BRAND-NORMALIZATION-PASS10
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Normalize remaining localized brand tokens to `CRUSH` and align generated localization outputs across all supported locales.
+- Scope: `/Users/ace/my_first_project/lib/l10n/app_*.arb`, `/Users/ace/my_first_project/lib/l10n/generated/*`, parity/risk/workflow docs.
+- Key Changes:
+  - Localized ARB normalization:
+    - Updated 22 ARB locale files to normalize brand tokens from `Crush` to `CRUSH` in string values.
+    - Preserved key names and intentionally skipped noun-style `wordCrush` entries to avoid changing semantic non-brand vocabulary.
+  - L10n codegen refresh:
+    - Regenerated `lib/l10n/generated/*` using `flutter gen-l10n` to keep runtime localization code in sync with ARB changes.
+  - Governance docs:
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` with Pass 10 localization parity progress.
+    - Added `R-059` branding/localization drift monitoring entry in `docs/risk_notes.md`.
+    - Updated `docs/Developer_agent_chat.md` with Task #194.
+- Decisions/Handoffs:
+  - Chose value-level normalization over key-level changes to avoid localization API breakage.
+  - Deferred legal-entity wording changes (`CrushHour Inc.` contexts) to a separate legal-reviewed pass.
+- Risks/Mitigation:
+  - Runtime localization brand drift reduced to low.
+  - Residual risk remains in legal-policy text and explicitly non-brand `wordCrush` vocabulary keys.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `flutter analyze lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_zh.dart` (pass)
+  - `flutter test test/onboarding_google_button_layout_test.dart` (pass)
+  - `flutter test test/account_security_settings_screen_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/l10n/app_ar.arb lib/l10n/app_bn.arb lib/l10n/app_de.arb lib/l10n/app_en.arb lib/l10n/app_en_XA.arb lib/l10n/app_es.arb lib/l10n/app_fr.arb lib/l10n/app_hi.arb lib/l10n/app_id.arb lib/l10n/app_ja.arb lib/l10n/app_ko.arb lib/l10n/app_ne.arb lib/l10n/app_pt.arb lib/l10n/app_ru.arb lib/l10n/app_ta.arb lib/l10n/app_te.arb lib/l10n/app_tr.arb lib/l10n/app_ur.arb lib/l10n/app_vi.arb lib/l10n/app_yo.arb lib/l10n/app_yue.arb lib/l10n/app_zh.arb lib/l10n/generated/app_localizations.dart lib/l10n/generated/app_localizations_ar.dart lib/l10n/generated/app_localizations_bn.dart lib/l10n/generated/app_localizations_de.dart lib/l10n/generated/app_localizations_en.dart lib/l10n/generated/app_localizations_es.dart lib/l10n/generated/app_localizations_fr.dart lib/l10n/generated/app_localizations_hi.dart lib/l10n/generated/app_localizations_id.dart lib/l10n/generated/app_localizations_ja.dart lib/l10n/generated/app_localizations_ko.dart lib/l10n/generated/app_localizations_ne.dart lib/l10n/generated/app_localizations_pt.dart lib/l10n/generated/app_localizations_ru.dart lib/l10n/generated/app_localizations_ta.dart lib/l10n/generated/app_localizations_te.dart lib/l10n/generated/app_localizations_tr.dart lib/l10n/generated/app_localizations_ur.dart lib/l10n/generated/app_localizations_vi.dart lib/l10n/generated/app_localizations_yo.dart lib/l10n/generated/app_localizations_yue.dart lib/l10n/generated/app_localizations_zh.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 11 perform legal-copy branding review to decide where `CrushHour` is legal entity text vs user-facing product brand text.
+
+### T-2026-03-10-LEGAL-COPY-BRANDING-HARDENING-PASS11
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Complete legal-surface product-brand normalization while preserving legal entity wording.
+- Scope: `terms_of_service_screen.dart`, `privacy_policy_screen.dart`, `legal_config.dart`, legal-copy regression test, parity/risk/workflow docs.
+- Key Changes:
+  - Legal-copy normalization:
+    - Updated product references to `CRUSH` in:
+      - `lib/presentation/screens/terms_of_service_screen.dart`
+      - `lib/presentation/screens/privacy_policy_screen.dart`
+    - Preserved legal entity references as `CrushHour Inc.` in legal clauses.
+    - Updated legal config comment branding in:
+      - `lib/config/legal_config.dart`
+  - Regression coverage:
+    - Added dedicated widget regression test:
+      - `test/presentation/screens/legal_branding_copy_test.dart`
+    - Test asserts legal surfaces keep `CRUSH` as product name and `CrushHour Inc.` as legal entity text.
+  - Governance docs:
+    - Updated parity report and workflow logs for Pass 11.
+- Decisions/Handoffs:
+  - Kept legal-entity wording unchanged (`CrushHour Inc.`) to avoid policy/legal semantic drift.
+  - Explicitly scoped this pass to legal screens only; non-legal runtime copy still has remaining `Crush` branding tails.
+- Risks/Mitigation:
+  - Legal-surface brand/entity ambiguity risk reduced with deterministic widget coverage.
+  - Residual risk remains in broader non-legal runtime brand string drift; tracked in `R-059`.
+- Verification:
+  - `dart format test/presentation/screens/legal_branding_copy_test.dart` (pass)
+  - `flutter analyze lib/presentation/screens/terms_of_service_screen.dart lib/presentation/screens/privacy_policy_screen.dart lib/config/legal_config.dart test/presentation/screens/legal_branding_copy_test.dart` (pass)
+  - `flutter test test/presentation/screens/legal_branding_copy_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/presentation/screens/terms_of_service_screen.dart lib/presentation/screens/privacy_policy_screen.dart lib/config/legal_config.dart test/presentation/screens/legal_branding_copy_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 12 perform targeted runtime copy sweep for remaining non-legal user-facing `Crush` strings (safety/community/pricing/auth prompts) and add regression coverage for approved brand terminology.
+
+### T-2026-03-10-RUNTIME-BRANDING-COPY-SWEEP-PASS12
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Reduce remaining non-legal runtime brand-copy drift by normalizing high-traffic user-facing strings to `CRUSH`.
+- Scope: targeted app UI/runtime copy surfaces across auth/discovery/settings/safety/about/update flows, brand-regression test coverage, parity/risk/workflow docs.
+- Key Changes:
+  - Runtime copy normalization:
+    - Updated user-facing product strings to `CRUSH` / `CRUSH Plus` / `CRUSH Premium` in:
+      - `lib/presentation/widgets/plus_feature_gate.dart`
+      - `lib/presentation/screens/safety_screen.dart`
+      - `lib/presentation/screens/community_guidelines_screen.dart`
+      - `lib/presentation/screens/home/settings_screen.dart`
+      - `lib/main.dart`
+      - `lib/features/about/presentation/screens/pricing_screen.dart`
+      - `lib/features/about/presentation/screens/product_features_screen.dart`
+      - `lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart`
+      - `lib/features/discovery/presentation/screens/likes_you_screen.dart`
+      - `lib/features/settings/presentation/screens/appearance_settings_screen.dart`
+      - `lib/features/auth/presentation/bloc/biometric_cubit.dart`
+      - `lib/features/auth/presentation/widgets/biometric_prompt.dart`
+      - `lib/features/auth/presentation/screens/pin_fallback_screen.dart`
+      - `lib/features/auth/presentation/screens/email_auth_screen.dart`
+      - `lib/features/auth/presentation/screens/auth_gateway_screen.dart`
+      - `lib/core/widgets/update_dialog.dart`
+      - `lib/core/services/location_service.dart`
+      - `lib/features/chat/presentation/screens/matches_screen.dart`
+      - `lib/dev/widget_catalog/widget_catalog_screen.dart`
+  - Config default alignment:
+    - Updated SMTP sender-name defaults and docs to `CRUSH` in:
+      - `lib/core/config/env_config.dart`
+    - Updated fallback app name to `CRUSH` in:
+      - `lib/core/services/app_update_service.dart`
+  - Regression coverage:
+    - Added runtime branding regression widget tests for update-dialog default messages:
+      - `test/core/update_dialog_branding_test.dart`
+  - Governance docs:
+    - Updated parity report, risk notes, and workflow logs for Pass 12.
+- Decisions/Handoffs:
+  - Kept legal-entity wording unchanged (`CrushHour Inc.`) in legal screens.
+  - Limited this pass to explicit user-facing runtime strings; domain/type names (`CrushRoutes`, `CrushUser`, etc.) and noun-style localization keys (`wordCrush`) remain intentionally unchanged.
+- Risks/Mitigation:
+  - Non-legal runtime branding drift significantly reduced across high-traffic surfaces.
+  - Residual risk remains low for future copy regressions; mitigated with added widget coverage and risk tracking (`R-059`).
+- Verification:
+  - `dart format lib/presentation/widgets/plus_feature_gate.dart lib/presentation/screens/safety_screen.dart lib/presentation/screens/community_guidelines_screen.dart lib/presentation/screens/home/settings_screen.dart lib/main.dart lib/features/about/presentation/screens/pricing_screen.dart lib/features/about/presentation/screens/product_features_screen.dart lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart lib/features/discovery/presentation/screens/likes_you_screen.dart lib/features/settings/presentation/screens/appearance_settings_screen.dart lib/features/auth/presentation/bloc/biometric_cubit.dart lib/features/auth/presentation/widgets/biometric_prompt.dart lib/features/auth/presentation/screens/pin_fallback_screen.dart lib/features/auth/presentation/screens/email_auth_screen.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/core/widgets/update_dialog.dart lib/core/services/app_update_service.dart lib/core/services/location_service.dart lib/features/chat/presentation/screens/matches_screen.dart lib/core/config/env_config.dart lib/dev/widget_catalog/widget_catalog_screen.dart test/core/update_dialog_branding_test.dart` (pass)
+  - `flutter analyze lib/presentation/widgets/plus_feature_gate.dart lib/presentation/screens/safety_screen.dart lib/presentation/screens/community_guidelines_screen.dart lib/presentation/screens/home/settings_screen.dart lib/main.dart lib/features/about/presentation/screens/pricing_screen.dart lib/features/about/presentation/screens/product_features_screen.dart lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart lib/features/discovery/presentation/screens/likes_you_screen.dart lib/features/settings/presentation/screens/appearance_settings_screen.dart lib/features/auth/presentation/bloc/biometric_cubit.dart lib/features/auth/presentation/widgets/biometric_prompt.dart lib/features/auth/presentation/screens/pin_fallback_screen.dart lib/features/auth/presentation/screens/email_auth_screen.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/core/widgets/update_dialog.dart lib/core/services/app_update_service.dart lib/core/services/location_service.dart lib/features/chat/presentation/screens/matches_screen.dart lib/core/config/env_config.dart lib/dev/widget_catalog/widget_catalog_screen.dart test/core/update_dialog_branding_test.dart` (pass)
+  - `flutter test test/core/update_dialog_branding_test.dart test/presentation/screens/legal_branding_copy_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/presentation/widgets/plus_feature_gate.dart lib/presentation/screens/safety_screen.dart lib/presentation/screens/community_guidelines_screen.dart lib/presentation/screens/home/settings_screen.dart lib/main.dart lib/features/about/presentation/screens/pricing_screen.dart lib/features/about/presentation/screens/product_features_screen.dart lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart lib/features/discovery/presentation/screens/likes_you_screen.dart lib/features/settings/presentation/screens/appearance_settings_screen.dart lib/features/auth/presentation/bloc/biometric_cubit.dart lib/features/auth/presentation/widgets/biometric_prompt.dart lib/features/auth/presentation/screens/pin_fallback_screen.dart lib/features/auth/presentation/screens/email_auth_screen.dart lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/core/widgets/update_dialog.dart lib/core/services/app_update_service.dart lib/core/services/location_service.dart lib/features/chat/presentation/screens/matches_screen.dart lib/core/config/env_config.dart lib/dev/widget_catalog/widget_catalog_screen.dart test/core/update_dialog_branding_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 13 should align brand terminology in remaining non-localized accessibility/tooling copy and expand regression checks for onboarding/discovery premium upsell wording.
+
+### T-2026-03-10-BRAND-CASE-NORMALIZATION-CRUSH-TITLECASE
+- Date: 2026-03-10
+- Owner: Codex
+- Status: Completed
+- Goal: Apply user-requested brand style change from `CRUSH` to `Crush` across app and web user-facing runtime/localization surfaces.
+- Scope: Flutter app/web UI strings, localized ARB values, generated localization outputs, backend user-facing notification/email copy, and branding regression tests/docs.
+- Key Changes:
+  - Global brand-case normalization:
+    - Replaced standalone `CRUSH` brand tokens with `Crush` across:
+      - `lib/**` user-facing runtime strings (including legal, support, onboarding, settings, discovery, auth, update dialogs).
+      - `web/index.html`, `web/manifest.json`.
+      - `functions/src/index.ts`, `functions/src/calls/signaling.ts` user-facing email/push copy.
+      - `test/**` branding regression expectations.
+  - Localization alignment:
+    - Updated `lib/l10n/app_*.arb` brand tokens from `CRUSH` to `Crush` (including `app_zh.arb` and `app_yue.arb` contiguous-script strings).
+    - Regenerated `lib/l10n/generated/*` via `flutter gen-l10n`.
+  - Regression fixes:
+    - Updated branding regression tests to assert `Crush` presence and uppercase `CRUSH` absence where applicable:
+      - `test/core/update_dialog_branding_test.dart`
+      - `test/presentation/screens/legal_branding_copy_test.dart`
+- Decisions/Handoffs:
+  - Left operational/tokenized identifiers unchanged where case is contract-sensitive:
+    - promo codes (`CRUSH2024`, `CRUSHFREE`)
+    - legacy env key (`CRUSH_API_BASE_URL`)
+  - Preserved legal entity name `CrushHour Inc.`.
+- Risks/Mitigation:
+  - Risk of brand-case drift is low after broad replacement + l10n regeneration + regression updates.
+  - `R-059` updated to reflect `Crush` as canonical product casing.
+- Verification:
+  - `flutter gen-l10n` (pass)
+  - `git diff --name-only -- '*.dart' | xargs dart format` (pass)
+  - `git diff --name-only -- '*.dart' | xargs flutter analyze` (pass)
+  - `flutter test test/core/update_dialog_branding_test.dart test/presentation/screens/legal_branding_copy_test.dart test/support_config_and_models_hotspot_test.dart` (pass)
+  - `npm --prefix functions run build` (pass)
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md docs/risk_notes.md` (pass)
+- Next Step: Optional follow-up to align non-runtime/internal docs report language from `CRUSH` to `Crush` for documentation-only consistency.
+
+### T-2026-03-11-BRAND-REGRESSION-COVERAGE-PASS13
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Complete the next remaining parity item by expanding brand-case regression coverage across onboarding/discovery/premium prompts and contiguous-script localizations.
+- Scope: new regression test coverage + parity/workflow docs updates.
+- Key Changes:
+  - Added brand-case regression test suite:
+    - `test/brand_copy_case_regression_test.dart`
+  - Coverage added:
+    - Localization casing assertions for `en`, `zh`, and `yue` (`Crush` expected, `CRUSH` forbidden).
+    - Runtime source assertions for high-traffic onboarding/discovery/premium strings:
+      - `likes_you_screen.dart`
+      - `matches_screen.dart`
+      - `settings_screen.dart`
+      - `welcome_tutorial_overlay.dart`
+      - `appearance_settings_screen.dart`
+      - `biometric_prompt.dart`
+      - `main.dart`
+  - Governance docs:
+    - Updated parity report/workflow/risk notes for Pass 13 progress.
+- Decisions/Handoffs:
+  - Used targeted source-level assertions for runtime copy hotspots to avoid heavy widget harness dependencies while still preventing casing regressions.
+  - Kept case-sensitive operational tokens (`CRUSH2024`, `CRUSHFREE`, `CRUSH_API_BASE_URL`) unchanged by design.
+- Risks/Mitigation:
+  - Brand-case regression risk reduced further with broader automated coverage.
+  - Residual risk remains low for new future copy surfaces not yet covered.
+- Verification:
+  - `dart format test/brand_copy_case_regression_test.dart` (pass)
+  - `flutter analyze test/brand_copy_case_regression_test.dart` (pass)
+  - `flutter test test/brand_copy_case_regression_test.dart test/core/update_dialog_branding_test.dart test/presentation/screens/legal_branding_copy_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files test/brand_copy_case_regression_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue remaining parity roadmap with deep-link/auth guarded-route integration expansion and config-surface rationalization.
+
+### T-2026-03-11-GUARDED-ROUTE-DEEPLINK-INTEGRATION-PASS14
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Execute the next parity item by expanding guarded-route + deep-link auth-transition integration coverage and fixing public unauth route handling drift.
+- Scope: redirect policy (`route_redirect.dart`) + deep-link parser/integration tests + parity/workflow docs.
+- Key Changes:
+  - Redirect policy hardening:
+    - Updated `lib/core/routing/route_redirect.dart` to allow unauthenticated access for explicitly public legal/support routes:
+      - privacy policy
+      - terms of service
+      - safety/community guidelines
+      - product features/pricing
+      - support + support category detail routes
+    - Protected routes still redirect unauth users to auth gateway.
+  - Guarded-route regression coverage:
+    - Updated `test/router_redirect_test.dart`:
+      - added positive coverage for unauth access on public legal/support routes.
+      - added guard coverage that `weeklyPicks` remains protected for unauth users.
+  - Deep-link parser coverage expansion:
+    - Updated `test/core/routing/deep_links_test.dart` with new parse assertions for:
+      - `/match/:matchId` alias -> chat route (auth-required)
+      - `/premium` and `/upgrade` -> settings route (auth-required)
+      - `/verify-email` query parameter preservation and `fullPath` composition
+  - Auth-transition integration expansion:
+    - Updated `test/core/deep_link_auth_transition_integration_test.dart` with new runtime replay cases:
+      - unauth `/premium` deep link replays to `/settings` after login
+      - unauth `/match/:id` deep link replays to `/chat/:id` after login
+  - Governance docs:
+    - Updated parity report/risk/workflow logs for Pass 14.
+- Decisions/Handoffs:
+  - Introduced `isPublicUnauthRoute` instead of broadening all onboarding-public routes for unauth users, preventing accidental exposure of routes intended to stay protected.
+  - Focused this pass on route/deep-link parity behavior + test coverage, not router architecture refactors.
+- Risks/Mitigation:
+  - Reduced risk of unauth deep-link loops/misroutes for public support/legal links.
+  - Deep-link auth replay regression risk reduced via additional route permutation coverage.
+- Verification:
+  - `dart format lib/core/routing/route_redirect.dart test/router_redirect_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `flutter analyze lib/core/routing/route_redirect.dart test/router_redirect_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `flutter test test/router_redirect_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/core/routing/route_redirect.dart test/router_redirect_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue with config-surface rationalization to reduce remaining medium-risk drift from overlapping env/config entry points.
+
+### T-2026-03-11-CONFIG-SURFACE-RATIONALIZATION-PASS15
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Reduce config-surface drift by making flavor/environment resolution deterministic across `AppConfig`, `AppEnvConfig`, and legacy env-key compatibility paths.
+- Scope: `app_config.dart`, `app_env.dart`, focused env-resolution tests, and parity/workflow/risk docs.
+- Key Changes:
+  - Canonical flavor resolution:
+    - Added `resolveFlavorForEnv(...)` in `lib/config/app_config.dart`.
+    - Resolution order is now: `FLAVOR` -> legacy `APP_ENV` -> fallback `development`.
+    - Legacy aliases are normalized (`dev`/`development`, `prod`/`production`, `stage`/`staging`).
+  - App env mode rationalization:
+    - Updated `lib/core/app_env.dart` so `AppEnvConfig` derives dev/prod mode from `AppConfig.flavor`.
+    - Added `resolveAppEnvForFlavor(...)` mapping (`development` => dev, everything else => prod).
+  - Key-precedence alignment in `AppConfig`:
+    - `API_BASE_URL` now falls back to legacy `CRUSH_API_BASE_URL`.
+    - `USE_FIREBASE_EMULATOR` now falls back to legacy `USE_EMULATORS`.
+    - `FIREBASE_EMULATOR_HOST` now falls back to legacy `EMULATOR_HOST`.
+  - Regression coverage:
+    - Added `test/config/app_config_env_resolution_test.dart` for flavor precedence/normalization behavior.
+    - Added `test/core/app_env_mode_resolution_test.dart` for dev/prod mapping from resolved flavor.
+  - Governance docs:
+    - Updated parity report/risk/workflow logs for Pass 15.
+- Decisions/Handoffs:
+  - Kept legacy env keys supported as fallback to avoid breaking existing local scripts/CI while converging on a single canonical entry path.
+  - Treated only `development` as bypass-eligible mode; `staging` and `production` resolve to prod safety behavior.
+- Risks/Mitigation:
+  - Reduced medium drift risk from conflicting defaults (`FLAVOR=development` vs `APP_ENV=prod`) by unifying resolution in one source.
+  - Remaining config debt is now mostly scoped to non-overlapping secure runtime config (`EnvConfig` SMTP path) and can be handled separately.
+- Verification:
+  - `dart format lib/config/app_config.dart lib/core/app_env.dart test/config/app_config_env_resolution_test.dart test/core/app_env_mode_resolution_test.dart` (pass)
+  - `flutter analyze lib/config/app_config.dart lib/core/app_env.dart test/config/app_config_env_resolution_test.dart test/core/app_env_mode_resolution_test.dart` (pass)
+  - `flutter test test/config/app_config_env_resolution_test.dart test/core/app_env_mode_resolution_test.dart test/core/firebase_emulator_env_parity_test.dart test/fake_repositories_env_parity_test.dart` (pass)
+  - `scripts/check_ai_docs_sync.sh --files lib/config/app_config.dart lib/core/app_env.dart test/config/app_config_env_resolution_test.dart test/core/app_env_mode_resolution_test.dart docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Continue config-surface cleanup by documenting a canonical env-key matrix and deprecation timeline for remaining legacy keys across app/functions/web deployment scripts.
+
+### T-2026-03-11-CONFIG-ENV-MATRIX-DEPRECATION-PASS16
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Complete the next config-surface parity item by publishing a canonical env-key matrix and wiring migration/deprecation behavior into release operations.
+- Scope: release script flavor resolution, app `.env.example`, release guide docs, env-key matrix docs, and parity/risk/workflow docs.
+- Key Changes:
+  - Release-script compatibility hardening:
+    - Updated `scripts/build_release.sh` to normalize canonical `FLAVOR` values (`dev/development`, `stage/staging`, `prod/production`).
+    - Added legacy `APP_ENV` fallback mapping with explicit deprecation warnings.
+    - Added mismatch-safe behavior: when both keys are provided, `FLAVOR` wins and `APP_ENV` is ignored with warning.
+  - Canonical env docs:
+    - Added `docs/ENV_KEY_MATRIX.md` with:
+      - canonical keys vs legacy aliases,
+      - resolution order/source of truth,
+      - explicit deprecation timeline (`2026-06-30` migration freeze, `2026-09-30` fallback removal target).
+  - Operator docs alignment:
+    - Updated `.env.example` to canonical emulator keys (`USE_FIREBASE_EMULATOR`, `FIREBASE_EMULATOR_HOST`) and marked legacy aliases deprecated.
+    - Updated `docs/RELEASE_GUIDE.md` to reference `docs/ENV_KEY_MATRIX.md` and enforce canonical-key usage in new release commands.
+  - Governance docs:
+    - Updated parity report/risk/workflow logs for Pass 16.
+- Decisions/Handoffs:
+  - Kept runtime fallback support for legacy aliases while introducing warning surfaces and explicit cutoff dates to avoid abrupt pipeline breakage.
+  - Chose script-level compatibility bridge to protect existing operator habits during migration.
+- Risks/Mitigation:
+  - Further reduced config drift risk by standardizing key ownership and documenting a hard deprecation timeline.
+  - Residual risk remains low and operational: external pipelines must finish migration before cutoff dates.
+- Verification:
+  - `bash -n scripts/build_release.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files .env.example docs/ENV_KEY_MATRIX.md docs/RELEASE_GUIDE.md scripts/build_release.sh docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Pass 17 should add a lightweight CI/static guard that fails new references to deprecated env aliases outside the approved compatibility allowlist.
+
+### T-2026-03-11-DEPRECATED-ENV-ALIAS-CI-GUARD-PASS17
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity item by enforcing deprecated env-alias policy with a CI/static allowlist guard.
+- Scope: new env-alias guard script, CI workflow integration, env matrix/risk/report/workflow docs.
+- Key Changes:
+  - Added static guard script:
+    - `scripts/check_deprecated_env_aliases.sh`
+    - Enforces deprecated alias policy for:
+      - `APP_ENV`
+      - `CRUSH_API_BASE_URL`
+      - `USE_EMULATORS`
+      - `EMULATOR_HOST`
+    - Fails on any usage outside approved compatibility allowlist.
+    - Bash 3 compatible for local macOS execution.
+  - CI integration:
+    - Updated `.github/workflows/ci.yml` Security checks with step:
+      - `scripts/check_deprecated_env_aliases.sh`
+  - Policy docs:
+    - Updated `docs/ENV_KEY_MATRIX.md` with CI guardrail section and exclusions.
+    - Updated parity report/risk/workflow docs for Pass 17.
+- Decisions/Handoffs:
+  - Kept compatibility allowlist explicit in-script to make policy changes code-reviewed and deterministic.
+  - Excluded AI task logs (`docs/ai_workboard.md`, `docs/Developer_agent_chat.md`) from scan due intentional historical references.
+- Risks/Mitigation:
+  - Reduced risk of legacy env-key reintroduction in code/config/scripts after Pass 15/16 rationalization.
+  - Residual risk is operational migration timing in external pipelines before cutoff dates.
+- Verification:
+  - `bash -n scripts/build_release.sh` (pass)
+  - `scripts/check_deprecated_env_aliases.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files scripts/check_deprecated_env_aliases.sh .github/workflows/ci.yml .env.example docs/ENV_KEY_MATRIX.md docs/RELEASE_GUIDE.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Execute operator migration checkpoints to eliminate legacy alias usage before `2026-06-30` freeze and prepare fallback removal by `2026-09-30`.
+
+### T-2026-03-11-ENV-ALIAS-MIGRATION-CHECKPOINT-PASS18
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Add the next parity guard by automating legacy env-alias migration checkpoints for operator/release paths.
+- Scope: migration checkpoint script, CI security-step integration, policy docs/report/risk/workflow updates.
+- Key Changes:
+  - Added migration checkpoint automation:
+    - `scripts/check_env_alias_migration_status.sh`
+    - Checks:
+      - deprecated-alias allowlist guard state (`scripts/check_deprecated_env_aliases.sh`),
+      - no active legacy-alias emitters in machine-executed paths (`.github/workflows`, `scripts`),
+      - date-aware freeze/removal milestone behavior (`2026-06-30`, `2026-09-30`).
+  - CI integration:
+    - Updated `.github/workflows/ci.yml` Security checks with step:
+      - `scripts/check_env_alias_migration_status.sh`
+  - Guard compatibility update:
+    - Updated `scripts/check_deprecated_env_aliases.sh` exclusions to include migration-checkpoint policy script.
+  - Policy docs alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrails + migration checklist.
+    - Updated `docs/RELEASE_GUIDE.md` pre-release checklist with checkpoint requirement.
+    - Updated parity report/risk/workflow docs for Pass 18.
+- Decisions/Handoffs:
+  - Kept allowlist enforcement and migration checkpoint as separate scripts:
+    - allowlist guard enforces reference boundaries,
+    - migration checkpoint enforces operator/runtime emission policy and timeline semantics.
+  - Used Bash-3-compatible script logic for local macOS + CI parity.
+- Risks/Mitigation:
+  - Reduced risk that legacy aliases remain silently active in release/CI execution paths.
+  - Residual risk is now primarily external pipeline migration completion before date cutoffs.
+- Verification:
+  - `bash -n scripts/check_deprecated_env_aliases.sh` (pass)
+  - `bash -n scripts/check_env_alias_migration_status.sh` (pass)
+  - `scripts/check_deprecated_env_aliases.sh` (pass)
+  - `scripts/check_env_alias_migration_status.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files scripts/check_deprecated_env_aliases.sh scripts/check_env_alias_migration_status.sh .github/workflows/ci.yml docs/ENV_KEY_MATRIX.md docs/RELEASE_GUIDE.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Execute external deployment-pipeline migration audit and remove remaining legacy alias emitters before 2026-06-30 freeze.
+
+### T-2026-03-11-ENV-ALIAS-AUDIT-ARTIFACT-GENERATOR-PASS19
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by generating a concrete operator audit artifact for deprecated env-alias migration status.
+- Scope: audit artifact generator script, generated report output, guard exclusions, policy/release/report/risk/workflow docs.
+- Key Changes:
+  - Added audit artifact generator:
+    - `scripts/generate_env_alias_migration_audit_report.sh`
+    - Runs migration checkpoint + allowlist guard and writes dated markdown report.
+  - Generated first audit artifact:
+    - `docs/reports/ENV_ALIAS_MIGRATION_AUDIT_2026-03-11.md`
+    - Captures PASS state for checkpoint and allowlist guard outputs.
+  - Guard compatibility update:
+    - Updated `scripts/check_deprecated_env_aliases.sh` exclusions for audit-generator policy script.
+  - Policy/release docs alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` with audit-generator guardrail and checklist step.
+    - Updated `docs/RELEASE_GUIDE.md` pre-release checklist to require generated audit artifact.
+    - Updated parity report/risk/workflow docs for Pass 19.
+- Decisions/Handoffs:
+  - Kept audit generation separate from checkpoint script so CI gating and operator artifact creation remain independently executable.
+  - Used dated report naming for immutable release evidence (`ENV_ALIAS_MIGRATION_AUDIT_YYYY-MM-DD.md`).
+- Risks/Mitigation:
+  - Reduced operational ambiguity by producing persistent, auditable migration evidence instead of console-only script output.
+  - Residual risk remains external pipeline drift until migration freeze date.
+- Verification:
+  - `bash -n scripts/check_deprecated_env_aliases.sh` (pass)
+  - `bash -n scripts/check_env_alias_migration_status.sh` (pass)
+  - `bash -n scripts/generate_env_alias_migration_audit_report.sh` (pass)
+  - `scripts/check_deprecated_env_aliases.sh` (pass)
+  - `scripts/check_env_alias_migration_status.sh` (pass)
+  - `scripts/generate_env_alias_migration_audit_report.sh` (pass; generated `docs/reports/ENV_ALIAS_MIGRATION_AUDIT_2026-03-11.md`)
+  - `scripts/check_ai_docs_sync.sh --files scripts/check_deprecated_env_aliases.sh scripts/check_env_alias_migration_status.sh scripts/generate_env_alias_migration_audit_report.sh .github/workflows/ci.yml docs/ENV_KEY_MATRIX.md docs/RELEASE_GUIDE.md docs/reports/ENV_ALIAS_MIGRATION_AUDIT_2026-03-11.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add a concise operator runbook section that defines go/no-go criteria using Pass 19 audit artifact output before production release.
+
+### T-2026-03-11-ENV-ALIAS-RELEASE-RUNBOOK-GO-NOGO-PASS20
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by adding explicit operator go/no-go release criteria based on Pass 19 env-alias migration audit artifact output.
+- Scope: release runbook docs, env matrix linkage, parity/risk/workflow documentation updates.
+- Key Changes:
+  - Release runbook hardening:
+    - Updated `docs/RELEASE_GUIDE.md` with `Operator Runbook: Env Alias Migration Go/No-Go`.
+    - Added required pre-cutover execution step:
+      - `scripts/generate_env_alias_migration_audit_report.sh`
+    - Added explicit GO/NO-GO gates tied to artifact output:
+      - `Checkpoint status: PASS`
+      - `Allowlist guard status: PASS`
+      - checkpoint/allowlist pass-marker evidence lines.
+    - Added mandatory release-log note to record the exact dated artifact file used for cutover.
+  - Policy alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` Guardrails section to link to the release go/no-go runbook.
+  - Risk/report alignment:
+    - Updated `docs/risk_notes.md` (`R-060`) to include explicit runbook gate requirements.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 20 and documented runbook implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 20.
+- Decisions/Handoffs:
+  - Kept go/no-go criteria docs-only (no behavior change in guard scripts) to avoid introducing release-automation coupling during this pass.
+  - Used exact artifact field names/output markers already emitted by Pass 19 generator so operator checks stay deterministic.
+- Risks/Mitigation:
+  - Reduced release ambiguity by converting audit artifact evidence from advisory guidance into explicit production cutover gates.
+  - Residual risk remains external-pipeline migration completion before freeze/removal milestones.
+- Verification:
+  - `scripts/check_ai_docs_sync.sh --files docs/RELEASE_GUIDE.md docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add release-ticket/template enforcement so every production cutover must include the exact dated env-alias audit artifact reference.
+
+### T-2026-03-11-RELEASE-TICKET-CONTRACT-ENFORCEMENT-PASS21
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by enforcing release ticket/template requirements so every production cutover includes exact dated env-alias audit artifact evidence.
+- Scope: cutover ticket template, validation script, CI security-step wiring, release/policy/risk/report/workflow docs.
+- Key Changes:
+  - Added production cutover ticket template:
+    - `docs/PRODUCTION_CUTOVER_TICKET_TEMPLATE.md`
+    - Includes mandatory env-alias audit gate fields:
+      - `docs/reports/ENV_ALIAS_MIGRATION_AUDIT_YYYY-MM-DD.md`
+      - `Checkpoint status: PASS`
+      - `Allowlist guard status: PASS`
+  - Added contract validator:
+    - `scripts/check_release_cutover_ticket_contract.sh`
+    - Enforces:
+      - template contains required audit gate fields,
+      - concrete ticket (when provided) includes exact dated artifact path,
+      - ticket includes `PASS` statuses,
+      - referenced artifact file exists.
+  - CI integration:
+    - Updated `.github/workflows/ci.yml` Security checks with:
+      - `scripts/check_release_cutover_ticket_contract.sh`
+  - Policy/runbook alignment:
+    - Updated `docs/RELEASE_GUIDE.md` with required template-copy + ticket validation command flow and a dedicated go/no-go criterion for ticket evidence.
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrails/checklist to include cutover ticket contract validation.
+  - Risk/report alignment:
+    - Updated `docs/risk_notes.md` (`R-060`) to include ticket contract enforcement requirements.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 21 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 21.
+- Decisions/Handoffs:
+  - Added dual-mode validator behavior:
+    - no args => template contract validation (CI-safe),
+    - ticket arg => concrete cutover evidence validation (release-time gate).
+  - Kept artifact evidence in repo-relative paths to align with existing docs/report conventions.
+- Risks/Mitigation:
+  - Reduced process drift risk by converting release-ticket evidence requirements into script-validated policy.
+  - Residual risk remains operational discipline to run ticket-file validation at cutover time.
+- Verification:
+  - `bash -n scripts/check_release_cutover_ticket_contract.sh` (pass)
+  - `scripts/check_release_cutover_ticket_contract.sh` (pass; template contract)
+  - `scripts/check_release_cutover_ticket_contract.sh /tmp/PRODUCTION_CUTOVER_TEST.md` (pass; concrete ticket contract)
+  - `scripts/check_ai_docs_sync.sh --files .github/workflows/ci.yml scripts/check_release_cutover_ticket_contract.sh docs/PRODUCTION_CUTOVER_TICKET_TEMPLATE.md docs/RELEASE_GUIDE.md docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add an optional helper that scaffolds dated cutover ticket files from template with prefilled audit artifact path.
+
+### T-2026-03-11-RELEASE-TICKET-SCAFFOLD-HELPER-PASS22
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by adding a scaffold helper that generates dated production cutover ticket files with prefilled env-alias audit artifact references.
+- Scope: scaffold script, validator compatibility tweak, release/policy/risk/report/workflow docs.
+- Key Changes:
+  - Added scaffold helper:
+    - `scripts/create_production_cutover_ticket.sh`
+    - Generates `docs/reports/PRODUCTION_CUTOVER_<date>.md` from template.
+    - Prefills:
+      - cutover date (`YYYY-MM-DD`),
+      - env-alias audit artifact path (`docs/reports/ENV_ALIAS_MIGRATION_AUDIT_<date>.md`),
+      - audit artifact evidence link field.
+    - Supports optional date/output arguments and refuses overwrite of existing files.
+  - Runbook alignment:
+    - Updated `docs/RELEASE_GUIDE.md` runbook command block to use scaffold helper before ticket contract validation.
+  - Validator compatibility update:
+    - Updated `scripts/check_release_cutover_ticket_contract.sh` to accept both `PASS` and `` `PASS` `` status formats in concrete tickets.
+  - Policy/risk/report alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrails/checklist with scaffold-helper step.
+    - Updated `docs/risk_notes.md` (`R-060`) mitigation with helper usage to reduce manual entry drift.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 22 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 22.
+- Decisions/Handoffs:
+  - Kept helper independent from validator:
+    - helper creates deterministic scaffold output,
+    - existing validator remains the enforcement gate.
+  - Used UTC date (`date -u +%F`) as default to match ticket field wording (`Cutover date (UTC)`).
+- Risks/Mitigation:
+  - Reduced operator error risk from manual copy/paste/date substitution in cutover tickets.
+  - Residual risk remains release-time discipline to complete remaining ticket metadata and run validation.
+- Verification:
+  - `bash -n scripts/create_production_cutover_ticket.sh` (pass)
+  - `bash -n scripts/check_release_cutover_ticket_contract.sh` (pass)
+  - `scripts/create_production_cutover_ticket.sh 2026-03-11 /tmp/PRODUCTION_CUTOVER_SCAFFOLD_TEST_1773213753.md` (pass)
+  - `scripts/check_release_cutover_ticket_contract.sh /tmp/PRODUCTION_CUTOVER_SCAFFOLD_TEST_1773213753.md` (pass)
+  - `scripts/check_ai_docs_sync.sh --files scripts/create_production_cutover_ticket.sh scripts/check_release_cutover_ticket_contract.sh docs/RELEASE_GUIDE.md docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add a stricter release-branch/tag gate that requires concrete cutover ticket validation in CI (not only template contract).
+
+### T-2026-03-11-RELEASE-REF-CONCRETE-TICKET-CI-GATE-PASS23
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by enforcing concrete cutover ticket validation for release branches/tags in CI.
+- Scope: release-ref CI gate script, CI trigger/step updates, release/policy/risk/report/workflow docs.
+- Key Changes:
+  - Added release-ref gate script:
+    - `scripts/check_release_cutover_ticket_release_ref_gate.sh`
+    - Behavior:
+      - skips on non-release refs,
+      - on release refs validates concrete cutover ticket via `scripts/check_release_cutover_ticket_contract.sh`,
+      - supports `RELEASE_CUTOVER_TICKET_PATH` override,
+      - falls back to latest `docs/reports/PRODUCTION_CUTOVER_*.md` if override not set.
+  - CI integration:
+    - Updated `.github/workflows/ci.yml`:
+      - Push triggers now include release branches/tags:
+        - branches: `release`, `release/**`, `release-*`
+        - tags: `v*`, `release-*`
+      - Security job now runs:
+        - `scripts/check_release_cutover_ticket_release_ref_gate.sh`
+  - Runbook/policy/risk/report alignment:
+    - Updated `docs/RELEASE_GUIDE.md` with release-ref gate behavior and go/no-go criterion.
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrails/checklist with release-ref gate entry.
+    - Updated `docs/risk_notes.md` (`R-060`) to include release-ref concrete-ticket CI mitigation.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 23 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 23.
+- Decisions/Handoffs:
+  - Kept template contract and concrete release-ref gate separate:
+    - template contract remains always-on in CI,
+    - concrete ticket validation activates only for release refs.
+  - Release-ref matching intentionally broad for tags (`refs/tags/*`) inside script while workflow triggers focus on release-oriented tag patterns (`v*`, `release-*`).
+- Risks/Mitigation:
+  - Reduced risk of release cutovers proceeding with only template-level checks and no concrete ticket evidence.
+  - Residual risk remains release-process discipline for setting explicit `RELEASE_CUTOVER_TICKET_PATH` when non-standard ticket naming is used.
+- Verification:
+  - `bash -n scripts/check_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `GITHUB_REF=refs/heads/main scripts/check_release_cutover_ticket_release_ref_gate.sh` (pass; skip non-release ref)
+  - `GITHUB_REF=refs/heads/release/test RELEASE_CUTOVER_TICKET_PATH=/tmp/PRODUCTION_CUTOVER_RELEASE_GATE_TEST_1773215034.md scripts/check_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `GITHUB_REF=refs/tags/v1.2.3 RELEASE_CUTOVER_TICKET_PATH=/tmp/PRODUCTION_CUTOVER_RELEASE_GATE_TEST_1773215034.md scripts/check_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files .github/workflows/ci.yml scripts/check_release_cutover_ticket_release_ref_gate.sh docs/RELEASE_GUIDE.md docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add script-level tests for release-ref matching and ticket-path resolution edge cases.
+
+### T-2026-03-11-RELEASE-REF-GATE-SCRIPT-TESTS-PASS24
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by adding targeted script tests for release-ref matching and ticket-path resolution behavior in the concrete ticket gate.
+- Scope: release-ref gate test harness script, CI security-step update, policy/risk/report/workflow docs.
+- Key Changes:
+  - Added release-ref gate regression test harness:
+    - `scripts/test_release_cutover_ticket_release_ref_gate.sh`
+    - Covers:
+      - non-release ref skip behavior,
+      - release branch and release tag pass behavior with explicit ticket path override,
+      - fallback latest-ticket path resolution (`docs/reports/PRODUCTION_CUTOVER_*.md`),
+      - invalid override path failure behavior.
+  - CI integration:
+    - Updated `.github/workflows/ci.yml` Security checks with:
+      - `scripts/test_release_cutover_ticket_release_ref_gate.sh`
+  - Policy/risk/report alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrails with release-ref gate regression test script.
+    - Updated `docs/risk_notes.md` (`R-060`) mitigation to keep release-ref gate regression tests green in CI.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 24 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 24.
+- Decisions/Handoffs:
+  - Kept tests as a standalone shell script to validate script behavior end-to-end without introducing language/toolchain overhead.
+  - Reused existing scaffold + contract scripts in test setup to avoid duplicated fixture semantics.
+- Risks/Mitigation:
+  - Reduced regression risk in release-ref gate semantics (ref classification/path resolution) by turning previously manual checks into deterministic CI coverage.
+  - Residual risk remains around untested edge cases in scaffold/contract scripts (invalid date/overwrite/missing artifact patterns).
+- Verification:
+  - `bash -n scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files .github/workflows/ci.yml scripts/test_release_cutover_ticket_release_ref_gate.sh docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add script-level tests for `create_production_cutover_ticket.sh` and `check_release_cutover_ticket_contract.sh` invalid-input edge cases.
+
+### T-2026-03-11-CUTOVER-SCRIPT-INVALID-INPUT-TESTS-PASS25
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by adding invalid-input edge-case tests for cutover scaffold/contract scripts.
+- Scope: invalid-input test harness script, CI security-step update, policy/risk/report/workflow docs.
+- Key Changes:
+  - Added invalid-input regression test harness:
+    - `scripts/test_release_cutover_ticket_invalid_input_cases.sh`
+    - Covers:
+      - scaffold script failures:
+        - too many args,
+        - invalid date format,
+        - output already exists.
+      - contract script failures:
+        - too many args,
+        - missing ticket path,
+        - missing artifact reference,
+        - missing required status field.
+  - CI integration:
+    - Updated `.github/workflows/ci.yml` Security checks with:
+      - `scripts/test_release_cutover_ticket_invalid_input_cases.sh`
+  - Policy/risk/report alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrails with invalid-input test script.
+    - Updated `docs/risk_notes.md` (`R-060`) mitigation with invalid-input regression-test requirement.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 25 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 25.
+- Decisions/Handoffs:
+  - Kept invalid-input tests in a separate script from release-ref gate tests to preserve targeted failure diagnostics.
+  - Reused existing scaffold script for valid fixture setup so negative tests run against realistic ticket structure.
+- Risks/Mitigation:
+  - Reduced regression risk for script-level guardrails by making error-path behavior executable and CI-enforced.
+  - Residual risk remains for a narrow branch where release-ref gate fallback finds no ticket files (covered as next-step).
+- Verification:
+  - `bash -n scripts/test_release_cutover_ticket_invalid_input_cases.sh` (pass)
+  - `scripts/test_release_cutover_ticket_invalid_input_cases.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files .github/workflows/ci.yml scripts/test_release_cutover_ticket_invalid_input_cases.sh docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add regression coverage for release-ref gate behavior when no concrete `PRODUCTION_CUTOVER_*.md` files are resolvable.
+
+### T-2026-03-11-RELEASE-REF-NO-TICKET-FALLBACK-COVERAGE-PASS26
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by adding deterministic regression coverage for release-ref gate behavior when no concrete cutover ticket files are resolvable.
+- Scope: release-ref gate script fallback resolution tweak, release-ref gate tests, policy/risk/report/workflow docs.
+- Key Changes:
+  - Release-ref gate script enhancement:
+    - Updated `scripts/check_release_cutover_ticket_release_ref_gate.sh` with optional fallback glob override:
+      - `RELEASE_CUTOVER_TICKET_GLOB`
+    - Preserved existing path override precedence:
+      - `RELEASE_CUTOVER_TICKET_PATH` remains highest precedence.
+  - Regression test expansion:
+    - Updated `scripts/test_release_cutover_ticket_release_ref_gate.sh` with explicit failure-path case:
+      - release ref + empty fallback glob => fails with no-concrete-ticket error.
+  - Policy/risk/report alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` to document fallback-glob override support for deterministic testing.
+    - Updated `docs/risk_notes.md` (`R-060`) with explicit fallback-no-ticket regression coverage note.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 26 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 26.
+- Decisions/Handoffs:
+  - Added `RELEASE_CUTOVER_TICKET_GLOB` as a narrow, test-oriented override to avoid brittle repository-state assumptions in script tests.
+  - Kept release operations unchanged for normal usage: default fallback remains `docs/reports/PRODUCTION_CUTOVER_*.md`.
+- Risks/Mitigation:
+  - Reduced blind-spot risk where release-ref gate fallback behavior could regress silently when no ticket files are present.
+  - Residual risk remains around untested precedence edge cases when both path and glob overrides are simultaneously set.
+- Verification:
+  - `bash -n scripts/check_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `bash -n scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files scripts/check_release_cutover_ticket_release_ref_gate.sh scripts/test_release_cutover_ticket_release_ref_gate.sh docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add release-ref gate regression coverage for `GITHUB_REF` unset and explicit override-precedence behavior (`RELEASE_CUTOVER_TICKET_PATH` vs `RELEASE_CUTOVER_TICKET_GLOB`).
+
+### T-2026-03-11-RELEASE-REF-UNSET-PRECEDENCE-COVERAGE-PASS27
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by adding release-ref gate regression coverage for `GITHUB_REF` unset behavior and explicit path-vs-glob precedence.
+- Scope: release-ref gate test harness expansion, policy/risk/report/workflow docs.
+- Key Changes:
+  - Release-ref gate test expansion:
+    - Updated `scripts/test_release_cutover_ticket_release_ref_gate.sh` to cover:
+      - `GITHUB_REF` unset skip behavior,
+      - explicit override precedence (`RELEASE_CUTOVER_TICKET_PATH` wins over `RELEASE_CUTOVER_TICKET_GLOB`).
+  - Policy/risk/report alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrail notes with unset-ref + precedence coverage.
+    - Updated `docs/risk_notes.md` (`R-060`) mitigation notes with unset-ref + precedence coverage.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 27 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 27.
+- Decisions/Handoffs:
+  - Kept this pass test-focused (no CI wiring changes required) because release-ref gate tests are already enforced in Security checks.
+  - Used empty-glob fallback path in precedence scenario to prove path override behavior deterministically.
+- Risks/Mitigation:
+  - Reduced regression risk around release-ref gate control-flow edges (unset-ref handling and override precedence semantics).
+  - Residual risk remains an untested edge where path override is invalid while glob fallback would otherwise resolve.
+- Verification:
+  - `bash -n scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files scripts/test_release_cutover_ticket_release_ref_gate.sh docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add regression coverage for path-precedence failure semantics (invalid `RELEASE_CUTOVER_TICKET_PATH` while `RELEASE_CUTOVER_TICKET_GLOB` resolves valid tickets).
+
+### T-2026-03-11-RELEASE-REF-PRECEDENCE-FAILURE-SEMANTICS-PASS28
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by adding regression coverage for path-precedence failure semantics (invalid explicit path must still fail even if glob fallback resolves valid tickets).
+- Scope: release-ref gate test harness expansion, policy/risk/report/workflow docs.
+- Key Changes:
+  - Release-ref gate test expansion:
+    - Updated `scripts/test_release_cutover_ticket_release_ref_gate.sh` with explicit failure-semantics case:
+      - `RELEASE_CUTOVER_TICKET_PATH` invalid,
+      - `RELEASE_CUTOVER_TICKET_GLOB` resolves valid ticket,
+      - gate still fails due path precedence.
+  - Policy/risk/report alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrail notes with path-precedence failure-semantics coverage.
+    - Updated `docs/risk_notes.md` (`R-060`) mitigation notes with failure-semantics coverage requirement.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 28 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 28.
+- Decisions/Handoffs:
+  - Kept this pass test-only because gate behavior already encoded precedence correctly; only missing proof coverage was added.
+  - Reused deterministic temp ticket fixtures to avoid coupling assertions to repository ticket state.
+- Risks/Mitigation:
+  - Reduced regression risk where future script edits might accidentally fall back to glob when explicit path is invalid.
+  - Residual risk remains around branch/tag classification edge patterns not yet explicitly asserted.
+- Verification:
+  - `bash -n scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files scripts/test_release_cutover_ticket_release_ref_gate.sh docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Add release-ref gate regression coverage for branch/tag classification edge patterns (`refs/heads/release-*` and non-release near-matches).

@@ -51,6 +51,32 @@ service cloud.firestore {
       return type in ['text', 'image', 'video', 'voice', 'gift', 'audio'];
     }
 
+    // Legacy flat profile keys kept for migration compatibility reads only.
+    // New client writes must use nested profile.* fields.
+    function legacyFlatProfileKeys() {
+      return [
+        'name', 'lastName', 'age', 'gender', 'sexualOrientation',
+        'birthDate', 'dateOfBirth', 'lastDobChangeAt', 'lastNameChangeAt', 'bio',
+        'photoUrls', 'videoUrls', 'primaryPhotoIndex', 'interests',
+        'country', 'city', 'latitude', 'longitude', 'livingIn', 'isVerified',
+        'heightCm', 'relationshipGoals', 'languages', 'zodiacSign',
+        'educationLevel', 'familyPlans', 'personalityType', 'religion',
+        'workout', 'socialMedia', 'sleepingHabits', 'smoking', 'drinking',
+        'pets', 'favoriteSongs', 'favoriteSinger', 'jobTitle', 'company',
+        'school', 'preferences', 'privacySettings', 'favourites'
+      ];
+    }
+
+    function hasLegacyFlatProfileDataOnCreate() {
+      return request.resource.data.keys().hasAny(legacyFlatProfileKeys());
+    }
+
+    function introducesOrMutatesLegacyFlatProfileData() {
+      let diff = request.resource.data.diff(resource.data);
+      return diff.addedKeys().hasAny(legacyFlatProfileKeys())
+          || diff.changedKeys().hasAny(legacyFlatProfileKeys());
+    }
+
     // USERS
     match /users/{uid} {
       // Owner can always read their own profile
@@ -72,7 +98,8 @@ service cloud.firestore {
             ));
 
       // Allow owner to create their own document during onboarding
-      allow create: if isOwner(uid);
+      allow create: if isOwner(uid)
+        && !hasLegacyFlatProfileDataOnCreate();
 
       // Owner can update their own document, but cannot change protected fields.
       // These fields can only be changed by admin/backend (Cloud Functions).
@@ -88,7 +115,8 @@ service cloud.firestore {
             || request.resource.data.profile.photoUrls.size() <= 9)
         && (!('profile' in request.resource.data)
             || !('interests' in request.resource.data.profile)
-            || request.resource.data.profile.interests.size() <= 20);
+            || request.resource.data.profile.interests.size() <= 20)
+        && !introducesOrMutatesLegacyFlatProfileData();
 
       // No client deletes; handled via admin.
       allow delete: if false;

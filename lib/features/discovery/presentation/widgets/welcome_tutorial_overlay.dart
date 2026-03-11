@@ -119,7 +119,7 @@ class _WelcomeTutorialOverlayState extends State<WelcomeTutorialOverlay>
                             children: [
                               // Title
                               Text(
-                                'Welcome to CRUSH!',
+                                'Welcome to Crush!',
                                 style: Theme.of(context).textTheme.headlineSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.bold,

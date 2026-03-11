@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:crushhour/core/routing/crush_routes.dart';
 import 'package:crushhour/core/deep_link_bootstrap.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
@@ -16,6 +17,9 @@ void main() {
     Future<String?> Function(String)? secureStorageRead,
     void Function(AuthEvent event)? onAuthEvent,
     void Function(SubscriptionEvent event)? onSubscriptionEvent,
+    void Function(String route, {Object? extra})? onNavigate,
+    bool Function()? isAuthenticated,
+    Stream<bool>? authStatusStream,
     bool isWebOverride = true,
   }) async {
     await tester.pumpWidget(
@@ -27,6 +31,9 @@ void main() {
           secureStorageRead: secureStorageRead,
           onAuthEvent: onAuthEvent,
           onSubscriptionEvent: onSubscriptionEvent,
+          onNavigate: onNavigate,
+          isAuthenticated: isAuthenticated,
+          authStatusStream: authStatusStream,
           isWebOverride: isWebOverride,
           child: const SizedBox.shrink(),
         ),
@@ -66,7 +73,9 @@ void main() {
       tester,
     ) async {
       final authEvents = <AuthEvent>[];
-      final deepLink = Uri.parse('https://example.com/verify_email?oobCode=abc');
+      final deepLink = Uri.parse(
+        'https://example.com/verify_email?oobCode=abc',
+      );
 
       await pumpBootstrap(
         tester,
@@ -108,7 +117,9 @@ void main() {
       tester,
     ) async {
       final subscriptionEvents = <SubscriptionEvent>[];
-      final deepLink = Uri.parse('https://checkout.example.com/callback?status=ok');
+      final deepLink = Uri.parse(
+        'https://checkout.example.com/callback?status=ok',
+      );
 
       await pumpBootstrap(
         tester,
@@ -121,7 +132,51 @@ void main() {
       expect(subscriptionEvents.single, isA<SubscriptionRestoreRequested>());
     });
 
-    testWidgets('subscribes to runtime uri stream when not web', (tester) async {
+    testWidgets('navigates for supported app deep links', (tester) async {
+      final navigatedRoutes = <String>[];
+      final deepLink = Uri.parse('https://crushhour.app/chat/match_123');
+
+      await pumpBootstrap(
+        tester,
+        getInitialLink: () async => deepLink,
+        isEmailSignInLink: (_) => false,
+        onNavigate: (route, {extra}) => navigatedRoutes.add(route),
+      );
+
+      expect(navigatedRoutes, contains('/chat/match_123'));
+    });
+
+    testWidgets('queues auth-required deep links until authenticated', (
+      tester,
+    ) async {
+      final authStateController = StreamController<bool>.broadcast();
+      final navigatedRoutes = <String>[];
+      var isAuthenticated = false;
+      final deepLink = Uri.parse('https://crushhour.app/chat/match_456');
+
+      await pumpBootstrap(
+        tester,
+        getInitialLink: () async => deepLink,
+        isEmailSignInLink: (_) => false,
+        onNavigate: (route, {extra}) => navigatedRoutes.add(route),
+        isAuthenticated: () => isAuthenticated,
+        authStatusStream: authStateController.stream,
+      );
+
+      expect(navigatedRoutes.first, CrushRoutes.authGateway);
+      expect(navigatedRoutes, isNot(contains('/chat/match_456')));
+
+      isAuthenticated = true;
+      authStateController.add(true);
+      await tester.pump();
+
+      expect(navigatedRoutes, contains('/chat/match_456'));
+      await authStateController.close();
+    });
+
+    testWidgets('subscribes to runtime uri stream when not web', (
+      tester,
+    ) async {
       final controller = StreamController<Uri?>.broadcast();
       final authEvents = <AuthEvent>[];
 
@@ -135,7 +190,9 @@ void main() {
       );
 
       controller.add(
-        Uri.parse('https://example.com/verify-email?email=stream%40example.com'),
+        Uri.parse(
+          'https://example.com/verify-email?email=stream%40example.com',
+        ),
       );
       await tester.pump();
 
@@ -146,7 +203,9 @@ void main() {
       await controller.close();
     });
 
-    testWidgets('does not subscribe to runtime uri stream on web', (tester) async {
+    testWidgets('does not subscribe to runtime uri stream on web', (
+      tester,
+    ) async {
       final controller = StreamController<Uri?>.broadcast();
       final authEvents = <AuthEvent>[];
 
@@ -160,7 +219,9 @@ void main() {
       );
 
       controller.add(
-        Uri.parse('https://example.com/verify-email?email=ignored%40example.com'),
+        Uri.parse(
+          'https://example.com/verify-email?email=ignored%40example.com',
+        ),
       );
       await tester.pump();
 

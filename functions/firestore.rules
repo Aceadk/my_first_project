@@ -10,93 +10,342 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
-    // Read-only profiles for now
+    // Check if viewer is blocked by target user
+    function isBlockedBy(targetUid) {
+      return exists(/databases/$(database)/documents/blocks/$(targetUid + '_' + request.auth.uid));
+    }
+
+    // Check if viewer has blocked target user
+    function hasBlocked(targetUid) {
+      return exists(/databases/$(database)/documents/blocks/$(request.auth.uid + '_' + targetUid));
+    }
+
+    // Check if either user has blocked the other
+    function hasBlockRelationship(uid) {
+      return isBlockedBy(uid) || hasBlocked(uid);
+    }
+
+    // Check if current user has Crush Plus subscription
+    function isPremium() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.plan == 'plus';
+    }
+
+    // Check if user is female (for stories posting)
+    // Handles both nested (mobile: profile.gender) and flat (web: gender) structures
+    function isFemale() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return ('profile' in userData && userData.profile.gender == 'female')
+          || (!('profile' in userData) && userData.gender == 'female');
+    }
+
+    // Check if current user has a verified account (email or phone)
+    function isAccountVerified() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return userData.isEmailVerified == true
+          || userData.emailVerifiedViaOtp == true
+          || ('phoneNumber' in userData && userData.phoneNumber != null);
+    }
+
+    // Validate message type is an allowed value
+    function isValidMessageType(type) {
+      return type in ['text', 'image', 'video', 'voice', 'gift', 'audio'];
+    }
+
+    // Legacy flat profile keys kept for migration compatibility reads only.
+    // New client writes must use nested profile.* fields.
+    function legacyFlatProfileKeys() {
+      return [
+        'name', 'lastName', 'age', 'gender', 'sexualOrientation',
+        'birthDate', 'dateOfBirth', 'lastDobChangeAt', 'lastNameChangeAt', 'bio',
+        'photoUrls', 'videoUrls', 'primaryPhotoIndex', 'interests',
+        'country', 'city', 'latitude', 'longitude', 'livingIn', 'isVerified',
+        'heightCm', 'relationshipGoals', 'languages', 'zodiacSign',
+        'educationLevel', 'familyPlans', 'personalityType', 'religion',
+        'workout', 'socialMedia', 'sleepingHabits', 'smoking', 'drinking',
+        'pets', 'favoriteSongs', 'favoriteSinger', 'jobTitle', 'company',
+        'school', 'preferences', 'privacySettings', 'favourites'
+      ];
+    }
+
+    function hasLegacyFlatProfileDataOnCreate() {
+      return request.resource.data.keys().hasAny(legacyFlatProfileKeys());
+    }
+
+    function introducesOrMutatesLegacyFlatProfileData() {
+      let diff = request.resource.data.diff(resource.data);
+      return diff.addedKeys().hasAny(legacyFlatProfileKeys())
+          || diff.changedKeys().hasAny(legacyFlatProfileKeys());
+    }
+
+    // USERS
     match /users/{uid} {
-      allow read: if isSignedIn();
+      // Owner can always read their own profile
+      // Other users can read if:
+      // 1. They are signed in
+      // 2. Neither party has blocked the other
+      // 3. Target user's privacy settings allow visibility (or they are matched)
+      allow read: if isOwner(uid)
+        || (isSignedIn()
+            && !hasBlockRelationship(uid)
+            && (
+              // Profile is visible (not hidden)
+              // Handle both nested (mobile) and flat (web) user document structures
+              !('profile' in resource.data)
+              || !('privacySettings' in resource.data.profile)
+              || resource.data.profile.privacySettings.isProfileVisible != false
+              // OR viewer is a match (check if match exists between users)
+              || exists(/databases/$(database)/documents/matches/$(request.auth.uid < uid ? request.auth.uid + '_' + uid : uid + '_' + request.auth.uid))
+            ));
 
-      // Users can update their profile, but not plan or isIdVerified
+      // Allow owner to create their own document during onboarding
+      allow create: if isOwner(uid)
+        && !hasLegacyFlatProfileDataOnCreate();
+
+      // Owner can update their own document, but cannot change protected fields.
+      // These fields can only be changed by admin/backend (Cloud Functions).
+      // Array sizes are bounded to prevent storage abuse.
       allow update: if isOwner(uid)
-        && request.resource.data.plan == resource.data.plan
-        && request.resource.data.isIdVerified == resource.data.isIdVerified;
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'plan', 'isIdVerified', 'stripeCustomerId', 'stripeSubscriptionId',
+          'isEmailVerified', 'emailVerified', 'createdAt', 'kycVerificationStatus'
+        ])
+        // Bound array sizes to prevent abuse
+        && (!('profile' in request.resource.data)
+            || !('photoUrls' in request.resource.data.profile)
+            || request.resource.data.profile.photoUrls.size() <= 9)
+        && (!('profile' in request.resource.data)
+            || !('interests' in request.resource.data.profile)
+            || request.resource.data.profile.interests.size() <= 20)
+        && !introducesOrMutatesLegacyFlatProfileData();
 
-      // Users should not create themselves; server does that
-      allow create: if false;
+      // No client deletes; handled via admin.
       allow delete: if false;
-
-      // FCM tokens subcollection - users can manage their own tokens
-      match /fcmTokens/{tokenId} {
-        allow read, write: if isOwner(uid);
-      }
     }
 
-    // Likes: only the liker can create; no updates
-    match /likes/{likeId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.fromUserId == request.auth.uid;
-      allow update, delete: if false;
+    // USERNAME INDEX (server only)
+    match /usernames/{username} {
+      allow read, write: if false;
     }
 
-    // Matches: only server (Cloud Functions) should write
+    // AUTH SECURITY COLLECTIONS (server only)
+    match /auth_email_otps/{otpId} {
+      allow read, write: if false;
+    }
+
+    match /auth_rate_limits/{key} {
+      allow read, write: if false;
+    }
+
+    match /auth_audit_logs/{logId} {
+      allow read, write: if false;
+    }
+
+    // MATCHES
     match /matches/{matchId} {
+      // Only participants can read if match is active and no blocks exist.
       allow read: if isSignedIn()
-        && resource.data.userIds.hasAny([request.auth.uid]);
+        && resource.data.userIds.hasAny([request.auth.uid])
+        && resource.data.status == 'active';
 
-      // Client cannot create/update/delete matches directly
+      // Created/updated/deleted only via backend (Cloud Functions/Admin).
       allow create, update, delete: if false;
 
-      // Messages subcollection
+      // MESSAGES subcollection
+      // Messages auto-delete based on user retention settings:
+      // - Free users: 1 hour after read (default) or 24 hours (if extended enabled)
+      // - Plus users: 7 days after read
+      // Each user sees messages based on their own retention, enforced via visibleTo array
       match /messages/{messageId} {
-        allow read: if isSignedIn()
-          && get(/databases/$(database)/documents/matches/$(matchId))
-            .data.userIds.hasAny([request.auth.uid]);
+        // Helper to get the match document data
+        function getMatchData() {
+          return get(/databases/$(database)/documents/matches/$(matchId)).data;
+        }
 
+        // Validate participant can access chat:
+        // 1. User is a participant
+        // 2. Match is active (not unmatched)
+        // 3. Neither user has blocked the other
+        function canAccessChat() {
+          let matchData = getMatchData();
+          let otherUid = matchData.userIds[0] == request.auth.uid
+            ? matchData.userIds[1]
+            : matchData.userIds[0];
+          return matchData.userIds.hasAny([request.auth.uid])
+            && matchData.status == 'active'
+            && !hasBlockRelationship(otherUid);
+        }
+
+        // Check if message is still visible to current user
+        // Messages have visibleTo array managed by Cloud Functions based on retention
+        function isMessageVisible() {
+          // If visibleTo doesn't exist (legacy), allow access
+          // Otherwise, user must be in the visibleTo array
+          return !('visibleTo' in resource.data) || resource.data.visibleTo.hasAny([request.auth.uid]);
+        }
+
+        // Only participants can read if:
+        // 1. Match is active and no blocks
+        // 2. Message is still visible to this user (not expired based on their retention)
+        allow read: if isSignedIn() && canAccessChat() && isMessageVisible();
+
+        // Allow create if:
+        // 1. Both participants are in the match
+        // 2. Match is active, neither user blocked the other
+        // 3. Sender's fromUserId matches auth uid
+        // 4. Both users are ID verified
+        // 5. Sender has a verified account (email or phone)
+        // 6. Message type is valid
+        // 7. Content length is within limits (if text)
+        // 8. Video messages require Crush Plus (premium)
+        // 9. Must include visibleTo array with both participants
         allow create: if isSignedIn()
-          && get(/databases/$(database)/documents/matches/$(matchId))
-            .data.userIds.hasAll([request.auth.uid, request.resource.data.toUserId])
-          // both must be ID-verified
+          && canAccessChat()
+          // Sender must match authenticated user
+          && request.resource.data.fromUserId == request.auth.uid
+          && getMatchData().userIds.hasAll(
+              [request.auth.uid, request.resource.data.toUserId]
+            )
+          // Both users must be ID verified
           && get(/databases/$(database)/documents/users/$(request.auth.uid))
             .data.isIdVerified == true
           && get(/databases/$(database)/documents/users/$(request.resource.data.toUserId))
-            .data.isIdVerified == true;
+            .data.isIdVerified == true
+          // Sender must have verified account (email or phone)
+          && isAccountVerified()
+          // Validate message type
+          && isValidMessageType(request.resource.data.type)
+          // Validate content length for text messages (max 5000 chars)
+          && (!('content' in request.resource.data) || request.resource.data.content.size() <= 5000)
+          // Video messages are premium-only (cost savings)
+          && (request.resource.data.type != 'video' || isPremium())
+          // Must include visibleTo with both participants for retention tracking
+          && request.resource.data.visibleTo.hasAll(getMatchData().userIds);
 
-        // Only receiver can set isRead=true on their messages
+        // Allow receiver to mark message as read.
+        // This triggers retention countdown via Cloud Function.
         allow update: if isSignedIn()
+          && canAccessChat()
           && resource.data.toUserId == request.auth.uid
           && request.resource.data.diff(resource.data).changedKeys()
-            .hasOnly(['isRead'])
+            .hasOnly(['isRead', 'readAt'])
           && request.resource.data.isRead == true;
 
+        // No client deletes; handled via Cloud Function based on retention.
         allow delete: if false;
       }
     }
 
-    // Reports: any signed-in user can create a report
-    match /reports/{reportId} {
+    // MESSAGE REQUESTS (pre-match)
+    match /message_requests/{requestId} {
+      function otherUserId() {
+        return resource.data.fromUserId == request.auth.uid
+          ? resource.data.toUserId
+          : resource.data.fromUserId;
+      }
+
+      // Participants can read their own requests if no blocks exist.
+      allow read: if isSignedIn()
+        && (resource.data.fromUserId == request.auth.uid
+            || resource.data.toUserId == request.auth.uid)
+        && !hasBlockRelationship(otherUserId());
+
+      // Only sender can create, with block checks.
       allow create: if isSignedIn()
-        && request.resource.data.reporterId == request.auth.uid;
-      allow read, update, delete: if false;
+        && request.resource.data.fromUserId == request.auth.uid
+        && request.resource.data.toUserId != request.auth.uid
+        && !hasBlockRelationship(request.resource.data.toUserId);
+
+      // Allow participants to delete (migration/expiration cleanup).
+      allow delete: if isSignedIn()
+        && (resource.data.fromUserId == request.auth.uid
+            || resource.data.toUserId == request.auth.uid);
+
+      allow update: if false;
     }
 
-    // Blocks: any signed-in user can block another
-    match /blocks/{blockId} {
+    // Likes: only creator can write; everyone signed-in can read.
+    match /likes/{likeId} {
+      allow read: if isSignedIn();
       allow create: if isSignedIn()
-        && request.resource.data.blockerId == request.auth.uid;
-      allow read: if isSignedIn()
-        && resource.data.blockerId == request.auth.uid;
+        && request.resource.data.fromUserId == request.auth.uid
+        // Cannot like yourself
+        && request.resource.data.toUserId != request.auth.uid
+        // Must have required fields
+        && 'toUserId' in request.resource.data;
       allow update, delete: if false;
     }
 
-    // Pre-match pairs
-    match /preMatchPairs/{pairId} {
-      // Only functions should write preMatchPairs
-      allow read: if isSignedIn();
-      allow create, update, delete: if false;
+    // Reports: reporter can create; no client reads/updates/deletes.
+    match /reports/{reportId} {
+      allow read: if false;
+      allow create: if isSignedIn()
+        && request.resource.data.reporterId == request.auth.uid
+        // Cannot report yourself
+        && request.resource.data.reportedId != request.auth.uid
+        // Must have required fields
+        && 'reportedId' in request.resource.data
+        && 'reason' in request.resource.data
+        // Reason must not be empty and within limits
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 1000;
+      allow update, delete: if false;
+    }
 
-      match /requests/{reqId} {
-        allow read: if isSignedIn();
-        allow create, update, delete: if false;
-      }
+    // Blocks: blocker can create; no client reads/updates/deletes.
+    match /blocks/{blockId} {
+      allow read: if false;
+      allow create: if isSignedIn()
+        && request.resource.data.blockerId == request.auth.uid
+        // Cannot block yourself
+        && request.resource.data.blockedId != request.auth.uid
+        // Must have required field
+        && 'blockedId' in request.resource.data;
+      allow update, delete: if false;
+    }
+
+    // STORIES (Premium + Female users only can post)
+    match /stories/{storyId} {
+      // Anyone signed in can read stories (with privacy checks handled in queries)
+      allow read: if isSignedIn();
+
+      // Only premium users OR female users can create stories
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && (isPremium() || isFemale());
+
+      // Owner can delete their own stories
+      allow delete: if isOwner(resource.data.userId);
+
+      // No updates (stories are immutable)
+      allow update: if false;
+    }
+
+    // CALLS (Premium only)
+    match /calls/{callId} {
+      // Participants can read their calls
+      allow read: if isSignedIn()
+        && resource.data.participants.hasAny([request.auth.uid]);
+
+      // Only premium users can initiate calls
+      allow create: if isSignedIn()
+        && request.resource.data.callerId == request.auth.uid
+        && isPremium();
+
+      // Participants can update call status (answer, end)
+      allow update: if isSignedIn()
+        && resource.data.participants.hasAny([request.auth.uid]);
+
+      allow delete: if false;
+    }
+
+    // PRESENCE (Firestore fallback - RTDB is preferred for cost)
+    match /presence/{uid} {
+      // Owner can always read/write their own presence
+      allow read, write: if isOwner(uid);
+
+      // Others can only read if they are premium
+      allow read: if isSignedIn() && isPremium();
     }
   }
 }

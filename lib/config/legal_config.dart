@@ -3,7 +3,7 @@
 class LegalConfig {
   LegalConfig._();
 
-  /// Base URL for the CrushHour website
+  /// Base URL for the Crush website
   static const String baseUrl = 'https://crushhour.app';
 
   /// Privacy Policy web URL (required for App Store/Play Store)

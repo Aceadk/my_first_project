@@ -2734,7 +2734,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get onboardingProfileLocationRationaleDescription =>
-      'CRUSH uses your location to show you people nearby. Your exact location is never shared with other users.';
+      'Crush uses your location to show you people nearby. Your exact location is never shared with other users.';
 
   @override
   String get onboardingProfileSignInRequired =>
