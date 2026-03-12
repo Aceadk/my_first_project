@@ -30,25 +30,25 @@ void main() {
   // SUBSCRIPTION PLAN ENUM + EXTENSIONS
   // ===========================================================================
 
-  group('SubscriptionPlan', () {
+  group('SubscriptionTier', () {
     test('free plan isFree returns true', () {
-      expect(SubscriptionPlan.free.isFree, isTrue);
+      expect(SubscriptionTier.free.isFree, isTrue);
     });
 
     test('free plan isPlus returns false', () {
-      expect(SubscriptionPlan.free.isPlus, isFalse);
+      expect(SubscriptionTier.free.isPlus, isFalse);
     });
 
     test('plus plan isPlus returns true', () {
-      expect(SubscriptionPlan.plus.isPlus, isTrue);
+      expect(SubscriptionTier.plus.isPlus, isTrue);
     });
 
     test('plus plan isFree returns false', () {
-      expect(SubscriptionPlan.plus.isFree, isFalse);
+      expect(SubscriptionTier.plus.isFree, isFalse);
     });
 
     test('enum has exactly two values', () {
-      expect(SubscriptionPlan.values.length, 2);
+      expect(SubscriptionTier.values.length, 2);
     });
   });
 
@@ -58,8 +58,8 @@ void main() {
 
   group('SubscriptionStatus', () {
     test('creates with required plan only', () {
-      final status = SubscriptionStatus(plan: SubscriptionPlan.free);
-      expect(status.plan, SubscriptionPlan.free);
+      final status = SubscriptionStatus(tier: SubscriptionTier.free);
+      expect(status.tier, SubscriptionTier.free);
       expect(status.status, isNull);
       expect(status.nextRenewal, isNull);
       expect(status.cancelAtPeriodEnd, isFalse);
@@ -68,26 +68,26 @@ void main() {
     test('creates with all fields', () {
       final renewal = DateTime(2026, 12, 31);
       final status = SubscriptionStatus(
-        plan: SubscriptionPlan.plus,
+        tier: SubscriptionTier.plus,
         status: 'active',
         nextRenewal: renewal,
         cancelAtPeriodEnd: false,
       );
 
-      expect(status.plan, SubscriptionPlan.plus);
+      expect(status.tier, SubscriptionTier.plus);
       expect(status.status, 'active');
       expect(status.nextRenewal, renewal);
       expect(status.cancelAtPeriodEnd, isFalse);
     });
 
     test('cancelAtPeriodEnd defaults to false', () {
-      final status = SubscriptionStatus(plan: SubscriptionPlan.plus);
+      final status = SubscriptionStatus(tier: SubscriptionTier.plus);
       expect(status.cancelAtPeriodEnd, isFalse);
     });
 
     test('canceled status with cancelAtPeriodEnd', () {
       final status = SubscriptionStatus(
-        plan: SubscriptionPlan.plus,
+        tier: SubscriptionTier.plus,
         status: 'canceled',
         cancelAtPeriodEnd: true,
       );
@@ -103,8 +103,8 @@ void main() {
 
   group('SubscriptionState', () {
     test('default state has free plan', () {
-      const state = SubscriptionState(plan: SubscriptionPlan.free);
-      expect(state.plan, SubscriptionPlan.free);
+      const state = SubscriptionState(tier: SubscriptionTier.free);
+      expect(state.tier, SubscriptionTier.free);
       expect(state.isCheckoutInProgress, isFalse);
       expect(state.errorMessage, isNull);
       expect(state.isRestoring, isFalse);
@@ -114,30 +114,30 @@ void main() {
     });
 
     test('copyWith changes plan only', () {
-      const state = SubscriptionState(plan: SubscriptionPlan.free);
-      final updated = state.copyWith(plan: SubscriptionPlan.plus);
+      const state = SubscriptionState(tier: SubscriptionTier.free);
+      final updated = state.copyWith(tier: SubscriptionTier.plus);
 
-      expect(updated.plan, SubscriptionPlan.plus);
+      expect(updated.tier, SubscriptionTier.plus);
       expect(updated.isCheckoutInProgress, isFalse);
       expect(updated.errorMessage, isNull);
     });
 
     test('copyWith preserves existing values when not specified', () {
       const state = SubscriptionState(
-        plan: SubscriptionPlan.plus,
+        tier: SubscriptionTier.plus,
         statusLabel: 'active',
         isCheckoutInProgress: true,
       );
       final updated = state.copyWith(isCheckoutInProgress: false);
 
-      expect(updated.plan, SubscriptionPlan.plus);
+      expect(updated.tier, SubscriptionTier.plus);
       expect(updated.statusLabel, 'active');
       expect(updated.isCheckoutInProgress, isFalse);
     });
 
     test('copyWith can set errorMessage to null', () {
       const state = SubscriptionState(
-        plan: SubscriptionPlan.free,
+        tier: SubscriptionTier.free,
         errorMessage: 'some error',
       );
       final updated = state.copyWith(errorMessage: null);
@@ -147,7 +147,7 @@ void main() {
 
     test('copyWith can set nextRenewal to null', () {
       final state = SubscriptionState(
-        plan: SubscriptionPlan.plus,
+        tier: SubscriptionTier.plus,
         nextRenewal: DateTime(2026, 12, 31),
       );
       final updated = state.copyWith(nextRenewal: null);
@@ -156,15 +156,15 @@ void main() {
     });
 
     test('equatable comparison works for same values', () {
-      const state1 = SubscriptionState(plan: SubscriptionPlan.free);
-      const state2 = SubscriptionState(plan: SubscriptionPlan.free);
+      const state1 = SubscriptionState(tier: SubscriptionTier.free);
+      const state2 = SubscriptionState(tier: SubscriptionTier.free);
 
       expect(state1, equals(state2));
     });
 
-    test('equatable comparison detects different plans', () {
-      const state1 = SubscriptionState(plan: SubscriptionPlan.free);
-      const state2 = SubscriptionState(plan: SubscriptionPlan.plus);
+    test('equatable comparison detects different tiers', () {
+      const state1 = SubscriptionState(tier: SubscriptionTier.free);
+      const state2 = SubscriptionState(tier: SubscriptionTier.plus);
 
       expect(state1, isNot(equals(state2)));
     });
@@ -253,10 +253,10 @@ void main() {
         isEmailVerified: false,
         isPhoneVerified: true,
         isIdVerified: false,
-        plan: SubscriptionPlan.free,
+        tier: SubscriptionTier.free,
       );
-      expect(user.plan.isFree, isTrue);
-      expect(user.plan.isPlus, isFalse);
+      expect(user.tier.isFree, isTrue);
+      expect(user.tier.isPlus, isFalse);
     });
 
     test('plus user has plus plan', () {
@@ -266,10 +266,10 @@ void main() {
         isEmailVerified: true,
         isPhoneVerified: true,
         isIdVerified: true,
-        plan: SubscriptionPlan.plus,
+        tier: SubscriptionTier.plus,
       );
-      expect(user.plan.isPlus, isTrue);
-      expect(user.plan.isFree, isFalse);
+      expect(user.tier.isPlus, isTrue);
+      expect(user.tier.isFree, isFalse);
     });
 
     test('copyWith can upgrade from free to plus', () {
@@ -279,11 +279,11 @@ void main() {
         isEmailVerified: true,
         isPhoneVerified: true,
         isIdVerified: false,
-        plan: SubscriptionPlan.free,
+        tier: SubscriptionTier.free,
       );
 
-      final plusUser = freeUser.copyWith(plan: SubscriptionPlan.plus);
-      expect(plusUser.plan.isPlus, isTrue);
+      final plusUser = freeUser.copyWith(tier: SubscriptionTier.plus);
+      expect(plusUser.tier.isPlus, isTrue);
       expect(plusUser.id, 'u1');
       expect(plusUser.phoneNumber, '+1');
     });
@@ -295,11 +295,11 @@ void main() {
         isEmailVerified: true,
         isPhoneVerified: true,
         isIdVerified: true,
-        plan: SubscriptionPlan.plus,
+        tier: SubscriptionTier.plus,
       );
 
-      final freeUser = plusUser.copyWith(plan: SubscriptionPlan.free);
-      expect(freeUser.plan.isFree, isTrue);
+      final freeUser = plusUser.copyWith(tier: SubscriptionTier.free);
+      expect(freeUser.tier.isFree, isTrue);
     });
   });
 
@@ -314,17 +314,17 @@ void main() {
         subscriptionRepository: _StubSubscriptionRepository(),
       );
 
-      expect(bloc.state.plan, SubscriptionPlan.free);
+      expect(bloc.state.tier, SubscriptionTier.free);
 
-      bloc.add(SubscriptionPlanUpdated(SubscriptionPlan.plus));
+      bloc.add(SubscriptionTierUpdated(SubscriptionTier.plus));
 
       await expectLater(
         bloc.stream,
         emits(
           isA<SubscriptionState>().having(
-            (s) => s.plan,
+            (s) => s.tier,
             'plan',
-            SubscriptionPlan.plus,
+            SubscriptionTier.plus,
           ),
         ),
       );
@@ -333,28 +333,28 @@ void main() {
     });
 
     test('downgrade from plus to free emits correct state', () async {
-      final planController = StreamController<SubscriptionPlan>.broadcast();
+      final planController = StreamController<SubscriptionTier>.broadcast();
       final bloc = SubscriptionBloc(
         authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(
-          planStreamController: planController,
+          tierStreamController: planController,
         ),
       );
 
       // Upgrade first
-      bloc.add(SubscriptionPlanUpdated(SubscriptionPlan.plus));
+      bloc.add(SubscriptionTierUpdated(SubscriptionTier.plus));
       await Future.delayed(const Duration(milliseconds: 50));
 
       // Then downgrade
-      bloc.add(SubscriptionPlanUpdated(SubscriptionPlan.free));
+      bloc.add(SubscriptionTierUpdated(SubscriptionTier.free));
 
       await expectLater(
         bloc.stream,
         emits(
           isA<SubscriptionState>().having(
-            (s) => s.plan,
+            (s) => s.tier,
             'plan',
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
         ),
       );
@@ -373,7 +373,7 @@ void main() {
       bloc.add(
         SubscriptionStatusUpdated(
           SubscriptionStatus(
-            plan: SubscriptionPlan.plus,
+            tier: SubscriptionTier.plus,
             status: 'active',
             nextRenewal: renewal,
             cancelAtPeriodEnd: false,
@@ -385,7 +385,7 @@ void main() {
         bloc.stream,
         emits(
           isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.plus)
+              .having((s) => s.tier, 'plan', SubscriptionTier.plus)
               .having((s) => s.statusLabel, 'status', 'active')
               .having((s) => s.nextRenewal, 'renewal', renewal)
               .having((s) => s.cancelAtPeriodEnd, 'cancel', false)
@@ -405,7 +405,7 @@ void main() {
       // First upgrade
       bloc.add(
         SubscriptionStatusUpdated(
-          SubscriptionStatus(plan: SubscriptionPlan.plus, status: 'active'),
+          SubscriptionStatus(tier: SubscriptionTier.plus, status: 'active'),
         ),
       );
       await Future.delayed(const Duration(milliseconds: 50));
@@ -413,7 +413,7 @@ void main() {
       // Then expire
       bloc.add(
         SubscriptionStatusUpdated(
-          SubscriptionStatus(plan: SubscriptionPlan.free, status: 'expired'),
+          SubscriptionStatus(tier: SubscriptionTier.free, status: 'expired'),
         ),
       );
 
@@ -421,7 +421,7 @@ void main() {
         bloc.stream,
         emits(
           isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.free)
+              .having((s) => s.tier, 'plan', SubscriptionTier.free)
               .having((s) => s.statusLabel, 'status', 'expired'),
         ),
       );
@@ -430,11 +430,11 @@ void main() {
     });
 
     test('plan watch stream delivers updates to bloc', () async {
-      final planController = StreamController<SubscriptionPlan>.broadcast();
+      final planController = StreamController<SubscriptionTier>.broadcast();
       final bloc = SubscriptionBloc(
         authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(
-          planStreamController: planController,
+          tierStreamController: planController,
         ),
       );
 
@@ -442,29 +442,29 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       // Simulate server-side plan change
-      planController.add(SubscriptionPlan.plus);
+      planController.add(SubscriptionTier.plus);
 
       await expectLater(
         bloc.stream,
         emits(
           isA<SubscriptionState>().having(
-            (s) => s.plan,
+            (s) => s.tier,
             'plan',
-            SubscriptionPlan.plus,
+            SubscriptionTier.plus,
           ),
         ),
       );
 
       // Simulate cancellation
-      planController.add(SubscriptionPlan.free);
+      planController.add(SubscriptionTier.free);
 
       await expectLater(
         bloc.stream,
         emits(
           isA<SubscriptionState>().having(
-            (s) => s.plan,
+            (s) => s.tier,
             'plan',
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
         ),
       );
@@ -481,13 +481,13 @@ void main() {
         ),
       );
 
-      bloc.add(PlusCheckoutRequested());
+      bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
 
       await expectLater(
         bloc.stream,
         emitsThrough(
           isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.free)
+              .having((s) => s.tier, 'plan', SubscriptionTier.free)
               .having((s) => s.isCheckoutInProgress, 'progress', false)
               .having((s) => s.errorMessage, 'error', isNotNull),
         ),
@@ -510,7 +510,7 @@ void main() {
         bloc.stream,
         emitsThrough(
           isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.free)
+              .having((s) => s.tier, 'plan', SubscriptionTier.free)
               .having((s) => s.isRestoring, 'restoring', false)
               .having((s) => s.errorMessage, 'error', isNotNull),
         ),
@@ -524,7 +524,7 @@ void main() {
         authRepository: NoopAuthRepository(),
         subscriptionRepository: _StubSubscriptionRepository(
           statusToRestore: SubscriptionStatus(
-            plan: SubscriptionPlan.plus,
+            tier: SubscriptionTier.plus,
             status: 'active',
             nextRenewal: DateTime(2026, 12, 31),
           ),
@@ -537,7 +537,7 @@ void main() {
         bloc.stream,
         emitsThrough(
           isA<SubscriptionState>()
-              .having((s) => s.plan, 'plan', SubscriptionPlan.plus)
+              .having((s) => s.tier, 'plan', SubscriptionTier.plus)
               .having((s) => s.statusLabel, 'status', 'active')
               .having((s) => s.isRestoring, 'restoring', false),
         ),
@@ -554,30 +554,30 @@ void main() {
 
 class _StubSubscriptionRepository implements SubscriptionRepository {
   _StubSubscriptionRepository({
-    this.planStreamController,
+    this.tierStreamController,
     this.shouldFailCheckout = false,
     this.shouldFailRestore = false,
     this.statusToRestore,
   });
 
-  final StreamController<SubscriptionPlan>? planStreamController;
+  final StreamController<SubscriptionTier>? tierStreamController;
   final bool shouldFailCheckout;
   final bool shouldFailRestore;
   final SubscriptionStatus? statusToRestore;
 
   @override
-  Stream<SubscriptionPlan> watchPlan() {
-    if (planStreamController != null) {
-      return planStreamController!.stream;
+  Stream<SubscriptionTier> watchPlan() {
+    if (tierStreamController != null) {
+      return tierStreamController!.stream;
     }
-    return Stream.value(SubscriptionPlan.free);
+    return Stream.value(SubscriptionTier.free);
   }
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => SubscriptionPlan.free;
+  Future<SubscriptionTier> getCurrentPlan() async => SubscriptionTier.free;
 
   @override
-  Future<String> startPlusCheckout() async {
+  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async {
     if (shouldFailCheckout) {
       throw Exception('Checkout failed');
     }
@@ -588,7 +588,7 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
-  Future<void> purchasePlusPlan() async {
+  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {
     if (shouldFailCheckout) {
       throw Exception('Checkout failed');
     }
@@ -599,7 +599,7 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
     if (shouldFailRestore) {
       throw Exception('Failed to restore subscription');
     }
-    return statusToRestore ?? SubscriptionStatus(plan: SubscriptionPlan.free);
+    return statusToRestore ?? SubscriptionStatus(tier: SubscriptionTier.free);
   }
 
   @override

@@ -15,8 +15,8 @@ void main() {
       final repo = StubSubscriptionRepository();
       addTearDown(repo.dispose);
 
-      final plan = await repo.getCurrentPlan();
-      expect(plan, SubscriptionPlan.free);
+      final tier = await repo.getCurrentPlan();
+      expect(tier, SubscriptionTier.free);
     });
 
     test('watchPlan emits plus after purchase', () async {
@@ -25,10 +25,10 @@ void main() {
 
       final expected = expectLater(
         repo.watchPlan(),
-        emitsThrough(SubscriptionPlan.plus),
+        emitsThrough(SubscriptionTier.plus),
       );
 
-      await repo.purchasePlusPlan();
+      await repo.purchaseSubscription(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
       await expected;
     });
 
@@ -36,10 +36,10 @@ void main() {
       final repo = StubSubscriptionRepository();
       addTearDown(repo.dispose);
 
-      await repo.purchasePlusPlan();
+      await repo.purchaseSubscription(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
       final status = await repo.refreshStatus();
 
-      expect(status.plan, SubscriptionPlan.plus);
+      expect(status.tier, SubscriptionTier.plus);
       expect(status.status, 'active');
       expect(status.nextRenewal, isNotNull);
       expect(status.cancelAtPeriodEnd, isFalse);
@@ -49,12 +49,12 @@ void main() {
       final repo = StubSubscriptionRepository();
       addTearDown(repo.dispose);
 
-      final checkoutUrl = await repo.startPlusCheckout();
+      final checkoutUrl = await repo.startCheckout(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
       expect(checkoutUrl, startsWith('https://checkout.example.com/'));
 
       await repo.launchCheckoutUrl(checkoutUrl);
-      final plan = await repo.getCurrentPlan();
-      expect(plan, SubscriptionPlan.plus);
+      final tier = await repo.getCurrentPlan();
+      expect(tier, SubscriptionTier.plus);
     });
 
     test('togglePlan switches from free to plus and back', () async {
@@ -62,10 +62,10 @@ void main() {
       addTearDown(repo.dispose);
 
       await repo.togglePlan();
-      expect(await repo.getCurrentPlan(), SubscriptionPlan.plus);
+      expect(await repo.getCurrentPlan(), SubscriptionTier.plus);
 
       await repo.togglePlan();
-      expect(await repo.getCurrentPlan(), SubscriptionPlan.free);
+      expect(await repo.getCurrentPlan(), SubscriptionTier.free);
     });
 
     test('validatePromoCode returns null for unknown code', () async {
@@ -112,7 +112,7 @@ void main() {
         expect(result.appliedBenefits, contains('7 day free trial activated'));
 
         final status = await repo.refreshStatus();
-        expect(status.plan, SubscriptionPlan.plus);
+        expect(status.tier, SubscriptionTier.plus);
         expect(status.status, 'trialing');
 
         final redeemed = await repo.getRedeemedCodes();
@@ -130,7 +130,7 @@ void main() {
       expect(result.appliedBenefits, contains('Plus membership activated!'));
 
       final status = await repo.refreshStatus();
-      expect(status.plan, SubscriptionPlan.plus);
+      expect(status.tier, SubscriptionTier.plus);
       expect(status.status, 'active');
       expect(status.nextRenewal, isNotNull);
     });

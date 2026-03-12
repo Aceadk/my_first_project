@@ -109,7 +109,7 @@ void main() {
       profile: incompleteProfile,
       isPhoneVerified: true,
       isIdVerified: true,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
     );
 
     final authRepo = _StubAuthRepository(user);
@@ -478,23 +478,23 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
 
 class _StubSubscriptionRepository implements SubscriptionRepository {
   @override
-  Stream<SubscriptionPlan> watchPlan() => Stream.value(SubscriptionPlan.free);
+  Stream<SubscriptionTier> watchPlan() => Stream.value(SubscriptionTier.free);
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => SubscriptionPlan.free;
+  Future<SubscriptionTier> getCurrentPlan() async => SubscriptionTier.free;
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
 
   @override
-  Future<String> startPlusCheckout() async => '';
+  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => '';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
-      SubscriptionStatus(plan: SubscriptionPlan.free);
+      SubscriptionStatus(tier: SubscriptionTier.free);
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

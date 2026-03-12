@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+
 import 'profile.dart';
 import 'subscription.dart';
 
@@ -12,7 +13,7 @@ class CrushUser extends Equatable {
   final Profile? profile;
   final bool isPhoneVerified;
   final bool isIdVerified;
-  final SubscriptionPlan plan;
+  final SubscriptionTier tier;
   final String? themePreference;
   final bool hasAcceptedTerms;
 
@@ -50,7 +51,7 @@ class CrushUser extends Equatable {
     this.profile,
     required this.isPhoneVerified,
     required this.isIdVerified,
-    required this.plan,
+    required this.tier,
     this.themePreference,
     this.hasAcceptedTerms = false,
     this.hasSkippedBasicInfo = false,
@@ -96,7 +97,7 @@ class CrushUser extends Equatable {
     Profile? profile,
     bool? isPhoneVerified,
     bool? isIdVerified,
-    SubscriptionPlan? plan,
+    SubscriptionTier? tier,
     String? themePreference,
     bool? hasAcceptedTerms,
     bool? hasSkippedBasicInfo,
@@ -114,7 +115,7 @@ class CrushUser extends Equatable {
       profile: profile ?? this.profile,
       isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
       isIdVerified: isIdVerified ?? this.isIdVerified,
-      plan: plan ?? this.plan,
+      tier: tier ?? this.tier,
       themePreference: themePreference ?? this.themePreference,
       hasAcceptedTerms: hasAcceptedTerms ?? this.hasAcceptedTerms,
       hasSkippedBasicInfo: hasSkippedBasicInfo ?? this.hasSkippedBasicInfo,
@@ -134,7 +135,7 @@ class CrushUser extends Equatable {
     profile,
     isPhoneVerified,
     isIdVerified,
-    plan,
+    tier,
     themePreference,
     hasAcceptedTerms,
     hasSkippedBasicInfo,

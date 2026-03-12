@@ -297,7 +297,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
         final locationLabel = _locationLabel(profile);
         final radiusKm = profile?.preferences.maxDistanceKm;
         final isPlus = context.select<SubscriptionBloc, bool>(
-          (b) => b.state.plan == SubscriptionPlan.plus,
+          (b) => b.state.tier == SubscriptionTier.plus,
         );
         final status = state.status;
         final retryInSeconds = state.nextRetrySeconds;
@@ -1562,10 +1562,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
         return SafeArea(
           child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
             buildWhen: (previous, current) =>
-                previous.plan != current.plan ||
+                previous.tier != current.tier ||
                 previous.isCheckoutInProgress != current.isCheckoutInProgress,
             builder: (context, subState) {
-              final isPlus = subState.plan == SubscriptionPlan.plus;
+              final isPlus = subState.tier == SubscriptionTier.plus;
               final loading = subState.isCheckoutInProgress;
               return Padding(
                 padding: const EdgeInsets.all(16),
@@ -1612,7 +1612,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 Navigator.pop(sheetContext);
                                 if (!isPlus) {
                                   sheetContext.read<SubscriptionBloc>().add(
-                                    PlusCheckoutRequested(),
+                                    SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly),
                                   );
                                 }
                               },

@@ -1,9 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
-
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   AuthState buildState({required AuthStatus status, CrushUser? user}) {
@@ -34,7 +33,7 @@ void main() {
       profile: null,
       isPhoneVerified: isPhoneVerified,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
       hasAcceptedTerms: hasAcceptedTerms,
       hasSkippedBasicInfo: hasSkippedBasicInfo,
       hasSkippedProfileSetup: hasSkippedProfileSetup,
@@ -115,7 +114,7 @@ void main() {
         isNull,
       );
       expect(
-        resolveRouteRedirect(authState: unauth, path: CrushRoutes.pricing),
+        resolveRouteRedirect(authState: unauth, path: CrushRoutes.paywall),
         isNull,
       );
     });
@@ -244,7 +243,7 @@ void main() {
           isNull,
         );
         expect(
-          resolveRouteRedirect(authState: state, path: CrushRoutes.pricing),
+          resolveRouteRedirect(authState: state, path: CrushRoutes.paywall),
           isNull,
         );
         expect(

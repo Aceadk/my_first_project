@@ -108,7 +108,7 @@ CrushUser _buildUser({
     profile: includeProfile ? (profile ?? _buildProfile()) : null,
     isPhoneVerified: isPhoneVerified,
     isIdVerified: false,
-    plan: SubscriptionPlan.free,
+    tier: SubscriptionTier.free,
     hasAcceptedTerms: hasAcceptedTerms,
     hasSkippedBasicInfo: hasSkippedBasicInfo,
     hasSkippedProfileSetup: hasSkippedProfileSetup,

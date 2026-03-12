@@ -36,12 +36,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: const []),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -62,12 +62,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: const []),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -94,12 +94,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -130,12 +130,12 @@ void main() {
             shouldFailFetch: true,
           ),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -165,12 +165,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -203,12 +203,12 @@ void main() {
             matchOnSwipeRight: match,
           ),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -240,13 +240,13 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
             dailySwipesRemaining: 10,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -275,12 +275,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: const []),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -307,12 +307,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -343,12 +343,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -377,12 +377,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -421,12 +421,12 @@ void main() {
             rewindProfile: profiles[0],
           ),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -462,12 +462,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -500,12 +500,12 @@ void main() {
             rewindProfile: profiles[0],
           ),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.plus,
+            SubscriptionTier.plus,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -544,12 +544,12 @@ void main() {
             moreDeck: moreDeck,
           ),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -583,12 +583,12 @@ void main() {
             deck: [_testProfile('p1')],
           ),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -611,12 +611,12 @@ void main() {
             matchOnSwipeRight: match,
           ),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -650,12 +650,12 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -690,14 +690,14 @@ void main() {
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(deck: profiles),
           subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: _StubAuthRepository(
             userStreamController: authController,
           ),
           swipeRightUseCase: SwipeRightUseCase(
             _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionPlan.free),
+            _StubSubscriptionRepository(SubscriptionTier.free),
           ),
         );
 
@@ -844,29 +844,29 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
 }
 
 class _StubSubscriptionRepository implements SubscriptionRepository {
-  _StubSubscriptionRepository(this.plan, {this.dailySwipesRemaining = 10});
+  _StubSubscriptionRepository(this.tier, {this.dailySwipesRemaining = 10});
 
-  final SubscriptionPlan plan;
+  final SubscriptionTier tier;
   final int dailySwipesRemaining;
 
   @override
-  Stream<SubscriptionPlan> watchPlan() => Stream.value(plan);
+  Stream<SubscriptionTier> watchPlan() => Stream.value(tier);
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => plan;
+  Future<SubscriptionTier> getCurrentPlan() async => tier;
 
   @override
-  Future<String> startPlusCheckout() async => 'stub';
+  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => 'stub';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
 
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
-      SubscriptionStatus(plan: plan);
+      SubscriptionStatus(tier: tier);
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

@@ -20,7 +20,7 @@ CrushUser _authUser(String id) => CrushUser(
   isEmailVerified: true,
   isPhoneVerified: true,
   isIdVerified: false,
-  plan: SubscriptionPlan.free,
+  tier: SubscriptionTier.free,
 );
 
 class _TestAuthRepository implements AuthRepository {

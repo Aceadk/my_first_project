@@ -212,7 +212,7 @@ class ApiEndpoints {
   // ─────────────────────────────────────────────────────────────────────────
 
   static const String subscriptionStatus = '/subscription/status';
-  static const String subscriptionPlans = '/subscription/plans';
+  static const String subscriptionPlans = '/subscription/tiers';
   static const String subscriptionPurchase = '/subscription/purchase';
   static const String subscriptionCancel = '/subscription/cancel';
   static const String subscriptionRestore = '/subscription/restore';

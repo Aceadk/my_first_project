@@ -49,7 +49,7 @@ class CrushConstants {
   /// Plus users must wait 24 hours between boosts.
   static const int premiumBoostCooldownHours = 24;
 
-  // You will enforce these based on SubscriptionPlan.free / .plus
+  // You will enforce these based on SubscriptionTier.free / .plus
 
   // Set true in development to skip auth gating and go straight to home.
   static const bool _skipAuthGate = bool.fromEnvironment(

@@ -54,7 +54,7 @@ class CommunityGuidelinesScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 _Bullet(
-                  'Meet in public places first, share your plans with a trusted friend, and arrange your own transportation.',
+                  'Meet in public places first, share your tiers with a trusted friend, and arrange your own transportation.',
                 ),
                 _Bullet(
                   'Keep conversations in Crush until you feel comfortable—never send money or verification codes.',

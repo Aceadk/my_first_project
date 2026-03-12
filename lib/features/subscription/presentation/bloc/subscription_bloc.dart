@@ -1,27 +1,29 @@
 import 'dart:async';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
-import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/utils/error_messages.dart';
+
 import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/utils/error_messages.dart';
+import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'subscription_event.dart';
 import 'subscription_state.dart';
 
 class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   final SubscriptionRepository subscriptionRepository;
-  StreamSubscription<SubscriptionPlan>? _sub;
+  StreamSubscription<SubscriptionTier>? _sub;
   StreamSubscription? _authSubscription;
 
   SubscriptionBloc({
     required this.subscriptionRepository,
     required AuthRepository authRepository,
-  }) : super(const SubscriptionState(plan: SubscriptionPlan.free)) {
+  }) : super(const SubscriptionState(tier: SubscriptionTier.free)) {
     on<SubscriptionWatchStarted>(_onWatchStarted);
-    on<PlusCheckoutRequested>(_onPlusCheckoutRequested);
-    on<SubscriptionPlanUpdated>(_onPlanUpdated);
+    on<SubscriptionCheckoutRequested>(_onSubscriptionCheckoutRequested);
+    on<SubscriptionTierUpdated>(_onPlanUpdated);
     on<SubscriptionRestoreRequested>(_onRestoreRequested);
     on<SubscriptionStatusUpdated>(_onStatusUpdated);
     on<SubscriptionResetRequested>(_onResetRequested);
@@ -38,22 +40,25 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   ) async {
     _sub?.cancel();
     _sub = subscriptionRepository.watchPlan().listen((plan) {
-      add(SubscriptionPlanUpdated(plan));
+      add(SubscriptionTierUpdated(plan));
     });
   }
 
-  Future<void> _onPlusCheckoutRequested(
-    PlusCheckoutRequested event,
+  Future<void> _onSubscriptionCheckoutRequested(
+    SubscriptionCheckoutRequested event,
     Emitter<SubscriptionState> emit,
   ) async {
     emit(state.copyWith(isCheckoutInProgress: true, errorMessage: null));
 
     // Track checkout started
-    AnalyticsService.instance.logCheckoutStarted(plan: 'plus');
+    AnalyticsService.instance.logCheckoutStarted(tier: event.tier.name);
 
     final purchaseResult = await Result.guard(
-      () => subscriptionRepository.purchasePlusPlan(),
-      logLabel: 'SubscriptionRepository.purchasePlusPlan',
+      () => subscriptionRepository.purchaseSubscription(
+        tier: event.tier,
+        period: event.period,
+      ),
+      logLabel: 'SubscriptionRepository.purchaseSubscription',
       fallbackError: ErrorMessages.checkoutFailed,
     );
 
@@ -71,22 +76,23 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   }
 
   void _onPlanUpdated(
-    SubscriptionPlanUpdated event,
+    SubscriptionTierUpdated event,
     Emitter<SubscriptionState> emit,
   ) {
     // Track subscription purchase if plan upgraded to plus
-    if (state.plan == SubscriptionPlan.free &&
-        event.plan == SubscriptionPlan.plus) {
+    // Track subscription purchase if plan upgraded
+    if (state.tier == SubscriptionTier.free &&
+        event.tier != SubscriptionTier.free) {
       AnalyticsService.instance.logSubscriptionPurchased(
-        plan: 'plus',
-        price: 9.99, // Configure based on your pricing
+        tier: event.tier.name,
+        price: 0.0, // Placeholder, analytics should get real price or skip
         currency: 'USD',
       );
     }
 
     emit(
       state.copyWith(
-        plan: event.plan,
+        tier: event.tier,
         isCheckoutInProgress: false,
         errorMessage: null,
         isRestoring: false,
@@ -119,7 +125,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
   ) {
     emit(
       state.copyWith(
-        plan: event.status.plan,
+        tier: event.status.tier,
         isRestoring: false,
         errorMessage: null,
         statusLabel: event.status.status,
@@ -136,7 +142,7 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     AppLogger.debug('SubscriptionBloc: Resetting state on logout');
     _sub?.cancel();
     _sub = null;
-    emit(const SubscriptionState(plan: SubscriptionPlan.free));
+    emit(const SubscriptionState(tier: SubscriptionTier.free));
   }
 
   @override

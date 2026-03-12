@@ -22,7 +22,7 @@ CrushUser _makeUser({String id = _testUserId}) => CrushUser(
   isEmailVerified: true,
   isPhoneVerified: true,
   isIdVerified: false,
-  plan: SubscriptionPlan.free,
+  tier: SubscriptionTier.free,
 );
 
 WeeklyPick _makePick({

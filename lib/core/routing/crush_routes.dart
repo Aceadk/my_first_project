@@ -63,7 +63,7 @@ class CrushRoutes {
   static const supportCategory = '$supportCategoryBase/:categoryId';
   static const communityGuidelines = '/community-guidelines';
   static const productFeatures = '/product-features';
-  static const pricing = '/pricing';
+  static const paywall = '/paywall';
   static const notificationCenter = '/notifications';
 
   static String supportCategoryPath(String categoryId) {

@@ -1,14 +1,15 @@
 import 'dart:async';
-import 'package:crushhour/features/subscription/data/services/native_billing_service.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:crushhour/data/models/promo_code.dart';
+import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/features/subscription/data/services/native_billing_service.dart';
+import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/data/models/promo_code.dart';
-import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 
 typedef GooglePurchaseTokenVerifier =
     Future<Map<String, dynamic>> Function({
@@ -55,7 +56,6 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
   String? get _currentUserId => _auth.currentUser?.uid;
 
-  static const _plusMonthlyProductId = 'plus_monthly';
   bool get _requiresNativeMobilePurchase =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||
@@ -105,48 +105,54 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   };
 
   @override
-  Stream<SubscriptionPlan> watchPlan() {
+  Stream<SubscriptionTier> watchPlan() {
     final userId = _currentUserId;
     if (userId == null) {
-      return Stream.value(SubscriptionPlan.free);
+      return Stream.value(SubscriptionTier.free);
     }
 
     return _firestore.collection('users').doc(userId).snapshots().map((doc) {
-      if (!doc.exists) return SubscriptionPlan.free;
+      if (!doc.exists) return SubscriptionTier.free;
       final data = doc.data();
-      final plan = data?['plan'] as String?;
-      return plan == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+      final tier = data?['plan'] as String?;
+      return tier == 'plus' ? SubscriptionTier.plus : SubscriptionTier.free;
     });
   }
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async {
+  Future<SubscriptionTier> getCurrentPlan() async {
     final userId = _currentUserId;
-    if (userId == null) return SubscriptionPlan.free;
+    if (userId == null) return SubscriptionTier.free;
 
     final doc = await _firestore.collection('users').doc(userId).get();
-    if (!doc.exists) return SubscriptionPlan.free;
+    if (!doc.exists) return SubscriptionTier.free;
 
-    final plan = doc.data()?['plan'] as String?;
-    return plan == 'plus' ? SubscriptionPlan.plus : SubscriptionPlan.free;
+    final tier = doc.data()?['plan'] as String?;
+    return tier == 'plus' ? SubscriptionTier.plus : SubscriptionTier.free;
   }
 
   @override
-  Future<void> purchasePlusPlan() async {
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     if (_requiresNativeMobilePurchase) {
-      await _nativeBillingService.purchaseSubscription(
-        productId: _plusMonthlyProductId,
-      );
+      // Configure productId appropriately based on tier and period
+      final productId = '${tier.name}_${period.name}';
+      await _nativeBillingService.purchaseSubscription(productId: productId);
       return;
     }
 
     // Start checkout and launch the URL
-    final url = await startPlusCheckout();
+    final url = await startCheckout(tier: tier, period: period);
     await launchCheckoutUrl(url);
   }
 
   @override
-  Future<String> startPlusCheckout() async {
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     if (_requiresNativeMobilePurchase) {
       throw UnsupportedError(
         'Mobile checkout must use native in-app purchase flow.',
@@ -155,7 +161,8 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
     final callable = _functions.httpsCallable('createCheckoutSession');
     final result = await callable.call<Map<String, dynamic>>({
-      'priceId': 'price_plus_monthly', // Configure your Stripe price ID
+      'priceId':
+          'price_${tier.name}_${period.name}', // Configure your Stripe price ID
       'successUrl': 'https://crushhour.app/checkout/success',
       'cancelUrl': 'https://crushhour.app/checkout/cancel',
     });
@@ -193,22 +200,22 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
       final data = result.data;
       final planStr = data['plan'] as String?;
-      final plan = planStr == 'plus'
-          ? SubscriptionPlan.plus
-          : SubscriptionPlan.free;
+      final tier = planStr == 'plus'
+          ? SubscriptionTier.plus
+          : SubscriptionTier.free;
 
       return SubscriptionStatus(
-        plan: plan,
+        tier: tier,
         status: data['status'] as String?,
         nextRenewal: _parseTimestamp(data['nextRenewal']),
         cancelAtPeriodEnd: data['cancelAtPeriodEnd'] as bool? ?? false,
       );
     } catch (e) {
       // Return current status on error
-      final plan = await getCurrentPlan();
+      final tier = await getCurrentPlan();
       return SubscriptionStatus(
-        plan: plan,
-        status: plan == SubscriptionPlan.plus ? 'active' : null,
+        tier: tier,
+        status: tier == SubscriptionTier.plus ? 'active' : null,
       );
     }
   }
@@ -218,7 +225,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
         .restoreSubscriptionPurchases();
 
     if (restoredPurchases.isEmpty) {
-      return SubscriptionStatus(plan: SubscriptionPlan.free, status: 'none');
+      return SubscriptionStatus(tier: SubscriptionTier.free, status: 'none');
     }
 
     if (_isAndroidNativeMobilePurchase) {
@@ -237,8 +244,8 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
     final currentPlan = await getCurrentPlan();
     return SubscriptionStatus(
-      plan: currentPlan,
-      status: currentPlan == SubscriptionPlan.plus ? 'active' : 'none',
+      tier: currentPlan,
+      status: currentPlan == SubscriptionTier.plus ? 'active' : 'none',
     );
   }
 
@@ -327,19 +334,19 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       throw StateError('Could not restore purchases. Please try again.');
     }
 
-    return SubscriptionStatus(plan: SubscriptionPlan.free, status: 'none');
+    return SubscriptionStatus(tier: SubscriptionTier.free, status: 'none');
   }
 
   SubscriptionStatus _subscriptionStatusFromGooglePayload(
     Map<String, dynamic> payload,
   ) {
     final planValue = payload['plan'] as String?;
-    final plan = planValue == 'plus'
-        ? SubscriptionPlan.plus
-        : SubscriptionPlan.free;
+    final tier = planValue == 'plus'
+        ? SubscriptionTier.plus
+        : SubscriptionTier.free;
 
     return SubscriptionStatus(
-      plan: plan,
+      tier: tier,
       status: payload['status'] as String?,
       nextRenewal:
           _parseTimestamp(payload['nextRenewal']) ??
@@ -352,7 +359,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     List<SubscriptionStatus> statuses,
   ) {
     for (final status in statuses) {
-      if (status.plan == SubscriptionPlan.plus) {
+      if (status.tier == SubscriptionTier.plus) {
         return status;
       }
     }

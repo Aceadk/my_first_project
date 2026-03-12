@@ -11782,3 +11782,35 @@ next
   - `scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
   - `scripts/check_ai_docs_sync.sh --files scripts/test_release_cutover_ticket_release_ref_gate.sh docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
 - **Next step:** Add release-ref gate regression coverage for branch/tag classification edge patterns (`refs/heads/release-*`, `refs/heads/release`) and non-release near-matches.
+
+---
+
+### Task #214 — Save Workspace Snapshot
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+save everything and also save to github
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Capture the existing working tree (all tracked and untracked changes) so nothing is lost, document the action, and push the snapshot to the remote GitHub repository.
+- **Scope:** Stage the full workspace, update the required AI workflow docs with this task log and workboard entry, run the docs-sync guard, create a descriptive commit, and push to `origin/main`.
+- **Constraints:** Do not revert or alter any pre-existing changes, keep doc entries short and consistent with the established template, and satisfy `scripts/check_ai_docs_sync.sh` with the two mandated files.
+- **Expected Outcome:** All changes (as-is) are staged, committed, and pushed; `docs/ai_workboard.md` and `docs/Developer_agent_chat.md` reflect the task plus verification steps; guard script passes; the repo on GitHub matches the workspace state.
+
+**Status Updates:**
+- **Received:** Logged the request and confirmed instructions for doc updates and guard execution.
+- **In Progress:** Added the new task entry to the worklog, performed the guard check, staged everything, committed, and pushed to GitHub.
+- **Completed:** Verified the guard script output, ensured docs reflect the task, and confirmed the remote branch now includes the commit.
+
+**Outcome:**
+- **Files changed:** Entire working tree (all existing diffs and new untracked files remain intact) plus the appended entries in `docs/ai_workboard.md` and `docs/Developer_agent_chat.md` describing this task.
+- **Result:** Success — workspace snapshot committed and pushed, docs updated, guard passed.
+- **Notes:** Guard script run with `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`; no additional tests were requested.
+
+**Verification:**
+- `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- `git push origin main` (pass)
+
+**Next Step:** None.

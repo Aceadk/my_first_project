@@ -253,22 +253,22 @@ class StubAnalyticsService extends AnalyticsService {
   }
 
   @override
-  Future<void> logCheckoutStarted({required String plan}) async {
-    _trackEvent('logCheckoutStarted:$plan');
+  Future<void> logCheckoutStarted({required String tier}) async {
+    _trackEvent('logCheckoutStarted:$tier');
   }
 
   @override
   Future<void> logSubscriptionPurchased({
-    required String plan,
+    required String tier,
     required double price,
     required String currency,
   }) async {
-    _trackEvent('logSubscriptionPurchased:$plan:$price:$currency');
+    _trackEvent('logSubscriptionPurchased:$tier:$price:$currency');
   }
 
   @override
-  Future<void> logSubscriptionCancelled({required String plan}) async {
-    _trackEvent('logSubscriptionCancelled:$plan');
+  Future<void> logSubscriptionCancelled({required String tier}) async {
+    _trackEvent('logSubscriptionCancelled:$tier');
   }
 
   @override
@@ -342,9 +342,7 @@ class StubAnalyticsService extends AnalyticsService {
   }
 
   @override
-  Future<void> logErrorBoundaryTriggered({
-    required String screen,
-  }) async {
+  Future<void> logErrorBoundaryTriggered({required String screen}) async {
     _trackEvent('logErrorBoundaryTriggered:$screen');
   }
 }

@@ -242,29 +242,29 @@ class _FakeChatRepository implements ChatRepository {
 }
 
 class _FakeSubscriptionRepository implements SubscriptionRepository {
-  SubscriptionPlan plan;
-  _FakeSubscriptionRepository(this.plan);
+  SubscriptionTier tier;
+  _FakeSubscriptionRepository(this.tier);
 
   @override
-  Stream<SubscriptionPlan> watchPlan() async* {
-    yield plan;
+  Stream<SubscriptionTier> watchPlan() async* {
+    yield tier;
   }
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => plan;
+  Future<SubscriptionTier> getCurrentPlan() async => tier;
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
 
   @override
-  Future<String> startPlusCheckout() async => '';
+  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => '';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
-      SubscriptionStatus(plan: SubscriptionPlan.free);
+      SubscriptionStatus(tier: SubscriptionTier.free);
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;
@@ -456,7 +456,7 @@ void main() {
 
     test('blocks media when non-Plus user exceeds limit', () async {
       final chatRepo = _FakeChatRepository();
-      final subRepo = _FakeSubscriptionRepository(SubscriptionPlan.free);
+      final subRepo = _FakeSubscriptionRepository(SubscriptionTier.free);
       final authRepo = _FakeAuthRepository();
       addTearDown(authRepo.dispose);
       final bloc = ChatBloc(
@@ -468,7 +468,7 @@ void main() {
       // Seed 8 existing media messages from current user
       bloc.add(ChatMessagesUpdated(
         List<Message>.filled(8, _mediaMessage('me', MessageType.image)),
-        SubscriptionPlan.free,
+        SubscriptionTier.free,
       ));
       await expectLater(bloc.stream, emits(isA<ChatState>()));
 
@@ -489,7 +489,7 @@ void main() {
 
     test('allows media for Plus users', () async {
       final chatRepo = _FakeChatRepository();
-      final subRepo = _FakeSubscriptionRepository(SubscriptionPlan.plus);
+      final subRepo = _FakeSubscriptionRepository(SubscriptionTier.plus);
       final authRepo = _FakeAuthRepository();
       addTearDown(authRepo.dispose);
       final bloc = ChatBloc(

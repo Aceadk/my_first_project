@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 
 class NativeSubscriptionPurchase {
   const NativeSubscriptionPurchase({
@@ -18,9 +21,11 @@ class NativeSubscriptionPurchase {
 
 /// Native billing abstraction used by repository implementations.
 abstract class NativeBillingService {
+  Future<void> initialize();
+  Future<List<ProductDetails>> fetchProducts(Set<String> productIds);
   Future<void> purchaseSubscription({required String productId});
-
   Future<List<NativeSubscriptionPurchase>> restoreSubscriptionPurchases();
+  void dispose();
 }
 
 /// In-app purchase implementation backed by Flutter's IAP plugin.
@@ -40,8 +45,69 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
   final Duration _restoreTimeout;
   final Duration _restoreSettleDelay;
 
+  StreamSubscription<List<PurchaseDetails>>? _subscription;
+
+  Completer<void>? _activePurchaseCompleter;
+  String? _activePurchaseProductId;
+
+  Completer<List<NativeSubscriptionPurchase>>? _activeRestoreCompleter;
+  List<NativeSubscriptionPurchase> _restoredPurchases = [];
+  Timer? _restoreSettleTimer;
+  Timer? _restoreTimeoutTimer;
+
+  bool _isInitialized = false;
+
+  @override
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
+          _inAppPurchase
+              .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+      await iosPlatformAddition.setDelegate(_CrushPaymentQueueDelegate());
+    }
+
+    _subscription = _inAppPurchase.purchaseStream.listen(
+      _onPurchaseUpdate,
+      onDone: () {
+        _subscription?.cancel();
+      },
+      onError: (error) {
+        _failActivePurchase(error);
+        _failActiveRestore(error);
+      },
+    );
+
+    _isInitialized = true;
+  }
+
+  @override
+  Future<List<ProductDetails>> fetchProducts(Set<String> productIds) async {
+    final isAvailable = await _inAppPurchase.isAvailable();
+    if (!isAvailable) {
+      throw StateError('In-app purchase is not available on this device.');
+    }
+
+    final response = await _inAppPurchase.queryProductDetails(productIds);
+    if (response.error != null) {
+      throw StateError(
+        'Unable to query in-app purchase products: ${response.error!.message}',
+      );
+    }
+
+    return response.productDetails;
+  }
+
   @override
   Future<void> purchaseSubscription({required String productId}) async {
+    if (!_isInitialized) await initialize();
+
+    if (_activePurchaseCompleter != null &&
+        !_activePurchaseCompleter!.isCompleted) {
+      throw StateError('A purchase is already in progress.');
+    }
+
     final isAvailable = await _inAppPurchase.isAvailable();
     if (!isAvailable) {
       throw StateError('In-app purchase is not available on this device.');
@@ -52,8 +118,7 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
     });
     if (productResponse.error != null) {
       throw StateError(
-        'Unable to query in-app purchase products: '
-        '${productResponse.error!.message}',
+        'Unable to query in-app purchase products: ${productResponse.error!.message}',
       );
     }
 
@@ -61,147 +126,142 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
       throw StateError('Product not found for "$productId".');
     }
 
+    _activePurchaseCompleter = Completer<void>();
+    _activePurchaseProductId = productId;
+
     final product = productResponse.productDetails.first;
     final purchaseParam = PurchaseParam(productDetails: product);
 
     final purchaseStarted = await _inAppPurchase.buyNonConsumable(
       purchaseParam: purchaseParam,
     );
+
     if (!purchaseStarted) {
+      _activePurchaseCompleter = null;
+      _activePurchaseProductId = null;
       throw StateError('Could not start native purchase flow.');
     }
 
-    await _waitForPurchaseResult(productId);
+    return _activePurchaseCompleter!.future.timeout(
+      _purchaseTimeout,
+      onTimeout: () {
+        _activePurchaseCompleter = null;
+        _activePurchaseProductId = null;
+        throw TimeoutException('Purchase timed out.');
+      },
+    );
   }
 
   @override
   Future<List<NativeSubscriptionPurchase>>
   restoreSubscriptionPurchases() async {
+    if (!_isInitialized) await initialize();
+
+    if (_activeRestoreCompleter != null &&
+        !_activeRestoreCompleter!.isCompleted) {
+      throw StateError('A restore is already in progress.');
+    }
+
     final isAvailable = await _inAppPurchase.isAvailable();
     if (!isAvailable) {
       throw StateError('In-app purchase is not available on this device.');
     }
 
-    final completer = Completer<List<NativeSubscriptionPurchase>>();
-    final restored = <NativeSubscriptionPurchase>[];
-    final dedupe = <String>{};
-    Timer? settleTimer;
-    Timer? timeoutTimer;
-    late final StreamSubscription<List<PurchaseDetails>> subscription;
+    _activeRestoreCompleter = Completer<List<NativeSubscriptionPurchase>>();
+    _restoredPurchases = [];
 
-    void completeWithResults() {
-      if (!completer.isCompleted) {
-        completer.complete(
-          List<NativeSubscriptionPurchase>.unmodifiable(restored),
-        );
-      }
-    }
-
-    subscription = _inAppPurchase.purchaseStream.listen(
-      (purchases) async {
-        try {
-          for (final purchase in purchases) {
-            switch (purchase.status) {
-              case PurchaseStatus.purchased:
-              case PurchaseStatus.restored:
-                await _completePendingPurchaseIfNeeded(purchase);
-                final parsed = _toNativePurchase(purchase);
-                final key =
-                    '${parsed.productId}:${parsed.serverVerificationData}:${parsed.isRestored}';
-                if (dedupe.add(key)) {
-                  restored.add(parsed);
-                }
-                break;
-              case PurchaseStatus.error:
-                final message =
-                    purchase.error?.message ?? 'Failed to restore purchases.';
-                if (!completer.isCompleted) {
-                  completer.completeError(StateError(message));
-                }
-                break;
-              case PurchaseStatus.pending:
-              case PurchaseStatus.canceled:
-                break;
-            }
-          }
-        } catch (error, stackTrace) {
-          if (!completer.isCompleted) {
-            completer.completeError(error, stackTrace);
-          }
-        }
-
-        settleTimer?.cancel();
-        settleTimer = Timer(_restoreSettleDelay, completeWithResults);
-      },
-      onError: (Object error, StackTrace stackTrace) {
-        if (!completer.isCompleted) {
-          completer.completeError(error, stackTrace);
-        }
-      },
-    );
-
-    timeoutTimer = Timer(_restoreTimeout, completeWithResults);
+    _restoreTimeoutTimer = Timer(_restoreTimeout, _completeRestore);
 
     try {
       await _inAppPurchase.restorePurchases();
-      settleTimer = Timer(_restoreSettleDelay, completeWithResults);
-      return await completer.future;
-    } finally {
-      settleTimer?.cancel();
-      timeoutTimer.cancel();
-      await subscription.cancel();
+    } catch (e) {
+      _failActiveRestore(e);
+      rethrow;
+    }
+
+    _restoreSettleTimer?.cancel();
+    _restoreSettleTimer = Timer(_restoreSettleDelay, _completeRestore);
+
+    return _activeRestoreCompleter!.future;
+  }
+
+  Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchases) async {
+    for (final purchase in purchases) {
+      try {
+        switch (purchase.status) {
+          case PurchaseStatus.purchased:
+          case PurchaseStatus.restored:
+            await _completePendingPurchaseIfNeeded(purchase);
+            final nativePurchase = _toNativePurchase(purchase);
+
+            if (purchase.status == PurchaseStatus.restored &&
+                _activeRestoreCompleter != null) {
+              if (!_restoredPurchases.any(
+                (p) => p.transactionId == nativePurchase.transactionId,
+              )) {
+                _restoredPurchases.add(nativePurchase);
+              }
+            } else if (purchase.status == PurchaseStatus.purchased) {
+              if (_activePurchaseCompleter != null &&
+                  purchase.productID == _activePurchaseProductId) {
+                if (!_activePurchaseCompleter!.isCompleted) {
+                  _activePurchaseCompleter!.complete();
+                }
+              }
+            }
+            break;
+
+          case PurchaseStatus.error:
+            final errorMsg = purchase.error?.message ?? 'Purchase failed.';
+            _failActivePurchase(StateError(errorMsg));
+            break;
+
+          case PurchaseStatus.canceled:
+            _failActivePurchase(StateError('Purchase canceled.'));
+            break;
+
+          case PurchaseStatus.pending:
+            break;
+        }
+      } catch (error) {
+        if (purchase.status == PurchaseStatus.purchased) {
+          _failActivePurchase(error);
+        }
+      }
+    }
+
+    if (_activeRestoreCompleter != null) {
+      _restoreSettleTimer?.cancel();
+      _restoreSettleTimer = Timer(_restoreSettleDelay, _completeRestore);
     }
   }
 
-  Future<void> _waitForPurchaseResult(String productId) async {
-    final completer = Completer<NativeSubscriptionPurchase>();
-    late final StreamSubscription<List<PurchaseDetails>> subscription;
+  void _completeRestore() {
+    _restoreTimeoutTimer?.cancel();
+    _restoreSettleTimer?.cancel();
 
-    subscription = _inAppPurchase.purchaseStream.listen(
-      (purchases) async {
-        try {
-          for (final purchase in purchases) {
-            if (purchase.productID != productId) continue;
-
-            switch (purchase.status) {
-              case PurchaseStatus.purchased:
-              case PurchaseStatus.restored:
-                await _completePendingPurchaseIfNeeded(purchase);
-                if (!completer.isCompleted) {
-                  completer.complete(_toNativePurchase(purchase));
-                }
-                break;
-              case PurchaseStatus.error:
-                final message = purchase.error?.message ?? 'Purchase failed.';
-                if (!completer.isCompleted) {
-                  completer.completeError(StateError(message));
-                }
-                break;
-              case PurchaseStatus.canceled:
-                if (!completer.isCompleted) {
-                  completer.completeError(StateError('Purchase canceled.'));
-                }
-                break;
-              case PurchaseStatus.pending:
-                break;
-            }
-          }
-        } catch (error, stackTrace) {
-          if (!completer.isCompleted) {
-            completer.completeError(error, stackTrace);
-          }
-        }
-      },
-      onError: (Object error, StackTrace stackTrace) {
-        if (!completer.isCompleted) completer.completeError(error, stackTrace);
-      },
-    );
-
-    try {
-      await completer.future.timeout(_purchaseTimeout);
-    } finally {
-      await subscription.cancel();
+    if (_activeRestoreCompleter != null &&
+        !_activeRestoreCompleter!.isCompleted) {
+      _activeRestoreCompleter!.complete(List.unmodifiable(_restoredPurchases));
     }
+    _activeRestoreCompleter = null;
+  }
+
+  void _failActivePurchase(Object error) {
+    if (_activePurchaseCompleter != null &&
+        !_activePurchaseCompleter!.isCompleted) {
+      _activePurchaseCompleter!.completeError(error);
+    }
+    _activePurchaseCompleter = null;
+    _activePurchaseProductId = null;
+  }
+
+  void _failActiveRestore(Object error) {
+    if (_activeRestoreCompleter != null &&
+        !_activeRestoreCompleter!.isCompleted) {
+      _activeRestoreCompleter!.completeError(error);
+    }
+    _activeRestoreCompleter = null;
   }
 
   Future<void> _completePendingPurchaseIfNeeded(
@@ -237,5 +297,39 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
       return null;
     }
     return normalized;
+  }
+
+  @override
+  void dispose() {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      // It's safe to clear the delegate when disposing, though generally
+      // this service should live for the app lifecycle.
+      try {
+        final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
+            _inAppPurchase
+                .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+        iosPlatformAddition.setDelegate(null);
+      } catch (_) {
+        // Platform addition might not be ready or could throw on test environments
+      }
+    }
+    _subscription?.cancel();
+    _subscription = null;
+    _isInitialized = false;
+  }
+}
+
+class _CrushPaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
+  @override
+  bool shouldContinueTransaction(
+    SKPaymentTransactionWrapper transaction,
+    SKStorefrontWrapper storefront,
+  ) {
+    return true;
+  }
+
+  @override
+  bool shouldShowPriceConsent() {
+    return false;
   }
 }

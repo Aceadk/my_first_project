@@ -1,9 +1,11 @@
-# Crush Parity Restoration Report (Pass 1 through Pass 28)
+# Crush Parity Restoration Report (Pass 1 through Pass 29)
+
 Date: 2026-03-11
 Owner: Codex
 Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions integration points
 
 ## Executive Summary
+
 - CRUSH mobile app and webapp are primarily a single shared Flutter codebase (`lib/`), which gives strong baseline feature parity.
 - Highest-risk parity drifts were found in configuration and backend rule maintenance, not core UI feature implementations.
 - This pass implemented immediate fixes for:
@@ -22,28 +24,32 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Release-ref gate fallback-no-ticket regression coverage when no `PRODUCTION_CUTOVER_*.md` files are resolvable
   - Release-ref gate regression coverage for `GITHUB_REF` unset behavior and path-over-glob precedence
   - Release-ref path-precedence failure regression coverage (invalid explicit path overrides valid glob fallback)
+  - Release-ref gate regression coverage for branch/tag classification edge patterns and near-matches
 - Remaining major parity risks are concentrated in:
   - residual dual-shape read compatibility paths (migration tail)
   - long-tail naming/copy consistency monitoring (`Crush`, intentional `wordCrush` noun keys, legal `CrushHour Inc.` entity references)
 
 ## Parity Matrix
-| Domain | Status | Evidence (App) | Evidence (Web) | Notes |
-|---|---|---|---|---|
-| Architecture layering | Partially aligned | `lib/features/*/{data,domain,presentation}` | same codepath | Shared structure is strong; duplicated utility/config surfaces still exist |
-| Routing/navigation | Fully aligned (core) -> hardened this pass | `lib/core/router.dart`, `lib/core/routing/*`, `lib/core/deep_link_bootstrap.dart`, `lib/app.dart` | same router on web | Deep-link handler contract is consolidated, app-shell callback is wired, and auth-transition integration regressions cover chat/profile/settings/support |
-| Auth/session | Fully aligned (core) | `lib/features/auth/**`, `lib/core/session/session_bootstrap_service.dart` | same logic | Platform-specific sign-in button exposure differs by policy |
-| Onboarding/profile completion | Fully aligned (core) | `lib/features/profile/presentation/screens/profile_setup_screen.dart` | same logic | Keyboard/runtime UX fixes already applied in prior tasks |
-| Discovery/matching | Fully aligned (core) | `lib/features/discovery/**` | same logic | Same repository + bloc flows |
-| Messaging/chat | Fully aligned (core) | `lib/features/chat/**` | same logic | Same domain/repo layers |
-| Notifications | Partially aligned (expected platform diff) | `lib/core/services/push_notification_service.dart` | browser/web constraints | Push capabilities differ by platform; UX contract should be documented |
-| Subscription/monetization | Partially aligned (expected platform diff) | native store handling in `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart` | web checkout/restore patterns | Entitlement model shared; purchase rails differ by platform |
-| Support/help UX | Fully aligned after fixes | `lib/config/support_config.dart`, support screens | same shared UI | Q&A + label parity fixes landed |
-| Config/env management | Mostly aligned -> hardened in Pass 15 | `lib/config/app_config.dart`, `lib/core/app_env.dart`, `lib/core/firebase_emulator.dart` | same build defines | Canonical flavor resolution + legacy fallback compatibility + regression coverage |
-| Firestore/storage security rules | Partially aligned -> improved this pass | root `firestore.rules`, `storage.rules` | same backend rules | Duplicate function-level rules drift was mitigated |
-| Analytics events | Mostly aligned | `lib/core/services/analytics_service.dart` | same event service | Platform-triggered events can still vary where OS capability differs |
+
+| Domain                           | Status                                     | Evidence (App)                                                                                                    | Evidence (Web)                | Notes                                                                                                                                                    |
+| -------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Architecture layering            | Partially aligned                          | `lib/features/*/{data,domain,presentation}`                                                                       | same codepath                 | Shared structure is strong; duplicated utility/config surfaces still exist                                                                               |
+| Routing/navigation               | Fully aligned (core) -> hardened this pass | `lib/core/router.dart`, `lib/core/routing/*`, `lib/core/deep_link_bootstrap.dart`, `lib/app.dart`                 | same router on web            | Deep-link handler contract is consolidated, app-shell callback is wired, and auth-transition integration regressions cover chat/profile/settings/support |
+| Auth/session                     | Fully aligned (core)                       | `lib/features/auth/**`, `lib/core/session/session_bootstrap_service.dart`                                         | same logic                    | Platform-specific sign-in button exposure differs by policy                                                                                              |
+| Onboarding/profile completion    | Fully aligned (core)                       | `lib/features/profile/presentation/screens/profile_setup_screen.dart`                                             | same logic                    | Keyboard/runtime UX fixes already applied in prior tasks                                                                                                 |
+| Discovery/matching               | Fully aligned (core)                       | `lib/features/discovery/**`                                                                                       | same logic                    | Same repository + bloc flows                                                                                                                             |
+| Messaging/chat                   | Fully aligned (core)                       | `lib/features/chat/**`                                                                                            | same logic                    | Same domain/repo layers                                                                                                                                  |
+| Notifications                    | Partially aligned (expected platform diff) | `lib/core/services/push_notification_service.dart`                                                                | browser/web constraints       | Push capabilities differ by platform; UX contract should be documented                                                                                   |
+| Subscription/monetization        | Partially aligned (expected platform diff) | native store handling in `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart` | web checkout/restore patterns | Entitlement model shared; purchase rails differ by platform                                                                                              |
+| Support/help UX                  | Fully aligned after fixes                  | `lib/config/support_config.dart`, support screens                                                                 | same shared UI                | Q&A + label parity fixes landed                                                                                                                          |
+| Config/env management            | Mostly aligned -> hardened in Pass 15      | `lib/config/app_config.dart`, `lib/core/app_env.dart`, `lib/core/firebase_emulator.dart`                          | same build defines            | Canonical flavor resolution + legacy fallback compatibility + regression coverage                                                                        |
+| Firestore/storage security rules | Partially aligned -> improved this pass    | root `firestore.rules`, `storage.rules`                                                                           | same backend rules            | Duplicate function-level rules drift was mitigated                                                                                                       |
+| Analytics events                 | Mostly aligned                             | `lib/core/services/analytics_service.dart`                                                                        | same event service            | Platform-triggered events can still vary where OS capability differs                                                                                     |
 
 ## Critical Issues
+
 ### C1. Firestore Rules Drift Across Two Rule Files (Fixed)
+
 - What exists in app: canonical Firestore rules at `firestore.rules`.
 - What exists in web: same backend contract expected.
 - Difference: `functions/firestore.rules` had older permissive/legacy logic divergent from root file.
@@ -57,6 +63,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - `scripts/check_firestore_rules_sync.sh`
 
 ### C2. Legacy Nested-vs-Flat User Data Semantics (Partially Mitigated)
+
 - What exists in app: auth repository now canonicalizes legacy user documents into nested profile shape during reads and schedules cleanup writes.
 - What exists in web: same shared Flutter auth repository behavior on web runtime.
 - Difference: server and rules still keep legacy read compatibility during migration window.
@@ -74,6 +81,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - production sample query validation on user docs
 
 ### C3. Deep-Link Contract Consolidation (Mitigated)
+
 - What exists in app: `DeepLinkBootstrap` now delegates all route deep-link decisions to shared `DeepLinkHandler` contract from `lib/core/routing/deep_links.dart`.
 - What exists in web: same shared bootstrap and handler behavior.
 - Difference: no behavioral split for route deep-link auth gating; pending auth-required links are now queued and resumed after authentication.
@@ -90,6 +98,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - `flutter test test/core/deep_link_bootstrap_test.dart test/core/routing/deep_links_test.dart test/core/deep_link_auth_transition_integration_test.dart`
 
 ## Architecture Issues
+
 - Config entry points are now partially rationalized:
   - `lib/config/app_config.dart` is canonical for flavor/env-key precedence.
   - `lib/core/app_env.dart` derives mode from canonical `AppConfig.flavor`.
@@ -99,7 +108,9 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
 - Deep-link flow is consolidated through shared handler contract; keep integration coverage expanding for more route permutations.
 
 ## Feature Mismatches
+
 ### Support
+
 - App: support categories + category detail with expandable Q&A.
 - Web: same shared screens.
 - Difference: previously missing Q&A and label drift; fixed.
@@ -108,6 +119,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - `lib/features/settings/presentation/screens/support_category_detail_screen.dart`
 
 ### Profile route/deep-link load
+
 - App: self-profile route now bypasses remote loader.
 - Web: same route path now avoids endless spinner case for own profile.
 - Difference: previously web could hang on `Loading profile...`; fixed in prior task.
@@ -115,6 +127,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - `lib/core/router.dart`
 
 ### Config naming
+
 - App: mixed env keys across modules.
 - Web: same build/runtime config path.
 - Difference: env key drift plus flavor/mode default drift (`FLAVOR` vs `APP_ENV`) caused avoidable setup mismatches; now fixed with canonical resolution + compatibility fallback.
@@ -125,6 +138,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - `lib/data/repositories/fake_repositories.dart`
 
 ## Storage Rules and Security Review
+
 - Firestore rules are restrictive for protected collections (`usernames`, `auth_*`, server-managed writes on `matches` etc.).
 - Storage rules enforce content-type and size limits for user media and block sensitive paths.
 - Key observation:
@@ -133,6 +147,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - synchronized `functions/firestore.rules` with canonical root rules and added drift guard script.
 
 ## Navigation and Routing Review
+
 - Route constants are centralized in `lib/core/routing/crush_routes.dart`.
 - Redirect policy is centralized and testable in `lib/core/routing/route_redirect.dart`.
 - Main mismatch area:
@@ -141,6 +156,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - self profile deep-link route no longer stalls in loader (`lib/core/router.dart`).
 
 ## UI/UX Consistency Review
+
 - Shared Flutter UI gives strong baseline parity across app/web.
 - Fixed parity copy/content issues:
   - support category labels now match required wording
@@ -150,18 +166,22 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - residual tail is mostly intentional/non-brand vocabulary (`wordCrush`) and future-copy regression prevention.
 
 ## Analytics and Event Consistency Review
+
 - Event dispatch is centralized in `lib/core/services/analytics_service.dart`, which supports parity.
 - Expected divergence remains where platform capabilities differ (push permissions, tracking consent).
 - Recommendation:
   - add explicit parity assertions on event name/payload for key funnel actions in widget/integration tests.
 
 ## Dead Code and Cleanup Review
+
 - Candidate duplicated assets:
   - deep-link logic split across parser/bootstrap modules (now integrated, cleanup still pending)
   - duplicate Firestore rule file in `functions/` (kept but now synchronized and guarded)
 
 ## Implemented Fixes
+
 1. Config env parity normalization
+
 - `lib/data/repositories/fake_repositories.dart`
   - Added fallback resolution to prefer `API_BASE_URL` and support legacy `CRUSH_API_BASE_URL`.
 - `lib/core/firebase_emulator.dart`
@@ -169,10 +189,12 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Added compatibility for both `FIREBASE_EMULATOR_HOST` and `EMULATOR_HOST`.
 
 2. Rules parity safeguard
+
 - Synced `functions/firestore.rules` with canonical `firestore.rules`.
 - Added `scripts/check_firestore_rules_sync.sh`.
 
 3. Deep-link parity hardening
+
 - `lib/core/deep_link_bootstrap.dart`
   - Wired runtime deep-link handling into `DeepLinkConfig.parse(...)`.
   - Added navigation callback path + router fallback navigation.
@@ -184,6 +206,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - `test/core/routing/deep_links_test.dart` (parser coverage for user-profile/support/share-link)
 
 4. Canonical user schema parity hardening (Pass 3)
+
 - `lib/core/schema/user_document_schema.dart`
   - Added canonicalization helper for legacy flat-to-nested profile migration.
   - Added `birthDate` normalization and cleanup of nested `dateOfBirth` legacy key.
@@ -198,6 +221,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - `test/core/schema/user_document_schema_test.dart`
 
 5. Deep-link ownership consolidation (Pass 4)
+
 - `lib/core/deep_link_bootstrap.dart`
   - Replaced ad-hoc route deep-link navigation with shared `DeepLinkHandler`.
   - Added auth-state stream processing to replay pending auth-required deep links after login.
@@ -208,18 +232,21 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - `test/core/routing/deep_links_test.dart` (handler pending-link behavior)
 
 6. Deep-link auth-transition integration hardening (Pass 5)
+
 - `lib/core/deep_link_bootstrap.dart`
   - Moved auth-status stream binding to `didChangeDependencies` to avoid context/provider timing misses.
 - Added tests:
   - `test/core/deep_link_auth_transition_integration_test.dart` (bootstrap + auth + router pending-link replay)
 
 7. App-shell deep-link callback wiring + route permutation coverage (Pass 6)
+
 - `lib/app.dart`
   - Passed `onNavigate` callback to `DeepLinkBootstrap` using `_router.go(...)` so parsed deep links always resolve through router in runtime.
 - `test/core/deep_link_auth_transition_integration_test.dart`
   - Expanded integration coverage to auth transitions for `/chat/:id`, `/user-profile/:id`, `/settings`, and unauth public `/support/category/:id`.
 
 8. Schema migration telemetry + fallback cutoff control (Pass 7)
+
 - `functions/src/index.ts`
   - Added `PROFILE_PREFERENCES_LEGACY_FALLBACK_CUTOFF` runtime param (default `2026-06-30T00:00:00.000Z`).
   - Added structured legacy fallback telemetry logs:
@@ -231,11 +258,13 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Added deterministic helper regression tests for pre-cutoff fallback, post-cutoff block, and nested-preferences priority.
 
 9. Firestore rules CI parity guard (Pass 8)
+
 - `.github/workflows/ci.yml`
   - Added mandatory CI step `Verify Firestore rules parity` running `scripts/check_firestore_rules_sync.sh`.
   - Prevents merge of drift between `firestore.rules` and `functions/firestore.rules`.
 
 10. Branding copy normalization across app/web/backend runtime surfaces (Pass 9)
+
 - `lib/app.dart`
   - Updated app title to `CRUSH`.
 - `web/index.html`, `web/manifest.json`
@@ -248,6 +277,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Normalized high-visibility transactional copy in emails/push labels to `CRUSH`.
 
 11. Localization brand normalization + codegen sync (Pass 10)
+
 - `lib/l10n/app_*.arb`
   - Normalized localized brand tokens to `CRUSH` across 22 locale files.
   - Preserved key names and kept noun-style `wordCrush` entries unchanged.
@@ -255,6 +285,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Regenerated localization outputs with `flutter gen-l10n` to keep runtime strings aligned.
 
 12. Legal copy branding hardening + regression coverage (Pass 11)
+
 - `lib/presentation/screens/terms_of_service_screen.dart`, `lib/presentation/screens/privacy_policy_screen.dart`
   - Normalized legal-screen product references to `CRUSH` while preserving `CrushHour Inc.` legal-entity wording.
 - `lib/config/legal_config.dart`
@@ -263,6 +294,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Added widget regression coverage that enforces product/entity naming contract on legal screens.
 
 13. Runtime non-legal branding sweep + regression coverage (Pass 12)
+
 - `lib/presentation/widgets/plus_feature_gate.dart`, `lib/presentation/screens/safety_screen.dart`, `lib/presentation/screens/community_guidelines_screen.dart`, `lib/presentation/screens/home/settings_screen.dart`, `lib/main.dart`, `lib/features/about/presentation/screens/pricing_screen.dart`, `lib/features/about/presentation/screens/product_features_screen.dart`, `lib/features/discovery/presentation/widgets/deck_screen_app_bar.dart`, `lib/features/discovery/presentation/screens/likes_you_screen.dart`, `lib/features/settings/presentation/screens/appearance_settings_screen.dart`, `lib/features/auth/presentation/bloc/biometric_cubit.dart`, `lib/features/auth/presentation/widgets/biometric_prompt.dart`, `lib/features/auth/presentation/screens/pin_fallback_screen.dart`, `lib/features/auth/presentation/screens/email_auth_screen.dart`, `lib/features/auth/presentation/screens/auth_gateway_screen.dart`, `lib/core/widgets/update_dialog.dart`, `lib/core/services/location_service.dart`, `lib/features/chat/presentation/screens/matches_screen.dart`, `lib/dev/widget_catalog/widget_catalog_screen.dart`
   - Normalized remaining high-traffic non-legal user-facing strings to `CRUSH`/`CRUSH Plus`/`CRUSH Premium`.
 - `lib/core/config/env_config.dart`, `lib/core/services/app_update_service.dart`
@@ -271,6 +303,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Added widget regression tests for update-dialog default `CRUSH` branding copy.
 
 14. Brand-case regression coverage expansion (Pass 13)
+
 - `test/brand_copy_case_regression_test.dart`
   - Added localization casing checks for `en`, `zh`, and `yue` to enforce `Crush` title case and block uppercase brand regressions.
   - Added high-traffic runtime source casing checks for onboarding/discovery/premium prompts in:
@@ -283,6 +316,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
     - `main.dart`
 
 15. Guarded-route + deep-link integration expansion (Pass 14)
+
 - `lib/core/routing/route_redirect.dart`
   - Added explicit `isPublicUnauthRoute` handling so unauthenticated users can access public legal/support routes without being forced to auth.
 - `test/router_redirect_test.dart`
@@ -293,6 +327,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Added auth-replay integration cases for pending `/premium` -> `/settings` and `/match/:id` -> `/chat/:id`.
 
 16. Config-surface rationalization + env precedence hardening (Pass 15)
+
 - `lib/config/app_config.dart`
   - Added canonical flavor resolver: `FLAVOR` -> legacy `APP_ENV` -> fallback `development`.
   - Added alias normalization (`dev/development`, `prod/production`, `stage/staging`).
@@ -309,6 +344,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Added regression coverage for flavor-to-mode mapping.
 
 17. Config key matrix + release-script deprecation bridge (Pass 16)
+
 - `docs/ENV_KEY_MATRIX.md`
   - Added canonical env-key contract and explicit deprecation dates for legacy aliases.
 - `scripts/build_release.sh`
@@ -319,6 +355,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Linked canonical env-key matrix and clarified legacy-key policy for release operations.
 
 18. Deprecated env-alias CI/static allowlist guard (Pass 17)
+
 - `scripts/check_deprecated_env_aliases.sh`
   - Added static guard to fail deprecated alias usage outside approved compatibility files.
   - Guard enforces alias policy for:
@@ -332,6 +369,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Added guardrail section referencing CI enforcement and approved exclusions.
 
 19. Env-alias migration checkpoint automation (Pass 18)
+
 - `scripts/check_env_alias_migration_status.sh`
   - Added operator migration checkpoint script that:
     - runs deprecated-alias allowlist guard,
@@ -345,6 +383,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated guardrails/release checklist to include migration checkpoint execution.
 
 20. Env-alias migration audit artifact generation (Pass 19)
+
 - `scripts/generate_env_alias_migration_audit_report.sh`
   - Added operator audit generator that writes dated migration artifacts:
     - `docs/reports/ENV_ALIAS_MIGRATION_AUDIT_YYYY-MM-DD.md`
@@ -357,6 +396,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated migration checklist and release checklist to require audit artifact generation.
 
 21. Operator runbook go/no-go criteria for env-alias audit artifacts (Pass 20)
+
 - `docs/RELEASE_GUIDE.md`
   - Added mandatory production runbook with explicit GO/NO-GO gates bound to Pass 19 artifact output:
     - `Checkpoint status: PASS`
@@ -368,6 +408,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated `R-060` mitigation with explicit release gate requirements from the runbook.
 
 22. Release ticket/template contract enforcement for env-alias audit evidence (Pass 21)
+
 - `docs/PRODUCTION_CUTOVER_TICKET_TEMPLATE.md`
   - Added canonical production cutover ticket template with mandatory env-alias audit artifact and `PASS` status fields.
 - `scripts/check_release_cutover_ticket_contract.sh`
@@ -381,6 +422,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated runbook and migration checklist to require concrete cutover ticket validation.
 
 23. Cutover ticket scaffolding helper for dated artifact references (Pass 22)
+
 - `scripts/create_production_cutover_ticket.sh`
   - Added helper to generate `docs/reports/PRODUCTION_CUTOVER_<date>.md` from template with:
     - prefilled `Cutover date (UTC)`,
@@ -394,6 +436,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated migration checklist/mitigations to include scaffold helper usage.
 
 24. Release-ref/tag CI gate for concrete cutover ticket validation (Pass 23)
+
 - `scripts/check_release_cutover_ticket_release_ref_gate.sh`
   - Added CI-oriented gate that:
     - detects release refs (release branches/tags),
@@ -406,6 +449,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated runbook/guardrails/risk mitigation to document the release-ref gate behavior.
 
 25. Release-ref gate script regression tests (Pass 24)
+
 - `scripts/test_release_cutover_ticket_release_ref_gate.sh`
   - Added targeted script-level tests covering:
     - non-release ref skip behavior,
@@ -418,6 +462,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated guardrails/risk mitigation to include regression-test enforcement.
 
 26. Invalid-input regression tests for cutover scaffold/contract scripts (Pass 25)
+
 - `scripts/test_release_cutover_ticket_invalid_input_cases.sh`
   - Added script-level invalid-input coverage for:
     - scaffold script usage errors/invalid date/existing output failure,
@@ -428,6 +473,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated guardrails/risk mitigation to include invalid-input test enforcement.
 
 27. Release-ref gate fallback-no-ticket regression coverage (Pass 26)
+
 - `scripts/check_release_cutover_ticket_release_ref_gate.sh`
   - Added optional `RELEASE_CUTOVER_TICKET_GLOB` override to make fallback ticket-resolution behavior deterministic in test harnesses.
 - `scripts/test_release_cutover_ticket_release_ref_gate.sh`
@@ -436,6 +482,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated guardrails/risk mitigation to document deterministic fallback-resolution testing support.
 
 28. Release-ref gate unset-ref + override-precedence coverage (Pass 27)
+
 - `scripts/test_release_cutover_ticket_release_ref_gate.sh`
   - Added explicit regression cases for:
     - `GITHUB_REF` unset skip behavior,
@@ -444,6 +491,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Updated guardrails/risk mitigation notes to document this added coverage.
 
 29. Release-ref path-precedence failure semantics coverage (Pass 28)
+
 - `scripts/test_release_cutover_ticket_release_ref_gate.sh`
   - Added explicit failure-path regression where:
     - `RELEASE_CUTOVER_TICKET_PATH` is invalid,
@@ -452,35 +500,51 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
 - `docs/ENV_KEY_MATRIX.md`, `docs/risk_notes.md`
   - Updated guardrails/risk mitigation notes with path-precedence failure-semantics coverage.
 
+29. Release-ref gate edge-pattern classification coverage (Pass 29)
+
+- `scripts/test_release_cutover_ticket_release_ref_gate.sh`
+  - Added explicit regression loops for positive edge cases (branch patterns, tags) and negative near-matches (plurals, internal substrings).
+- `scripts/check_release_cutover_ticket_contract.sh`
+  - Replaced `rg` with `grep` to ensure environment compatibility during testing.
+- `docs/ENV_KEY_MATRIX.md`, `docs/risk_notes.md`
+  - Updated guardrails/risk mitigation notes with edge-pattern classification coverage.
+
 30. Prior parity fixes already completed in this audit sequence
+
 - Support Q&A content + tap-to-reveal behavior.
 - Support category text alignment.
 - Web profile deep-link loader hang fix for self-profile.
 
 ## Remaining Risks
+
 - Low: legacy profile preference fallback is now telemetry-backed and time-bounded; residual risk is cutoff rollout execution.
 - Low: deep-link flow now consolidated with expanded parser/guard/auth-replay permutation coverage; continue extending coverage for new routes.
 - Low: core legal/runtime brand copy is normalized and regression-covered (now including onboarding/discovery/localization hotspots); residual risk is future-copy drift and intentional noun-key ambiguity.
 - Low: legacy env aliases are still in compatibility mode until planned cutoff; risk is primarily rollout discipline across external pipelines.
 
 ## Recommended Next Actions
+
 ### Immediate (P0)
+
 1. Monitor `legacy_profile_preferences_fallback_*` telemetry and remove legacy fallback code once usage remains zero.
 2. Use Pass 19 audit artifacts to remediate any external pipeline aliases before 2026-06-30 freeze.
 
 ### Next (P1)
+
 1. Add parity-focused integration tests for additional guarded deep-link permutations introduced in future route additions.
 2. Decide whether noun-style localization keys (`wordCrush`) remain intentional product vocabulary or should move to a stricter neutral glossary.
-3. Add regression coverage for release-ref gate branch-pattern edge cases (`refs/heads/release-*`, `refs/heads/release`) and tag-pattern behavior alignment with workflow triggers.
 
 ### Monitor (P2)
+
 1. Add release parity checklist gate (features, routes, rules, analytics).
 2. Monitor data-shape usage metrics until legacy path reaches zero.
 
 ---
 
 ## File-by-File Action List
+
 ### Edited in this pass
+
 - `lib/data/repositories/fake_repositories.dart`
   - Added env fallback resolver for API base URL key parity.
 - `lib/core/firebase_emulator.dart`
@@ -585,56 +649,70 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - Added update-dialog brand-copy regression coverage.
 
 ### Additional files requiring follow-up edits
+
 - `lib/l10n/app_*.arb` + `lib/l10n/generated/*` noun-style `wordCrush` vocabulary (intentional today; product glossary decision pending).
 
 ## Flow-by-Flow Comparison
+
 ### Onboarding
+
 - App: route-gated via `resolveRouteRedirect`.
 - Web: same route-gated flow.
 - Difference: none major in core logic; historical UI overflow issues already fixed.
 
 ### Authentication
+
 - App: email/password, OTP, email-link, platform-specific provider availability.
 - Web: same core auth repository contracts, but platform-specific sign-in buttons differ by OS constraints.
 - Difference: expected platform-compliance differences.
 
 ### Profile management
+
 - App: nested profile document model.
 - Web: same frontend model.
 - Difference: backend enforces canonical writes; legacy read fallback is temporarily retained with telemetry + cutoff.
 
 ### Discovery/matching
+
 - App/Web: shared repository/bloc/domain logic.
 - Difference: none found in this pass.
 
 ### Messaging
+
 - App/Web: shared chat repositories and state flow.
 - Difference: none found in core behavior; media/push capability can vary by platform runtime support.
 
 ### Notifications
+
 - App: mobile push lifecycle + badge behavior.
 - Web: constrained by browser capabilities.
 - Difference: expected; requires explicit product contract docs.
 
 ### Premium/subscription
+
 - App: native in-app purchase rails.
 - Web: web-compatible checkout paths.
 - Difference: payment rails differ; entitlements should remain shared.
 
 ### Settings
+
 - App/Web: shared settings routes and screens.
 - Difference: none major after support parity fixes.
 
 ### Moderation
+
 - App/Web: shared report/block contracts to backend.
 - Difference: none major found in this pass.
 
 ### Account lifecycle
+
 - App/Web: shared repository and backend function contracts.
 - Difference: none major found in this pass; monitor delete/export operational paths.
 
 ## Schema and Rules Comparison
+
 ### Canonical entities (from rules/functions usage)
+
 - `users`
 - `matches`
 - `matches/{matchId}/messages`
@@ -648,21 +726,25 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
 - server-only auth/support collections (`auth_*`, `usernames`, etc.)
 
 ### Key parity observation
+
 - Canonical write controls are mostly server-side for sensitive entities.
 - New writes now block legacy flat user profile fields; remaining read compatibility is telemetry-instrumented and cutoff-controlled.
 
 ### Policy boundary checks
+
 - Owner checks and signed-in checks are present.
 - Sensitive paths in Storage are blocked by default.
 - Legacy/duplicate rules artifact drift was corrected in this pass.
 
 ## Route and Navigation Comparison
+
 - Route source of truth: `lib/core/routing/crush_routes.dart`.
 - Route definitions: `lib/core/router.dart`, `lib/core/routing/settings_routes.dart`, `auth_routes.dart`, `public_routes.dart`.
 - Route guarding: `lib/core/routing/route_redirect.dart`.
 - Deep-link contract is consolidated via `DeepLinkHandler`; app-shell callback is wired and integration coverage now includes auth-transition route permutations.
 
 ## Copy and UX Consistency Review
+
 - Fixed:
   - support category titles/subtitles and category question answers.
   - runtime and localized brand strings normalized to `CRUSH` across app/web/backend/l10n surfaces.
@@ -672,6 +754,7 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
   - intentional noun-style localization vocabulary (`wordCrush`) and long-tail regression prevention.
 
 ## Technical Debt Register
+
 1. Deep-link app-shell integration coverage should be maintained as new routes are added (low).
 2. Legacy schema compatibility not fully retired; remove fallback once telemetry is zero (low).
 3. Multiple config systems/keys with partial overlap (medium).
@@ -679,15 +762,27 @@ Scope: Flutter mobile + Flutter web shell + Firebase rules + Cloud Functions int
 5. Naming/copy consistency debt across product surfaces (low, now mostly glossary policy and regression-guard expansion).
 
 ## Regression Testing Plan (Parity-Focused)
+
 1. Routing parity
+
 - Add integration tests for deep links: profile/chat/support category (auth + unauth paths).
+
 2. Schema parity
+
 - Add tests that reject/flag flat user profile writes once migration is complete.
+
 3. Rules parity
+
 - Keep CI step `scripts/check_firestore_rules_sync.sh` required and green.
+
 4. Config parity
+
 - Add tests for env-key fallback behavior (added in this pass).
+
 5. UX parity
+
 - Keep widget tests for support FAQ expansion and profile keyboard overflow.
+
 6. Release gate
+
 - Before release, run: analyze, targeted parity tests, rules sync script, docs sync script.

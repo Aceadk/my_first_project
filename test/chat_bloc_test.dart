@@ -37,7 +37,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -59,7 +59,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -89,7 +89,7 @@ void main() {
           final bloc = ChatBloc(
             chatRepository: chatRepo,
             subscriptionRepository: _FakeSubscriptionRepository(
-              SubscriptionPlan.free,
+              SubscriptionTier.free,
             ),
             authRepository: authRepo,
           );
@@ -127,7 +127,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: chatRepo,
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -154,7 +154,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -191,7 +191,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: chatRepo,
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -234,7 +234,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: chatRepo,
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -261,7 +261,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: chatRepo,
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -294,7 +294,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: chatRepo,
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -321,7 +321,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -349,7 +349,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -374,7 +374,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -402,7 +402,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: chatRepo,
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.plus,
+            SubscriptionTier.plus,
           ),
           authRepository: authRepo,
         );
@@ -435,7 +435,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -469,7 +469,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: chatRepo,
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.plus,
+            SubscriptionTier.plus,
           ),
           authRepository: authRepo,
         );
@@ -509,7 +509,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: chatRepo,
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -538,7 +538,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -567,14 +567,14 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
 
         // First add some messages
         bloc.add(
-          ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.free),
+          ChatMessagesUpdated([_testMessage('1')], SubscriptionTier.free),
         );
         await Future.delayed(const Duration(milliseconds: 100));
         expect(bloc.state.messages.isNotEmpty, true);
@@ -600,7 +600,7 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
@@ -630,13 +630,13 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.free,
+            SubscriptionTier.free,
           ),
           authRepository: authRepo,
         );
 
         final messages = [_testMessage('1'), _testMessage('2')];
-        bloc.add(ChatMessagesUpdated(messages, SubscriptionPlan.free));
+        bloc.add(ChatMessagesUpdated(messages, SubscriptionTier.free));
 
         await expectLater(
           bloc.stream,
@@ -652,13 +652,13 @@ void main() {
         final bloc = ChatBloc(
           chatRepository: _FakeChatRepository(),
           subscriptionRepository: _FakeSubscriptionRepository(
-            SubscriptionPlan.plus,
+            SubscriptionTier.plus,
           ),
           authRepository: authRepo,
         );
 
         bloc.add(
-          ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.plus),
+          ChatMessagesUpdated([_testMessage('1')], SubscriptionTier.plus),
         );
 
         await expectLater(
@@ -685,7 +685,7 @@ void main() {
           final bloc = ChatBloc(
             chatRepository: chatRepo,
             subscriptionRepository: _FakeSubscriptionRepository(
-              SubscriptionPlan.free,
+              SubscriptionTier.free,
             ),
             authRepository: authRepo,
           );
@@ -698,7 +698,7 @@ void main() {
 
           // Add messages first
           bloc.add(
-            ChatMessagesUpdated([_testMessage('1')], SubscriptionPlan.free),
+            ChatMessagesUpdated([_testMessage('1')], SubscriptionTier.free),
           );
           await Future.delayed(const Duration(milliseconds: 100));
 
@@ -1024,29 +1024,29 @@ class _FakeChatRepository implements ChatRepository {
 }
 
 class _FakeSubscriptionRepository implements SubscriptionRepository {
-  SubscriptionPlan plan;
-  _FakeSubscriptionRepository(this.plan);
+  SubscriptionTier tier;
+  _FakeSubscriptionRepository(this.tier);
 
   @override
-  Stream<SubscriptionPlan> watchPlan() async* {
-    yield plan;
+  Stream<SubscriptionTier> watchPlan() async* {
+    yield tier;
   }
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => plan;
+  Future<SubscriptionTier> getCurrentPlan() async => tier;
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
 
   @override
-  Future<String> startPlusCheckout() async => '';
+  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => '';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
-      SubscriptionStatus(plan: SubscriptionPlan.free);
+      SubscriptionStatus(tier: SubscriptionTier.free);
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

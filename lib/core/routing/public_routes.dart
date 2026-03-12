@@ -1,10 +1,11 @@
-import 'package:go_router/go_router.dart';
-import 'package:crushhour/presentation/screens/safety_screen.dart';
+import 'package:crushhour/features/about/presentation/screens/product_features_screen.dart';
+import 'package:crushhour/features/subscription/presentation/screens/paywall_screen.dart';
 import 'package:crushhour/presentation/screens/community_guidelines_screen.dart';
 import 'package:crushhour/presentation/screens/privacy_policy_screen.dart';
+import 'package:crushhour/presentation/screens/safety_screen.dart';
 import 'package:crushhour/presentation/screens/terms_of_service_screen.dart';
-import 'package:crushhour/features/about/presentation/screens/product_features_screen.dart';
-import 'package:crushhour/features/about/presentation/screens/pricing_screen.dart';
+import 'package:go_router/go_router.dart';
+
 import 'crush_routes.dart';
 import 'page_builder.dart';
 
@@ -40,7 +41,10 @@ List<RouteBase> publicRoutes() => [
         buildPage(state, const ProductFeaturesScreen()),
   ),
   GoRoute(
-    path: CrushRoutes.pricing,
-    pageBuilder: (context, state) => buildPage(state, const PricingScreen()),
+    path: CrushRoutes.paywall,
+    pageBuilder: (context, state) => buildPage(
+      state,
+      PaywallScreen(source: state.uri.queryParameters['source']),
+    ),
   ),
 ];

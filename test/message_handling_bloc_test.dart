@@ -33,7 +33,7 @@ void main() {
     setUp(() {
       chatRepo = _FakeChatRepository();
       subscriptionRepo = _FakeSubscriptionRepository(
-        plan: SubscriptionPlan.free,
+        tier: SubscriptionTier.free,
       );
       bloc = MessageHandlingBloc(
         chatRepository: chatRepo,
@@ -50,7 +50,7 @@ void main() {
     test(
       'initial load succeeds with pagination and marks messages read',
       () async {
-        subscriptionRepo.plan = SubscriptionPlan.plus;
+        subscriptionRepo.tier = SubscriptionTier.plus;
         chatRepo.initialPage = PaginatedResult<Message>(
           items: [
             _msg('m1', content: 'hello', sentAt: DateTime(2026, 2, 10, 10)),
@@ -219,7 +219,7 @@ void main() {
               sentAt: DateTime(2026, 2, 11, 9, i),
             ),
           ),
-          SubscriptionPlan.free,
+          SubscriptionTier.free,
         ),
       );
       await _settle();
@@ -244,7 +244,7 @@ void main() {
     });
 
     test('media send handles upload and send failures', () async {
-      subscriptionRepo.plan = SubscriptionPlan.plus;
+      subscriptionRepo.tier = SubscriptionTier.plus;
       chatRepo.throwOnUpload = true;
 
       bloc.add(
@@ -305,7 +305,7 @@ void main() {
         await _settle();
         expect(bloc.state.errorMessage, 'Upgrade to Plus to edit messages.');
 
-        subscriptionRepo.plan = SubscriptionPlan.plus;
+        subscriptionRepo.tier = SubscriptionTier.plus;
         chatRepo.throwOnUnsend = true;
         bloc.add(MsgUnsendRequested(matchId: 'match-1', messageId: 'msg-2'));
         await _settle();
@@ -412,7 +412,7 @@ void main() {
       'new message and legacy dedupe paths update state deterministically',
       () async {
         final existing = _msg('existing', content: 'enc:hello');
-        bloc.add(MsgLegacyMessagesUpdated([existing], SubscriptionPlan.free));
+        bloc.add(MsgLegacyMessagesUpdated([existing], SubscriptionTier.free));
         await _settle();
 
         bloc.add(MsgNewMessagesReceived([existing]));
@@ -455,7 +455,7 @@ void main() {
         );
 
         bloc.add(
-          MsgLegacyMessagesUpdated([serverMessage], SubscriptionPlan.free),
+          MsgLegacyMessagesUpdated([serverMessage], SubscriptionTier.free),
         );
         await _settle();
 
@@ -521,7 +521,7 @@ void main() {
         bloc.add(
           MsgLegacyMessagesUpdated([
             _msg('before-reset', content: 'value'),
-          ], SubscriptionPlan.plus),
+          ], SubscriptionTier.plus),
         );
         await _settle();
         expect(bloc.state.messages, isNotEmpty);
@@ -901,36 +901,36 @@ class _FakeChatRepository implements ChatRepository {
 }
 
 class _FakeSubscriptionRepository implements SubscriptionRepository {
-  _FakeSubscriptionRepository({required this.plan});
+  _FakeSubscriptionRepository({required this.tier});
 
-  SubscriptionPlan plan;
+  SubscriptionTier tier;
   bool throwOnGetCurrentPlan = false;
 
   @override
-  Stream<SubscriptionPlan> watchPlan() async* {
-    yield plan;
+  Stream<SubscriptionTier> watchPlan() async* {
+    yield tier;
   }
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async {
+  Future<SubscriptionTier> getCurrentPlan() async {
     if (throwOnGetCurrentPlan) {
       throw Exception('plan fetch failed');
     }
-    return plan;
+    return tier;
   }
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
 
   @override
-  Future<String> startPlusCheckout() async => '';
+  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => '';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
-      SubscriptionStatus(plan: plan);
+      SubscriptionStatus(tier: tier);
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

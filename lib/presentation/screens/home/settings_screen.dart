@@ -81,13 +81,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             }
           },
           builder: (context, state) {
-            final isPlus = state.plan == SubscriptionPlan.plus;
+            final isPlus = state.tier == SubscriptionTier.plus;
             final isLoading = state.isCheckoutInProgress;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Current plan: ${isPlus ? 'Plus' : 'Free'}',
+                  'Current tier: ${isPlus ? 'Plus' : 'Free'}',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 24),
@@ -99,7 +99,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ? null
                           : () {
                               context.read<SubscriptionBloc>().add(
-                                PlusCheckoutRequested(),
+                                SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly),
                               );
                             },
                       child: isLoading

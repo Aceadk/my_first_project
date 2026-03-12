@@ -1,13 +1,13 @@
 import 'package:crushhour/core/network/dto/auth_dto.dart';
-import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/data/models/user.dart';
 
 /// Mapper for auth-related DTOs to domain models.
 class AuthMapper {
   AuthMapper._();
 
   /// Convert UserDto to CrushUser domain model.
-  static CrushUser userFromDto(UserDto dto, {SubscriptionPlan? plan}) {
+  static CrushUser userFromDto(UserDto dto, {SubscriptionTier? tier}) {
     return CrushUser(
       id: dto.id,
       phoneNumber: dto.phoneNumber ?? '',
@@ -16,11 +16,11 @@ class AuthMapper {
       isEmailVerified: dto.email != null,
       isPhoneVerified: dto.phoneNumber != null,
       isIdVerified: dto.isVerified ?? false,
-      plan:
-          plan ??
+      tier:
+          tier ??
           (dto.isPremium == true
-              ? SubscriptionPlan.plus
-              : SubscriptionPlan.free),
+              ? SubscriptionTier.plus
+              : SubscriptionTier.free),
       profile: null, // Profile loaded separately
     );
   }
@@ -33,7 +33,7 @@ class AuthMapper {
       email: user.email,
       displayName: user.username,
       isVerified: user.isIdVerified,
-      isPremium: user.plan.isPlus,
+      isPremium: user.tier.isPlus,
     );
   }
 

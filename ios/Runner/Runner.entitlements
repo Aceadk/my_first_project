@@ -13,5 +13,9 @@
 		<string>applinks:crushhour.app</string>
 		<string>webcredentials:crushhour.app</string>
 	</array>
+	<key>com.apple.developer.in-app-payments</key>
+	<array>
+		<string>MerchantID.com.crushhour.app</string>
+	</array>
 </dict>
 </plist>

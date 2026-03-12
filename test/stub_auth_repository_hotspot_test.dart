@@ -436,7 +436,7 @@ void main() {
         final restored = await repo.refreshCurrentUser();
         expect(restored, isNotNull);
         expect(restored!.id, userId);
-        expect(restored.plan.name, 'plus');
+        expect(restored.tier.name, 'plus');
         expect(restored.profile, isNotNull);
         expect(restored.profile!.name, 'Ava');
         expect(

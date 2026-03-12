@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:crushhour/data/models/subscription.dart';
+
 import 'package:crushhour/data/models/promo_code.dart';
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Mock implementation of SubscriptionRepository with local storage.
 /// Allows upgrading to Plus plan for demo/development purposes.
@@ -13,8 +14,8 @@ class StubSubscriptionRepository implements SubscriptionRepository {
   static const _statusKey = 'mock_subscription_status';
   static const _renewalKey = 'mock_subscription_renewal';
 
-  final _planController = StreamController<SubscriptionPlan>.broadcast();
-  SubscriptionPlan _currentPlan = SubscriptionPlan.free;
+  final _planController = StreamController<SubscriptionTier>.broadcast();
+  SubscriptionTier _currentPlan = SubscriptionTier.free;
 
   StubSubscriptionRepository() {
     _loadPlan();
@@ -24,60 +25,68 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     final prefs = await SharedPreferences.getInstance();
     final planName = prefs.getString(_planKey);
     if (planName == 'plus') {
-      _currentPlan = SubscriptionPlan.plus;
+      _currentPlan = SubscriptionTier.plus;
     } else {
-      _currentPlan = SubscriptionPlan.free;
+      _currentPlan = SubscriptionTier.free;
     }
     _planController.add(_currentPlan);
   }
 
-  Future<void> _savePlan(SubscriptionPlan plan) async {
+  Future<void> _savePlan(SubscriptionTier tier) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_planKey, plan.name);
-    _currentPlan = plan;
-    _planController.add(plan);
+    await prefs.setString(_planKey, tier.name);
+    _currentPlan = tier;
+    _planController.add(tier);
   }
 
   @override
-  Stream<SubscriptionPlan> watchPlan() {
+  Stream<SubscriptionTier> watchPlan() {
     // Emit current plan immediately for new subscribers
     Future.microtask(() => _planController.add(_currentPlan));
     return _planController.stream;
   }
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async {
+  Future<SubscriptionTier> getCurrentPlan() async {
     final prefs = await SharedPreferences.getInstance();
     final planName = prefs.getString(_planKey);
     if (planName == 'plus') {
-      return SubscriptionPlan.plus;
+      return SubscriptionTier.plus;
     }
-    return SubscriptionPlan.free;
+    return SubscriptionTier.free;
   }
 
   @override
-  Future<void> purchasePlusPlan() async {
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     // Simulate purchase delay
     await Future.delayed(const Duration(milliseconds: 800));
 
-    // For demo: always succeed and upgrade to Plus
-    await _savePlan(SubscriptionPlan.plus);
+    // For demo: always succeed and upgrade to tier
+    await _savePlan(tier);
 
     // Store renewal date (1 month from now for demo)
     final prefs = await SharedPreferences.getInstance();
-    final renewalDate = DateTime.now().add(const Duration(days: 30));
+    int days = period == BillingPeriod.monthly
+        ? 30
+        : (period == BillingPeriod.quarterly ? 90 : 365);
+    final renewalDate = DateTime.now().add(Duration(days: days));
     await prefs.setString(_renewalKey, renewalDate.toIso8601String());
     await prefs.setString(_statusKey, 'active');
   }
 
   @override
-  Future<String> startPlusCheckout() async {
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     // Simulate checkout session creation
     await Future.delayed(const Duration(milliseconds: 300));
 
     // For demo: return a fake checkout URL
-    // In real app, this would be a Stripe checkout session URL
-    return 'https://checkout.example.com/session_demo_${DateTime.now().millisecondsSinceEpoch}';
+    return 'https://checkout.example.com/session_demo_${tier.name}_${DateTime.now().millisecondsSinceEpoch}';
   }
 
   @override
@@ -86,7 +95,10 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     await Future.delayed(const Duration(milliseconds: 500));
 
     // Auto-upgrade to Plus for demo purposes
-    await purchasePlusPlan();
+    await purchaseSubscription(
+      tier: SubscriptionTier.plus,
+      period: BillingPeriod.monthly,
+    );
   }
 
   @override
@@ -98,17 +110,17 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     final status = prefs.getString(_statusKey);
     final renewalStr = prefs.getString(_renewalKey);
 
-    final plan = planName == 'plus'
-        ? SubscriptionPlan.plus
-        : SubscriptionPlan.free;
+    final tier = planName == 'plus'
+        ? SubscriptionTier.plus
+        : SubscriptionTier.free;
     DateTime? renewal;
     if (renewalStr != null) {
       renewal = DateTime.tryParse(renewalStr);
     }
 
     return SubscriptionStatus(
-      plan: plan,
-      status: status ?? (plan.isPlus ? 'active' : null),
+      tier: tier,
+      status: status ?? (tier.isPlus ? 'active' : null),
       nextRenewal: renewal,
       cancelAtPeriodEnd: false,
     );
@@ -116,7 +128,7 @@ class StubSubscriptionRepository implements SubscriptionRepository {
 
   /// Downgrade to free plan (for testing)
   Future<void> downgradeToFree() async {
-    await _savePlan(SubscriptionPlan.free);
+    await _savePlan(SubscriptionTier.free);
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_statusKey);
     await prefs.remove(_renewalKey);
@@ -124,8 +136,8 @@ class StubSubscriptionRepository implements SubscriptionRepository {
 
   /// Toggle between free and plus (for quick testing)
   Future<void> togglePlan() async {
-    if (_currentPlan == SubscriptionPlan.free) {
-      await purchasePlusPlan();
+    if (_currentPlan == SubscriptionTier.free) {
+      await purchaseSubscription(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
     } else {
       await downgradeToFree();
     }
@@ -245,7 +257,7 @@ class StubSubscriptionRepository implements SubscriptionRepository {
       benefits.add('${promoCode.discountPercent}% discount applied');
       // For 100% discount, upgrade to Plus immediately
       if (promoCode.discountPercent == 100) {
-        await _savePlan(SubscriptionPlan.plus);
+        await _savePlan(SubscriptionTier.plus);
         final prefs = await SharedPreferences.getInstance();
         // Set renewal 1 year from now for 100% discount
         final renewalDate = DateTime.now().add(const Duration(days: 365));
@@ -258,7 +270,7 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     if (promoCode.freeTrialDays != null) {
       benefits.add('${promoCode.freeTrialDays} day free trial activated');
       // For demo: upgrade to Plus immediately
-      await _savePlan(SubscriptionPlan.plus);
+      await _savePlan(SubscriptionTier.plus);
       final prefs = await SharedPreferences.getInstance();
       final trialEnd = DateTime.now().add(
         Duration(days: promoCode.freeTrialDays!),

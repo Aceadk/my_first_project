@@ -94,9 +94,9 @@ class HttpProfileRepository with CachingMixin implements ProfileRepository {
             isEmailVerified: payload['email_verified'] as bool? ?? false,
             isPhoneVerified: payload['phone_verified'] as bool? ?? true,
             isIdVerified: profile.isVerified,
-            plan: payload['is_premium'] == true
-                ? SubscriptionPlan.plus
-                : SubscriptionPlan.free,
+            tier: payload['is_premium'] == true
+                ? SubscriptionTier.plus
+                : SubscriptionTier.free,
             themePreference:
                 payload['theme_preference'] as String? ??
                 payload['themePreference'] as String?,

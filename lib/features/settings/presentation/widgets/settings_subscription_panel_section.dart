@@ -30,7 +30,7 @@ class SettingsSubscriptionPanelSection extends StatelessWidget {
         }
       },
       builder: (context, subState) {
-        final isPlus = subState.plan == SubscriptionPlan.plus;
+        final isPlus = subState.tier == SubscriptionTier.plus;
         final loading = subState.isCheckoutInProgress;
         final statusLabel = subState.statusLabel;
         final renewal = subState.nextRenewal;
@@ -168,7 +168,7 @@ class SettingsSubscriptionPanelSection extends StatelessWidget {
                               return;
                             }
                             context.read<SubscriptionBloc>().add(
-                              PlusCheckoutRequested(),
+                              SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly),
                             );
                           },
                     child: loading

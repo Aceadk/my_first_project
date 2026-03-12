@@ -1,17 +1,24 @@
 import 'dart:async';
-import 'package:crushhour/data/models/subscription.dart';
+
 import 'package:crushhour/data/models/promo_code.dart';
+import 'package:crushhour/data/models/subscription.dart';
 
 abstract class SubscriptionRepository {
-  Stream<SubscriptionPlan> watchPlan();
+  Stream<SubscriptionTier> watchPlan();
 
-  Future<SubscriptionPlan> getCurrentPlan();
+  Future<SubscriptionTier> getCurrentPlan();
 
   /// Integrate with real payments (Stripe, in-app purchase, etc.).
-  Future<void> purchasePlusPlan();
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  });
 
-  /// Starts a Plus checkout session and returns the checkout URL.
-  Future<String> startPlusCheckout();
+  /// Starts a checkout session and returns the checkout URL.
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  });
 
   /// Launches the given checkout URL.
   Future<void> launchCheckoutUrl(String url);

@@ -123,7 +123,7 @@ CrushUser _testUser({String? themePreference}) {
     isEmailVerified: true,
     isPhoneVerified: true,
     isIdVerified: false,
-    plan: SubscriptionPlan.free,
+    tier: SubscriptionTier.free,
     hasAcceptedTerms: true,
     themePreference: themePreference,
   );

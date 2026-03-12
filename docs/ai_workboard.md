@@ -7,6 +7,7 @@ Created on 2026-02-22 by consolidating the former multi-file AI tracking workflo
 ## Update Rules
 
 For every task, update this file once using one unified entry:
+
 - Task metadata (ID, date, owner, status)
 - Goal and scope
 - Key changes (files/modules)
@@ -17,9 +18,9 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 ## Active Queue
 
-| Task ID | Opened | Title | Status | Next Step |
-| --- | --- | --- | --- | --- |
-| T-2026-02-06-01 | 2026-02-06 | Post-Blaze Firebase setup | In Progress | Initialize Firebase Storage in console, then run `firebase deploy --only storage`. |
+| Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
+| --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
+| T-2026-02-06-01 | 2026-02-06 | Post-Blaze Firebase setup                  | In Progress | Initialize Firebase Storage in console, then run `firebase deploy --only storage`.                 |
 | T-2026-02-01-03 | 2026-02-01 | Integration test failures (l10n + auth UI) | In Progress | Re-run `flutter test integration_test/app_test.dart` with a longer timeout/device stability check. |
 
 ## Priority Context
@@ -38,17 +39,18 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 ## Recent Completed (Highlights)
 
-| Task ID | Date | Summary | Verification |
-| --- | --- | --- | --- |
-| T-2026-02-20-CLEAN | 2026-02-20 | Tokenized chat inline styles and removed safe widget duplicates. | `flutter analyze` clean, tests at baseline. |
-| T-2026-02-20-I18N-B | 2026-02-20 | Locale-aware date/time formatting + CJK typography fallback and line heights. | `flutter analyze` clean, tests adjusted and passing baseline. |
-| T-2026-02-20-I18N | 2026-02-20 | I18N audit + device-language follow mode in settings. | `flutter analyze` clean. |
-| T-2026-02-19-ONBOARD004 | 2026-02-19 | Onboarding analytics wired across 5 steps with completion duration. | `flutter analyze` clean. |
-| T-2026-02-19-ONBOARD005 | 2026-02-19 | Deck tutorial overlay added with one-time persistence + a11y support. | `flutter analyze` clean. |
+| Task ID                 | Date       | Summary                                                                       | Verification                                                  |
+| ----------------------- | ---------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| T-2026-02-20-CLEAN      | 2026-02-20 | Tokenized chat inline styles and removed safe widget duplicates.              | `flutter analyze` clean, tests at baseline.                   |
+| T-2026-02-20-I18N-B     | 2026-02-20 | Locale-aware date/time formatting + CJK typography fallback and line heights. | `flutter analyze` clean, tests adjusted and passing baseline. |
+| T-2026-02-20-I18N       | 2026-02-20 | I18N audit + device-language follow mode in settings.                         | `flutter analyze` clean.                                      |
+| T-2026-02-19-ONBOARD004 | 2026-02-19 | Onboarding analytics wired across 5 steps with completion duration.           | `flutter analyze` clean.                                      |
+| T-2026-02-19-ONBOARD005 | 2026-02-19 | Deck tutorial overlay added with one-time persistence + a11y support.         | `flutter analyze` clean.                                      |
 
 ## Unified Task Log
 
 ### T-2026-02-22-DOCS-UNIFY
+
 - Date: 2026-02-22
 - Owner: Codex
 - Status: Completed
@@ -66,6 +68,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Use this file as the only AI planning + execution tracker going forward.
 
 ### T-2026-02-22-R035-CLOSE
+
 - Date: 2026-02-22
 - Owner: Codex
 - Status: Completed
@@ -84,6 +87,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Keep the guard as a required quality gate for all future AI tasks.
 
 ### T-2026-02-22-DOCS-REMOVE
+
 - Date: 2026-02-22
 - Owner: Codex
 - Status: Completed
@@ -102,6 +106,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue using `docs/ai_workboard.md` as the single source of AI planning/execution truth.
 
 ### T-2026-02-22-WEB-CI
+
 - Date: 2026-02-22
 - Owner: Codex
 - Status: Completed
@@ -120,6 +125,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `docs/TODO_WEBAPP.md` with next highest-priority item (Google sign-in integration or Lighthouse audit).
 
 ### T-2026-02-22-WEB-AUTH-MSG
+
 - Date: 2026-02-22
 - Owner: Codex
 - Status: Completed
@@ -142,6 +148,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Implement remaining auth hardening item (`new device verification`) and real Sentry/uptime monitoring.
 
 ### T-2026-02-23-WEB-DEVICE-VERIFY
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -166,6 +173,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP on monitoring hardening (real Sentry integration + uptime monitoring) and remaining realtime/chat resiliency items.
 
 ### T-2026-02-23-WEB-MONITORING
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -190,6 +198,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP on realtime resiliency (`Reconnection logic / offline indicator`) and analytics funnel events.
 
 ### T-2026-02-23-WEB-REALTIME-ANALYTICS
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -218,6 +227,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP on remaining polish backlog (retry logic for failed requests, accessibility audits, Lighthouse/Core Web Vitals).
 
 ### T-2026-02-23-WEB-RETRY-LOGIC
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -244,6 +254,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP on remaining quality backlog (Lighthouse/Core Web Vitals and accessibility audit items).
 
 ### T-2026-02-23-WEB-FEATURE-GATING
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -275,6 +286,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP with remaining quality backlog and close the repo-wide Next.js `useSearchParams`/Suspense build blocker across auth routes.
 
 ### T-2026-02-23-WEB-BUILD-SUSPENSE
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -305,6 +317,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP quality backlog (Lighthouse/Core Web Vitals and accessibility audits).
 
 ### T-2026-02-23-WEB-INTEREST-FILTER
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -331,6 +344,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP quality backlog (Lighthouse/Core Web Vitals and accessibility audits), or implement next discovery gap (`Daily limits`).
 
 ### T-2026-02-23-WEB-DAILY-LIMITS
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -362,6 +376,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP with remaining discovery/profile polish tasks or Phase 9 quality audits (Lighthouse/Core Web Vitals/accessibility).
 
 ### T-2026-02-23-WEB-BLOCKED-DISCOVERY-RULE
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -389,6 +404,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP on remaining discovery backlog (`Profile stories`, `Boost`, `Passport`) or profile/edit polish tasks.
 
 ### T-2026-02-23-WEB-PHOTO-CAROUSEL
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -414,6 +430,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP discovery backlog (`Profile stories`, `Boost`, `Passport mode`).
 
 ### T-2026-02-23-WEB-BOOST-FEATURE
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -454,6 +471,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP discovery backlog with `Passport mode` or `Profile stories`.
 
 ### T-2026-02-23-WEB-PASSPORT-MODE
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -491,6 +509,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP discovery backlog with `Profile stories`.
 
 ### T-2026-02-23-WEB-PROFILE-STORIES
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -550,6 +569,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue TODO_WEBAPP remaining backlog with `Audio/Video calls`, `Push notifications`, or Phase 9 quality audits.
 
 ### T-2026-02-23-WEB-PHASE9-QUALITY-AUDITS
+
 - Date: 2026-02-23
 - Owner: Codex
 - Status: Completed
@@ -595,6 +615,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue remaining Phase 9 quality backlog with bundle analysis/code-splitting and image optimization audit, then expand accessibility audit coverage beyond marketing homepage.
 
 ### T-2026-03-07-ONBOARDING-OB008
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -626,6 +647,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue onboarding backlog with `OB-007` (data-driven/localized gender/orientation options) and broader onboarding localization (`OB-005`).
 
 ### T-2026-03-07-ONBOARDING-OB007
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -654,6 +676,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue onboarding localization backlog in `OB-005` (remaining hardcoded strings across onboarding screens).
 
 ### T-2026-03-07-ONBOARDING-OB005-PHASE1
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -682,6 +705,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `OB-005` Phase 2 with localization extraction in `sign_up_screen.dart`, `terms_conditions_screen.dart`, and `profile_setup_screen.dart`.
 
 ### T-2026-03-07-ONBOARDING-OB005-PHASE2
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -715,6 +739,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `OB-005` Phase 3 with localization extraction for `sign_up_screen.dart` and `profile_setup_screen.dart`.
 
 ### T-2026-03-07-ONBOARDING-RECON-OPEN-ITEMS
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -741,6 +766,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Implement `OB-005` Phase 3 localization extraction for remaining onboarding screens.
 
 ### T-2026-03-07-ONBOARDING-OB005-PHASE3A
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -774,6 +800,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `OB-005` Phase 3B by localizing remaining onboarding strings in `profile_setup_screen.dart`.
 
 ### T-2026-03-07-ONBOARDING-OB005-PHASE3B
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -809,6 +836,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Finish `OB-005` by localizing option-catalog display labels (interests/favourites) via data-driven key mapping.
 
 ### T-2026-03-07-ONBOARDING-UI-START
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -842,6 +870,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Implement remaining onboarding UI items starting with `OBU-004` checkbox semantics hardening and `OBU-008` age-gate interaction polish.
 
 ### T-2026-03-07-ONBOARDING-UI-OBU004-OBU008
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -876,6 +905,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Complete remaining onboarding UI follow-ups (`OBU-006` branded Google logo asset, `OBU-012` contrast verification).
 
 ### T-2026-03-07-ONBOARDING-UI-OBU006-OBU012
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -907,6 +937,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Run a manual visual check on auth gateway/login/sign-up for Google icon sizing/alignment across phone and tablet widths.
 
 ### T-2026-03-07-ONBOARDING-UI-VISUAL-QA-GOOGLE-CTA
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -935,6 +966,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional: run a true on-device visual spot-check when local GUI environment is available for final pixel-level confirmation.
 
 ### T-2026-03-07-PROFILE-BE-START
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -960,6 +992,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Implement `PROF-BE-001` and `PROF-BE-003` in a single targeted backend pass, then add endpoint tests from `PROF-BE-008`.
 
 ### T-2026-03-07-PROFILE-BE-001-003-CORE
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -994,6 +1027,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add endpoint/integration tests for `GET/PATCH /v1/profile/me` and `PATCH /v1/profile/preferences` to fully close `PROF-BE-001` and `PROF-BE-003`.
 
 ### T-2026-03-07-PROFILE-BE-001-003-ENDPOINT-TESTS
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1029,6 +1063,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-002` (DOB/age contract normalization) and `PROF-BE-005` (profile photo delete + storage lifecycle).
 
 ### T-2026-03-07-PROFILE-BE-002-DOB-AGE
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1070,6 +1105,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue with `PROF-BE-005` (photo delete lifecycle + storage consistency) and `PROF-BE-004` (secure photo upload hardening).
 
 ### T-2026-03-07-PROFILE-BE-005-PHOTO-DELETE
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1105,6 +1141,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Implement `PROF-BE-004` secure profile photo upload hardening.
 
 ### T-2026-03-07-PROFILE-BE-004-PHOTO-UPLOAD
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1143,6 +1180,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-006` prompt-field contract unification.
 
 ### T-2026-03-07-PROFILE-BE-006-PROMPTS-CONTRACT
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1180,6 +1218,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-007` username/display-name contract fix.
 
 ### T-2026-03-07-PROFILE-BE-007-USERNAME-CONTRACT
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1214,6 +1253,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-008` endpoint coverage expansion.
 
 ### T-2026-03-07-PROFILE-BE-008-REST-COVERAGE
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1239,6 +1279,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_PROFILE_BACKEND.md` with `PROF-BE-009` profile-completeness degraded-mode hardening.
 
 ### T-2026-03-07-PROFILE-BE-009-COMPLETENESS-FALLBACK
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1269,6 +1310,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Profile backend TODO backlog is complete; move to next highest-priority TODO module.
 
 ### T-2026-03-07-PROFILE-FE-003-ADAPTIVE-PHOTO-GRID
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1295,6 +1337,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-002` (iPad picker flow hardening) or `PROF-FE-001` (profile-card max-width/centering with path reconciliation).
 
 ### T-2026-03-07-PROFILE-FE-004-EXIF-PRIVACY
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1322,6 +1365,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-002` (iPad picker source-rect hardening) or `PROF-FE-001` (profile-card responsive max-width).
 
 ### T-2026-03-07-PROFILE-FE-002-IPAD-PICKER-ANCHOR
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1350,6 +1394,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_PROFILE_FRONTEND.md` with `PROF-FE-001` (responsive profile-card max-width/centering with path reconciliation).
 
 ### T-2026-03-07-REALTIME-RT001-HEARTBEAT-CLEANUP
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1376,6 +1421,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REALTIME.md` with `RT-002` (dynamic polling fallback switching based on WebSocket state).
 
 ### T-2026-03-07-REALTIME-RT002-DYNAMIC-POLLING-SWITCH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1404,6 +1450,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REALTIME.md` with `RT-003` (RTDB payload parsing hardening).
 
 ### T-2026-03-07-REALTIME-RT003-RTDB-PARSER-HARDENING
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1430,6 +1477,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REALTIME.md` with `RT-004` (FirebaseRealtimeService subscription/query-operator lifecycle test coverage).
 
 ### T-2026-03-07-REALTIME-RT004-SERVICE-LIFECYCLE-COVERAGE
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1455,6 +1503,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Realtime TODO backlog is complete; proceed to next prioritized TODO module.
 
 ### T-2026-03-07-RESPONSIVE-RESP009-CHAT-SPLIT-WIDTH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1476,6 +1525,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-010` (other-user profile content + bottom action width constraints).
 
 ### T-2026-03-07-RESPONSIVE-RESP010-OTHER-PROFILE-WIDTH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1501,6 +1551,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-011` (normalize auth utility screens away from hardcoded width constants).
 
 ### T-2026-03-07-RESPONSIVE-RESP011-AUTH-UTILITY-WIDTHS
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1526,6 +1577,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_RESPONSIVE_DESIGN.md` with `RESP-012` (refresh responsive coverage audit + risk-note alignment).
 
 ### T-2026-03-07-RESPONSIVE-RESP012-COVERAGE-AUDIT
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1558,6 +1610,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Responsive backlog items currently complete; start follow-up remediation on remaining high-risk screens (`chat_screen.dart`, `call_screen.dart`, `discovery_filters_settings_screen.dart`).
 
 ### T-2026-03-07-RESPONSIVE-RESP013-CHAT-CONVERSATION-WIDTH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1582,6 +1635,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_RESPONSIVE_DESIGN.md` against remaining non-adaptive screens (`call_screen.dart`, `discovery_filters_settings_screen.dart`, `terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
 
 ### T-2026-03-07-RESPONSIVE-RESP014-CALL-SCREEN-WIDTH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1606,6 +1660,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue responsive remediation on remaining non-adaptive screens (`discovery_filters_settings_screen.dart`, `terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
 
 ### T-2026-03-07-RESPONSIVE-RESP015-DISCOVERY-FILTERS-WIDTH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1629,6 +1684,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue responsive remediation on remaining non-adaptive screens (`terms_conditions_screen.dart`, `pin_fallback_screen.dart`, `date_ideas_screen.dart`).
 
 ### T-2026-03-07-RESPONSIVE-RESP016-TERMS-WIDTH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1652,6 +1708,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue responsive remediation on remaining non-adaptive screens (`pin_fallback_screen.dart`, `date_ideas_screen.dart`).
 
 ### T-2026-03-07-RESPONSIVE-RESP017-PIN-FALLBACK-WIDTH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1675,6 +1732,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Complete final responsive remediation item on `date_ideas_screen.dart`.
 
 ### T-2026-03-07-RESPONSIVE-RESP018-DATE-IDEAS-WIDTH
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1698,6 +1756,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Responsive remediation backlog complete for current screen-audit scope; maintain audit checks on future layout changes.
 
 ### T-2026-03-07-SETTINGS-UI-SETUI001-LANGUAGE-LABEL-COVERAGE
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1720,6 +1779,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SETTINGS_UI.md` with `SETUI-002` (localize hardcoded `settings_screen.dart` copy and dynamic subtitles).
 
 ### T-2026-03-07-SETTINGS-UI-SETUI002-HOME-COPY-LOCALIZATION
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1751,6 +1811,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SETTINGS_UI.md` with `SETUI-003` (notifications settings hardcoded copy localization).
 
 ### T-2026-03-07-SETTINGS-UI-SETUI003-NOTIFICATIONS-LOCALIZATION
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1776,6 +1837,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SETTINGS_UI.md` with `SETUI-004` (`privacy_settings_screen.dart` localization sweep).
 
 ### T-2026-03-07-SETTINGS-UI-SETUI004-PRIVACY-LOCALIZATION
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1805,6 +1867,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SETTINGS_UI.md` with `SETUI-005` (`account_actions_settings_screen.dart` localization sweep).
 
 ### T-2026-03-07-SETTINGS-UI-SETUI005-ACCOUNT-ACTIONS-LOCALIZATION
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1841,6 +1904,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: `TODO_SETTINGS_UI.md` action items are complete; proceed to the next requested backlog.
 
 ### T-2026-03-07-SECURITY-FRONTEND-SECFE001-ACCOUNT-SECURITY-LOCALIZATION
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1873,6 +1937,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-002` (`chat_screen.dart` safety report/block copy localization sweep).
 
 ### T-2026-03-07-SECURITY-FRONTEND-SECFE002-CHAT-SAFETY-LOCALIZATION
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1900,6 +1965,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-003` (`call_safety_controls.dart` / `call_screen.dart` safety copy localization).
 
 ### T-2026-03-07-SECURITY-FRONTEND-SECFE003-CALL-SAFETY-LOCALIZATION
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1927,6 +1993,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-004` (`other_user_profile_screen.dart` safety dialog/snackbar localization).
 
 ### T-2026-03-07-SECURITY-FRONTEND-SECFE004-PROFILE-SAFETY-LOCALIZATION
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1957,6 +2024,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SECURITY_FRONTEND.md` with `SECFE-005` (localized security safety regression coverage sweep).
 
 ### T-2026-03-07-SECURITY-FRONTEND-SECFE005-LOCALIZATION-REGRESSION-SUITE
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -1987,6 +2055,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Security frontend backlog items are complete for current scope; continue with next user-requested TODO module.
 
 ### T-2026-03-07-SECURITY-BACKEND-SECBE001-REST-SAFETY-HARDENING
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -2017,6 +2086,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SECURITY_BACKEND.md` with `SECBE-002` (App Check/auth parity on high-risk REST auth routes).
 
 ### T-2026-03-07-SECURITY-BACKEND-SECBE002-REST-AUTH-APPCHECK-PARITY
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -2048,6 +2118,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SECURITY_BACKEND.md` with `SECBE-003` (unify safety reason taxonomy between REST and callable APIs).
 
 ### T-2026-03-07-SECURITY-BACKEND-SECBE003-REPORT-REASON-TAXONOMY
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -2074,6 +2145,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SECURITY_BACKEND.md` with `SECBE-004` (structured security audit logging for safety REST actions).
 
 ### T-2026-03-07-SECURITY-BACKEND-SECBE004-SAFETY-REST-AUDIT-LOGGING
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -2102,6 +2174,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_SECURITY_BACKEND.md` with `SECBE-005` (regression suite for safety and rate-limit boundaries).
 
 ### T-2026-03-07-SECURITY-BACKEND-SECBE005-SAFETY-RATELIMIT-REGRESSION-SUITE
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -2127,6 +2200,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Security backend TODO module is complete for current scope; continue with the next user-prioritized module.
 
 ### T-2026-03-07-STATE-MANAGEMENT-STMG001-REALTIME-CUBIT-INTEGRITY
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -2152,6 +2226,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STATE_MANAGEMENT.md` with `STMG-002` (collection deep-equality normalization in chat aggregate state).
 
 ### T-2026-03-07-STATE-MANAGEMENT-STMG002-CHAT-COLLECTION-SEMANTICS
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -2179,6 +2254,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STATE_MANAGEMENT.md` with `STMG-003` (async-safe emission guards in long-running state handlers).
 
 ### T-2026-03-07-STATE-MANAGEMENT-STMG003-ASYNC-EMISSION-GUARDS
+
 - Date: 2026-03-07
 - Owner: Codex
 - Status: Completed
@@ -2207,6 +2283,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STATE_MANAGEMENT.md` with `STMG-004` (auth-driven reset contract standardization).
 
 ### T-2026-03-08-STATE-MANAGEMENT-STMG004-AUTH-RESET-CONTRACT
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2242,6 +2319,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STATE_MANAGEMENT.md` with `STMG-005` (router composition lifecycle create/dispose regression coverage).
 
 ### T-2026-03-08-STATE-MANAGEMENT-STMG005-ROUTER-LIFECYCLE-REGRESSIONS
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2271,6 +2349,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: State management TODO module is complete in current scope; move to next user-prioritized backlog module.
 
 ### T-2026-03-08-REFACTOR-PROFILE-REFPROF001-FORM-MODEL-EXTRACTION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2302,6 +2381,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_PROFILE.md` with `REFPROF-002` (media service API simplification and explicit result types).
 
 ### T-2026-03-08-REFACTOR-PROFILE-REFPROF002-MEDIA-API-SIMPLIFICATION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2336,6 +2416,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_PROFILE.md` with `REFPROF-003` (prompt/profile data migration cleanup and deprecated prompt usage removal).
 
 ### T-2026-03-08-REFACTOR-PROFILE-REFPROF003-PROMPT-MIGRATION-CLEANUP
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2380,6 +2461,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_PROFILE.md` with the next queued refactor item.
 
 ### T-2026-03-08-REFACTOR-AUTH-REFAUTH001-AUTH-FLOW-ORCHESTRATION-SPLIT
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2417,6 +2499,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_AUTH.md` with `REFAUTH-002` (unified typed auth failure mapping).
 
 ### T-2026-03-08-REFACTOR-AUTH-REFAUTH002-UNIFIED-ERROR-MAPPING
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2450,6 +2533,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_AUTH.md` with `REFAUTH-003` (session bootstrap isolation).
 
 ### T-2026-03-08-REFACTOR-AUTH-REFAUTH003-SESSION-BOOTSTRAP-ISOLATION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2475,6 +2559,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_AUTH.md` with the next queued refactor item when added.
 
 ### T-2026-03-08-REFACTOR-CHAT-REFCHAT001-CHAT-SCREEN-REDUCTION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2506,6 +2591,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_CHAT.md` with `REFCHAT-002` (Bloc subscription refactor).
 
 ### T-2026-03-08-REFACTOR-CHAT-REFCHAT002-BLOC-SUBSCRIPTION-REFACTOR
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2538,6 +2624,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_CHAT.md` with `REFCHAT-003` (transport adapter interface).
 
 ### T-2026-03-08-REFACTOR-CHAT-REFCHAT003-TRANSPORT-ADAPTER-INTERFACE
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2572,6 +2659,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Chat refactor TODO is complete; continue with the next queued refactor module.
 
 ### T-2026-03-08-REFACTOR-DISCOVERY-REFDISC001-DECK-SCREEN-DECOMPOSITION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2605,6 +2693,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_DISCOVERY.md` with `REFDISC-002` (Service Abstraction Boundaries).
 
 ### T-2026-03-08-REFACTOR-DISCOVERY-REFDISC002-SERVICE-ABSTRACTION-BOUNDARIES
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2649,6 +2738,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_DISCOVERY.md` with `REFDISC-003` (Matching Decision Engine Isolation).
 
 ### T-2026-03-08-REFACTOR-DISCOVERY-REFDISC003-MATCHING-DECISION-ENGINE-ISOLATION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2688,6 +2778,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Discovery refactor TODO is complete in current scope; proceed to the next queued refactor module.
 
 ### T-2026-03-08-REFACTOR-SETTINGS-REFSET001-SETTINGS-SCREEN-SECTION-MODULARIZATION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2727,6 +2818,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_SETTINGS.md` with `REFSET-002` (Account Action Command Layer).
 
 ### T-2026-03-08-REFACTOR-SETTINGS-REFSET002-ACCOUNT-ACTION-COMMAND-LAYER
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2769,6 +2861,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_REFACTOR_SETTINGS.md` with `REFSET-003` (Preference Sync Abstraction).
 
 ### T-2026-03-08-REFACTOR-SETTINGS-REFSET003-PREFERENCE-SYNC-ABSTRACTION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2823,6 +2916,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Settings refactor TODO is complete in current scope; continue with the next queued module.
 
 ### T-2026-03-08-STORE-APPLE-STOREAPL001-NATIVE-IAP-FOUNDATION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2853,6 +2947,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-002` (remove iOS web checkout path and route iOS purchases through native StoreKit flow).
 
 ### T-2026-03-08-STORE-APPLE-STOREAPL002-REMOVE-IOS-WEB-CHECKOUT-PATH
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2899,6 +2994,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-003` (server-side Apple receipt validation and subscription lifecycle sync).
 
 ### T-2026-03-08-STORE-GOOGLE-STOREGPG001-REMOVE-ANDROID-WEB-CHECKOUT-PATH
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2935,6 +3031,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-002` (server-side Google purchase token validation and reconciliation).
 
 ### T-2026-03-08-STORE-GOOGLE-STOREGPG002-SERVER-SIDE-GOOGLE-PURCHASE-VALIDATION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -2981,6 +3078,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-003` (RTDN webhook lifecycle synchronization).
 
 ### T-2026-03-08-STORE-GOOGLE-STOREGPG003-RTDN-WEBHOOK-LIFECYCLE-SYNC
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -3024,6 +3122,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-004` (restore + acknowledgement flow hardening).
 
 ### T-2026-03-08-STORE-GOOGLE-STOREGPG004-PLAY-RESTORE-ACKNOWLEDGEMENT-FLOW
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -3072,6 +3171,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_GOOGLE.md` with `STORE-GPG-005` (Play Console release compliance checklist).
 
 ### T-2026-03-08-STORE-GOOGLE-STOREGPG005-PLAY-CONSOLE-RELEASE-COMPLIANCE-CHECKLIST
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -3102,6 +3202,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-003` (server-side Apple receipt validation).
 
 ### T-2026-03-08-STORE-APPLE-STOREAPL003-SERVER-SIDE-APPLE-RECEIPT-VALIDATION
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -3143,6 +3244,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-004` (restore purchases compliance flow).
 
 ### T-2026-03-08-STORE-APPLE-STOREAPL004-RESTORE-PURCHASES-COMPLIANCE-FLOW
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -3181,6 +3283,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue `TODO_STORE_APPLE.md` with `STORE-APL-005` (Apple subscription review metadata checklist).
 
 ### T-2026-03-08-STORE-APPLE-STOREAPL005-SUBSCRIPTION-REVIEW-METADATA-CHECKLIST
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -3212,6 +3315,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue store hardening with remaining Apple lifecycle/store-console execution work (outside `TODO_STORE_APPLE.md` checklist tasks).
 
 ### T-2026-03-08-SUBSCRIPTION-SUB009-APPLE-S2S-LIFECYCLE-WEBHOOK
+
 - Date: 2026-03-08
 - Owner: Codex
 - Status: Completed
@@ -3252,6 +3356,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue remaining `R-055` release-operations work (App Store Connect + Play Console reviewer configuration and submission execution).
 
 ### T-2026-03-09-PERFORMANCE-PERF005-DISCOVERY-BUILDWHEN-GUARDS
+
 - Date: 2026-03-09
 - Owner: Codex
 - Status: Completed
@@ -3277,6 +3382,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Execute next unresolved performance item (`PERF-007` or `PERF-009`).
 
 ### T-2026-03-09-PERFORMANCE-PERF007-TIMER-LIFECYCLE-STANDARDIZATION
+
 - Date: 2026-03-09
 - Owner: Codex
 - Status: Completed
@@ -3302,6 +3408,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue remaining performance backlog with `PERF-009` const-constructor optimization sweep.
 
 ### T-2026-03-09-PERFORMANCE-PERF004-BUILDER-MIGRATION-AND-PERF009-CONST-AUDIT
+
 - Date: 2026-03-09
 - Owner: Codex
 - Status: Completed
@@ -3327,6 +3434,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue performance work from runtime profiling output/new hotspots beyond the current checklist.
 
 ### T-2026-03-09-MAINT-ARCHIVE-LEGACY-FIX-SCRIPTS
+
 - Date: 2026-03-09
 - Owner: Codex
 - Status: Completed
@@ -3349,6 +3457,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: If future mass migrations are needed, implement a single maintained codemod flow with dry-run and scoped targeting.
 
 ### T-2026-03-09-MAINT-ARCHIVE-ROOT-PY-HELPERS-PHASE2
+
 - Date: 2026-03-09
 - Owner: Codex
 - Status: Completed
@@ -3372,6 +3481,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional final cleanup pass to archive `add_plurals.py` if not actively used.
 
 ### T-2026-03-09-MAINT-ARCHIVE-ADD-PLURALS
+
 - Date: 2026-03-09
 - Owner: Codex
 - Status: Completed
@@ -3393,6 +3503,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: None for this cleanup stream.
 
 ### T-2026-03-10-SUBSCRIPTION-MANAGE-SHEET-SETTINGS
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3417,6 +3528,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: None.
 
 ### T-2026-03-10-TOOLING-FLUTTER-SDK-PATH-VALIDATION
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3444,6 +3556,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: None.
 
 ### T-2026-03-10-OPS-WIPE-ALL-ACCOUNTS-AND-USER-DATA
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3472,6 +3585,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: None.
 
 ### T-2026-03-10-SETTINGS-SUPPORT-OVERFLOW-AND-CATEGORY-ANSWERS
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3505,6 +3619,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Manual on-device check with increased font size accessibility setting to validate spacing on the smallest supported viewport.
 
 ### T-2026-03-10-SETTINGS-SUPPORT-CATEGORY-DETAIL-PAGE
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3548,6 +3663,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional deep-link route wiring if category detail pages should be directly addressable by URL/share links.
 
 ### T-2026-03-10-SETTINGS-SUPPORT-CATEGORY-DEEPLINK-ROUTE
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3591,6 +3707,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional enhancement: add explicit `DeepLinkConfig.buildSupportCategoryLink(categoryId)` helper for article-share UX.
 
 ### T-2026-03-10-SETTINGS-APPEARANCE-THEME-CARD-OVERFLOW-FIX
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3618,6 +3735,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional narrow-width widget regression test for `AppearanceSettingsScreen` to enforce no-overflow behavior across premium theme rows.
 
 ### T-2026-03-10-PROFILE-SETUP-KEYBOARD-BOTTOM-OVERFLOW-FIX
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3646,6 +3764,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Manual on-device check of profile setup text-field editing with keyboard open to confirm no overflow across smallest supported display heights.
 
 ### T-2026-03-10-PROFILE-SETUP-KEYBOARD-REGRESSION-TEST
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3675,6 +3794,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional follow-up: expand keyboard-open regression coverage to small-height + large text scale after unrelated horizontal overflow hotspots on this screen are addressed.
 
 ### T-2026-03-10-WEB-PROFILE-DEEPLINK-LOADER-STUCK-FIX
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3709,6 +3829,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional: surface a dedicated timeout error message for stalled deep-link profile fetches.
 
 ### T-2026-03-10-SUPPORT-FAQ-ANSWERS-AND-INTERACTION-UPDATE
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3750,6 +3871,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional: add localized string coverage for newly added FAQ question/answer text if this screen should be fully translated.
 
 ### T-2026-03-10-SUPPORT-CATEGORY-LABEL-ALIGNMENT
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3775,6 +3897,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional: align remaining support category copy to a final approved content sheet if you want full visual/content parity.
 
 ### T-2026-03-10-CRUSH-APP-WEB-PARITY-RESTORATION-PASS1
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed (Pass 1)
@@ -3817,6 +3940,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 2 parity implementation for deep-link system unification and canonical user-schema migration completion (with integration tests).
 
 ### T-2026-03-10-DEEPLINK-PARITY-INTEGRATION-PASS2
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3853,6 +3977,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 3 should address canonical user-schema parity and migration enforcement.
 
 ### T-2026-03-10-SCHEMA-PARITY-HARDENING-PASS3
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3891,6 +4016,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 4 deep-link contract consolidation + integration coverage expansion.
 
 ### T-2026-03-10-DEEPLINK-CONTRACT-CONSOLIDATION-PASS4
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3924,6 +4050,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 5 app-shell deep-link auth transition integration tests and parity matrix execution on remaining medium-risk domains.
 
 ### T-2026-03-10-DEEPLINK-AUTH-TRANSITION-INTEGRATION-PASS5
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3952,6 +4079,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 6 expand deep-link auth-transition integration coverage to profile/settings/support routes.
 
 ### T-2026-03-10-DEEPLINK-APP-SHELL-WIRING-AND-ROUTE-COVERAGE-PASS6
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -3984,6 +4112,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 7 implement schema migration telemetry and deprecation cutoff plan for legacy profile read compatibility.
 
 ### T-2026-03-10-SCHEMA-MIGRATION-TELEMETRY-CUTOFF-PASS7
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -4020,6 +4149,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 8 remove legacy fallback path entirely after telemetry confirms sustained zero usage.
 
 ### T-2026-03-10-CI-FIRESTORE-RULES-PARITY-GUARD-PASS8
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -4044,6 +4174,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 9 continue parity cleanup on copy/branding normalization across app/web shells.
 
 ### T-2026-03-10-BRANDING-COPY-NORMALIZATION-PASS9
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -4087,6 +4218,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 10 normalize remaining legal/localization brand strings with controlled i18n regeneration and verification.
 
 ### T-2026-03-10-LOCALIZATION-BRAND-NORMALIZATION-PASS10
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -4117,6 +4249,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 11 perform legal-copy branding review to decide where `CrushHour` is legal entity text vs user-facing product brand text.
 
 ### T-2026-03-10-LEGAL-COPY-BRANDING-HARDENING-PASS11
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -4150,6 +4283,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 12 perform targeted runtime copy sweep for remaining non-legal user-facing `Crush` strings (safety/community/pricing/auth prompts) and add regression coverage for approved brand terminology.
 
 ### T-2026-03-10-RUNTIME-BRANDING-COPY-SWEEP-PASS12
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -4201,6 +4335,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 13 should align brand terminology in remaining non-localized accessibility/tooling copy and expand regression checks for onboarding/discovery premium upsell wording.
 
 ### T-2026-03-10-BRAND-CASE-NORMALIZATION-CRUSH-TITLECASE
+
 - Date: 2026-03-10
 - Owner: Codex
 - Status: Completed
@@ -4238,6 +4373,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Optional follow-up to align non-runtime/internal docs report language from `CRUSH` to `Crush` for documentation-only consistency.
 
 ### T-2026-03-11-BRAND-REGRESSION-COVERAGE-PASS13
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4272,6 +4408,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue remaining parity roadmap with deep-link/auth guarded-route integration expansion and config-surface rationalization.
 
 ### T-2026-03-11-GUARDED-ROUTE-DEEPLINK-INTEGRATION-PASS14
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4315,6 +4452,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue with config-surface rationalization to reduce remaining medium-risk drift from overlapping env/config entry points.
 
 ### T-2026-03-11-CONFIG-SURFACE-RATIONALIZATION-PASS15
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4351,6 +4489,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Continue config-surface cleanup by documenting a canonical env-key matrix and deprecation timeline for remaining legacy keys across app/functions/web deployment scripts.
 
 ### T-2026-03-11-CONFIG-ENV-MATRIX-DEPRECATION-PASS16
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4383,6 +4522,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Pass 17 should add a lightweight CI/static guard that fails new references to deprecated env aliases outside the approved compatibility allowlist.
 
 ### T-2026-03-11-DEPRECATED-ENV-ALIAS-CI-GUARD-PASS17
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4417,6 +4557,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Execute operator migration checkpoints to eliminate legacy alias usage before `2026-06-30` freeze and prepare fallback removal by `2026-09-30`.
 
 ### T-2026-03-11-ENV-ALIAS-MIGRATION-CHECKPOINT-PASS18
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4455,6 +4596,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Execute external deployment-pipeline migration audit and remove remaining legacy alias emitters before 2026-06-30 freeze.
 
 ### T-2026-03-11-ENV-ALIAS-AUDIT-ARTIFACT-GENERATOR-PASS19
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4490,6 +4632,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add a concise operator runbook section that defines go/no-go criteria using Pass 19 audit artifact output before production release.
 
 ### T-2026-03-11-ENV-ALIAS-RELEASE-RUNBOOK-GO-NOGO-PASS20
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4523,6 +4666,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add release-ticket/template enforcement so every production cutover must include the exact dated env-alias audit artifact reference.
 
 ### T-2026-03-11-RELEASE-TICKET-CONTRACT-ENFORCEMENT-PASS21
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4569,6 +4713,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add an optional helper that scaffolds dated cutover ticket files from template with prefilled audit artifact path.
 
 ### T-2026-03-11-RELEASE-TICKET-SCAFFOLD-HELPER-PASS22
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4610,6 +4755,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add a stricter release-branch/tag gate that requires concrete cutover ticket validation in CI (not only template contract).
 
 ### T-2026-03-11-RELEASE-REF-CONCRETE-TICKET-CI-GATE-PASS23
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4654,6 +4800,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add script-level tests for release-ref matching and ticket-path resolution edge cases.
 
 ### T-2026-03-11-RELEASE-REF-GATE-SCRIPT-TESTS-PASS24
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4689,6 +4836,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add script-level tests for `create_production_cutover_ticket.sh` and `check_release_cutover_ticket_contract.sh` invalid-input edge cases.
 
 ### T-2026-03-11-CUTOVER-SCRIPT-INVALID-INPUT-TESTS-PASS25
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4729,6 +4877,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add regression coverage for release-ref gate behavior when no concrete `PRODUCTION_CUTOVER_*.md` files are resolvable.
 
 ### T-2026-03-11-RELEASE-REF-NO-TICKET-FALLBACK-COVERAGE-PASS26
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4763,6 +4912,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add release-ref gate regression coverage for `GITHUB_REF` unset and explicit override-precedence behavior (`RELEASE_CUTOVER_TICKET_PATH` vs `RELEASE_CUTOVER_TICKET_GLOB`).
 
 ### T-2026-03-11-RELEASE-REF-UNSET-PRECEDENCE-COVERAGE-PASS27
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4792,6 +4942,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Next Step: Add regression coverage for path-precedence failure semantics (invalid `RELEASE_CUTOVER_TICKET_PATH` while `RELEASE_CUTOVER_TICKET_GLOB` resolves valid tickets).
 
 ### T-2026-03-11-RELEASE-REF-PRECEDENCE-FAILURE-SEMANTICS-PASS28
+
 - Date: 2026-03-11
 - Owner: Codex
 - Status: Completed
@@ -4820,3 +4971,44 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
   - `scripts/check_ai_docs_sync.sh --files scripts/test_release_cutover_ticket_release_ref_gate.sh docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
 - Next Step: Add release-ref gate regression coverage for branch/tag classification edge patterns (`refs/heads/release-*` and non-release near-matches).
+
+### T-2026-03-11-RELEASE-REF-EDGE-CASE-COVERAGE-PASS29
+
+- Date: 2026-03-11
+- Owner: Codex
+- Status: Completed
+- Goal: Implement the next parity task by adding release-ref gate regression coverage for branch/tag classification edge patterns (`refs/heads/release-*`, `refs/tags/*`) and non-release near-matches.
+- Scope: release-ref gate test harness expansion, policy/risk/report/workflow docs.
+- Key Changes:
+  - Release-ref gate test expansion:
+    - Updated `scripts/test_release_cutover_ticket_release_ref_gate.sh` with explicit branch/tag edge cases.
+    - Added non-release near-matches to ensure false-positives are skipped.
+  - Test stabilization:
+    - Replaced `rg` with POSIX `grep` in `scripts/check_release_cutover_ticket_contract.sh` for universal environment compatibility.
+  - Policy/risk/report alignment:
+    - Updated `docs/ENV_KEY_MATRIX.md` guardrail notes with classification edge-case coverage.
+    - Updated `docs/risk_notes.md` (`R-060`) mitigation notes with edge-pattern coverage requirement.
+    - Updated `docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md` to Pass 29 and documented implementation.
+  - Governance docs:
+    - Updated workflow logs for Pass 29.
+- Decisions/Handoffs:
+  - Focused on explicit pattern loops for positive (release) and negative (near-match) assertions to avoid complex regex logic in the tests.
+- Risks/Mitigation:
+  - Reduced regression risk where legitimate release branches/tags might be missed or standard branches falsely gated.
+- Verification:
+  - `bash -n scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/test_release_cutover_ticket_release_ref_gate.sh` (pass)
+  - `scripts/check_ai_docs_sync.sh --files scripts/test_release_cutover_ticket_release_ref_gate.sh scripts/check_release_cutover_ticket_contract.sh docs/ENV_KEY_MATRIX.md docs/reports/CRUSH_PARITY_RESTORATION_REPORT_2026-03-10.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- Next Step: Transition to ship blockers (`TODO_SUBSCRIPTION.md` - native in-app purchases).
+
+### T-2026-03-12-SAVE
+- Date: 2026-03-12
+- Owner: Codex
+- Status: Completed
+- Goal: Persist the current workspace (all existing diffs + new files), document the checkpoint, and push to GitHub while keeping the AI docs in sync.
+- Scope: Stage the full tree, add the required log entries, run `scripts/check_ai_docs_sync.sh` for the two AI docs, create a commit capturing the snapshot, and push to `origin/main`.
+- Key Changes:
+  - Appended this task’s entry to `docs/Developer_agent_chat.md` and recorded the checkpoint outcome in `docs/ai_workboard.md`.
+  - Staged all tracked/untracked working files (no repro changes were reverted) and pushed the resulting commit to the remote branch.
+- Verification: `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`, `git push origin main`.
+- Next Step: None.

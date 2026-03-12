@@ -18,7 +18,7 @@ CrushUser _makeAuthUser(String id) => CrushUser(
   isEmailVerified: true,
   isPhoneVerified: true,
   isIdVerified: false,
-  plan: SubscriptionPlan.free,
+  tier: SubscriptionTier.free,
 );
 
 class _AuthStreamRepository implements AuthRepository {

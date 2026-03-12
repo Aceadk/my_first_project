@@ -17,17 +17,17 @@ class SubscriptionService {
     final status = prefs.getString(_statusKey);
     final renewalStr = prefs.getString(_renewalKey);
 
-    final plan = planName == 'plus'
-        ? SubscriptionPlan.plus
-        : SubscriptionPlan.free;
+    final tier = planName == 'plus'
+        ? SubscriptionTier.plus
+        : SubscriptionTier.free;
     DateTime? renewal;
     if (renewalStr != null) {
       renewal = DateTime.tryParse(renewalStr);
     }
 
     return SubscriptionStatus(
-      plan: plan,
-      status: status ?? (plan.isPlus ? 'active' : null),
+      tier: tier,
+      status: status ?? (tier.isPlus ? 'active' : null),
       nextRenewal: renewal,
       cancelAtPeriodEnd: false,
     );

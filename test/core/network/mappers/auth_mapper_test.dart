@@ -22,13 +22,13 @@ void main() {
       expect(user.email, 'test@example.com');
       expect(user.username, 'Tester');
       expect(user.isIdVerified, true);
-      expect(user.plan, SubscriptionPlan.plus);
+      expect(user.tier, SubscriptionTier.plus);
       expect(user.isEmailVerified, true);
     });
 
     test('userFromDto handles explicit plan override', () {
-      final user = AuthMapper.userFromDto(userDto, plan: SubscriptionPlan.free);
-      expect(user.plan, SubscriptionPlan.free);
+      final user = AuthMapper.userFromDto(userDto, tier: SubscriptionTier.free);
+      expect(user.tier, SubscriptionTier.free);
     });
 
     test('userToDto maps correctly', () {

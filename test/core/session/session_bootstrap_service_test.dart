@@ -241,6 +241,6 @@ CrushUser _testUser({String id = 'u-test'}) {
     isEmailVerified: true,
     isPhoneVerified: true,
     isIdVerified: false,
-    plan: SubscriptionPlan.free,
+    tier: SubscriptionTier.free,
   );
 }

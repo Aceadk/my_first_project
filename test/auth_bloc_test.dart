@@ -687,7 +687,7 @@ const _testUser = CrushUser(
   isEmailVerified: false,
   isPhoneVerified: true,
   isIdVerified: false,
-  plan: SubscriptionPlan.free,
+  tier: SubscriptionTier.free,
   profile: null,
 );
 

@@ -144,7 +144,7 @@ class _StubAuthRepository
       isEmailVerified: true,
       isPhoneVerified: true,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
     );
   }
 

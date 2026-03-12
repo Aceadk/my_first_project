@@ -117,10 +117,10 @@ void main() {
 
     test('ChatMessagesUpdated includes message list and subscription plan', () {
       final messages = [_message('1'), _message('2')];
-      final event = ChatMessagesUpdated(messages, SubscriptionPlan.plus);
+      final event = ChatMessagesUpdated(messages, SubscriptionTier.plus);
 
       expect(event.props.first, messages);
-      expect(event.props.last, SubscriptionPlan.plus);
+      expect(event.props.last, SubscriptionTier.plus);
     });
 
     test('typing and presence events expose state', () {

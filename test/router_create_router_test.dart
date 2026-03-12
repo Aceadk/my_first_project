@@ -10,7 +10,6 @@ import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/dev/widget_catalog/widget_catalog_screen.dart';
-import 'package:crushhour/features/about/presentation/screens/pricing_screen.dart';
 import 'package:crushhour/features/about/presentation/screens/product_features_screen.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -65,8 +64,8 @@ import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_c
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/storage_settings_cubit.dart';
 import 'package:crushhour/features/settings/presentation/bloc/theme_cubit.dart';
-import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
 import 'package:crushhour/features/settings/presentation/screens/support_category_detail_screen.dart';
+import 'package:crushhour/features/settings/presentation/screens/support_screen.dart';
 import 'package:crushhour/features/social/domain/models/compatibility_quiz.dart';
 import 'package:crushhour/features/social/domain/models/date_idea.dart';
 import 'package:crushhour/features/social/domain/repositories/compatibility_quiz_repository.dart';
@@ -76,6 +75,7 @@ import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dar
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
+import 'package:crushhour/features/subscription/presentation/screens/paywall_screen.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/presentation/screens/community_guidelines_screen.dart';
 import 'package:crushhour/presentation/screens/home_screen.dart';
@@ -150,7 +150,7 @@ void main() {
       profile: null,
       isPhoneVerified: isPhoneVerified,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
       hasAcceptedTerms: hasAcceptedTerms,
       hasSkippedBasicInfo: hasSkippedBasicInfo,
       hasSkippedProfileSetup: hasSkippedProfileSetup,
@@ -268,7 +268,7 @@ void main() {
     final effectiveSubscriptionBloc =
         subscriptionBloc ??
         _TestSubscriptionBloc(
-          const SubscriptionState(plan: SubscriptionPlan.free),
+          const SubscriptionState(tier: SubscriptionTier.free),
         );
     final effectiveChatBloc = ChatBloc(
       chatRepository: chatRepo,
@@ -853,8 +853,8 @@ void main() {
         widgetType: SupportCategoryDetailScreen,
       );
       await assertRouteShows(
-        route: CrushRoutes.pricing,
-        widgetType: PricingScreen,
+        route: CrushRoutes.paywall,
+        widgetType: PaywallScreen,
       );
       await assertRouteShows(
         route: CrushRoutes.widgetCatalog,
@@ -1266,7 +1266,7 @@ void main() {
         final effectiveSubscriptionBloc =
             subscriptionBloc ??
             _TestSubscriptionBloc(
-              const SubscriptionState(plan: SubscriptionPlan.free),
+              const SubscriptionState(tier: SubscriptionTier.free),
             );
 
         final authBloc = _TestAuthBloc(
@@ -1327,7 +1327,7 @@ void main() {
       await smokeRoute(route: CrushRoutes.accountSettings);
 
       final subscriptionBloc = _TestSubscriptionBloc(
-        const SubscriptionState(plan: SubscriptionPlan.plus),
+        const SubscriptionState(tier: SubscriptionTier.plus),
       );
       await smokeRoute(
         route: CrushRoutes.chatSettings,
@@ -1414,24 +1414,30 @@ class _TestAuthBloc extends AuthBloc {
 
 class _NoopSubscriptionRepository implements SubscriptionRepository {
   @override
-  Stream<SubscriptionPlan> watchPlan() =>
-      const Stream<SubscriptionPlan>.empty();
+  Stream<SubscriptionTier> watchPlan() =>
+      const Stream<SubscriptionTier>.empty();
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => SubscriptionPlan.free;
+  Future<SubscriptionTier> getCurrentPlan() async => SubscriptionTier.free;
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {}
 
   @override
-  Future<String> startPlusCheckout() async => '';
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async => '';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
-      SubscriptionStatus(plan: SubscriptionPlan.free);
+      SubscriptionStatus(tier: SubscriptionTier.free);
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

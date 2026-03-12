@@ -32,7 +32,7 @@ void main() {
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
-        expect(bloc.state.plan, SubscriptionPlan.free);
+        expect(bloc.state.tier, SubscriptionTier.free);
         expect(bloc.state.isCheckoutInProgress, false);
         expect(bloc.state.errorMessage, isNull);
         expect(bloc.state.isRestoring, false);
@@ -43,11 +43,11 @@ void main() {
 
     group('SubscriptionWatchStarted', () {
       test('starts watching plan updates', () async {
-        final planController = StreamController<SubscriptionPlan>.broadcast();
+        final planController = StreamController<SubscriptionTier>.broadcast();
         final bloc = SubscriptionBloc(
           authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
-            planStreamController: planController,
+            tierStreamController: planController,
           ),
         );
 
@@ -55,15 +55,15 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 50));
 
         // Emit a plan update
-        planController.add(SubscriptionPlan.plus);
+        planController.add(SubscriptionTier.plus);
 
         await expectLater(
           bloc.stream,
           emits(
             isA<SubscriptionState>().having(
-              (s) => s.plan,
+              (s) => s.tier,
               'plan',
-              SubscriptionPlan.plus,
+              SubscriptionTier.plus,
             ),
           ),
         );
@@ -80,7 +80,7 @@ void main() {
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
-        bloc.add(PlusCheckoutRequested());
+        bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
 
         await expectLater(
           bloc.stream,
@@ -107,7 +107,7 @@ void main() {
           ),
         );
 
-        bloc.add(PlusCheckoutRequested());
+        bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
 
         await expectLater(
           bloc.stream,
@@ -129,7 +129,7 @@ void main() {
           ),
         );
 
-        bloc.add(PlusCheckoutRequested());
+        bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
 
         await expectLater(
           bloc.stream,
@@ -144,22 +144,22 @@ void main() {
       });
     });
 
-    group('SubscriptionPlanUpdated', () {
+    group('SubscriptionTierUpdated', () {
       test('updates plan in state', () async {
         final bloc = SubscriptionBloc(
           authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
-        bloc.add(SubscriptionPlanUpdated(SubscriptionPlan.plus));
+        bloc.add(SubscriptionTierUpdated(SubscriptionTier.plus));
 
         await expectLater(
           bloc.stream,
           emits(
             isA<SubscriptionState>().having(
-              (s) => s.plan,
+              (s) => s.tier,
               'plan',
-              SubscriptionPlan.plus,
+              SubscriptionTier.plus,
             ),
           ),
         );
@@ -174,17 +174,17 @@ void main() {
         );
 
         // Start checkout first
-        bloc.add(PlusCheckoutRequested());
+        bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
         await Future.delayed(const Duration(milliseconds: 50));
 
         // Plan update should clear checkout state
-        bloc.add(SubscriptionPlanUpdated(SubscriptionPlan.plus));
+        bloc.add(SubscriptionTierUpdated(SubscriptionTier.plus));
 
         await expectLater(
           bloc.stream,
           emitsThrough(
             isA<SubscriptionState>()
-                .having((s) => s.plan, 'plan', SubscriptionPlan.plus)
+                .having((s) => s.tier, 'plan', SubscriptionTier.plus)
                 .having((s) => s.isCheckoutInProgress, 'progress', false),
           ),
         );
@@ -199,7 +199,7 @@ void main() {
           authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
             statusToRestore: SubscriptionStatus(
-              plan: SubscriptionPlan.plus,
+              tier: SubscriptionTier.plus,
               status: 'active',
               nextRenewal: DateTime(2025, 12, 31),
             ),
@@ -218,7 +218,7 @@ void main() {
             ),
             isA<SubscriptionState>()
                 .having((s) => s.isRestoring, 'restoring', false)
-                .having((s) => s.plan, 'plan', SubscriptionPlan.plus)
+                .having((s) => s.tier, 'plan', SubscriptionTier.plus)
                 .having((s) => s.statusLabel, 'status', 'active'),
           ]),
         );
@@ -231,7 +231,7 @@ void main() {
           authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
             statusToRestore: SubscriptionStatus(
-              plan: SubscriptionPlan.free,
+              tier: SubscriptionTier.free,
               status: 'none',
             ),
           ),
@@ -244,7 +244,7 @@ void main() {
           emitsThrough(
             isA<SubscriptionState>()
                 .having((s) => s.isRestoring, 'restoring', false)
-                .having((s) => s.plan, 'plan', SubscriptionPlan.free)
+                .having((s) => s.tier, 'plan', SubscriptionTier.free)
                 .having((s) => s.statusLabel, 'status', 'none')
                 .having((s) => s.errorMessage, 'error', isNull),
           ),
@@ -291,7 +291,7 @@ void main() {
         bloc.add(
           SubscriptionStatusUpdated(
             SubscriptionStatus(
-              plan: SubscriptionPlan.plus,
+              tier: SubscriptionTier.plus,
               status: 'active',
               nextRenewal: nextRenewal,
               cancelAtPeriodEnd: false,
@@ -303,7 +303,7 @@ void main() {
           bloc.stream,
           emits(
             isA<SubscriptionState>()
-                .having((s) => s.plan, 'plan', SubscriptionPlan.plus)
+                .having((s) => s.tier, 'plan', SubscriptionTier.plus)
                 .having((s) => s.statusLabel, 'status', 'active')
                 .having((s) => s.nextRenewal, 'renewal', nextRenewal)
                 .having((s) => s.cancelAtPeriodEnd, 'cancel', false),
@@ -322,7 +322,7 @@ void main() {
         bloc.add(
           SubscriptionStatusUpdated(
             SubscriptionStatus(
-              plan: SubscriptionPlan.plus,
+              tier: SubscriptionTier.plus,
               status: 'canceled',
               cancelAtPeriodEnd: true,
             ),
@@ -344,11 +344,11 @@ void main() {
 
     group('Cleanup', () {
       test('cancels subscription on close', () async {
-        final planController = StreamController<SubscriptionPlan>.broadcast();
+        final planController = StreamController<SubscriptionTier>.broadcast();
         final bloc = SubscriptionBloc(
           authRepository: NoopAuthRepository(),
           subscriptionRepository: _StubSubscriptionRepository(
-            planStreamController: planController,
+            tierStreamController: planController,
           ),
         );
 
@@ -371,32 +371,32 @@ void main() {
 
 class _StubSubscriptionRepository implements SubscriptionRepository {
   _StubSubscriptionRepository({
-    this.planStreamController,
+    this.tierStreamController,
     this.shouldFailCheckout = false,
     this.shouldFailLaunch = false,
     this.shouldFailRestore = false,
     this.statusToRestore,
   });
 
-  final StreamController<SubscriptionPlan>? planStreamController;
+  final StreamController<SubscriptionTier>? tierStreamController;
   final bool shouldFailCheckout;
   final bool shouldFailLaunch;
   final bool shouldFailRestore;
   final SubscriptionStatus? statusToRestore;
 
   @override
-  Stream<SubscriptionPlan> watchPlan() {
-    if (planStreamController != null) {
-      return planStreamController!.stream;
+  Stream<SubscriptionTier> watchPlan() {
+    if (tierStreamController != null) {
+      return tierStreamController!.stream;
     }
-    return Stream.value(SubscriptionPlan.free);
+    return Stream.value(SubscriptionTier.free);
   }
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => SubscriptionPlan.free;
+  Future<SubscriptionTier> getCurrentPlan() async => SubscriptionTier.free;
 
   @override
-  Future<String> startPlusCheckout() async {
+  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async {
     if (shouldFailCheckout) {
       throw Exception('Checkout failed');
     }
@@ -411,7 +411,7 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
-  Future<void> purchasePlusPlan() async {
+  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {
     if (shouldFailCheckout) {
       throw Exception('Checkout failed');
     }
@@ -425,7 +425,7 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
     if (shouldFailRestore) {
       throw Exception('Failed to restore subscription');
     }
-    return statusToRestore ?? SubscriptionStatus(plan: SubscriptionPlan.free);
+    return statusToRestore ?? SubscriptionStatus(tier: SubscriptionTier.free);
   }
 
   @override

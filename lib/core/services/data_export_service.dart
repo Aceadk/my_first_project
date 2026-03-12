@@ -141,7 +141,7 @@ class DataExportService {
       'isEmailVerified': user.isEmailVerified,
       'isPhoneVerified': user.isPhoneVerified,
       'isIdVerified': user.isIdVerified,
-      'subscriptionPlan': user.plan.name,
+      'subscriptionPlan': user.tier.name,
     };
   }
 

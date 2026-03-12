@@ -131,13 +131,13 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       return;
     }
 
-    final plan = planResult.data ?? SubscriptionPlan.free;
+    final tier = planResult.data ?? SubscriptionTier.free;
 
     // Load user profile to get location and preferences
     await _loadUserPreferencesAndLocation();
 
     final prefs = _cachedPreferences;
-    final isPlusUser = plan.isPlus;
+    final isPlusUser = tier.isPlus;
     final passportModeEnabled =
         isPlusUser && (prefs?.passportModeEnabled ?? false);
 
@@ -474,8 +474,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         logLabel: 'SubscriptionRepository.getCurrentPlan',
         fallbackError: 'Could not super like. Please try again.',
       );
-      final plan = planResult.data ?? SubscriptionPlan.free;
-      superLikesRemaining = plan.isPlus
+      final tier = planResult.data ?? SubscriptionTier.free;
+      superLikesRemaining = tier.isPlus
           ? CrushConstants.premiumDailySuperLikes
           : CrushConstants.freeDailySuperLikes;
       resetDate = today;
@@ -592,10 +592,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       return;
     }
 
-    final plan = planResult.data ?? SubscriptionPlan.free;
+    final tier = planResult.data ?? SubscriptionTier.free;
 
     // Check if free user can use their daily undo
-    if (plan.isFree) {
+    if (tier.isFree) {
       final now = DateTime.now();
       final lastUsedDate = state.freeUndoLastUsedDate;
 

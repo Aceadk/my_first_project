@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:crushhour/core/routing/premium_cta_helper.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// A card that promotes upgrading to Plus subscription.
 class UpgradeNudgeCard extends StatelessWidget {
@@ -49,27 +49,21 @@ class UpgradeNudgeCard extends StatelessWidget {
             DsGap.md,
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
               builder: (context, subState) {
-                final loading = subState.isCheckoutInProgress;
-                final isPlus = subState.plan == SubscriptionPlan.plus;
+                final isPlus = subState.tier == SubscriptionTier.plus;
                 return SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: loading || isPlus
+                    onPressed: isPlus
                         ? null
                         : () {
-                            context.read<SubscriptionBloc>().add(
-                              PlusCheckoutRequested(),
+                            PremiumCtaHelper.showPaywall(
+                              context,
+                              source: 'upgrade_nudge_card',
                             );
                           },
-                    child: loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(
-                            isPlus ? 'Thanks for being Plus!' : 'Upgrade now',
-                          ),
+                    child: Text(
+                      isPlus ? 'Thanks for being Plus!' : 'Upgrade now',
+                    ),
                   ),
                 );
               },

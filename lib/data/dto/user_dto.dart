@@ -1,5 +1,5 @@
-import '../models/user.dart';
 import '../models/subscription.dart';
+import '../models/user.dart';
 import 'profile_dto.dart';
 
 /// Data Transfer Object for User.
@@ -110,7 +110,7 @@ class UserDto {
       isEmailVerified: isEmailVerified,
       isPhoneVerified: isPhoneVerified,
       isIdVerified: isIdVerified,
-      plan: _parsePlan(subscriptionPlan),
+      tier: _parsePlan(subscriptionPlan),
       themePreference: themePreference,
       profile: profile?.toDomain(),
     );
@@ -126,7 +126,7 @@ class UserDto {
       isEmailVerified: user.isEmailVerified,
       isPhoneVerified: user.isPhoneVerified,
       isIdVerified: user.isIdVerified,
-      subscriptionPlan: _planToString(user.plan),
+      subscriptionPlan: _planToString(user.tier),
       themePreference: user.themePreference,
       profile: user.profile != null
           ? ProfileDto.fromDomain(user.profile!)
@@ -134,22 +134,26 @@ class UserDto {
     );
   }
 
-  static SubscriptionPlan _parsePlan(String plan) {
-    switch (plan.toLowerCase()) {
+  static SubscriptionTier _parsePlan(String tier) {
+    switch (tier.toLowerCase()) {
       case 'plus':
       case 'premium':
       case 'pro':
-        return SubscriptionPlan.plus;
+        return SubscriptionTier.plus;
+      case 'platinum':
+        return SubscriptionTier.platinum;
       default:
-        return SubscriptionPlan.free;
+        return SubscriptionTier.free;
     }
   }
 
-  static String _planToString(SubscriptionPlan plan) {
-    switch (plan) {
-      case SubscriptionPlan.plus:
+  static String _planToString(SubscriptionTier tier) {
+    switch (tier) {
+      case SubscriptionTier.platinum:
+        return 'platinum';
+      case SubscriptionTier.plus:
         return 'plus';
-      case SubscriptionPlan.free:
+      case SubscriptionTier.free:
         return 'free';
     }
   }

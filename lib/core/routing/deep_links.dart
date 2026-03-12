@@ -1,5 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:flutter/foundation.dart';
 
 /// Deep link configuration for the app.
 ///
@@ -12,7 +12,7 @@ import 'package:crushhour/core/routing/crush_routes.dart';
 /// - /chat/:matchId - Open a chat
 /// - /match/:matchId - View a match (routes to chat)
 /// - /settings - Open settings
-/// - /premium or /upgrade - Open settings (subscription section)
+/// - /premium or /upgrade - Open the paywall
 /// - /support/category/:categoryId - Open support category detail page
 /// - /auth/login - Login
 /// - /auth/signup - Signup
@@ -93,8 +93,9 @@ class DeepLinkConfig {
       case 'premium':
       case 'upgrade':
         return const DeepLinkResult(
-          route: CrushRoutes.settings,
+          route: CrushRoutes.paywall,
           requiresAuth: true,
+          queryParams: {'source': 'deep_link'},
         );
 
       case 'verify':

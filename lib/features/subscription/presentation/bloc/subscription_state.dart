@@ -1,8 +1,8 @@
-import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:equatable/equatable.dart';
 
 class SubscriptionState extends Equatable {
-  final SubscriptionPlan plan;
+  final SubscriptionTier tier;
   final bool isCheckoutInProgress;
   final String? errorMessage;
   final bool isRestoring;
@@ -11,7 +11,7 @@ class SubscriptionState extends Equatable {
   final bool? cancelAtPeriodEnd;
 
   const SubscriptionState({
-    required this.plan,
+    required this.tier,
     this.isCheckoutInProgress = false,
     this.errorMessage,
     this.isRestoring = false,
@@ -21,7 +21,7 @@ class SubscriptionState extends Equatable {
   });
 
   SubscriptionState copyWith({
-    SubscriptionPlan? plan,
+    SubscriptionTier? tier,
     bool? isCheckoutInProgress,
     Object? errorMessage = _unset,
     bool? isRestoring,
@@ -30,7 +30,7 @@ class SubscriptionState extends Equatable {
     Object? cancelAtPeriodEnd = _unset,
   }) {
     return SubscriptionState(
-      plan: plan ?? this.plan,
+      tier: tier ?? this.tier,
       isCheckoutInProgress: isCheckoutInProgress ?? this.isCheckoutInProgress,
       errorMessage: identical(errorMessage, _unset)
           ? this.errorMessage
@@ -48,7 +48,7 @@ class SubscriptionState extends Equatable {
 
   @override
   List<Object?> get props => [
-    plan,
+    tier,
     isCheckoutInProgress,
     errorMessage,
     isRestoring,

@@ -290,7 +290,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     ChatMessagesUpdated event,
     Emitter<ChatState> emit,
   ) async {
-    _messageBloc.add(MsgLegacyMessagesUpdated(event.messages, event.plan));
+    _messageBloc.add(MsgLegacyMessagesUpdated(event.messages, event.tier));
   }
 
   Future<void> _onReactionAdded(

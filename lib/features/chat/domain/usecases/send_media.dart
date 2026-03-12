@@ -71,10 +71,10 @@ class SendMediaUseCase extends UseCase<SendMediaResult, SendMediaParams> {
       logLabel: 'SendMediaUseCase.getPlan',
     );
 
-    final plan = planResult.data ?? SubscriptionPlan.free;
+    final tier = planResult.data ?? SubscriptionTier.free;
 
     // Enforce limit for free users
-    if (plan.isFree && params.currentMediaCount >= _freeUserMediaLimit) {
+    if (tier.isFree && params.currentMediaCount >= _freeUserMediaLimit) {
       return const Result.success(
         SendMediaResult(
           success: false,

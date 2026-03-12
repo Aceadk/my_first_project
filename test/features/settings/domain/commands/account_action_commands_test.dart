@@ -158,7 +158,7 @@ CrushUser _sampleUser({String id = 'export_user'}) {
     isEmailVerified: true,
     isPhoneVerified: true,
     isIdVerified: false,
-    plan: SubscriptionPlan.free,
+    tier: SubscriptionTier.free,
   );
 }
 

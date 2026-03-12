@@ -53,7 +53,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
 
                 return BlocBuilder<SubscriptionBloc, SubscriptionState>(
                   builder: (context, subState) {
-                    final isPlus = subState.plan == SubscriptionPlan.plus;
+                    final isPlus = subState.tier == SubscriptionTier.plus;
 
                     return ListView(
                       children: [
@@ -123,7 +123,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                     onClearLocation: () => cubit.clearPassportLocation(),
                     onUpgrade: () {
                       context.read<SubscriptionBloc>().add(
-                        PlusCheckoutRequested(),
+                        SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly),
                       );
                     },
                   ),
@@ -355,7 +355,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                     cubit: cubit,
                     onUpgrade: () {
                       context.read<SubscriptionBloc>().add(
-                        PlusCheckoutRequested(),
+                        SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly),
                       );
                     },
                   ),

@@ -3,6 +3,7 @@ import 'package:crushhour/features/subscription/data/repositories/impl/firebase_
 import 'package:crushhour/features/subscription/data/services/native_billing_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,7 @@ void main() {
         nativeBillingService: billing,
       );
 
-      await repository.purchasePlusPlan();
+      await repository.purchaseSubscription(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
 
       expect(billing.callCount, 1);
       expect(billing.purchasedProductId, 'plus_monthly');
@@ -37,7 +38,7 @@ void main() {
       );
 
       await expectLater(
-        repository.startPlusCheckout(),
+        repository.startCheckout(tier: SubscriptionTier.plus, period: BillingPeriod.monthly),
         throwsA(isA<UnsupportedError>()),
       );
     });
@@ -60,7 +61,7 @@ void main() {
       );
 
       await expectLater(
-        repository.purchasePlusPlan(),
+        repository.purchaseSubscription(tier: SubscriptionTier.plus, period: BillingPeriod.monthly),
         throwsA(isA<StateError>()),
       );
     });
@@ -98,7 +99,7 @@ void main() {
       expect(billing.restoreCallCount, 1);
       expect(verifiedProductId, 'plus_monthly');
       expect(verifiedTransactionId, '2000000123456789');
-      expect(status.plan, SubscriptionPlan.plus);
+      expect(status.tier, SubscriptionTier.plus);
       expect(status.status, 'active');
       expect(status.cancelAtPeriodEnd, isFalse);
       expect(
@@ -122,7 +123,7 @@ void main() {
       final status = await repository.refreshStatus();
 
       expect(billing.restoreCallCount, 1);
-      expect(status.plan, SubscriptionPlan.free);
+      expect(status.tier, SubscriptionTier.free);
       expect(status.status, 'none');
     });
 
@@ -171,6 +172,17 @@ class _FakeNativeBillingService implements NativeBillingService {
   int callCount = 0;
   int restoreCallCount = 0;
   String? purchasedProductId;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<List<ProductDetails>> fetchProducts(Set<String> productIds) async {
+    return [];
+  }
+
+  @override
+  void dispose() {}
 
   @override
   Future<void> purchaseSubscription({required String productId}) async {

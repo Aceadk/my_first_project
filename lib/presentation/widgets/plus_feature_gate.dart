@@ -1,7 +1,6 @@
+import 'package:crushhour/core/routing/premium_cta_helper.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,7 +21,7 @@ class PlusFeatureGate extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SubscriptionBloc, SubscriptionState>(
       builder: (context, state) {
-        final isPlus = state.plan == SubscriptionPlan.plus;
+        final isPlus = state.tier == SubscriptionTier.plus;
 
         return InkWell(
           onTap: () {
@@ -39,75 +38,6 @@ class PlusFeatureGate extends StatelessWidget {
   }
 
   void _showPlusPaywall(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => BlocBuilder<SubscriptionBloc, SubscriptionState>(
-        builder: (context, state) {
-          final isLoading = state.isCheckoutInProgress;
-
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Crush Plus',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Unlock premium features:\n'
-                    '• Unsend messages\n'
-                    '• Unlimited Likes\n'
-                    '• Passport to swipe anywhere\n'
-                    '• See who liked you and more.',
-                    textAlign: TextAlign.start,
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: isLoading
-                          ? null
-                          : () {
-                              context.read<SubscriptionBloc>().add(
-                                PlusCheckoutRequested(),
-                              );
-                            },
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation(
-                                  DsColors.surfaceLight,
-                                ),
-                              ),
-                            )
-                          : const Text('Upgrade to Plus'),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Maybe later'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      context.read<SubscriptionBloc>().add(
-                        SubscriptionRestoreRequested(),
-                      );
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Restore Purchases'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
+    PremiumCtaHelper.showPaywall(context, source: 'feature_gate');
   }
 }

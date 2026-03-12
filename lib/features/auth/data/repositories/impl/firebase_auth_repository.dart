@@ -129,9 +129,9 @@ class FirebaseAuthRepository
           canonicalUserData['hasSkippedBasicInfo'] as bool? ?? false;
       final hasSkippedProfileSetup =
           canonicalUserData['hasSkippedProfileSetup'] as bool? ?? false;
-      final plan = canonicalUserData['plan'] == 'plus'
-          ? SubscriptionPlan.plus
-          : SubscriptionPlan.free;
+      final tier = canonicalUserData['plan'] == 'plus'
+          ? SubscriptionTier.plus
+          : SubscriptionTier.free;
       final themePreference =
           canonicalUserData['themePreference'] ??
           canonicalUserData['theme_preference'];
@@ -177,7 +177,7 @@ class FirebaseAuthRepository
           isPhoneVerified:
               firestorePhoneVerified || firebaseUser.phoneNumber != null,
           isIdVerified: false,
-          plan: plan,
+          tier: tier,
           themePreference: themePreference,
           profile: profile ?? currentProfile,
           hasAcceptedTerms: hasAcceptedTerms,
@@ -261,7 +261,7 @@ class FirebaseAuthRepository
       isEmailVerified: firebaseUser.emailVerified,
       isPhoneVerified: firebaseUser.phoneNumber != null,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
       themePreference: _currentUser?.themePreference,
       profile: null,
     );
@@ -1006,9 +1006,9 @@ class FirebaseAuthRepository
           userData?['hasSkippedBasicInfo'] as bool? ?? false;
       final hasSkippedProfileSetup =
           userData?['hasSkippedProfileSetup'] as bool? ?? false;
-      final plan = userData?['plan'] == 'plus'
-          ? SubscriptionPlan.plus
-          : SubscriptionPlan.free;
+      final tier = userData?['plan'] == 'plus'
+          ? SubscriptionTier.plus
+          : SubscriptionTier.free;
       final themePreference =
           userData?['themePreference'] ?? userData?['theme_preference'];
       final profile = userData != null
@@ -1031,7 +1031,7 @@ class FirebaseAuthRepository
           isPhoneVerified:
               firestorePhoneVerified || updatedUser.phoneNumber != null,
           isIdVerified: false,
-          plan: plan,
+          tier: tier,
           themePreference: themePreference,
           profile: profile,
           hasAcceptedTerms: hasAcceptedTerms,
@@ -1570,7 +1570,7 @@ class FirebaseAuthRepository
             isEmailVerified: firebaseUser.emailVerified,
             isPhoneVerified: firebaseUser.phoneNumber != null,
             isIdVerified: false,
-            plan: SubscriptionPlan.free,
+            tier: SubscriptionTier.free,
             hasAcceptedTerms: true,
           );
 
@@ -1621,9 +1621,9 @@ class FirebaseAuthRepository
             canonicalUserData['hasSkippedBasicInfo'] as bool? ?? false;
         final hasSkippedProfileSetup =
             canonicalUserData['hasSkippedProfileSetup'] as bool? ?? false;
-        final plan = canonicalUserData['plan'] == 'plus'
-            ? SubscriptionPlan.plus
-            : SubscriptionPlan.free;
+        final tier = canonicalUserData['plan'] == 'plus'
+            ? SubscriptionTier.plus
+            : SubscriptionTier.free;
         final themePreference =
             canonicalUserData['themePreference'] ??
             canonicalUserData['theme_preference'];
@@ -1644,7 +1644,7 @@ class FirebaseAuthRepository
           isPhoneVerified:
               firestorePhoneVerified || updatedFirebaseUser.phoneNumber != null,
           isIdVerified: false,
-          plan: plan,
+          tier: tier,
           themePreference: themePreference,
           profile: profile,
           hasAcceptedTerms: hasAcceptedTerms,

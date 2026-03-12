@@ -94,13 +94,13 @@ void main() {
 
     test('subscription events', () async {
       await service.logPaywallViewed(source: 'profile');
-      await service.logCheckoutStarted(plan: 'plus');
+      await service.logCheckoutStarted(tier: 'plus');
       await service.logSubscriptionPurchased(
-        plan: 'plus',
+        tier: 'plus',
         price: 9.99,
         currency: 'USD',
       );
-      await service.logSubscriptionCancelled(plan: 'plus');
+      await service.logSubscriptionCancelled(tier: 'plus');
       await service.logPremiumFeatureUsed(feature: 'passport');
       await service.logPremiumFeatureBlocked(feature: 'rewind');
     });

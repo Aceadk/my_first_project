@@ -1,14 +1,16 @@
 import 'dart:async';
-import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:crushhour/core/app_logger.dart';
-import 'package:crushhour/core/utils/result.dart';
-import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/core/performance/performance_monitor.dart';
+import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'chat_state.dart' show SendStatus;
 
 // ---------------------------------------------------------------------------
@@ -261,11 +263,11 @@ class MsgNewMessagesReceived extends MessageHandlingEvent {
 
 class MsgLegacyMessagesUpdated extends MessageHandlingEvent {
   final List<Message> messages;
-  final SubscriptionPlan plan;
-  MsgLegacyMessagesUpdated(this.messages, this.plan);
+  final SubscriptionTier tier;
+  MsgLegacyMessagesUpdated(this.messages, this.tier);
 
   @override
-  List<Object?> get props => [messages, plan];
+  List<Object?> get props => [messages, tier];
 }
 
 class MsgRetryRequested extends MessageHandlingEvent {
@@ -363,7 +365,7 @@ class MessageHandlingBloc
       );
       return;
     }
-    final plan = planResult.data ?? SubscriptionPlan.free;
+    final tier = planResult.data ?? SubscriptionTier.free;
 
     // PAGINATION: Load initial batch of messages (newest first)
     final initialResult = await Result.guard(
@@ -383,9 +385,9 @@ class MessageHandlingBloc
           messages: decrypted,
           hasMoreMessages: paginated.hasMore,
           isInitialLoading: false,
-          canUnsend: plan.isPlus,
-          canEdit: plan.isPlus,
-          canSeeReadReceipts: plan.isPlus,
+          canUnsend: tier.isPlus,
+          canEdit: tier.isPlus,
+          canSeeReadReceipts: tier.isPlus,
         ),
       );
 
@@ -406,15 +408,15 @@ class MessageHandlingBloc
         'MessageHandlingBloc: Pagination failed, falling back to legacy watchMessages',
       );
       _sub = chatRepository.watchMessages(event.matchId).listen((messages) {
-        add(MsgLegacyMessagesUpdated(messages, plan));
+        add(MsgLegacyMessagesUpdated(messages, tier));
       });
       emit(
         state.copyWith(
           isInitialLoading: false,
           hasMoreMessages: false,
-          canUnsend: plan.isPlus,
-          canEdit: plan.isPlus,
-          canSeeReadReceipts: plan.isPlus,
+          canUnsend: tier.isPlus,
+          canEdit: tier.isPlus,
+          canSeeReadReceipts: tier.isPlus,
           errorMessage: initialResult.errorMessage,
         ),
       );
@@ -550,7 +552,7 @@ class MessageHandlingBloc
       logLabel: 'SubscriptionRepository.getCurrentPlan',
       fallbackError: 'Could not send media. Please try again.',
     );
-    final plan = planResult.data ?? SubscriptionPlan.free;
+    final tier = planResult.data ?? SubscriptionTier.free;
     if (!planResult.isSuccess) {
       emit(
         state.copyWith(
@@ -561,7 +563,7 @@ class MessageHandlingBloc
       );
       return;
     }
-    if (!plan.isPlus && _mediaCountForUser(event.fromUserId) >= 8) {
+    if (!tier.isPlus && _mediaCountForUser(event.fromUserId) >= 8) {
       emit(
         state.copyWith(
           sendStatus: SendStatus.idle,
@@ -637,7 +639,7 @@ class MessageHandlingBloc
       logLabel: 'SubscriptionRepository.getCurrentPlan',
       fallbackError: 'Could not unsend message.',
     );
-    final plan = planResult.data ?? SubscriptionPlan.free;
+    final tier = planResult.data ?? SubscriptionTier.free;
     if (!planResult.isSuccess) {
       emit(
         state.copyWith(
@@ -647,7 +649,7 @@ class MessageHandlingBloc
       );
       return;
     }
-    if (!plan.isPlus) {
+    if (!tier.isPlus) {
       emit(
         state.copyWith(
           isUnsendInProgress: false,
@@ -686,7 +688,7 @@ class MessageHandlingBloc
       logLabel: 'SubscriptionRepository.getCurrentPlan',
       fallbackError: 'Could not edit message.',
     );
-    final plan = planResult.data ?? SubscriptionPlan.free;
+    final tier = planResult.data ?? SubscriptionTier.free;
     if (!planResult.isSuccess) {
       emit(
         state.copyWith(
@@ -696,7 +698,7 @@ class MessageHandlingBloc
       );
       return;
     }
-    if (!plan.isPlus) {
+    if (!tier.isPlus) {
       emit(
         state.copyWith(
           isEditInProgress: false,
@@ -904,9 +906,9 @@ class MessageHandlingBloc
     emit(
       state.copyWith(
         messages: decryptedMessages,
-        canUnsend: event.plan.isPlus,
-        canEdit: event.plan.isPlus,
-        canSeeReadReceipts: event.plan.isPlus,
+        canUnsend: event.tier.isPlus,
+        canEdit: event.tier.isPlus,
+        canSeeReadReceipts: event.tier.isPlus,
         failedMessages: updatedFailedMessages,
       ),
     );

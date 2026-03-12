@@ -99,10 +99,10 @@ class SwipeRightUseCase extends UseCase<SwipeRightResult, SwipeRightParams> {
       );
     }
 
-    final plan = planResult.data ?? SubscriptionPlan.free;
+    final tier = planResult.data ?? SubscriptionTier.free;
 
     // Check swipe limits for free users
-    if (plan.isFree) {
+    if (tier.isFree) {
       // DISC-003: Load persisted counter
       final remaining = await _loadOrInitCounter();
 
@@ -130,7 +130,7 @@ class SwipeRightUseCase extends UseCase<SwipeRightResult, SwipeRightParams> {
 
     // Decrement counter for free users on success
     int? remaining;
-    if (plan.isFree && _remainingFreeSwipesToday != null) {
+    if (tier.isFree && _remainingFreeSwipesToday != null) {
       _remainingFreeSwipesToday = _remainingFreeSwipesToday! - 1;
       remaining = _remainingFreeSwipesToday;
       // DISC-003: Persist after decrement

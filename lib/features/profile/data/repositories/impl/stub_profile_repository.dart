@@ -585,9 +585,9 @@ class StubProfileRepository
       isEmailVerified: json['isEmailVerified'] ?? false,
       isPhoneVerified: json['isPhoneVerified'] ?? false,
       isIdVerified: json['isIdVerified'] ?? false,
-      plan: json['plan'] == 'plus'
-          ? SubscriptionPlan.plus
-          : SubscriptionPlan.free,
+      tier: json['plan'] == 'plus'
+          ? SubscriptionTier.plus
+          : SubscriptionTier.free,
       themePreference: json['themePreference'] ?? json['theme_preference'],
       profile: profile,
       hasAcceptedTerms: json['hasAcceptedTerms'] ?? false,
@@ -660,7 +660,7 @@ class StubProfileRepository
       'isEmailVerified': user.isEmailVerified,
       'isPhoneVerified': user.isPhoneVerified,
       'isIdVerified': user.isIdVerified,
-      'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
+      'plan': user.tier == SubscriptionTier.plus ? 'plus' : 'free',
       'themePreference': user.themePreference,
       'profile': profileJson,
       'hasAcceptedTerms': user.hasAcceptedTerms,

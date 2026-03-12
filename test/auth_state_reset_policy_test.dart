@@ -9,7 +9,7 @@ CrushUser _user(String id) => CrushUser(
   isEmailVerified: true,
   isPhoneVerified: true,
   isIdVerified: false,
-  plan: SubscriptionPlan.free,
+  tier: SubscriptionTier.free,
 );
 
 void main() {

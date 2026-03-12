@@ -32,12 +32,12 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
   static const _subscriptionPollingInterval = Duration(seconds: 60);
   static const _subscriptionPollingTimerKey = 'subscription_plan_polling';
 
-  final _planController = StreamController<SubscriptionPlan>.broadcast();
-  SubscriptionPlan _currentPlan = SubscriptionPlan.free;
+  final _planController = StreamController<SubscriptionTier>.broadcast();
+  SubscriptionTier _currentPlan = SubscriptionTier.free;
   final ManagedTimerRegistry _timers = ManagedTimerRegistry();
 
   @override
-  Stream<SubscriptionPlan> watchPlan() {
+  Stream<SubscriptionTier> watchPlan() {
     _startPolling();
     return _planController.stream;
   }
@@ -56,10 +56,10 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
   Future<void> _fetchCurrentPlan() async {
     try {
-      final plan = await getCurrentPlan();
-      if (plan != _currentPlan) {
-        _currentPlan = plan;
-        _planController.add(plan);
+      final tier = await getCurrentPlan();
+      if (tier != _currentPlan) {
+        _currentPlan = tier;
+        _planController.add(tier);
       }
     } catch (e) {
       AppLogger.error('HttpSubscriptionRepository: Failed to fetch plan - $e');
@@ -67,7 +67,7 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async {
+  Future<SubscriptionTier> getCurrentPlan() async {
     final result = await _apiClient.get<Map<String, dynamic>>(
       ApiEndpoints.subscriptionStatus,
       parser: (data) => data as Map<String, dynamic>,
@@ -82,14 +82,17 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
     final planStr = result.data?['plan'] as String? ?? 'free';
     _currentPlan = planStr == 'plus'
-        ? SubscriptionPlan.plus
-        : SubscriptionPlan.free;
+        ? SubscriptionTier.plus
+        : SubscriptionTier.free;
 
     return _currentPlan;
   }
 
   @override
-  Future<void> purchasePlusPlan() async {
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     if (_requiresNativeMobilePurchase) {
       throw UnsupportedError(
         'Mobile checkout must use native in-app purchase flow.',
@@ -97,12 +100,15 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     }
 
     // Start checkout and launch URL
-    final checkoutUrl = await startPlusCheckout();
+    final checkoutUrl = await startCheckout(tier: tier, period: period);
     await launchCheckoutUrl(checkoutUrl);
   }
 
   @override
-  Future<String> startPlusCheckout() async {
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     if (_requiresNativeMobilePurchase) {
       throw UnsupportedError(
         'Mobile checkout must use native in-app purchase flow.',
@@ -111,7 +117,7 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
 
     final result = await _apiClient.post<Map<String, dynamic>>(
       ApiEndpoints.subscriptionPurchase,
-      body: {'plan': 'plus'},
+      body: {'tier': tier.name, 'period': period.name},
       parser: (data) => data as Map<String, dynamic>,
     );
 
@@ -151,20 +157,20 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     );
 
     if (result.isFailure) {
-      return SubscriptionStatus(plan: _currentPlan);
+      return SubscriptionStatus(tier: _currentPlan);
     }
 
     final data = result.data!;
     final planStr = data['plan'] as String? ?? 'free';
-    final plan = planStr == 'plus'
-        ? SubscriptionPlan.plus
-        : SubscriptionPlan.free;
+    final tier = planStr == 'plus'
+        ? SubscriptionTier.plus
+        : SubscriptionTier.free;
 
-    _currentPlan = plan;
-    _planController.add(plan);
+    _currentPlan = tier;
+    _planController.add(tier);
 
     return SubscriptionStatus(
-      plan: plan,
+      tier: tier,
       status: data['status'] as String?,
       nextRenewal: data['next_renewal'] != null
           ? DateTime.tryParse(data['next_renewal'] as String)

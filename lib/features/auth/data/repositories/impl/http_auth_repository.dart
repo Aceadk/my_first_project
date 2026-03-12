@@ -487,7 +487,7 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       final userDto = UserDto.fromJson(
         result.data!['user'] as Map<String, dynamic>,
       );
-      _currentUser = AuthMapper.userFromDto(userDto, plan: _currentUser?.plan);
+      _currentUser = AuthMapper.userFromDto(userDto, tier: _currentUser?.tier);
       _emitAuthState(_currentUser);
       return _currentUser;
     }

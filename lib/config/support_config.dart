@@ -159,7 +159,7 @@ class SupportConfig {
     FaqItem(
       question: 'What is a Super Like?',
       answer:
-          'A Super Like lets someone know you are especially interested before you match. Free plans have limited Super Likes, while Plus includes more depending on your plan.',
+          'A Super Like lets someone know you are especially interested before you match. Free tiers have limited Super Likes, while Plus includes more depending on your tier.',
       category: 'matching',
     ),
     FaqItem(

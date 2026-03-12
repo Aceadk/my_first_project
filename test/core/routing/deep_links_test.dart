@@ -1,5 +1,5 @@
-import 'package:crushhour/core/routing/deep_links.dart';
 import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:crushhour/core/routing/deep_links.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -38,22 +38,21 @@ void main() {
     });
 
     test(
-      'parses premium and upgrade links to settings with auth requirement',
+      'parses premium and upgrade links to paywall with auth requirement',
       () {
         final premiumResult = DeepLinkConfig.parse(
           Uri.parse('https://crushhour.app/premium'),
         );
+        expect(premiumResult?.route, CrushRoutes.paywall);
+        expect(premiumResult?.queryParams?['source'], 'deep_link');
+        expect(premiumResult?.requiresAuth, isTrue);
+
         final upgradeResult = DeepLinkConfig.parse(
           Uri.parse('https://crushhour.app/upgrade'),
         );
-
-        expect(premiumResult, isNotNull);
-        expect(premiumResult!.route, CrushRoutes.settings);
-        expect(premiumResult.requiresAuth, isTrue);
-
-        expect(upgradeResult, isNotNull);
-        expect(upgradeResult!.route, CrushRoutes.settings);
-        expect(upgradeResult.requiresAuth, isTrue);
+        expect(upgradeResult?.route, CrushRoutes.paywall);
+        expect(upgradeResult?.queryParams?['source'], 'deep_link');
+        expect(upgradeResult?.requiresAuth, isTrue);
       },
     );
 

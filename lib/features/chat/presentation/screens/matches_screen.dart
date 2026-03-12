@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/routing/premium_cta_helper.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/design_system.dart';
@@ -18,17 +19,15 @@ import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.da
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
 import 'package:crushhour/features/profile/presentation/screens/other_user_profile_screen.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/shared/widgets/async_state_scaffold.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'chat_screen.dart';
-import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Helper to check internet connectivity.
 Future<bool> _checkInternetConnectivity() async {
@@ -157,111 +156,13 @@ class _MatchesViewState extends State<_MatchesView> {
   }
 
   void _showUpgradePrompt(BuildContext context) {
-    HapticFeedback.lightImpact();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: DsGlassColors.surfaceFor(
-                context,
-                strength: DsGlassSurfaceStrength.heavy,
-              ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? DsColors.surfaceLight.withValues(alpha: 0.24)
-                          : DsColors.ink900.withValues(alpha: 0.26),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          DsColors.primary.withValues(alpha: 0.2),
-                          DsColors.secondary.withValues(alpha: 0.1),
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.lock_rounded,
-                      size: 40,
-                      color: DsColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'See Who Likes You',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Upgrade to Crush Plus to reveal your admirers and match instantly.',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: GlassPrimaryButton(
-                      onPressed: () {
-                        Navigator.pop(sheetContext);
-                        context.read<SubscriptionBloc>().add(
-                          PlusCheckoutRequested(),
-                        );
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.star, size: 20),
-                          const SizedBox(width: 8),
-                          Text(AppLocalizations.of(context).upgradeToPlus),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () => Navigator.pop(sheetContext),
-                    child: Text(AppLocalizations.of(context).maybeLater),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    PremiumCtaHelper.showPaywall(context, source: 'matches_tab');
   }
 
   @override
   Widget build(BuildContext context) {
     final isPlus = context.select<SubscriptionBloc, bool>(
-      (bloc) => bloc.state.plan == SubscriptionPlan.plus,
+      (bloc) => bloc.state.tier == SubscriptionTier.plus,
     );
 
     return BlocBuilder<MatchesBloc, MatchesState>(
@@ -331,13 +232,14 @@ class _MatchesViewState extends State<_MatchesView> {
                       DsGap.lg,
                       BlocBuilder<SubscriptionBloc, SubscriptionState>(
                         builder: (context, subState) {
-                          final isPlus = subState.plan == SubscriptionPlan.plus;
+                          final isPlus = subState.tier == SubscriptionTier.plus;
                           final loading = subState.isCheckoutInProgress;
                           if (isPlus) return const SizedBox.shrink();
                           return _PlusOfferCard(
                             loading: loading,
-                            onTap: () => context.read<SubscriptionBloc>().add(
-                              PlusCheckoutRequested(),
+                            onTap: () => PremiumCtaHelper.showPaywall(
+                              context,
+                              source: 'matches_tab_empty',
                             ),
                           );
                         },

@@ -10,12 +10,12 @@ This document defines the canonical environment keys for app + web-shell builds 
 
 ## App/Web-Shell Dart Defines (This Repository)
 
-| Domain | Canonical Key | Legacy Alias | Resolution Order | Source of Truth |
-| --- | --- | --- | --- | --- |
-| Runtime flavor | `FLAVOR` | `APP_ENV` | `FLAVOR` -> `APP_ENV` -> `development` | `lib/config/app_config.dart` |
-| Backend base URL | `API_BASE_URL` | `CRUSH_API_BASE_URL` | `API_BASE_URL` -> `CRUSH_API_BASE_URL` -> default | `lib/config/app_config.dart` |
-| Firebase emulator toggle | `USE_FIREBASE_EMULATOR` | `USE_EMULATORS` | `USE_FIREBASE_EMULATOR` -> `USE_EMULATORS` -> `false` | `lib/config/app_config.dart`, `lib/core/firebase_emulator.dart` |
-| Firebase emulator host | `FIREBASE_EMULATOR_HOST` | `EMULATOR_HOST` | `FIREBASE_EMULATOR_HOST` -> `EMULATOR_HOST` -> `localhost` | `lib/config/app_config.dart`, `lib/core/firebase_emulator.dart` |
+| Domain                   | Canonical Key            | Legacy Alias         | Resolution Order                                           | Source of Truth                                                 |
+| ------------------------ | ------------------------ | -------------------- | ---------------------------------------------------------- | --------------------------------------------------------------- |
+| Runtime flavor           | `FLAVOR`                 | `APP_ENV`            | `FLAVOR` -> `APP_ENV` -> `development`                     | `lib/config/app_config.dart`                                    |
+| Backend base URL         | `API_BASE_URL`           | `CRUSH_API_BASE_URL` | `API_BASE_URL` -> `CRUSH_API_BASE_URL` -> default          | `lib/config/app_config.dart`                                    |
+| Firebase emulator toggle | `USE_FIREBASE_EMULATOR`  | `USE_EMULATORS`      | `USE_FIREBASE_EMULATOR` -> `USE_EMULATORS` -> `false`      | `lib/config/app_config.dart`, `lib/core/firebase_emulator.dart` |
+| Firebase emulator host   | `FIREBASE_EMULATOR_HOST` | `EMULATOR_HOST`      | `FIREBASE_EMULATOR_HOST` -> `EMULATOR_HOST` -> `localhost` | `lib/config/app_config.dart`, `lib/core/firebase_emulator.dart` |
 
 ## Build/Release Script Compatibility
 
@@ -40,6 +40,7 @@ This document defines the canonical environment keys for app + web-shell builds 
   - `GITHUB_REF` unset skip behavior,
   - explicit path-over-glob precedence behavior.
   - path-precedence failure semantics (invalid explicit path still fails even if glob fallback can resolve valid tickets).
+  - branch/tag classification edge patterns and non-release near-matches.
 - Production cutover go/no-go runbook:
   - `docs/RELEASE_GUIDE.md` -> `Operator Runbook: Env Alias Migration Go/No-Go`
 - Enforced in CI workflow (`.github/workflows/ci.yml`) under Security checks.

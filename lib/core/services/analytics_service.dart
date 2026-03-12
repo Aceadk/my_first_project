@@ -471,36 +471,36 @@ class AnalyticsService {
   }
 
   /// Track checkout started
-  Future<void> logCheckoutStarted({required String plan}) async {
+  Future<void> logCheckoutStarted({required String tier}) async {
     await _analytics.logBeginCheckout(currency: 'USD');
     await _analytics.logEvent(
       name: 'checkout_started',
-      parameters: {'plan': plan},
+      parameters: {'tier': tier},
     );
-    _log('checkout_started', {'plan': plan});
+    _log('checkout_started', {'tier': tier});
   }
 
   /// Track subscription purchased
   Future<void> logSubscriptionPurchased({
-    required String plan,
+    required String tier,
     required double price,
     required String currency,
   }) async {
     await _analytics.logPurchase(currency: currency, value: price);
     await _analytics.logEvent(
       name: 'subscription_purchased',
-      parameters: {'plan': plan, 'price': price, 'currency': currency},
+      parameters: {'tier': tier, 'price': price, 'currency': currency},
     );
-    _log('subscription_purchased', {'plan': plan, 'price': price});
+    _log('subscription_purchased', {'tier': tier, 'price': price});
   }
 
   /// Track subscription cancelled
-  Future<void> logSubscriptionCancelled({required String plan}) async {
+  Future<void> logSubscriptionCancelled({required String tier}) async {
     await _analytics.logEvent(
       name: 'subscription_cancelled',
-      parameters: {'plan': plan},
+      parameters: {'tier': tier},
     );
-    _log('subscription_cancelled', {'plan': plan});
+    _log('subscription_cancelled', {'tier': tier});
   }
 
   /// Track premium feature used

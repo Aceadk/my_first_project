@@ -4,13 +4,13 @@ import 'package:crushhour/features/subscription/domain/repositories/subscription
 
 /// Use case for watching subscription plan changes as a stream.
 class WatchPlanChangesUseCase
-    extends StreamUseCase<SubscriptionPlan, NoParams> {
+    extends StreamUseCase<SubscriptionTier, NoParams> {
   final SubscriptionRepository _repository;
 
   WatchPlanChangesUseCase(this._repository);
 
   @override
-  Stream<SubscriptionPlan> call(NoParams params) {
+  Stream<SubscriptionTier> call(NoParams params) {
     return _repository.watchPlan();
   }
 }

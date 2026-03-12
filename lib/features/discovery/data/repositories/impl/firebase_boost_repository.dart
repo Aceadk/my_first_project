@@ -25,7 +25,7 @@ class FirebaseBoostRepository implements BoostRepository {
 
   @override
   Future<BoostStatus> getBoostStatus(String userId) async {
-    final plan = await subscriptionRepository.getCurrentPlan();
+    final tier = await subscriptionRepository.getCurrentPlan();
 
     // Check for active boost
     final activeBoostQuery = await _boostsCollection
@@ -60,7 +60,7 @@ class FirebaseBoostRepository implements BoostRepository {
     }
 
     // Calculate cooldown based on subscription
-    final cooldownHours = plan.isPlus
+    final cooldownHours = tier.isPlus
         ? CrushConstants.premiumBoostCooldownHours
         : CrushConstants.freeBoostCooldownHours;
 
@@ -99,7 +99,7 @@ class FirebaseBoostRepository implements BoostRepository {
 
   @override
   Future<BoostSession> activateBoost(String userId) async {
-    final plan = await subscriptionRepository.getCurrentPlan();
+    final tier = await subscriptionRepository.getCurrentPlan();
 
     // Check if user can boost
     final status = await getBoostStatus(userId);
@@ -110,7 +110,7 @@ class FirebaseBoostRepository implements BoostRepository {
     }
 
     // Calculate boost duration based on subscription
-    final boostMinutes = plan.isPlus
+    final boostMinutes = tier.isPlus
         ? CrushConstants.premiumBoostDurationMinutes
         : CrushConstants.freeBoostDurationMinutes;
 
@@ -124,7 +124,7 @@ class FirebaseBoostRepository implements BoostRepository {
       'endsAt': Timestamp.fromDate(endTime),
       'profileViewsGained': 0,
       'status': 'active',
-      'plan': plan.isPlus ? 'plus' : 'free',
+      'plan': tier.isPlus ? 'plus' : 'free',
       'durationMinutes': boostMinutes,
       'createdAt': FieldValue.serverTimestamp(),
     });

@@ -1,5 +1,5 @@
-import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:equatable/equatable.dart';
 
 abstract class SubscriptionEvent extends Equatable {
   @override
@@ -8,14 +8,21 @@ abstract class SubscriptionEvent extends Equatable {
 
 class SubscriptionWatchStarted extends SubscriptionEvent {}
 
-class PlusCheckoutRequested extends SubscriptionEvent {}
-
-class SubscriptionPlanUpdated extends SubscriptionEvent {
-  final SubscriptionPlan plan;
-  SubscriptionPlanUpdated(this.plan);
+class SubscriptionCheckoutRequested extends SubscriptionEvent {
+  final SubscriptionTier tier;
+  final BillingPeriod period;
+  SubscriptionCheckoutRequested(this.tier, this.period);
 
   @override
-  List<Object?> get props => [plan];
+  List<Object?> get props => [tier, period];
+}
+
+class SubscriptionTierUpdated extends SubscriptionEvent {
+  final SubscriptionTier tier;
+  SubscriptionTierUpdated(this.tier);
+
+  @override
+  List<Object?> get props => [tier];
 }
 
 class SubscriptionRestoreRequested extends SubscriptionEvent {}

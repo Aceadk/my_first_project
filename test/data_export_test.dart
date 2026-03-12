@@ -24,7 +24,7 @@ void main() {
       isEmailVerified: true,
       isPhoneVerified: true,
       isIdVerified: false,
-      plan: SubscriptionPlan.plus,
+      tier: SubscriptionTier.plus,
     );
   }
 
@@ -262,7 +262,7 @@ void main() {
           'isEmailVerified': user.isEmailVerified,
           'isPhoneVerified': user.isPhoneVerified,
           'isIdVerified': user.isIdVerified,
-          'subscriptionPlan': user.plan.name,
+          'subscriptionPlan': user.tier.name,
         };
 
         expect(sanitized['id'], testUserId);

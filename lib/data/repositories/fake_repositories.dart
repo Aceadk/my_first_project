@@ -137,7 +137,7 @@ class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
           profile: null,
           isPhoneVerified: false,
           isIdVerified: false,
-          plan: SubscriptionPlan.free,
+          tier: SubscriptionTier.free,
         );
     _usersByEmail[email] = user;
     _current = user;
@@ -196,7 +196,7 @@ class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       profile: null,
       isPhoneVerified: false,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
     );
     _usersByEmail[email] = user;
     _usersByUsername[username] = user;
@@ -229,7 +229,7 @@ class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       profile: null,
       isPhoneVerified: false,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
     );
     _usersByEmail[email] = user;
     _usersByUsername[username] = user;
@@ -261,7 +261,7 @@ class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       profile: null,
       isPhoneVerified: false,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
     );
     _usersByEmail[normalizedEmail] = user;
     _usersByUsername[normalizedUsername] = user;
@@ -325,7 +325,7 @@ class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
                 profile: null,
                 isPhoneVerified: false,
                 isIdVerified: false,
-                plan: SubscriptionPlan.free,
+                tier: SubscriptionTier.free,
               );
           _usersByEmail[normalized] = user;
           _current = user;
@@ -343,7 +343,7 @@ class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
               profile: null,
               isPhoneVerified: false,
               isIdVerified: false,
-              plan: SubscriptionPlan.free,
+              tier: SubscriptionTier.free,
             );
         _usersByUsername[normalized] = user;
         _current = user;
@@ -400,7 +400,7 @@ class FakeAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       profile: null,
       isPhoneVerified: true,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
     );
     _controller.add(_current);
     return _current!;
@@ -604,9 +604,9 @@ class _OtpEntry {
 }
 
 class FakeSubscriptionRepository implements SubscriptionRepository {
-  final _controller = StreamController<SubscriptionPlan>.broadcast()
-    ..add(SubscriptionPlan.free);
-  SubscriptionPlan _current = SubscriptionPlan.free;
+  final _controller = StreamController<SubscriptionTier>.broadcast()
+    ..add(SubscriptionTier.free);
+  SubscriptionTier _current = SubscriptionTier.free;
   final List<PromoCode> _redeemedCodes = [];
 
   static const Map<String, PromoCode> _baseCodes = {
@@ -655,14 +655,17 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
   };
 
   @override
-  Stream<SubscriptionPlan> watchPlan() => _controller.stream;
+  Stream<SubscriptionTier> watchPlan() => _controller.stream;
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => _current;
+  Future<SubscriptionTier> getCurrentPlan() async => _current;
 
   @override
-  Future<String> startPlusCheckout() async {
-    return 'https://example.com/checkout/plus';
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
+    return 'https://example.com/checkout/${tier.name}';
   }
 
   @override
@@ -671,13 +674,16 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
-  Future<void> purchasePlusPlan() async {
-    final uri = Uri.parse('$_backendBaseUrl/billing/plus/purchase');
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
+    final uri = Uri.parse('$_backendBaseUrl/billing/${tier.name}/purchase');
     final response = await http
         .post(
           uri,
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'plan': 'plus'}),
+          body: jsonEncode({'tier': tier.name, 'period': period.name}),
         )
         .timeout(const Duration(seconds: 8));
 
@@ -690,21 +696,21 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
     if (response.body.isNotEmpty) {
       final decoded = jsonDecode(response.body);
       if (decoded is Map<String, dynamic>) {
-        final plan = decoded['plan'] as String?;
-        if (plan != null && plan.toLowerCase() != 'plus') {
-          throw Exception('Billing responded with unexpected plan: $plan');
+        final plan = decoded['tier'] as String?;
+        if (plan != null && plan.toLowerCase() != tier.name.toLowerCase()) {
+          throw Exception('Billing responded with unexpected tier: $plan');
         }
       }
     }
 
-    _current = SubscriptionPlan.plus;
+    _current = tier;
     _controller.add(_current);
   }
 
   @override
   Future<SubscriptionStatus> refreshStatus() async {
     return SubscriptionStatus(
-      plan: _current,
+      tier: _current,
       status: _current.isPlus ? 'active' : 'none',
       nextRenewal: DateTime.now().add(const Duration(days: 30)),
       cancelAtPeriodEnd: false,
@@ -762,7 +768,7 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
     if (promoCode.discountPercent != null) {
       benefits.add('${promoCode.discountPercent}% discount applied');
       if (promoCode.discountPercent == 100) {
-        _current = SubscriptionPlan.plus;
+        _current = SubscriptionTier.plus;
         _controller.add(_current);
         benefits.add('Plus membership activated!');
       }
@@ -770,7 +776,7 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
 
     if (promoCode.freeTrialDays != null) {
       benefits.add('${promoCode.freeTrialDays} day free trial activated');
-      _current = SubscriptionPlan.plus;
+      _current = SubscriptionTier.plus;
       _controller.add(_current);
     }
 
@@ -875,7 +881,7 @@ class FakeProfileRepository implements ProfileRepository {
                   profile: null,
                   isPhoneVerified: true,
                   isIdVerified: false,
-                  plan: SubscriptionPlan.free,
+                  tier: SubscriptionTier.free,
                 ))
             .copyWith(profile: profile);
     return _user!;
@@ -970,7 +976,7 @@ class FakeProfileRepository implements ProfileRepository {
         profile: null,
         isPhoneVerified: true,
         isIdVerified: false,
-        plan: SubscriptionPlan.free,
+        tier: SubscriptionTier.free,
         themePreference: preference,
       );
     } else {
@@ -991,7 +997,7 @@ class FakeProfileRepository implements ProfileRepository {
                   profile: null,
                   isPhoneVerified: true,
                   isIdVerified: false,
-                  plan: SubscriptionPlan.free,
+                  tier: SubscriptionTier.free,
                 ))
             .copyWith(username: username, hasSkippedBasicInfo: true);
     return _user!;

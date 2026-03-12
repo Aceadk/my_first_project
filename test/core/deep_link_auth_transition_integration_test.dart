@@ -45,7 +45,7 @@ void main() {
       profile: null,
       isPhoneVerified: false,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
       hasAcceptedTerms: true,
       hasSkippedBasicInfo: true,
       hasSkippedProfileSetup: true,
@@ -94,6 +94,11 @@ void main() {
             path: CrushRoutes.settings,
             builder: (context, state) =>
                 const Scaffold(body: Text('Settings Screen')),
+          ),
+          GoRoute(
+            path: CrushRoutes.paywall,
+            builder: (context, state) =>
+                const Scaffold(body: Text('Paywall Screen')),
           ),
           GoRoute(
             path: CrushRoutes.supportCategory,
@@ -222,7 +227,7 @@ void main() {
       expect(find.text('Settings Screen'), findsOneWidget);
     });
 
-    testWidgets('replays pending premium deep link to settings after login', (
+    testWidgets('replays pending premium deep link to paywall after login', (
       tester,
     ) async {
       final harness = await pumpHarness(
@@ -235,12 +240,12 @@ void main() {
 
       await authenticateHarness(tester, harness);
 
-      expect(harness.navigatedRoutes, contains('/settings'));
+      expect(harness.navigatedRoutes, contains('/paywall?source=deep_link'));
       expect(
         harness.router.routeInformationProvider.value.uri.path,
-        '/settings',
+        '/paywall',
       );
-      expect(find.text('Settings Screen'), findsOneWidget);
+      expect(find.text('Paywall Screen'), findsOneWidget);
     });
 
     testWidgets('replays pending match deep link to chat after login', (

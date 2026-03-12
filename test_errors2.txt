@@ -1,0 +1,129 @@
+Analyzing my_first_project...                                   
+
+  error • Undefined name 'tier' • lib/data/dto/user_dto.dart:138:13 • undefined_identifier
+  error • The type 'SubscriptionTier' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'SubscriptionTier.platinum' • lib/data/dto/user_dto.dart:149:5 • non_exhaustive_switch_statement
+  error • Undefined name 'tier' • lib/data/repositories/fake_repositories.dart:694:29 • undefined_identifier
+  error • The named parameter 'tier' isn't defined • lib/features/auth/data/repositories/impl/http_auth_repository.dart:490:54 • undefined_named_parameter
+warning • The value of the local variable 'plan' isn't used • lib/features/chat/domain/usecases/send_media.dart:74:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/chat/domain/usecases/send_media.dart:77:9 • undefined_identifier
+  error • Undefined name 'plan' • lib/features/chat/presentation/bloc/chat_event.dart:123:41 • undefined_identifier
+  error • Undefined name 'plan' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:268:41 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:386:22 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:387:20 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:388:31 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:415:22 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:416:20 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:417:31 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/chat/presentation/bloc/message_handling_bloc.dart:553:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:564:10 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/chat/presentation/bloc/message_handling_bloc.dart:640:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:650:10 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/chat/presentation/bloc/message_handling_bloc.dart:689:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:699:10 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/discovery/data/repositories/impl/firebase_boost_repository.dart:28:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/discovery/data/repositories/impl/firebase_boost_repository.dart:63:27 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/discovery/data/repositories/impl/firebase_boost_repository.dart:102:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/discovery/data/repositories/impl/firebase_boost_repository.dart:113:26 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/discovery/data/repositories/impl/firebase_boost_repository.dart:127:15 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/discovery/data/repositories/impl/stub_boost_repository.dart:19:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/discovery/data/repositories/impl/stub_boost_repository.dart:49:27 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/discovery/data/repositories/impl/stub_boost_repository.dart:82:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/discovery/data/repositories/impl/stub_boost_repository.dart:85:26 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/discovery/domain/usecases/swipe_right.dart:102:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/discovery/domain/usecases/swipe_right.dart:105:9 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/discovery/domain/usecases/swipe_right.dart:133:9 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/discovery/presentation/bloc/discovery_bloc.dart:134:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/discovery/presentation/bloc/discovery_bloc.dart:140:24 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/discovery/presentation/bloc/discovery_bloc.dart:477:13 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/discovery/presentation/bloc/discovery_bloc.dart:478:29 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • lib/features/discovery/presentation/bloc/discovery_bloc.dart:595:11 • unused_local_variable
+  error • Undefined name 'tier' • lib/features/discovery/presentation/bloc/discovery_bloc.dart:598:9 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:56:12 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:56:23 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:62:12 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:66:22 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:76:24 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:77:35 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:84:24 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:87:23 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:88:20 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:104:33 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:105:25 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:124:29 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:127:25 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:140:25 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:156:25 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:173:25 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:175:20 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:192:25 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:227:25 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:234:9 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:236:19 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:240:34 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:248:35 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:266:21 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:272:21 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:278:21 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:284:21 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:290:21 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/subscription/data/repositories/impl/http_subscription_repository.dart:61:24 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/subscription/data/repositories/impl/http_subscription_repository.dart:163:20 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart:36:37 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart:37:20 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart:111:26 • undefined_identifier
+  error • Undefined name 'tier' • lib/features/subscription/data/services/subscription_service.dart:30:26 • undefined_identifier
+  error • The named parameter 'plan' is required, but there's no corresponding argument • lib/features/subscription/presentation/bloc/subscription_bloc.dart:52:31 • missing_required_argument
+  error • The named parameter 'tier' isn't defined • lib/features/subscription/presentation/bloc/subscription_bloc.dart:52:50 • undefined_named_parameter
+  error • The named parameter 'plan' is required, but there's no corresponding argument • lib/features/subscription/presentation/bloc/subscription_bloc.dart:80:33 • missing_required_argument
+  error • The named parameter 'tier' isn't defined • lib/features/subscription/presentation/bloc/subscription_bloc.dart:81:9 • undefined_named_parameter
+  error • The named parameter 'tier' isn't defined • lib/features/subscription/presentation/bloc/subscription_bloc.dart:89:9 • undefined_named_parameter
+  error • The named parameter 'tier' isn't defined • lib/features/subscription/presentation/bloc/subscription_bloc.dart:122:9 • undefined_named_parameter
+  error • Undefined name 'plan' • lib/features/subscription/presentation/bloc/subscription_event.dart:18:31 • undefined_identifier
+   info • Unnecessary 'this.' qualifier • lib/features/subscription/presentation/bloc/subscription_state.dart:33:21 • unnecessary_this
+  error • Undefined name 'plan' • lib/features/subscription/presentation/bloc/subscription_state.dart:51:5 • undefined_identifier
+  error • Undefined name 'tier' • lib/presentation/screens/safety_screen.dart:656:46 • undefined_identifier
+  error • Undefined name 'tier' • lib/presentation/screens/safety_screen.dart:657:46 • undefined_identifier
+  error • Undefined name 'tier' • lib/presentation/screens/safety_screen.dart:658:50 • undefined_identifier
+  error • Undefined name 'tier' • lib/presentation/screens/safety_screen.dart:659:50 • undefined_identifier
+   info • Unnecessary 'this.' qualifier • lib/shared/dto/user.dart:117:21 • unnecessary_this
+  error • Undefined name 'plan' • lib/shared/dto/user.dart:137:5 • undefined_identifier
+  error • The named parameter 'plan' is required, but there's no corresponding argument • test/analytics_service_hotspot_test.dart:118:23 • missing_required_argument
+  error • The named parameter 'tier' isn't defined • test/analytics_service_hotspot_test.dart:118:42 • undefined_named_parameter
+  error • The named parameter 'plan' is required, but there's no corresponding argument • test/analytics_service_hotspot_test.dart:119:23 • missing_required_argument
+  error • The named parameter 'tier' isn't defined • test/analytics_service_hotspot_test.dart:120:11 • undefined_named_parameter
+  error • The named parameter 'plan' is required, but there's no corresponding argument • test/analytics_service_hotspot_test.dart:124:23 • missing_required_argument
+  error • The named parameter 'tier' isn't defined • test/analytics_service_hotspot_test.dart:124:48 • undefined_named_parameter
+  error • The named parameter 'tier' isn't defined • test/core/network/mappers/auth_mapper_test.dart:30:52 • undefined_named_parameter
+  error • The named parameter 'plan' is required, but there's no corresponding argument • test/core/services/analytics_service_test.dart:97:21 • missing_required_argument
+  error • The named parameter 'tier' isn't defined • test/core/services/analytics_service_test.dart:97:40 • undefined_named_parameter
+  error • The named parameter 'plan' is required, but there's no corresponding argument • test/core/services/analytics_service_test.dart:98:21 • missing_required_argument
+  error • The named parameter 'tier' isn't defined • test/core/services/analytics_service_test.dart:99:9 • undefined_named_parameter
+  error • The named parameter 'plan' is required, but there's no corresponding argument • test/core/services/analytics_service_test.dart:103:21 • missing_required_argument
+  error • The named parameter 'tier' isn't defined • test/core/services/analytics_service_test.dart:103:46 • undefined_named_parameter
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:31:14 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:32:14 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:33:14 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:33:32 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:34:30 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • test/date_plan_service_test.dart:40:13 • unused_local_variable
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:56:17 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:63:17 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • test/date_plan_service_test.dart:73:13 • unused_local_variable
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:81:47 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:86:47 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:90:49 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:94:32 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:95:30 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:97:43 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:98:30 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_service_test.dart:200:47 • undefined_identifier
+  error • Undefined name 'tier' • test/date_plan_test.dart:47:20 • undefined_identifier
+warning • The value of the local variable 'plan' isn't used • test/date_plan_test.dart:112:13 • unused_local_variable
+  error • Undefined name 'tier' • test/date_plan_test.dart:116:14 • undefined_identifier
+  error • Undefined name 'plan' • test/discovery_bloc_test.dart:853:56 • undefined_identifier
+  error • Undefined name 'plan' • test/discovery_bloc_test.dart:869:32 • undefined_identifier
+  error • Undefined name 'plan' • test/message_handling_bloc_test.dart:933:32 • undefined_identifier
+  error • The named parameter 'tier' isn't defined • test/subscription_test.dart:118:38 • undefined_named_parameter
+  error • The named parameter 'tier' isn't defined • test/subscription_test.dart:285:42 • undefined_named_parameter
+  error • The named parameter 'tier' isn't defined • test/subscription_test.dart:301:42 • undefined_named_parameter
+

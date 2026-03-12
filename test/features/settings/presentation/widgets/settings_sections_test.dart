@@ -141,7 +141,7 @@ void main() {
     );
     plusBloc.add(
       SubscriptionStatusUpdated(
-        SubscriptionStatus(plan: SubscriptionPlan.plus),
+        SubscriptionStatus(tier: SubscriptionTier.plus),
       ),
     );
 
@@ -171,7 +171,7 @@ void main() {
     );
     bloc.add(
       SubscriptionStatusUpdated(
-        SubscriptionStatus(plan: SubscriptionPlan.free, status: 'none'),
+        SubscriptionStatus(tier: SubscriptionTier.free, status: 'none'),
       ),
     );
 
@@ -282,7 +282,7 @@ String _themeLabel(BuildContext context, AppThemeMode mode) {
 String _languageLabel(String code) => code == 'en' ? 'English' : code;
 
 String _subscriptionSubtitle(BuildContext context, SubscriptionState state) {
-  return state.plan == SubscriptionPlan.plus ? 'Plus active' : 'Free';
+  return state.tier == SubscriptionTier.plus ? 'Plus active' : 'Free';
 }
 
 void _onIncognitoTap(BuildContext context, IncognitoSettings settings) {}

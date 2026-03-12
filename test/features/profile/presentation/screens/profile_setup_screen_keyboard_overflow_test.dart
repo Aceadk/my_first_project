@@ -149,7 +149,7 @@ const _testUser = CrushUser(
   profile: _testProfile,
   isPhoneVerified: false,
   isIdVerified: false,
-  plan: SubscriptionPlan.free,
+  tier: SubscriptionTier.free,
   hasAcceptedTerms: true,
   hasSkippedBasicInfo: false,
   hasSkippedProfileSetup: false,

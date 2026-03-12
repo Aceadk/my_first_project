@@ -183,23 +183,23 @@ class _TestSubscriptionRepository implements SubscriptionRepository {
   String? lastRedeemedCode;
 
   @override
-  Stream<SubscriptionPlan> watchPlan() => const Stream.empty();
+  Stream<SubscriptionTier> watchPlan() => const Stream.empty();
 
   @override
-  Future<SubscriptionPlan> getCurrentPlan() async => SubscriptionPlan.free;
+  Future<SubscriptionTier> getCurrentPlan() async => SubscriptionTier.free;
 
   @override
-  Future<void> purchasePlusPlan() async {}
+  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
 
   @override
-  Future<String> startPlusCheckout() async => 'https://example.com';
+  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => 'https://example.com';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
-      SubscriptionStatus(plan: SubscriptionPlan.free, status: 'none');
+      SubscriptionStatus(tier: SubscriptionTier.free, status: 'none');
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async {

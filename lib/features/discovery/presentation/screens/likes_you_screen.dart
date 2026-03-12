@@ -1,25 +1,24 @@
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:crushhour/core/routing/premium_cta_helper.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
+import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/widgets/glass_button.dart';
+import 'package:crushhour/design_system/widgets/glass_skeleton.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
-import 'package:crushhour/shared/widgets/cached_network_image.dart';
-import 'package:crushhour/design_system/widgets/glass_skeleton.dart';
-import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:crushhour/shared/widgets/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Screen showing profiles that have liked the current user.
 /// Free users see blurred profiles; Premium users see full profiles.
@@ -77,7 +76,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPremium = context.select<SubscriptionBloc, bool>(
-      (bloc) => bloc.state.plan == SubscriptionPlan.plus,
+      (bloc) => bloc.state.tier == SubscriptionTier.plus,
     );
 
     return Scaffold(
@@ -399,105 +398,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
   }
 
   void _showUpgradePrompt(BuildContext context) {
-    HapticFeedback.lightImpact();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (sheetContext) => ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: DsGlassColors.surfaceFor(
-                context,
-                strength: DsGlassSurfaceStrength.heavy,
-              ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? DsColors.surfaceLight.withValues(alpha: 0.24)
-                          : DsColors.ink900.withValues(alpha: 0.26),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          DsColors.primary.withValues(alpha: 0.2),
-                          DsColors.secondary.withValues(alpha: 0.1),
-                        ],
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.favorite,
-                      size: 40,
-                      color: DsColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'See Who Likes You',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'See all the people who already like you and match instantly. No more guessing!',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: isDark
-                          ? DsColors.textMutedDark
-                          : DsColors.textMutedLight,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: GlassPrimaryButton(
-                      onPressed: () {
-                        Navigator.pop(sheetContext);
-                        context.read<SubscriptionBloc>().add(
-                          PlusCheckoutRequested(),
-                        );
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.star, size: 20),
-                          const SizedBox(width: 8),
-                          Text(AppLocalizations.of(context).upgradeToPlus),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: () => Navigator.pop(sheetContext),
-                    child: Text(AppLocalizations.of(context).maybeLater),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    PremiumCtaHelper.showPaywall(context, source: 'likes_you_tab');
   }
 }
 

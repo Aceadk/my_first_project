@@ -109,7 +109,7 @@ class FirebaseProfileRepository
         isEmailVerified: firebaseUser.emailVerified,
         isPhoneVerified: firebaseUser.phoneNumber != null,
         isIdVerified: false,
-        plan: SubscriptionPlan.free,
+        tier: SubscriptionTier.free,
         profile: Profile(
           id: userId,
           name: displayName,
@@ -732,9 +732,9 @@ class FirebaseProfileRepository
       isEmailVerified: data['isEmailVerified'] ?? false,
       isPhoneVerified: data['isPhoneVerified'] ?? false,
       isIdVerified: data['isIdVerified'] ?? false,
-      plan: data['plan'] == 'plus'
-          ? SubscriptionPlan.plus
-          : SubscriptionPlan.free,
+      tier: data['plan'] == 'plus'
+          ? SubscriptionTier.plus
+          : SubscriptionTier.free,
       themePreference: data['themePreference'] ?? data['theme_preference'],
       profile: profile,
       hasAcceptedTerms: data['hasAcceptedTerms'] ?? false,

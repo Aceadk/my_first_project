@@ -551,7 +551,7 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       isEmailVerified: isEmailVerified,
       isPhoneVerified: isPhoneVerified,
       isIdVerified: false,
-      plan: SubscriptionPlan.free,
+      tier: SubscriptionTier.free,
       profile: null,
     );
 
@@ -668,9 +668,9 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       isEmailVerified: json['isEmailVerified'] ?? false,
       isPhoneVerified: json['isPhoneVerified'] ?? false,
       isIdVerified: json['isIdVerified'] ?? false,
-      plan: json['plan'] == 'plus'
-          ? SubscriptionPlan.plus
-          : SubscriptionPlan.free,
+      tier: json['plan'] == 'plus'
+          ? SubscriptionTier.plus
+          : SubscriptionTier.free,
       profile: profile,
       hasAcceptedTerms: json['hasAcceptedTerms'] ?? false,
       hasSkippedBasicInfo: json['hasSkippedBasicInfo'] ?? false,
@@ -750,7 +750,7 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       'isEmailVerified': user.isEmailVerified,
       'isPhoneVerified': user.isPhoneVerified,
       'isIdVerified': user.isIdVerified,
-      'plan': user.plan == SubscriptionPlan.plus ? 'plus' : 'free',
+      'plan': user.tier == SubscriptionTier.plus ? 'plus' : 'free',
       'profile': profileJson,
       'hasAcceptedTerms': user.hasAcceptedTerms,
       'hasSkippedBasicInfo': user.hasSkippedBasicInfo,

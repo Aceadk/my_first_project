@@ -1,8 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-
 import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:crushhour/core/routing/premium_cta_helper.dart';
 import 'package:crushhour/core/utils/date_time_formatter.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
@@ -12,6 +9,9 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_b
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class SubscriptionSettingsScreen extends StatelessWidget {
   const SubscriptionSettingsScreen({super.key});
@@ -30,7 +30,7 @@ class SubscriptionSettingsScreen extends StatelessWidget {
             ),
             child: BlocBuilder<SubscriptionBloc, SubscriptionState>(
               builder: (context, state) {
-                final isPlus = state.plan == SubscriptionPlan.plus;
+                final isPlus = state.tier == SubscriptionTier.plus;
                 final renewal = state.nextRenewal;
                 final subtitle = _subtitle(
                   state,
@@ -131,7 +131,10 @@ class SubscriptionSettingsScreen extends StatelessWidget {
                         onPressed: state.isCheckoutInProgress
                             ? null
                             : () => context.read<SubscriptionBloc>().add(
-                                PlusCheckoutRequested(),
+                                SubscriptionCheckoutRequested(
+                                  SubscriptionTier.plus,
+                                  BillingPeriod.monthly,
+                                ),
                               ),
                         icon: state.isCheckoutInProgress
                             ? const SizedBox(
@@ -168,7 +171,10 @@ class SubscriptionSettingsScreen extends StatelessWidget {
                         AppLocalizations.of(context).comparePlanBenefits,
                       ),
                       trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(CrushRoutes.pricing),
+                      onTap: () => PremiumCtaHelper.showPaywall(
+                        context,
+                        source: 'subscription_settings',
+                      ),
                     ),
                   ],
                 );
@@ -181,7 +187,7 @@ class SubscriptionSettingsScreen extends StatelessWidget {
   }
 
   String _subtitle(SubscriptionState state, String locale) {
-    final isPlus = state.plan == SubscriptionPlan.plus;
+    final isPlus = state.tier == SubscriptionTier.plus;
     if (!isPlus) {
       return 'Free Plan - Upgrade for unlimited likes';
     }

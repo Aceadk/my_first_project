@@ -127,7 +127,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
               child: BlocBuilder<ThemeCubit, AppThemeMode>(
                 builder: (context, currentMode) {
                   final subState = context.watch<SubscriptionBloc>().state;
-                  final isPlus = subState.plan == SubscriptionPlan.plus;
+                  final isPlus = subState.tier == SubscriptionTier.plus;
                   final previewTheme = _themeForPreview(context, _previewMode);
                   final hasChanges = _previewMode != currentMode;
                   final isLocked = _isPremiumLocked(_previewMode, isPlus);
@@ -239,7 +239,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                                     ? null
                                     : () => context
                                           .read<SubscriptionBloc>()
-                                          .add(PlusCheckoutRequested()),
+                                          .add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly)),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: luxurySurface,
                                   foregroundColor: luxuryAccent,

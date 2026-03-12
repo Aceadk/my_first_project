@@ -144,7 +144,7 @@ CrushUser _testUser({String? email, String phoneNumber = ''}) {
     isEmailVerified: email != null && email.isNotEmpty,
     isPhoneVerified: phoneNumber.isNotEmpty,
     isIdVerified: false,
-    plan: SubscriptionPlan.free,
+    tier: SubscriptionTier.free,
   );
 }
 

@@ -1,4 +1,5 @@
 import 'package:crushhour/features/auth/presentation/bloc/auth_state.dart';
+
 import 'crush_routes.dart';
 
 /// Determines the redirect target for a given [authState] and [path].
@@ -35,7 +36,7 @@ String? resolveRouteRedirect({
       path == CrushRoutes.safetyGuidelines ||
       path == CrushRoutes.communityGuidelines ||
       path == CrushRoutes.productFeatures ||
-      path == CrushRoutes.pricing ||
+      path == CrushRoutes.paywall ||
       path == CrushRoutes.support ||
       path.startsWith('${CrushRoutes.supportCategoryBase}/') ||
       path == CrushRoutes.weeklyPicks ||
@@ -49,7 +50,7 @@ String? resolveRouteRedirect({
       path == CrushRoutes.safetyGuidelines ||
       path == CrushRoutes.communityGuidelines ||
       path == CrushRoutes.productFeatures ||
-      path == CrushRoutes.pricing ||
+      path == CrushRoutes.paywall ||
       path == CrushRoutes.support ||
       path.startsWith('${CrushRoutes.supportCategoryBase}/');
 

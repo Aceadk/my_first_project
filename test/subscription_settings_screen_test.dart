@@ -64,7 +64,7 @@ void main() {
     bloc.add(
       SubscriptionStatusUpdated(
         SubscriptionStatus(
-          plan: SubscriptionPlan.plus,
+          tier: SubscriptionTier.plus,
           status: 'active',
           nextRenewal: DateTime(2026, 3, 1),
           cancelAtPeriodEnd: false,

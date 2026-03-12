@@ -1,7 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:crushhour/core/extensions/localization_extension.dart';
-import 'package:crushhour/core/router.dart';
+import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:crushhour/core/routing/premium_cta_helper.dart';
 import 'package:crushhour/core/theme/app_theme_mode.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
@@ -138,7 +139,10 @@ class SettingsScreen extends StatelessWidget {
                       SettingsLinkItem(
                         icon: Icons.sell_outlined,
                         title: l10n.pricing,
-                        onTap: () => context.push(CrushRoutes.pricing),
+                        onTap: () => PremiumCtaHelper.showPaywall(
+                          context,
+                          source: 'settings_menu',
+                        ),
                       ),
                     ],
                   ),
@@ -401,7 +405,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   String _subscriptionSubtitle(BuildContext context, SubscriptionState state) {
-    final isPlus = state.plan == SubscriptionPlan.plus;
+    final isPlus = state.tier == SubscriptionTier.plus;
     if (!isPlus) {
       return context.l10n.settingsSubscriptionFreeSummary;
     }

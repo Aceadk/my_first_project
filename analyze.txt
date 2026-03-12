@@ -1,9 +1,98 @@
-Waiting for another flutter command to release the startup lock...
 Analyzing my_first_project...                                   
 
-   info • Don't use 'BuildContext's across async gaps • lib/features/chat/presentation/widgets/chat_attachment_tile.dart:90:45 • use_build_context_synchronously
-   info • Don't use 'BuildContext's across async gaps • lib/features/profile/presentation/widgets/profile_media_picker.dart:188:19 • use_build_context_synchronously
-   info • Don't use 'BuildContext's across async gaps • lib/features/profile/presentation/widgets/profile_media_picker.dart:192:40 • use_build_context_synchronously
-warning • Unused import: 'package:crushhour/data/models/message_request.dart' • test/router_create_router_test.dart:14:8 • unused_import
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/core/network/mappers/auth_mapper.dart:11:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/core/network/mappers/auth_mapper.dart:19:7 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/data/dto/user_dto.dart:105:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/data/dto/user_dto.dart:113:7 • undefined_named_parameter
+  error • The type 'SubscriptionTier' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'SubscriptionTier.platinum' • lib/data/dto/user_dto.dart:149:5 • non_exhaustive_switch_statement
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/data/repositories/fake_repositories.dart:706:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/data/repositories/fake_repositories.dart:707:7 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/auth/data/repositories/impl/firebase_auth_repository.dart:166:24 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/auth/data/repositories/impl/firebase_auth_repository.dart:180:11 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/auth/data/repositories/impl/firebase_auth_repository.dart:1024:24 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/auth/data/repositories/impl/firebase_auth_repository.dart:1034:11 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/auth/data/repositories/impl/firebase_auth_repository.dart:1635:24 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/auth/data/repositories/impl/firebase_auth_repository.dart:1647:11 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/auth/data/repositories/impl/stub_auth_repository.dart:663:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/auth/data/repositories/impl/stub_auth_repository.dart:671:7 • undefined_named_parameter
+  error • Undefined name 'plan' • lib/features/chat/presentation/bloc/chat_event.dart:123:41 • undefined_identifier
+  error • Undefined name 'plan' • lib/features/chat/presentation/bloc/message_handling_bloc.dart:268:41 • undefined_identifier
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/profile/data/repositories/impl/firebase_profile_repository.dart:726:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/profile/data/repositories/impl/firebase_profile_repository.dart:735:7 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/profile/data/repositories/impl/http_profile_repository.dart:89:18 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/profile/data/repositories/impl/http_profile_repository.dart:97:13 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/profile/data/repositories/impl/stub_profile_repository.dart:577:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/profile/data/repositories/impl/stub_profile_repository.dart:588:7 • undefined_named_parameter
+  error • Undefined name 'tier' • lib/features/safety/data/services/date_plan_service.dart:104:33 • undefined_identifier
+  error • All final variables must be initialized, but 'planId' isn't • lib/features/safety/domain/usecases/add_emergency_contact.dart:11:9 • final_not_initialized_constructor
+  error • 'tierId' isn't a field in the enclosing class • lib/features/safety/domain/usecases/add_emergency_contact.dart:12:5 • initializing_formal_for_non_existent_field
+  error • All final variables must be initialized, but 'planId' isn't • lib/features/safety/domain/usecases/cancel_date_plan.dart:9:9 • final_not_initialized_constructor
+  error • 'tierId' isn't a field in the enclosing class • lib/features/safety/domain/usecases/cancel_date_plan.dart:9:31 • initializing_formal_for_non_existent_field
+  error • All final variables must be initialized, but 'planId' isn't • lib/features/safety/domain/usecases/check_in.dart:10:9 • final_not_initialized_constructor
+  error • 'tierId' isn't a field in the enclosing class • lib/features/safety/domain/usecases/check_in.dart:10:24 • initializing_formal_for_non_existent_field
+  error • All final variables must be initialized, but 'planId' isn't • lib/features/safety/domain/usecases/end_date_safely.dart:10:9 • final_not_initialized_constructor
+  error • 'tierId' isn't a field in the enclosing class • lib/features/safety/domain/usecases/end_date_safely.dart:10:30 • initializing_formal_for_non_existent_field
+  error • All final variables must be initialized, but 'planId' isn't • lib/features/safety/domain/usecases/start_date.dart:10:9 • final_not_initialized_constructor
+  error • 'tierId' isn't a field in the enclosing class • lib/features/safety/domain/usecases/start_date.dart:10:26 • initializing_formal_for_non_existent_field
+  error • All final variables must be initialized, but 'planId' isn't • lib/features/safety/domain/usecases/trigger_emergency_alert.dart:9:9 • final_not_initialized_constructor
+  error • 'tierId' isn't a field in the enclosing class • lib/features/safety/domain/usecases/trigger_emergency_alert.dart:9:38 • initializing_formal_for_non_existent_field
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart:200:14 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart:201:9 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart:209:14 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart:210:9 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart:239:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart:240:7 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart:341:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart:342:7 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/subscription/data/repositories/impl/http_subscription_repository.dart:166:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/subscription/data/repositories/impl/http_subscription_repository.dart:167:7 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart:109:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart:110:7 • undefined_named_parameter
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/subscription/data/services/subscription_service.dart:28:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/subscription/data/services/subscription_service.dart:29:7 • undefined_named_parameter
+  error • Undefined name 'plan' • lib/features/subscription/presentation/bloc/subscription_event.dart:18:31 • undefined_identifier
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/features/subscription/presentation/bloc/subscription_state.dart:32:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/features/subscription/presentation/bloc/subscription_state.dart:33:7 • undefined_named_parameter
+   info • Unnecessary 'this.' qualifier • lib/features/subscription/presentation/bloc/subscription_state.dart:33:21 • unnecessary_this
+  error • Undefined name 'plan' • lib/features/subscription/presentation/bloc/subscription_state.dart:51:5 • undefined_identifier
+  error • The named parameter 'tiers' is required, but there's no corresponding argument • lib/presentation/screens/safety_screen.dart:225:21 • missing_required_argument
+  error • The named parameter 'plans' isn't defined • lib/presentation/screens/safety_screen.dart:226:23 • undefined_named_parameter
+  error • All final variables must be initialized, but 'plans' isn't • lib/presentation/screens/safety_screen.dart:582:9 • final_not_initialized_constructor
+  error • 'tiers' isn't a field in the enclosing class • lib/presentation/screens/safety_screen.dart:583:5 • initializing_formal_for_non_existent_field
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/presentation/screens/safety_screen.dart:654:27 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/presentation/screens/safety_screen.dart:655:19 • undefined_named_parameter
+  error • All final variables must be initialized, but 'plan' isn't • lib/presentation/screens/safety_screen.dart:739:9 • final_not_initialized_constructor
+  error • 'tier' isn't a field in the enclosing class • lib/presentation/screens/safety_screen.dart:740:5 • initializing_formal_for_non_existent_field
+  error • The named parameter 'tier' is required, but there's no corresponding argument • lib/shared/dto/user.dart:105:12 • missing_required_argument
+  error • The named parameter 'plan' isn't defined • lib/shared/dto/user.dart:117:7 • undefined_named_parameter
+   info • Unnecessary 'this.' qualifier • lib/shared/dto/user.dart:117:21 • unnecessary_this
+  error • Undefined name 'plan' • lib/shared/dto/user.dart:137:5 • undefined_identifier
+  error • Non-nullable instance field 'plan' must be initialized • test/chat_bloc_media_limit_test.dart:246:3 • not_initialized_non_nullable_instance_field
+  error • 'tier' isn't a field in the enclosing class • test/chat_bloc_media_limit_test.dart:246:31 • initializing_formal_for_non_existent_field
+  error • Non-nullable instance field 'plan' must be initialized • test/chat_bloc_test.dart:1028:3 • not_initialized_non_nullable_instance_field
+  error • 'tier' isn't a field in the enclosing class • test/chat_bloc_test.dart:1028:31 • initializing_formal_for_non_existent_field
+  error • The named parameter 'tier' isn't defined • test/core/network/mappers/auth_mapper_test.dart:30:52 • undefined_named_parameter
+  error • Undefined name 'plan' • test/discovery_bloc_test.dart:853:56 • undefined_identifier
+  error • Undefined name 'plan' • test/discovery_bloc_test.dart:856:54 • undefined_identifier
+  error • Undefined name 'plan' • test/discovery_bloc_test.dart:869:32 • undefined_identifier
+  error • The setter 'tier' isn't defined for the type '_FakeSubscriptionRepository' • test/message_handling_bloc_test.dart:53:26 • undefined_setter
+  error • The setter 'tier' isn't defined for the type '_FakeSubscriptionRepository' • test/message_handling_bloc_test.dart:247:24 • undefined_setter
+  error • The setter 'tier' isn't defined for the type '_FakeSubscriptionRepository' • test/message_handling_bloc_test.dart:308:26 • undefined_setter
+  error • Non-nullable instance field 'plan' must be initialized • test/message_handling_bloc_test.dart:904:3 • not_initialized_non_nullable_instance_field
+  error • 'tier' isn't a field in the enclosing class • test/message_handling_bloc_test.dart:904:32 • initializing_formal_for_non_existent_field
+  error • The named parameter 'planStreamController' isn't defined • test/subscription_bloc_test.dart:50:13 • undefined_named_parameter
+  error • The named parameter 'planStreamController' isn't defined • test/subscription_bloc_test.dart:351:13 • undefined_named_parameter
+  error • All final variables must be initialized, but 'planStreamController' isn't • test/subscription_bloc_test.dart:373:3 • final_not_initialized_constructor
+  error • 'tierStreamController' isn't a field in the enclosing class • test/subscription_bloc_test.dart:374:5 • initializing_formal_for_non_existent_field
+warning • A value for optional parameter 'tierStreamController' isn't ever given • test/subscription_bloc_test.dart:374:10 • unused_element_parameter
+   info • Unclosed instance of 'Sink' • test/subscription_bloc_test.dart:381:45 • close_sinks
+  error • The named parameter 'tier' isn't defined • test/subscription_test.dart:118:38 • undefined_named_parameter
+  error • The named parameter 'tier' isn't defined • test/subscription_test.dart:285:42 • undefined_named_parameter
+  error • The named parameter 'tier' isn't defined • test/subscription_test.dart:301:42 • undefined_named_parameter
+  error • The named parameter 'planStreamController' isn't defined • test/subscription_test.dart:340:11 • undefined_named_parameter
+  error • The named parameter 'planStreamController' isn't defined • test/subscription_test.dart:437:11 • undefined_named_parameter
+  error • All final variables must be initialized, but 'planStreamController' isn't • test/subscription_test.dart:556:3 • final_not_initialized_constructor
+  error • 'tierStreamController' isn't a field in the enclosing class • test/subscription_test.dart:557:5 • initializing_formal_for_non_existent_field
+warning • A value for optional parameter 'tierStreamController' isn't ever given • test/subscription_test.dart:557:10 • unused_element_parameter
+   info • Unclosed instance of 'Sink' • test/subscription_test.dart:563:45 • close_sinks
 
-4 issues found. (ran in 96.0s)

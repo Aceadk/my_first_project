@@ -16,7 +16,7 @@ class StubBoostRepository implements BoostRepository {
   @override
   Future<BoostStatus> getBoostStatus(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    final plan = await subscriptionRepository.getCurrentPlan();
+    final tier = await subscriptionRepository.getCurrentPlan();
 
     final lastBoostMs = prefs.getInt(_lastBoostKey);
     final boostEndMs = prefs.getInt(_boostEndKey);
@@ -46,7 +46,7 @@ class StubBoostRepository implements BoostRepository {
     }
 
     // Calculate cooldown based on subscription
-    final cooldownHours = plan.isPlus
+    final cooldownHours = tier.isPlus
         ? CrushConstants.premiumBoostCooldownHours
         : CrushConstants.freeBoostCooldownHours;
 
@@ -79,10 +79,10 @@ class StubBoostRepository implements BoostRepository {
   @override
   Future<BoostSession> activateBoost(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    final plan = await subscriptionRepository.getCurrentPlan();
+    final tier = await subscriptionRepository.getCurrentPlan();
 
     // Calculate boost duration based on subscription
-    final boostMinutes = plan.isPlus
+    final boostMinutes = tier.isPlus
         ? CrushConstants.premiumBoostDurationMinutes
         : CrushConstants.freeBoostDurationMinutes;
 

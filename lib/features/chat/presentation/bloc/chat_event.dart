@@ -1,6 +1,7 @@
-import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:equatable/equatable.dart';
+
 import 'chat_state.dart' show ChatState;
 
 abstract class ChatEvent extends Equatable {
@@ -116,11 +117,11 @@ class ChatMessageDeleteForMeRequested extends ChatEvent {
 
 class ChatMessagesUpdated extends ChatEvent {
   final List<Message> messages;
-  final SubscriptionPlan plan;
-  ChatMessagesUpdated(this.messages, this.plan);
+  final SubscriptionTier tier;
+  ChatMessagesUpdated(this.messages, this.tier);
 
   @override
-  List<Object?> get props => [messages, plan];
+  List<Object?> get props => [messages, tier];
 }
 
 class ChatTypingStatusChanged extends ChatEvent {

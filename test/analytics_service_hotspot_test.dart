@@ -1,8 +1,9 @@
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics_platform_interface/firebase_analytics_platform_interface.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'mock/firebase_mock.dart';
 
 void main() {
@@ -115,13 +116,13 @@ void main() {
         await service.logOtherProfileViewed(source: 'discovery');
 
         await service.logPaywallViewed(source: 'discovery_limit');
-        await service.logCheckoutStarted(plan: 'plus_monthly');
+        await service.logCheckoutStarted(tier: 'plus_monthly');
         await service.logSubscriptionPurchased(
-          plan: 'plus_monthly',
+          tier: 'plus_monthly',
           price: 19.99,
           currency: 'USD',
         );
-        await service.logSubscriptionCancelled(plan: 'plus_monthly');
+        await service.logSubscriptionCancelled(tier: 'plus_monthly');
         await service.logPremiumFeatureUsed(feature: 'rewind');
         await service.logPremiumFeatureBlocked(feature: 'likes_you');
 

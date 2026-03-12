@@ -154,7 +154,7 @@ class SessionBloc extends Bloc<SessionEvent, SessionState> {
       // Set analytics user ID and properties
       await analytics.setUserId(user.id);
       await analytics.setUserProperties(
-        subscriptionPlan: user.plan.name,
+        subscriptionPlan: user.tier.name,
         gender: user.profile?.gender,
         age: user.profile?.age,
         country: user.profile?.country,

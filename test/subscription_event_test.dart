@@ -7,7 +7,7 @@ void main() {
   group('SubscriptionEvent', () {
     test('empty events support equatable defaults', () {
       expect(SubscriptionWatchStarted().props, isEmpty);
-      expect(PlusCheckoutRequested().props, isEmpty);
+      expect(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly).props, isEmpty);
       expect(SubscriptionRestoreRequested().props, isEmpty);
       expect(SubscriptionResetRequested().props, isEmpty);
 
@@ -15,16 +15,16 @@ void main() {
       expect(SubscriptionResetRequested(), SubscriptionResetRequested());
     });
 
-    test('SubscriptionPlanUpdated stores plan in props', () {
-      final event = SubscriptionPlanUpdated(SubscriptionPlan.plus);
+    test('SubscriptionTierUpdated stores plan in props', () {
+      final event = SubscriptionTierUpdated(SubscriptionTier.plus);
 
-      expect(event.props, [SubscriptionPlan.plus]);
-      expect(event, SubscriptionPlanUpdated(SubscriptionPlan.plus));
+      expect(event.props, [SubscriptionTier.plus]);
+      expect(event, SubscriptionTierUpdated(SubscriptionTier.plus));
     });
 
     test('SubscriptionStatusUpdated stores status in props', () {
       final status = SubscriptionStatus(
-        plan: SubscriptionPlan.plus,
+        tier: SubscriptionTier.plus,
         status: 'active',
         cancelAtPeriodEnd: false,
       );

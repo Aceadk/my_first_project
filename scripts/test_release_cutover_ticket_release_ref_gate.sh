@@ -61,6 +61,18 @@ assert_contains "${output}" "Release-ref concrete cutover ticket gate passed."
 output="$(GITHUB_REF=refs/tags/v1.2.3 RELEASE_CUTOVER_TICKET_PATH="${TMP_TICKET}" "${GATE_SCRIPT}")"
 assert_contains "${output}" "Release-ref concrete cutover ticket gate passed."
 
+# 4a) Branch/tag classification edge patterns (should pass)
+for ref in "refs/heads/release" "refs/heads/release-1.0" "refs/heads/release/1.0" "refs/tags/v1.0.0" "refs/tags/release"; do
+  output="$(GITHUB_REF="${ref}" RELEASE_CUTOVER_TICKET_PATH="${TMP_TICKET}" "${GATE_SCRIPT}")"
+  assert_contains "${output}" "Release-ref concrete cutover ticket gate passed."
+done
+
+# 4b) Non-release near-matches (should skip)
+for ref in "refs/heads/releases" "refs/heads/feature/release-ui" "refs/heads/release_candidate" "refs/heads/my-release" "refs/tags-not/v1"; do
+  output="$(GITHUB_REF="${ref}" "${GATE_SCRIPT}")"
+  assert_contains "${output}" "concrete cutover ticket gate not required"
+done
+
 # 5) Explicit path override must take precedence over fallback glob.
 output="$(GITHUB_REF=refs/heads/release/test RELEASE_CUTOVER_TICKET_PATH="${TMP_TICKET}" RELEASE_CUTOVER_TICKET_GLOB="${TMP_EMPTY_DIR}/PRODUCTION_CUTOVER_*.md" "${GATE_SCRIPT}")"
 assert_contains "${output}" "Validating concrete cutover ticket: ${TMP_TICKET}"
