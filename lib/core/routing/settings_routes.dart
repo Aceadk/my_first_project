@@ -78,7 +78,7 @@ List<RouteBase> settingsRoutes() => [
       final subState = context.read<SubscriptionBloc>().state;
       final chatSettings =
           profileState.profile?.chatSettings ?? const ChatSettings();
-      final isPremium = subState.tier == SubscriptionTier.plus;
+      final isPremium = subState.tier.hasPremium;
 
       return buildPage(
         state,

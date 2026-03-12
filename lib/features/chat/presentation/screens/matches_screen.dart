@@ -162,7 +162,7 @@ class _MatchesViewState extends State<_MatchesView> {
   @override
   Widget build(BuildContext context) {
     final isPlus = context.select<SubscriptionBloc, bool>(
-      (bloc) => bloc.state.tier == SubscriptionTier.plus,
+      (bloc) => bloc.state.tier.hasPremium,
     );
 
     return BlocBuilder<MatchesBloc, MatchesState>(
@@ -232,7 +232,7 @@ class _MatchesViewState extends State<_MatchesView> {
                       DsGap.lg,
                       BlocBuilder<SubscriptionBloc, SubscriptionState>(
                         builder: (context, subState) {
-                          final isPlus = subState.tier == SubscriptionTier.plus;
+                          final isPlus = subState.tier.hasPremium;
                           final loading = subState.isCheckoutInProgress;
                           if (isPlus) return const SizedBox.shrink();
                           return _PlusOfferCard(

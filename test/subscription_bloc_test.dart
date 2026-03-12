@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
@@ -15,13 +16,19 @@ import 'mock/stub_analytics_service.dart';
 
 void main() {
   setupFirebaseAnalyticsMocks();
+  late StubAnalyticsService analytics;
 
   setUpAll(() {
-    AnalyticsService.setInstance(StubAnalyticsService());
+    analytics = StubAnalyticsService();
+    AnalyticsService.setInstance(analytics);
   });
 
   tearDownAll(() {
     AnalyticsService.resetInstance();
+  });
+
+  setUp(() {
+    analytics.loggedEvents.clear();
   });
 
   group('SubscriptionBloc', () {
@@ -80,7 +87,12 @@ void main() {
           subscriptionRepository: _StubSubscriptionRepository(),
         );
 
-        bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
+        bloc.add(
+          SubscriptionCheckoutRequested(
+            SubscriptionTier.plus,
+            BillingPeriod.monthly,
+          ),
+        );
 
         await expectLater(
           bloc.stream,
@@ -92,9 +104,16 @@ void main() {
             ),
             isA<SubscriptionState>()
                 .having((s) => s.isCheckoutInProgress, 'progress', false)
-                .having((s) => s.errorMessage, 'error', isNull),
+                .having((s) => s.errorMessage, 'error', isNull)
+                .having(
+                  (s) => s.transactionStatus,
+                  'transactionStatus',
+                  SubscriptionTransactionStatus.pending,
+                ),
           ]),
         );
+
+        expect(analytics.loggedEvents, contains('logCheckoutStarted:plus'));
 
         await bloc.close();
       });
@@ -107,14 +126,31 @@ void main() {
           ),
         );
 
-        bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
+        bloc.add(
+          SubscriptionCheckoutRequested(
+            SubscriptionTier.plus,
+            BillingPeriod.monthly,
+          ),
+        );
 
         await expectLater(
           bloc.stream,
           emitsThrough(
             isA<SubscriptionState>()
                 .having((s) => s.isCheckoutInProgress, 'progress', false)
-                .having((s) => s.errorMessage, 'error', isNotNull),
+                .having((s) => s.errorMessage, 'error', isNotNull)
+                .having(
+                  (s) => s.transactionStatus,
+                  'transactionStatus',
+                  SubscriptionTransactionStatus.failed,
+                ),
+          ),
+        );
+
+        expect(
+          analytics.loggedEvents,
+          contains(
+            'logSubscriptionPurchaseFailed:plus:${ErrorMessages.checkoutFailed}:plus_monthly',
           ),
         );
 
@@ -129,15 +165,130 @@ void main() {
           ),
         );
 
-        bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
+        bloc.add(
+          SubscriptionCheckoutRequested(
+            SubscriptionTier.plus,
+            BillingPeriod.monthly,
+          ),
+        );
 
         await expectLater(
           bloc.stream,
           emitsThrough(
             isA<SubscriptionState>()
                 .having((s) => s.isCheckoutInProgress, 'progress', false)
-                .having((s) => s.errorMessage, 'error', isNotNull),
+                .having((s) => s.errorMessage, 'error', isNotNull)
+                .having(
+                  (s) => s.transactionStatus,
+                  'transactionStatus',
+                  SubscriptionTransactionStatus.failed,
+                ),
           ),
+        );
+
+        await bloc.close();
+      });
+    });
+
+    group('SubscriptionPurchaseInitiated', () {
+      test('accepts product ID checkout requests', () async {
+        final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
+          subscriptionRepository: _StubSubscriptionRepository(),
+        );
+
+        bloc.add(SubscriptionPurchaseInitiated('plus_monthly'));
+
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<SubscriptionState>().having(
+              (s) => s.transactionStatus,
+              'transactionStatus',
+              SubscriptionTransactionStatus.pending,
+            ),
+          ),
+        );
+
+        expect(analytics.loggedEvents, contains('logCheckoutStarted:plus'));
+
+        await bloc.close();
+      });
+
+      test('marks completed purchases only after a tier upgrade', () async {
+        final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
+          subscriptionRepository: _StubSubscriptionRepository(),
+        );
+
+        bloc.add(SubscriptionPurchaseInitiated('plus_monthly'));
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        bloc.add(SubscriptionTierUpdated(SubscriptionTier.plus));
+
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<SubscriptionState>()
+                .having((s) => s.tier, 'tier', SubscriptionTier.plus)
+                .having(
+                  (s) => s.transactionStatus,
+                  'transactionStatus',
+                  SubscriptionTransactionStatus.purchased,
+                ),
+          ),
+        );
+
+        expect(
+          analytics.loggedEvents,
+          contains(
+            'logSubscriptionPurchaseCompleted:plus:9.99:USD:plus_monthly',
+          ),
+        );
+
+        await bloc.close();
+      });
+    });
+
+    group('SubscriptionProductsRequested', () {
+      test('loads available products into state', () async {
+        final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
+          subscriptionRepository: _StubSubscriptionRepository(
+            availableProducts: const [
+              SubscriptionProduct(
+                productId: 'plus_monthly',
+                tier: SubscriptionTier.plus,
+                period: BillingPeriod.monthly,
+                title: 'Crush+',
+                description: 'Monthly premium access',
+                priceLabel: '\$9.99',
+                price: 9.99,
+                currencyCode: 'USD',
+                currencySymbol: '\$',
+              ),
+            ],
+          ),
+        );
+
+        bloc.add(SubscriptionProductsRequested());
+
+        await expectLater(
+          bloc.stream,
+          emitsInOrder([
+            isA<SubscriptionState>().having(
+              (s) => s.isLoadingProducts,
+              'loading',
+              true,
+            ),
+            isA<SubscriptionState>()
+                .having((s) => s.isLoadingProducts, 'loading', false)
+                .having((s) => s.availableProducts.length, 'count', 1)
+                .having(
+                  (s) => s.availableProducts.first.priceLabel,
+                  'priceLabel',
+                  '\$9.99',
+                ),
+          ]),
         );
 
         await bloc.close();
@@ -174,7 +325,12 @@ void main() {
         );
 
         // Start checkout first
-        bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
+        bloc.add(
+          SubscriptionCheckoutRequested(
+            SubscriptionTier.plus,
+            BillingPeriod.monthly,
+          ),
+        );
         await Future.delayed(const Duration(milliseconds: 50));
 
         // Plan update should clear checkout state
@@ -219,8 +375,18 @@ void main() {
             isA<SubscriptionState>()
                 .having((s) => s.isRestoring, 'restoring', false)
                 .having((s) => s.tier, 'plan', SubscriptionTier.plus)
-                .having((s) => s.statusLabel, 'status', 'active'),
+                .having((s) => s.statusLabel, 'status', 'active')
+                .having(
+                  (s) => s.transactionStatus,
+                  'transactionStatus',
+                  SubscriptionTransactionStatus.restored,
+                ),
           ]),
+        );
+
+        expect(
+          analytics.loggedEvents,
+          contains('logSubscriptionRestored:plus:'),
         );
 
         await bloc.close();
@@ -246,7 +412,12 @@ void main() {
                 .having((s) => s.isRestoring, 'restoring', false)
                 .having((s) => s.tier, 'plan', SubscriptionTier.free)
                 .having((s) => s.statusLabel, 'status', 'none')
-                .having((s) => s.errorMessage, 'error', isNull),
+                .having((s) => s.errorMessage, 'error', isNull)
+                .having(
+                  (s) => s.transactionStatus,
+                  'transactionStatus',
+                  SubscriptionTransactionStatus.noPurchases,
+                ),
           ),
         );
 
@@ -272,6 +443,11 @@ void main() {
                   (s) => s.errorMessage,
                   'error',
                   ErrorMessages.restorePurchasesFailed,
+                )
+                .having(
+                  (s) => s.transactionStatus,
+                  'transactionStatus',
+                  SubscriptionTransactionStatus.failed,
                 ),
           ),
         );
@@ -340,6 +516,35 @@ void main() {
 
         await bloc.close();
       });
+
+      test('allows explicit transaction status updates', () async {
+        final bloc = SubscriptionBloc(
+          authRepository: NoopAuthRepository(),
+          subscriptionRepository: _StubSubscriptionRepository(),
+        );
+
+        bloc.add(
+          SubscriptionTransactionUpdated(
+            SubscriptionTransactionStatus.failed,
+            errorMessage: 'purchase failed',
+          ),
+        );
+
+        await expectLater(
+          bloc.stream,
+          emits(
+            isA<SubscriptionState>()
+                .having(
+                  (s) => s.transactionStatus,
+                  'transactionStatus',
+                  SubscriptionTransactionStatus.failed,
+                )
+                .having((s) => s.errorMessage, 'error', 'purchase failed'),
+          ),
+        );
+
+        await bloc.close();
+      });
     });
 
     group('Cleanup', () {
@@ -376,6 +581,7 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
     this.shouldFailLaunch = false,
     this.shouldFailRestore = false,
     this.statusToRestore,
+    this.availableProducts = const [],
   });
 
   final StreamController<SubscriptionTier>? tierStreamController;
@@ -383,6 +589,7 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   final bool shouldFailLaunch;
   final bool shouldFailRestore;
   final SubscriptionStatus? statusToRestore;
+  final List<SubscriptionProduct> availableProducts;
 
   @override
   Stream<SubscriptionTier> watchPlan() {
@@ -396,7 +603,10 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   Future<SubscriptionTier> getCurrentPlan() async => SubscriptionTier.free;
 
   @override
-  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async {
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     if (shouldFailCheckout) {
       throw Exception('Checkout failed');
     }
@@ -411,7 +621,10 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
-  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     if (shouldFailCheckout) {
       throw Exception('Checkout failed');
     }
@@ -421,11 +634,36 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
+  }
+
+  @override
   Future<SubscriptionStatus> refreshStatus() async {
     if (shouldFailRestore) {
       throw Exception('Failed to restore subscription');
     }
     return statusToRestore ?? SubscriptionStatus(tier: SubscriptionTier.free);
+  }
+
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async {
+    return availableProducts;
   }
 
   @override

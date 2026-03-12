@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:crushhour/config/billing_config.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,11 +26,7 @@ class StubSubscriptionRepository implements SubscriptionRepository {
   Future<void> _loadPlan() async {
     final prefs = await SharedPreferences.getInstance();
     final planName = prefs.getString(_planKey);
-    if (planName == 'plus') {
-      _currentPlan = SubscriptionTier.plus;
-    } else {
-      _currentPlan = SubscriptionTier.free;
-    }
+    _currentPlan = _tierFromStoredPlan(planName);
     _planController.add(_currentPlan);
   }
 
@@ -49,11 +47,7 @@ class StubSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<SubscriptionTier> getCurrentPlan() async {
     final prefs = await SharedPreferences.getInstance();
-    final planName = prefs.getString(_planKey);
-    if (planName == 'plus') {
-      return SubscriptionTier.plus;
-    }
-    return SubscriptionTier.free;
+    return _tierFromStoredPlan(prefs.getString(_planKey));
   }
 
   @override
@@ -75,6 +69,15 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     final renewalDate = DateTime.now().add(Duration(days: days));
     await prefs.setString(_renewalKey, renewalDate.toIso8601String());
     await prefs.setString(_statusKey, 'active');
+  }
+
+  @override
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
   }
 
   @override
@@ -110,9 +113,7 @@ class StubSubscriptionRepository implements SubscriptionRepository {
     final status = prefs.getString(_statusKey);
     final renewalStr = prefs.getString(_renewalKey);
 
-    final tier = planName == 'plus'
-        ? SubscriptionTier.plus
-        : SubscriptionTier.free;
+    final tier = _tierFromStoredPlan(planName);
     DateTime? renewal;
     if (renewalStr != null) {
       renewal = DateTime.tryParse(renewalStr);
@@ -120,10 +121,35 @@ class StubSubscriptionRepository implements SubscriptionRepository {
 
     return SubscriptionStatus(
       tier: tier,
-      status: status ?? (tier.isPlus ? 'active' : null),
+      status: status ?? (tier.hasPremium ? 'active' : null),
       nextRenewal: renewal,
       cancelAtPeriodEnd: false,
     );
+  }
+
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async {
+    return BillingConfig.tiers
+        .where((plan) => plan.tier != SubscriptionTier.free)
+        .expand(
+          (plan) => [
+            _productFor(plan, BillingPeriod.monthly),
+            _productFor(plan, BillingPeriod.quarterly),
+            _productFor(plan, BillingPeriod.yearly),
+          ],
+        )
+        .toList(growable: false);
   }
 
   /// Downgrade to free plan (for testing)
@@ -137,7 +163,10 @@ class StubSubscriptionRepository implements SubscriptionRepository {
   /// Toggle between free and plus (for quick testing)
   Future<void> togglePlan() async {
     if (_currentPlan == SubscriptionTier.free) {
-      await purchaseSubscription(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
+      await purchaseSubscription(
+        tier: SubscriptionTier.plus,
+        period: BillingPeriod.monthly,
+      );
     } else {
       await downgradeToFree();
     }
@@ -145,6 +174,32 @@ class StubSubscriptionRepository implements SubscriptionRepository {
 
   void dispose() {
     _planController.close();
+  }
+
+  SubscriptionProduct _productFor(
+    BillingPlanConfig plan,
+    BillingPeriod period,
+  ) {
+    final price = plan.getPriceForPeriod(period);
+    return SubscriptionProduct(
+      productId: '${plan.tier.name}_${period.name}',
+      tier: plan.tier,
+      period: period,
+      title: plan.name,
+      description: plan.description,
+      priceLabel: '\$${price.toStringAsFixed(2)}',
+      price: price,
+      currencyCode: 'USD',
+      currencySymbol: '\$',
+    );
+  }
+
+  SubscriptionTier _tierFromStoredPlan(String? planName) {
+    return switch (planName) {
+      'plus' => SubscriptionTier.plus,
+      'platinum' => SubscriptionTier.platinum,
+      _ => SubscriptionTier.free,
+    };
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

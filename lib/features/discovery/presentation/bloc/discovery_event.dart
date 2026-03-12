@@ -48,6 +48,9 @@ class DiscoveryLoadMoreRequested extends DiscoveryEvent {
 /// Clear the new match after showing celebration modal.
 class DiscoveryMatchCelebrationShown extends DiscoveryEvent {}
 
+/// Clear a pending premium-gate trigger after the UI handles it.
+class DiscoveryPremiumGateHandled extends DiscoveryEvent {}
+
 /// Super Like a profile (higher priority, limited daily uses).
 class DiscoverySuperLiked extends DiscoveryEvent {
   final String userId;

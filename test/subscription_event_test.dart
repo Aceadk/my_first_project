@@ -2,17 +2,43 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
+import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 
 void main() {
   group('SubscriptionEvent', () {
     test('empty events support equatable defaults', () {
       expect(SubscriptionWatchStarted().props, isEmpty);
-      expect(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly).props, isEmpty);
+      expect(SubscriptionProductsRequested().props, isEmpty);
+      expect(SubscriptionPurchaseInitiated('plus_monthly').props, [
+        'plus_monthly',
+      ]);
+      expect(
+        SubscriptionCheckoutRequested(
+          SubscriptionTier.plus,
+          BillingPeriod.monthly,
+        ).props,
+        [SubscriptionTier.plus, BillingPeriod.monthly],
+      );
       expect(SubscriptionRestoreRequested().props, isEmpty);
       expect(SubscriptionResetRequested().props, isEmpty);
+      expect(
+        SubscriptionTransactionUpdated(
+          SubscriptionTransactionStatus.purchased,
+        ).props,
+        [SubscriptionTransactionStatus.purchased, null],
+      );
 
       expect(SubscriptionWatchStarted(), SubscriptionWatchStarted());
+      expect(SubscriptionProductsRequested(), SubscriptionProductsRequested());
+      expect(
+        SubscriptionPurchaseInitiated('plus_monthly'),
+        SubscriptionPurchaseInitiated('plus_monthly'),
+      );
       expect(SubscriptionResetRequested(), SubscriptionResetRequested());
+      expect(
+        SubscriptionTransactionUpdated(SubscriptionTransactionStatus.failed),
+        SubscriptionTransactionUpdated(SubscriptionTransactionStatus.failed),
+      );
     });
 
     test('SubscriptionTierUpdated stores plan in props', () {

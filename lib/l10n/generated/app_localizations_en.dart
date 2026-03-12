@@ -956,7 +956,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSubscriptionManageBillingSubtitle =>
-      'Manage billing or renew your Plus tier.';
+      'Manage billing or renew your Plus plan.';
 
   @override
   String get settingsSubscriptionUpgradePitchSubtitle =>
@@ -1265,7 +1265,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPrivacyFamilyPlansTitle => 'Family Plans';
 
   @override
-  String get settingsPrivacyFamilyPlansSubtitle => 'Show your family tiers';
+  String get settingsPrivacyFamilyPlansSubtitle => 'Show your family plans';
 
   @override
   String get settingsPrivacyPersonalityTypeTitle => 'Personality Type';
@@ -2137,7 +2137,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileRelationshipGoals => 'Relationship goals';
 
   @override
-  String get profileFamilyPlans => 'Family tiers';
+  String get profileFamilyPlans => 'Family plans';
 
   @override
   String get profilePersonalityType => 'Personality type';
@@ -2436,7 +2436,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get onboardingTermsSafetyBody =>
-      'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your tiers.';
+      'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your plans.';
 
   @override
   String get onboardingTermsTerminationTitle => '7. Termination';
@@ -7531,7 +7531,7 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
 
   @override
   String get settingsSubscriptionManageBillingSubtitle =>
-      'Manage billing or renew your Plus tier. xxxxx';
+      'Manage billing or renew your Plus plan. xxxxx';
 
   @override
   String get settingsSubscriptionUpgradePitchSubtitle =>
@@ -7855,7 +7855,7 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
 
   @override
   String get settingsPrivacyFamilyPlansSubtitle =>
-      'Show your family tiers xxxx';
+      'Show your family plans xxxx';
 
   @override
   String get settingsPrivacyPersonalityTypeTitle => 'Personality Type xxxx';
@@ -8743,7 +8743,7 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
   String get profileRelationshipGoals => 'Relationship goals xxxxxx';
 
   @override
-  String get profileFamilyPlans => 'Family tiers xxxx';
+  String get profileFamilyPlans => 'Family plans xxxx';
 
   @override
   String get profilePersonalityType => 'Personality type xxxxx';
@@ -9051,7 +9051,7 @@ class AppLocalizationsEnXa extends AppLocalizationsEn {
 
   @override
   String get onboardingTermsSafetyBody =>
-      'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your tiers. xxxxxxxxxxxxx';
+      'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your plans. xxxxxxxxxxxxx';
 
   @override
   String get onboardingTermsTerminationTitle => '7. Termination xxxx';

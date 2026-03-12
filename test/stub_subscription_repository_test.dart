@@ -1,5 +1,6 @@
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/subscription/data/repositories/impl/stub_subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -28,7 +29,10 @@ void main() {
         emitsThrough(SubscriptionTier.plus),
       );
 
-      await repo.purchaseSubscription(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
+      await repo.purchaseSubscription(
+        tier: SubscriptionTier.plus,
+        period: BillingPeriod.monthly,
+      );
       await expected;
     });
 
@@ -36,7 +40,10 @@ void main() {
       final repo = StubSubscriptionRepository();
       addTearDown(repo.dispose);
 
-      await repo.purchaseSubscription(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
+      await repo.purchaseSubscription(
+        tier: SubscriptionTier.plus,
+        period: BillingPeriod.monthly,
+      );
       final status = await repo.refreshStatus();
 
       expect(status.tier, SubscriptionTier.plus);
@@ -45,11 +52,56 @@ void main() {
       expect(status.cancelAtPeriodEnd, isFalse);
     });
 
+    test('purchaseProduct upgrades platinum plans from product ids', () async {
+      final repo = StubSubscriptionRepository();
+      addTearDown(repo.dispose);
+
+      await repo.purchaseProduct(productId: 'platinum_yearly');
+
+      final tier = await repo.getCurrentPlan();
+      final status = await repo.refreshStatus();
+
+      expect(tier, SubscriptionTier.platinum);
+      expect(status.tier, SubscriptionTier.platinum);
+      expect(status.status, 'active');
+    });
+
+    test('fetchAvailableProducts returns mock catalog entries', () async {
+      final repo = StubSubscriptionRepository();
+      addTearDown(repo.dispose);
+
+      final products = await repo.fetchAvailableProducts();
+
+      expect(
+        products,
+        contains(
+          const SubscriptionProduct(
+            productId: 'plus_monthly',
+            tier: SubscriptionTier.plus,
+            period: BillingPeriod.monthly,
+            title: 'Crush+',
+            description: 'Unlock premium features',
+            priceLabel: '\$9.99',
+            price: 9.99,
+            currencyCode: 'USD',
+            currencySymbol: '\$',
+          ),
+        ),
+      );
+      expect(
+        products.any((product) => product.tier == SubscriptionTier.platinum),
+        isTrue,
+      );
+    });
+
     test('launchCheckoutUrl upgrades plan through purchase flow', () async {
       final repo = StubSubscriptionRepository();
       addTearDown(repo.dispose);
 
-      final checkoutUrl = await repo.startCheckout(tier: SubscriptionTier.plus, period: BillingPeriod.monthly);
+      final checkoutUrl = await repo.startCheckout(
+        tier: SubscriptionTier.plus,
+        period: BillingPeriod.monthly,
+      );
       expect(checkoutUrl, startsWith('https://checkout.example.com/'));
 
       await repo.launchCheckoutUrl(checkoutUrl);

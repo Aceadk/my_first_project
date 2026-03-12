@@ -1,12 +1,12 @@
 import 'dart:ui';
 
+import 'package:crushhour/core/routing/premium_cta_helper.dart';
+import 'package:crushhour/data/models/subscription.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:crushhour/data/models/subscription.dart';
-import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 import 'package:crushhour/features/discovery/domain/models/filter_options.dart';
+import 'package:crushhour/features/discovery/presentation/bloc/discovery_settings_cubit.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
-import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
@@ -53,7 +53,7 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
 
                 return BlocBuilder<SubscriptionBloc, SubscriptionState>(
                   builder: (context, subState) {
-                    final isPlus = subState.tier == SubscriptionTier.plus;
+                    final isPlus = subState.tier.hasPremium;
 
                     return ListView(
                       children: [
@@ -121,11 +121,10 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                     onToggle: (enabled) => cubit.setPassportMode(enabled),
                     onSelectLocation: () => _showLocationPicker(context, cubit),
                     onClearLocation: () => cubit.clearPassportLocation(),
-                    onUpgrade: () {
-                      context.read<SubscriptionBloc>().add(
-                        SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly),
-                      );
-                    },
+                    onUpgrade: () => PremiumCtaHelper.showPaywall(
+                      context,
+                      source: 'passport',
+                    ),
                   ),
                   DsGap.md,
                   const Divider(),
@@ -353,11 +352,10 @@ class DiscoveryFiltersSettingsScreen extends StatelessWidget {
                     isPlus: isPlus,
                     state: discoveryState,
                     cubit: cubit,
-                    onUpgrade: () {
-                      context.read<SubscriptionBloc>().add(
-                        SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly),
-                      );
-                    },
+                    onUpgrade: () => PremiumCtaHelper.showPaywall(
+                      context,
+                      source: 'advanced_filters',
+                    ),
                   ),
                   DsGap.lg,
 

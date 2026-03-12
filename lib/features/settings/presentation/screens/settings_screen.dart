@@ -405,7 +405,7 @@ class SettingsScreen extends StatelessWidget {
   }
 
   String _subscriptionSubtitle(BuildContext context, SubscriptionState state) {
-    final isPlus = state.tier == SubscriptionTier.plus;
+    final isPlus = state.tier.hasPremium;
     if (!isPlus) {
       return context.l10n.settingsSubscriptionFreeSummary;
     }

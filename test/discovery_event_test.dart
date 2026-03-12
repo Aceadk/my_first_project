@@ -31,11 +31,13 @@ void main() {
 
     test('state-reset events have empty props and equatable semantics', () {
       expect(DiscoveryMatchCelebrationShown().props, isEmpty);
+      expect(DiscoveryPremiumGateHandled().props, isEmpty);
       expect(DiscoveryResetRequested().props, isEmpty);
       expect(
         DiscoveryMatchCelebrationShown(),
         DiscoveryMatchCelebrationShown(),
       );
+      expect(DiscoveryPremiumGateHandled(), DiscoveryPremiumGateHandled());
       expect(DiscoveryResetRequested(), DiscoveryResetRequested());
     });
   });

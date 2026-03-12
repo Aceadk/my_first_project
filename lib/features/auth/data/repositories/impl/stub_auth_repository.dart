@@ -750,7 +750,7 @@ class StubAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       'isEmailVerified': user.isEmailVerified,
       'isPhoneVerified': user.isPhoneVerified,
       'isIdVerified': user.isIdVerified,
-      'plan': user.tier == SubscriptionTier.plus ? 'plus' : 'free',
+      'plan': user.tier.hasPremium ? user.tier.name : 'free',
       'profile': profileJson,
       'hasAcceptedTerms': user.hasAcceptedTerms,
       'hasSkippedBasicInfo': user.hasSkippedBasicInfo,

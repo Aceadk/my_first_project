@@ -81,13 +81,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             }
           },
           builder: (context, state) {
-            final isPlus = state.tier == SubscriptionTier.plus;
+            final isPlus = state.tier.hasPremium;
             final isLoading = state.isCheckoutInProgress;
+            final tierLabel = switch (state.tier) {
+              SubscriptionTier.free => 'Free',
+              SubscriptionTier.plus => 'Plus',
+              SubscriptionTier.platinum => 'Platinum',
+            };
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Current tier: ${isPlus ? 'Plus' : 'Free'}',
+                  'Current tier: $tierLabel',
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 24),

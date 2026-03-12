@@ -6,6 +6,8 @@ import 'package:crushhour/features/chat/data/repositories/impl/http_chat_reposit
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('HttpChatRepository realtime polling fallback', () {
     test('pauses and resumes polling when websocket state changes', () async {
       final apiClient = _FakeApiClient();
@@ -43,33 +45,39 @@ void main() {
       apiClient.dispose();
     });
 
-    test('watchers created while connected start polling after disconnect', () async {
-      final apiClient = _FakeApiClient();
-      final webSocket = _FakeWebSocketConnection(
-        initialState: ConnectionState.connected,
-      );
-      final repo = HttpChatRepository(
-        apiClient: apiClient,
-        webSocket: webSocket,
-      );
+    test(
+      'watchers created while connected start polling after disconnect',
+      () async {
+        final apiClient = _FakeApiClient();
+        final webSocket = _FakeWebSocketConnection(
+          initialState: ConnectionState.connected,
+        );
+        final repo = HttpChatRepository(
+          apiClient: apiClient,
+          webSocket: webSocket,
+        );
 
-      repo.watchMessages('match-2');
-      repo.watchPresence('user-2');
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+        repo.watchMessages('match-2');
+        repo.watchPresence('user-2');
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
-      expect(repo.activePollingTimerKeys, isNot(contains('messages_match-2')));
-      expect(repo.activePollingTimerKeys, isNot(contains('presence_user-2')));
+        expect(
+          repo.activePollingTimerKeys,
+          isNot(contains('messages_match-2')),
+        );
+        expect(repo.activePollingTimerKeys, isNot(contains('presence_user-2')));
 
-      webSocket.emitState(ConnectionState.disconnected);
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+        webSocket.emitState(ConnectionState.disconnected);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
-      expect(repo.activePollingTimerKeys, contains('messages_match-2'));
-      expect(repo.activePollingTimerKeys, contains('presence_user-2'));
+        expect(repo.activePollingTimerKeys, contains('messages_match-2'));
+        expect(repo.activePollingTimerKeys, contains('presence_user-2'));
 
-      repo.dispose();
-      await webSocket.disposeFake();
-      apiClient.dispose();
-    });
+        repo.dispose();
+        await webSocket.disposeFake();
+        apiClient.dispose();
+      },
+    );
   });
 }
 

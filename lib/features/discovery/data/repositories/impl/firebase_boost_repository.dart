@@ -60,7 +60,7 @@ class FirebaseBoostRepository implements BoostRepository {
     }
 
     // Calculate cooldown based on subscription
-    final cooldownHours = tier.isPlus
+    final cooldownHours = tier.hasPremium
         ? CrushConstants.premiumBoostCooldownHours
         : CrushConstants.freeBoostCooldownHours;
 
@@ -110,7 +110,7 @@ class FirebaseBoostRepository implements BoostRepository {
     }
 
     // Calculate boost duration based on subscription
-    final boostMinutes = tier.isPlus
+    final boostMinutes = tier.hasPremium
         ? CrushConstants.premiumBoostDurationMinutes
         : CrushConstants.freeBoostDurationMinutes;
 
@@ -124,7 +124,7 @@ class FirebaseBoostRepository implements BoostRepository {
       'endsAt': Timestamp.fromDate(endTime),
       'profileViewsGained': 0,
       'status': 'active',
-      'plan': tier.isPlus ? 'plus' : 'free',
+      'plan': tier.hasPremium ? tier.name : 'free',
       'durationMinutes': boostMinutes,
       'createdAt': FieldValue.serverTimestamp(),
     });

@@ -5,6 +5,7 @@ import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/data/models/user.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
@@ -17,13 +18,19 @@ import 'mock/stub_analytics_service.dart';
 
 void main() {
   setupFirebaseAnalyticsMocks();
+  late StubAnalyticsService analytics;
 
   setUpAll(() {
-    AnalyticsService.setInstance(StubAnalyticsService());
+    analytics = StubAnalyticsService();
+    AnalyticsService.setInstance(analytics);
   });
 
   tearDownAll(() {
     AnalyticsService.resetInstance();
+  });
+
+  setUp(() {
+    analytics.loggedEvents.clear();
   });
 
   // ===========================================================================
@@ -47,8 +54,11 @@ void main() {
       expect(SubscriptionTier.plus.isFree, isFalse);
     });
 
-    test('enum has exactly two values', () {
-      expect(SubscriptionTier.values.length, 2);
+    test('enum includes free, plus, and platinum values', () {
+      expect(SubscriptionTier.values.length, 3);
+      expect(SubscriptionTier.values, contains(SubscriptionTier.free));
+      expect(SubscriptionTier.values, contains(SubscriptionTier.plus));
+      expect(SubscriptionTier.values, contains(SubscriptionTier.platinum));
     });
   });
 
@@ -105,12 +115,17 @@ void main() {
     test('default state has free plan', () {
       const state = SubscriptionState(tier: SubscriptionTier.free);
       expect(state.tier, SubscriptionTier.free);
+      expect(state.purchaseInProgress, isFalse);
       expect(state.isCheckoutInProgress, isFalse);
       expect(state.errorMessage, isNull);
       expect(state.isRestoring, isFalse);
       expect(state.statusLabel, isNull);
       expect(state.nextRenewal, isNull);
       expect(state.cancelAtPeriodEnd, isNull);
+      expect(state.availableProducts, isEmpty);
+      expect(state.isLoadingProducts, isFalse);
+      expect(state.productsErrorMessage, isNull);
+      expect(state.transactionStatus, SubscriptionTransactionStatus.idle);
     });
 
     test('copyWith changes plan only', () {
@@ -126,7 +141,7 @@ void main() {
       const state = SubscriptionState(
         tier: SubscriptionTier.plus,
         statusLabel: 'active',
-        isCheckoutInProgress: true,
+        purchaseInProgress: true,
       );
       final updated = state.copyWith(isCheckoutInProgress: false);
 
@@ -167,6 +182,32 @@ void main() {
       const state2 = SubscriptionState(tier: SubscriptionTier.plus);
 
       expect(state1, isNot(equals(state2)));
+    });
+
+    test('copyWith updates available products and loading state', () {
+      const product = SubscriptionProduct(
+        productId: 'plus_monthly',
+        tier: SubscriptionTier.plus,
+        period: BillingPeriod.monthly,
+        title: 'Crush+',
+        description: 'Monthly premium access',
+        priceLabel: '\$9.99',
+        price: 9.99,
+        currencyCode: 'USD',
+        currencySymbol: '\$',
+      );
+      const state = SubscriptionState(tier: SubscriptionTier.free);
+      final updated = state.copyWith(
+        availableProducts: const [product],
+        isLoadingProducts: true,
+        productsErrorMessage: 'load failed',
+        transactionStatus: SubscriptionTransactionStatus.pending,
+      );
+
+      expect(updated.availableProducts, const [product]);
+      expect(updated.isLoadingProducts, isTrue);
+      expect(updated.productsErrorMessage, 'load failed');
+      expect(updated.transactionStatus, SubscriptionTransactionStatus.pending);
     });
   });
 
@@ -481,7 +522,12 @@ void main() {
         ),
       );
 
-      bloc.add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly));
+      bloc.add(
+        SubscriptionCheckoutRequested(
+          SubscriptionTier.plus,
+          BillingPeriod.monthly,
+        ),
+      );
 
       await expectLater(
         bloc.stream,
@@ -577,7 +623,10 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   Future<SubscriptionTier> getCurrentPlan() async => SubscriptionTier.free;
 
   @override
-  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async {
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     if (shouldFailCheckout) {
       throw Exception('Checkout failed');
     }
@@ -588,10 +637,22 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
-  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {
     if (shouldFailCheckout) {
       throw Exception('Checkout failed');
     }
+  }
+
+  @override
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
   }
 
   @override
@@ -601,6 +662,20 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
     }
     return statusToRestore ?? SubscriptionStatus(tier: SubscriptionTier.free);
   }
+
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async => const [];
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

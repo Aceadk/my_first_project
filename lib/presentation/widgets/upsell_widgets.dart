@@ -49,7 +49,7 @@ class UpgradeNudgeCard extends StatelessWidget {
             DsGap.md,
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
               builder: (context, subState) {
-                final isPlus = subState.tier == SubscriptionTier.plus;
+                final isPlus = subState.tier.hasPremium;
                 return SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -62,7 +62,7 @@ class UpgradeNudgeCard extends StatelessWidget {
                             );
                           },
                     child: Text(
-                      isPlus ? 'Thanks for being Plus!' : 'Upgrade now',
+                      isPlus ? 'Thanks for being premium!' : 'Upgrade now',
                     ),
                   ),
                 );

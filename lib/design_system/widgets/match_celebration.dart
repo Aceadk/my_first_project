@@ -234,6 +234,7 @@ class _MatchCelebrationState extends State<MatchCelebration>
             Semantics(
               button: true,
               child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: widget.onDismiss,
                 child: BackdropFilter(
                   filter: ImageFilter.blur(
@@ -250,12 +251,14 @@ class _MatchCelebrationState extends State<MatchCelebration>
             ),
 
             // Confetti — single CustomPaint instead of 100 widgets
-            CustomPaint(
-              painter: _ConfettiPainter(
-                particles: _confetti,
-                progress: _confettiController.value,
+            IgnorePointer(
+              child: CustomPaint(
+                painter: _ConfettiPainter(
+                  particles: _confetti,
+                  progress: _confettiController.value,
+                ),
+                size: size,
               ),
-              size: size,
             ),
 
             // Content

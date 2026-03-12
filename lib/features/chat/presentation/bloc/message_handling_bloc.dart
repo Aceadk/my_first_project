@@ -385,9 +385,9 @@ class MessageHandlingBloc
           messages: decrypted,
           hasMoreMessages: paginated.hasMore,
           isInitialLoading: false,
-          canUnsend: tier.isPlus,
-          canEdit: tier.isPlus,
-          canSeeReadReceipts: tier.isPlus,
+          canUnsend: tier.hasPremium,
+          canEdit: tier.hasPremium,
+          canSeeReadReceipts: tier.hasPremium,
         ),
       );
 
@@ -414,9 +414,9 @@ class MessageHandlingBloc
         state.copyWith(
           isInitialLoading: false,
           hasMoreMessages: false,
-          canUnsend: tier.isPlus,
-          canEdit: tier.isPlus,
-          canSeeReadReceipts: tier.isPlus,
+          canUnsend: tier.hasPremium,
+          canEdit: tier.hasPremium,
+          canSeeReadReceipts: tier.hasPremium,
           errorMessage: initialResult.errorMessage,
         ),
       );
@@ -563,7 +563,7 @@ class MessageHandlingBloc
       );
       return;
     }
-    if (!tier.isPlus && _mediaCountForUser(event.fromUserId) >= 8) {
+    if (!tier.hasPremium && _mediaCountForUser(event.fromUserId) >= 8) {
       emit(
         state.copyWith(
           sendStatus: SendStatus.idle,
@@ -649,7 +649,7 @@ class MessageHandlingBloc
       );
       return;
     }
-    if (!tier.isPlus) {
+    if (!tier.hasPremium) {
       emit(
         state.copyWith(
           isUnsendInProgress: false,
@@ -698,7 +698,7 @@ class MessageHandlingBloc
       );
       return;
     }
-    if (!tier.isPlus) {
+    if (!tier.hasPremium) {
       emit(
         state.copyWith(
           isEditInProgress: false,
@@ -906,9 +906,9 @@ class MessageHandlingBloc
     emit(
       state.copyWith(
         messages: decryptedMessages,
-        canUnsend: event.tier.isPlus,
-        canEdit: event.tier.isPlus,
-        canSeeReadReceipts: event.tier.isPlus,
+        canUnsend: event.tier.hasPremium,
+        canEdit: event.tier.hasPremium,
+        canSeeReadReceipts: event.tier.hasPremium,
         failedMessages: updatedFailedMessages,
       ),
     );

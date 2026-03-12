@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:crushhour/config/billing_config.dart';
 import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/utils/result.dart';
@@ -10,6 +11,7 @@ import 'package:crushhour/features/chat/data/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
 import 'package:crushhour/features/discovery/domain/usecases/matching_decision_engine.dart';
 import 'package:crushhour/features/profile/data/repositories/profile_repository.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
@@ -708,13 +710,47 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
+  }
+
+  @override
   Future<SubscriptionStatus> refreshStatus() async {
     return SubscriptionStatus(
       tier: _current,
-      status: _current.isPlus ? 'active' : 'none',
+      status: _current.hasPremium ? 'active' : 'none',
       nextRenewal: DateTime.now().add(const Duration(days: 30)),
       cancelAtPeriodEnd: false,
     );
+  }
+
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async {
+    return BillingConfig.tiers
+        .where((plan) => plan.tier != SubscriptionTier.free)
+        .expand(
+          (plan) => [
+            _productFor(plan, BillingPeriod.monthly),
+            _productFor(plan, BillingPeriod.quarterly),
+            _productFor(plan, BillingPeriod.yearly),
+          ],
+        )
+        .toList(growable: false);
   }
 
   @override
@@ -804,6 +840,24 @@ class FakeSubscriptionRepository implements SubscriptionRepository {
   /// Clean up resources
   void dispose() {
     _controller.close();
+  }
+
+  SubscriptionProduct _productFor(
+    BillingPlanConfig plan,
+    BillingPeriod period,
+  ) {
+    final price = plan.getPriceForPeriod(period);
+    return SubscriptionProduct(
+      productId: '${plan.tier.name}_${period.name}',
+      tier: plan.tier,
+      period: period,
+      title: plan.name,
+      description: plan.description,
+      priceLabel: '\$${price.toStringAsFixed(2)}',
+      price: price,
+      currencyCode: 'USD',
+      currencySymbol: '\$',
+    );
   }
 }
 

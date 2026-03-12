@@ -33,7 +33,7 @@ class AuthMapper {
       email: user.email,
       displayName: user.username,
       isVerified: user.isIdVerified,
-      isPremium: user.tier.isPlus,
+      isPremium: user.tier.hasPremium,
     );
   }
 

@@ -38,6 +38,7 @@ import 'package:crushhour/features/subscription/presentation/bloc/subscription_e
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -214,7 +215,19 @@ class _TestRouterHostState extends State<_TestRouterHost> {
 class TestHelpers {
   /// Clear all stored test data
   static Future<void> clearTestData() async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    FlutterSecureStorage.setMockInitialValues(<String, String>{});
+  }
+
+  /// Launch the test app using runApp so live integration bindings do not
+  /// stall on pumpWidget before the first frame.
+  static Future<void> launchApp(
+    WidgetTester tester, {
+    required SharedPreferences preferences,
+    String? initialLocation,
+  }) async {
+    runApp(TestApp(preferences: preferences, initialLocation: initialLocation));
+    await tester.pump();
   }
 
   /// Pump app and settle all animations

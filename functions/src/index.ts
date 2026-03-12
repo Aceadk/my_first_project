@@ -221,6 +221,13 @@ interface VerifyAppleTransactionRequest {
   transactionId?: string;
 }
 
+interface VerifyPurchaseReceiptRequest {
+  platform?: string;
+  productId?: string;
+  receiptData?: string;
+  packageName?: string;
+}
+
 interface GoogleSubscriptionPurchaseResponse {
   orderId?: string;
   expiryTimeMillis?: string;
@@ -237,6 +244,20 @@ interface GoogleSubscriptionEntitlement {
   cancelAtPeriodEnd: boolean;
   currentPeriodEnd: number | null;
   expiryTimeMillis: number | null;
+}
+
+type PurchaseValidationProvider = "google_play" | "app_store";
+
+interface PurchaseReceiptVerificationResult {
+  plan: "free" | "plus";
+  status: string;
+  provider: PurchaseValidationProvider;
+  productId?: string | null;
+  orderId?: string | null;
+  transactionId?: string | null;
+  originalTransactionId?: string | null;
+  currentPeriodEnd: number | null;
+  cancelAtPeriodEnd: boolean;
 }
 
 type AppleServerEnvironment = "PRODUCTION" | "SANDBOX";
@@ -4036,6 +4057,26 @@ function normalizeGooglePlayPackageName(
   return normalized ? normalized : null;
 }
 
+function normalizePurchaseValidationPlatform(
+  platform: string | null | undefined,
+): PurchaseValidationProvider | null {
+  const normalized = optionalString(platform)?.toLowerCase();
+  switch (normalized) {
+    case "android":
+    case "google":
+    case "google_play":
+    case "play":
+      return "google_play";
+    case "ios":
+    case "apple":
+    case "app_store":
+    case "appstore":
+      return "app_store";
+    default:
+      return null;
+  }
+}
+
 function hashPurchaseToken(token: string): string {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
@@ -4606,6 +4647,212 @@ async function ensureAppleTransactionNotAlreadyLinked(
       throw new functions.https.HttpsError("already-exists", check.message);
     }
   }
+}
+
+async function verifyGooglePurchaseTokenForUser(params: {
+  uid: string;
+  productId: string;
+  purchaseToken: string;
+  packageName?: string;
+}): Promise<PurchaseReceiptVerificationResult> {
+  const packageName =
+    normalizeGooglePlayPackageName(optionalString(params.packageName)) ??
+    normalizeGooglePlayPackageName(getGooglePlayPackageName());
+
+  if (!packageName) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "GOOGLE_PLAY_PACKAGE_NAME is not configured.",
+    );
+  }
+
+  const validation = await fetchGoogleSubscriptionValidation({
+    packageName,
+    productId: params.productId,
+    purchaseToken: params.purchaseToken,
+  });
+
+  const purchaseTokenHash = hashPurchaseToken(params.purchaseToken);
+  await ensureGooglePurchaseNotAlreadyLinked(
+    params.uid,
+    purchaseTokenHash,
+    validation.orderId,
+  );
+
+  const entitlement = deriveGoogleSubscriptionEntitlement(validation, Date.now());
+
+  await setUserPlan(params.uid, entitlement.plan);
+
+  const payload: Record<string, unknown> = {
+    googlePlayPurchase: {
+      packageName,
+      productId: params.productId,
+      orderId: validation.orderId ?? null,
+      purchaseTokenHash,
+      linkedPurchaseToken: validation.linkedPurchaseToken ?? null,
+      paymentState:
+        typeof validation.paymentState === "number"
+          ? validation.paymentState
+          : null,
+      acknowledgementState:
+        typeof validation.acknowledgementState === "number"
+          ? validation.acknowledgementState
+          : null,
+      autoRenewing:
+        typeof validation.autoRenewing === "boolean"
+          ? validation.autoRenewing
+          : null,
+      cancelReason:
+        typeof validation.cancelReason === "number"
+          ? validation.cancelReason
+          : null,
+      expiryTimeMillis: entitlement.expiryTimeMillis,
+      lastValidatedAt: serverTimestamp(),
+    },
+    subscriptionLifecycle: {
+      provider: "google_play",
+      status: entitlement.status,
+      currentPeriodEnd: entitlement.currentPeriodEnd,
+      cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+      lastValidatedAt: serverTimestamp(),
+    },
+  };
+
+  if (entitlement.expiryTimeMillis != null) {
+    payload.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
+  } else if (entitlement.plan === "free") {
+    payload.subscriptionExpiresAt = deleteField();
+  }
+
+  await db.collection("users").doc(params.uid).set(payload, { merge: true });
+
+  return {
+    plan: entitlement.plan,
+    status: entitlement.status,
+    provider: "google_play",
+    productId: params.productId,
+    orderId: validation.orderId ?? null,
+    currentPeriodEnd: entitlement.currentPeriodEnd,
+    cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+  };
+}
+
+async function verifyAppleTransactionForUser(params: {
+  uid: string;
+  transactionId: string;
+  productId?: string;
+}): Promise<PurchaseReceiptVerificationResult> {
+  const expectedProductId = optionalString(params.productId);
+  const validation = await fetchAppleTransactionValidation({
+    transactionId: params.transactionId,
+  });
+  const transaction = validation.transaction;
+
+  if (
+    expectedProductId &&
+    transaction.productId &&
+    transaction.productId !== expectedProductId
+  ) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Apple transaction product does not match requested product.",
+    );
+  }
+
+  await ensureAppleTransactionNotAlreadyLinked(params.uid, {
+    originalTransactionId: transaction.originalTransactionId,
+    latestTransactionId: transaction.transactionId ?? params.transactionId,
+    webOrderLineItemId: transaction.webOrderLineItemId,
+  });
+
+  const entitlement = deriveAppleSubscriptionEntitlement(transaction, Date.now());
+  const purchaseDateMillis = parseAppleMillis(transaction.purchaseDate);
+  const revocationDateMillis = parseAppleMillis(transaction.revocationDate);
+
+  await setUserPlan(params.uid, entitlement.plan);
+
+  const payload: Record<string, unknown> = {
+    applePurchase: {
+      environment: validation.environment,
+      bundleId: transaction.bundleId ?? null,
+      productId: transaction.productId ?? expectedProductId ?? null,
+      originalTransactionId: transaction.originalTransactionId ?? null,
+      latestTransactionId: transaction.transactionId ?? params.transactionId,
+      webOrderLineItemId: transaction.webOrderLineItemId ?? null,
+      inAppOwnershipType: transaction.inAppOwnershipType ?? null,
+      transactionReason: transaction.transactionReason ?? null,
+      purchaseDateMillis,
+      expiresDateMillis: entitlement.expiryTimeMillis,
+      revocationDateMillis,
+      signedTransactionHash: hashPurchaseToken(
+        validation.signedTransactionInfo,
+      ),
+      lastValidatedAt: serverTimestamp(),
+    },
+    subscriptionLifecycle: {
+      provider: "app_store",
+      status: entitlement.status,
+      currentPeriodEnd: entitlement.currentPeriodEnd,
+      cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+      lastValidatedAt: serverTimestamp(),
+    },
+  };
+
+  if (entitlement.expiryTimeMillis != null) {
+    payload.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
+  } else if (entitlement.plan === "free") {
+    payload.subscriptionExpiresAt = deleteField();
+  }
+
+  await db.collection("users").doc(params.uid).set(payload, { merge: true });
+
+  return {
+    plan: entitlement.plan,
+    status: entitlement.status,
+    provider: "app_store",
+    productId: transaction.productId ?? expectedProductId ?? null,
+    transactionId: transaction.transactionId ?? params.transactionId,
+    originalTransactionId: transaction.originalTransactionId ?? null,
+    currentPeriodEnd: entitlement.currentPeriodEnd,
+    cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
+  };
+}
+
+async function verifyPurchaseReceiptForUser(
+  params: {
+    uid: string;
+    platform: string;
+    receiptData: string;
+    productId?: string;
+    packageName?: string;
+  },
+  deps?: {
+    verifyGooglePurchase?: typeof verifyGooglePurchaseTokenForUser;
+    verifyApplePurchase?: typeof verifyAppleTransactionForUser;
+  },
+): Promise<PurchaseReceiptVerificationResult> {
+  const provider = normalizePurchaseValidationPlatform(params.platform);
+  if (!provider) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Unsupported purchase validation platform.",
+    );
+  }
+
+  if (provider === "google_play") {
+    return (deps?.verifyGooglePurchase ?? verifyGooglePurchaseTokenForUser)({
+      uid: params.uid,
+      productId: requireString(params.productId, "productId"),
+      purchaseToken: params.receiptData,
+      packageName: params.packageName,
+    });
+  }
+
+  return (deps?.verifyApplePurchase ?? verifyAppleTransactionForUser)({
+    uid: params.uid,
+    transactionId: params.receiptData,
+    productId: optionalString(params.productId),
+  });
 }
 
 async function findUserByAppleTransactionIdentifiers(identifiers: {
@@ -6751,90 +6998,12 @@ export const verifyGooglePurchaseToken =
     const uid = requireAuth(context, "verify Google Play purchase");
     requireEmailVerified(context, "verify Google Play purchase");
 
-    const productId = requireString(data?.productId, "productId");
-    const purchaseToken = requireString(data?.purchaseToken, "purchaseToken");
-    const packageName =
-      normalizeGooglePlayPackageName(optionalString(data?.packageName)) ??
-      normalizeGooglePlayPackageName(getGooglePlayPackageName());
-
-    if (!packageName) {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "GOOGLE_PLAY_PACKAGE_NAME is not configured.",
-      );
-    }
-
-    const validation = await fetchGoogleSubscriptionValidation({
-      packageName,
-      productId,
-      purchaseToken,
-    });
-
-    const purchaseTokenHash = hashPurchaseToken(purchaseToken);
-    await ensureGooglePurchaseNotAlreadyLinked(
+    return verifyGooglePurchaseTokenForUser({
       uid,
-      purchaseTokenHash,
-      validation.orderId,
-    );
-
-    const entitlement = deriveGoogleSubscriptionEntitlement(
-      validation,
-      Date.now(),
-    );
-
-    await setUserPlan(uid, entitlement.plan);
-
-    const payload: Record<string, unknown> = {
-      googlePlayPurchase: {
-        packageName,
-        productId,
-        orderId: validation.orderId ?? null,
-        purchaseTokenHash,
-        linkedPurchaseToken: validation.linkedPurchaseToken ?? null,
-        paymentState:
-          typeof validation.paymentState === "number"
-            ? validation.paymentState
-            : null,
-        acknowledgementState:
-          typeof validation.acknowledgementState === "number"
-            ? validation.acknowledgementState
-            : null,
-        autoRenewing:
-          typeof validation.autoRenewing === "boolean"
-            ? validation.autoRenewing
-            : null,
-        cancelReason:
-          typeof validation.cancelReason === "number"
-            ? validation.cancelReason
-            : null,
-        expiryTimeMillis: entitlement.expiryTimeMillis,
-        lastValidatedAt: serverTimestamp(),
-      },
-      subscriptionLifecycle: {
-        provider: "google_play",
-        status: entitlement.status,
-        currentPeriodEnd: entitlement.currentPeriodEnd,
-        cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
-        lastValidatedAt: serverTimestamp(),
-      },
-    };
-
-    if (entitlement.expiryTimeMillis != null) {
-      payload.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
-    } else if (entitlement.plan === "free") {
-      payload.subscriptionExpiresAt = deleteField();
-    }
-
-    await db.collection("users").doc(uid).set(payload, { merge: true });
-
-    return {
-      plan: entitlement.plan,
-      status: entitlement.status,
-      provider: "google_play",
-      orderId: validation.orderId ?? null,
-      currentPeriodEnd: entitlement.currentPeriodEnd,
-      cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
-    };
+      productId: requireString(data?.productId, "productId"),
+      purchaseToken: requireString(data?.purchaseToken, "purchaseToken"),
+      packageName: optionalString(data?.packageName),
+    });
   });
 
 // Validate an App Store transaction and sync plan state from Apple authoritative data.
@@ -6843,82 +7012,27 @@ export const verifyAppleTransaction = callable<VerifyAppleTransactionRequest>(
     const uid = requireAuth(context, "verify Apple purchase");
     requireEmailVerified(context, "verify Apple purchase");
 
-    const transactionId = requireString(data?.transactionId, "transactionId");
-    const expectedProductId = optionalString(data?.productId);
-    const validation = await fetchAppleTransactionValidation({ transactionId });
-    const transaction = validation.transaction;
-
-    if (
-      expectedProductId &&
-      transaction.productId &&
-      transaction.productId !== expectedProductId
-    ) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "Apple transaction product does not match requested product.",
-      );
-    }
-
-    await ensureAppleTransactionNotAlreadyLinked(uid, {
-      originalTransactionId: transaction.originalTransactionId,
-      latestTransactionId: transaction.transactionId ?? transactionId,
-      webOrderLineItemId: transaction.webOrderLineItemId,
+    return verifyAppleTransactionForUser({
+      uid,
+      transactionId: requireString(data?.transactionId, "transactionId"),
+      productId: optionalString(data?.productId),
     });
+  },
+);
 
-    const entitlement = deriveAppleSubscriptionEntitlement(
-      transaction,
-      Date.now(),
-    );
-    const purchaseDateMillis = parseAppleMillis(transaction.purchaseDate);
-    const revocationDateMillis = parseAppleMillis(transaction.revocationDate);
+// Unified mobile receipt validation entrypoint used by newer repository paths.
+export const verifyPurchaseReceipt = callable<VerifyPurchaseReceiptRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "verify purchase receipt");
+    requireEmailVerified(context, "verify purchase receipt");
 
-    await setUserPlan(uid, entitlement.plan);
-
-    const payload: Record<string, unknown> = {
-      applePurchase: {
-        environment: validation.environment,
-        bundleId: transaction.bundleId ?? null,
-        productId: transaction.productId ?? expectedProductId ?? null,
-        originalTransactionId: transaction.originalTransactionId ?? null,
-        latestTransactionId: transaction.transactionId ?? transactionId,
-        webOrderLineItemId: transaction.webOrderLineItemId ?? null,
-        inAppOwnershipType: transaction.inAppOwnershipType ?? null,
-        transactionReason: transaction.transactionReason ?? null,
-        purchaseDateMillis,
-        expiresDateMillis: entitlement.expiryTimeMillis,
-        revocationDateMillis,
-        signedTransactionHash: hashPurchaseToken(
-          validation.signedTransactionInfo,
-        ),
-        lastValidatedAt: serverTimestamp(),
-      },
-      subscriptionLifecycle: {
-        provider: "app_store",
-        status: entitlement.status,
-        currentPeriodEnd: entitlement.currentPeriodEnd,
-        cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
-        lastValidatedAt: serverTimestamp(),
-      },
-    };
-
-    if (entitlement.expiryTimeMillis != null) {
-      payload.subscriptionExpiresAt = new Date(entitlement.expiryTimeMillis);
-    } else if (entitlement.plan === "free") {
-      payload.subscriptionExpiresAt = deleteField();
-    }
-
-    await db.collection("users").doc(uid).set(payload, { merge: true });
-
-    return {
-      plan: entitlement.plan,
-      status: entitlement.status,
-      provider: "app_store",
-      productId: transaction.productId ?? expectedProductId ?? null,
-      transactionId: transaction.transactionId ?? transactionId,
-      originalTransactionId: transaction.originalTransactionId ?? null,
-      currentPeriodEnd: entitlement.currentPeriodEnd,
-      cancelAtPeriodEnd: entitlement.cancelAtPeriodEnd,
-    };
+    return verifyPurchaseReceiptForUser({
+      uid,
+      platform: requireString(data?.platform, "platform"),
+      receiptData: requireString(data?.receiptData, "receiptData"),
+      productId: optionalString(data?.productId),
+      packageName: optionalString(data?.packageName),
+    });
   },
 );
 
@@ -7444,6 +7558,7 @@ export const syncSubscriptionStatus = callable(async (_data, context) => {
 
 // Expose helpers for testing
 export const __test__helpers = {
+  clearExpressRateLimitStore: () => rateLimitStore.clear(),
   requireAuth,
   requireString,
   optionalString,
@@ -7469,6 +7584,7 @@ export const __test__helpers = {
   evaluateProfileCompleteness,
   ensureProfileQuality,
   normalizeGooglePlayPackageName,
+  normalizePurchaseValidationPlatform,
   hashPurchaseToken,
   normalizeApplePrivateKey,
   verifyAppleSignedPayloadSignature,
@@ -7484,6 +7600,7 @@ export const __test__helpers = {
   buildGoogleSubscriptionValidationUrl,
   fetchGoogleSubscriptionValidation,
   deriveGoogleSubscriptionEntitlement,
+  verifyPurchaseReceiptForUser,
   mapGoogleRtdnNotificationType,
   applyGoogleRtdnEntitlementOverride,
   decodeGoogleRtdnEnvelope,
@@ -7809,6 +7926,7 @@ function createRateLimiter(
 const rateLimitSwipe = createRateLimiter(100, 60 * 60 * 1000); // 100/hour
 const rateLimitMessage = createRateLimiter(60, 60 * 1000); // 60/minute
 const rateLimitReport = createRateLimiter(10, 60 * 60 * 1000); // 10/hour
+const rateLimitBlock = createRateLimiter(BLOCK_LIMIT, BLOCK_WINDOW_MS); // 20/hour
 const rateLimitDiscovery = createRateLimiter(30, 60 * 60 * 1000); // 30/hour
 const rateLimitAuth = createRateLimiter(20, 10 * 60 * 1000); // 20/10min
 const rateLimitDefault = createRateLimiter(60, 60 * 1000); // 60/minute
@@ -9274,7 +9392,7 @@ app.post(
   "/v1/users/block",
   authMiddleware,
   requireVerifiedEmail,
-  rateLimitReport,
+  rateLimitBlock,
   async (req: AuthRequest, res: Response) => {
     const route = req.path || "/v1/users/block";
     const method = req.method || "POST";

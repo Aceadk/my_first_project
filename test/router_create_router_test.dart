@@ -31,8 +31,11 @@ import 'package:crushhour/features/auth/presentation/screens/phone_protection_sc
 import 'package:crushhour/features/auth/presentation/screens/sign_up_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/splash_screen.dart';
 import 'package:crushhour/features/auth/presentation/screens/terms_conditions_screen.dart';
+import 'package:crushhour/features/calls/data/repositories/impl/stub_call_repository.dart';
 import 'package:crushhour/features/calls/domain/models/call.dart';
 import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
+import 'package:crushhour/features/calls/domain/repositories/call_repository.dart';
+import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
 import 'package:crushhour/features/calls/presentation/screens/call_history_screen.dart';
 import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
 import 'package:crushhour/features/calls/presentation/screens/incoming_call_screen.dart';
@@ -72,6 +75,7 @@ import 'package:crushhour/features/social/domain/repositories/compatibility_quiz
 import 'package:crushhour/features/social/domain/repositories/date_idea_repository.dart';
 import 'package:crushhour/features/social/presentation/bloc/compatibility_quiz_cubit.dart';
 import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
@@ -90,6 +94,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'mock/firebase_mock.dart';
+
+StubChatRepository _buildRouterTestChatRepository() {
+  return StubChatRepository(
+    shouldAutoReply: (_) => false,
+    periodicTimerFactory: (duration, callback) =>
+        Timer(const Duration(milliseconds: 1), () {}),
+  );
+}
 
 void main() {
   const packageInfoChannel = MethodChannel(
@@ -245,12 +257,13 @@ void main() {
     }
 
     final repo = discoveryRepository ?? _NoopDiscoveryRepository();
-    final chatRepo = chatRepository ?? StubChatRepository();
+    final chatRepo = chatRepository ?? _buildRouterTestChatRepository();
     final profRepo =
         profileRepository ??
         _NoopProfileRepository(currentUser: authBloc.state.user);
     final validationRepo = ProfileValidationService();
     final callManagerRepository = _NoopCallManagerRepository();
+    final callRepository = StubCallRepository();
     final storyRepository = _NoopStoryRepository();
     final boostRepository = _NoopBoostRepository();
     final dateIdeaRepository = _NoopDateIdeaRepository();
@@ -275,6 +288,7 @@ void main() {
       subscriptionRepository: _NoopSubscriptionRepository(),
       authRepository: authRepository,
     );
+    final callBloc = CallBloc(callRepository: callRepository);
     final createdBadgeCubit = badgeCounterCubit == null;
     final createdSafetyCubit = safetyCubit == null;
     final createdSubscriptionBloc = subscriptionBloc == null;
@@ -341,7 +355,12 @@ void main() {
       await discoverySettingsCubit.close();
       await discoveryBloc.close();
       await effectiveChatBloc.close();
+      await callBloc.close();
+      if (chatRepo is StubChatRepository) {
+        chatRepo.dispose();
+      }
       await profileBloc.close();
+      callRepository.dispose();
       storyRepository.dispose();
       callManagerRepository.dispose();
       await authBloc.close();
@@ -354,6 +373,7 @@ void main() {
           RepositoryProvider<DiscoveryRepository>.value(value: repo),
           RepositoryProvider<ProfileRepository>.value(value: profRepo),
           RepositoryProvider<ChatRepository>.value(value: chatRepo),
+          RepositoryProvider<CallRepository>.value(value: callRepository),
           RepositoryProvider<CallManagerRepository>.value(
             value: callManagerRepository,
           ),
@@ -401,6 +421,7 @@ void main() {
               value: effectiveSubscriptionBloc,
             ),
             BlocProvider<ChatBloc>.value(value: effectiveChatBloc),
+            BlocProvider<CallBloc>.value(value: callBloc),
           ],
           child: MaterialApp.router(
             routerConfig: router,
@@ -714,6 +735,7 @@ void main() {
         );
 
         expect(find.byType(widgetType), findsOneWidget);
+        await disposePumpedTree(tester);
       }
 
       await assertRouteShows(
@@ -795,6 +817,7 @@ void main() {
         );
 
         expect(find.byType(widgetType), findsOneWidget);
+        await disposePumpedTree(tester);
       }
 
       await assertRouteShows(
@@ -1254,7 +1277,7 @@ void main() {
         SubscriptionBloc? subscriptionBloc,
       }) async {
         final discoveryRepository = _NoopDiscoveryRepository();
-        final chatRepository = StubChatRepository();
+        final chatRepository = _buildRouterTestChatRepository();
         SharedPreferences.setMockInitialValues(<String, Object>{});
         final preferences = await SharedPreferences.getInstance();
         final safetyCubit = SafetyCubit(
@@ -1427,6 +1450,15 @@ class _NoopSubscriptionRepository implements SubscriptionRepository {
   }) async {}
 
   @override
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
+  }
+
+  @override
   Future<String> startCheckout({
     required SubscriptionTier tier,
     required BillingPeriod period,
@@ -1438,6 +1470,20 @@ class _NoopSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
       SubscriptionStatus(tier: SubscriptionTier.free);
+
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async => const [];
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

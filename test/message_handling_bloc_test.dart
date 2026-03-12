@@ -9,6 +9,7 @@ import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
 import 'package:crushhour/features/chat/presentation/bloc/message_handling_bloc.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -920,10 +921,25 @@ class _FakeSubscriptionRepository implements SubscriptionRepository {
   }
 
   @override
-  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {}
 
   @override
-  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => '';
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
+  }
+
+  @override
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async => '';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
@@ -931,6 +947,20 @@ class _FakeSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
       SubscriptionStatus(tier: tier);
+
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async => const [];
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

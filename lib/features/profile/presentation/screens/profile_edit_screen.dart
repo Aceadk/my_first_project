@@ -1702,15 +1702,15 @@ class _ProgressCard extends StatelessWidget {
                           color: DsColors.warning.withAlpha(80),
                         ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                      child: Wrap(
+                        spacing: DsSpacing.xs,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           const Icon(
                             Icons.add_circle_outline,
                             size: 14,
                             color: DsColors.warning,
                           ),
-                          DsGap.xsH,
                           Text(
                             m,
                             style: const TextStyle(

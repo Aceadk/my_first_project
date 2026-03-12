@@ -30,7 +30,7 @@ class SettingsSubscriptionPanelSection extends StatelessWidget {
         }
       },
       builder: (context, subState) {
-        final isPlus = subState.tier == SubscriptionTier.plus;
+        final isPlus = subState.tier.hasPremium;
         final loading = subState.isCheckoutInProgress;
         final statusLabel = subState.statusLabel;
         final renewal = subState.nextRenewal;

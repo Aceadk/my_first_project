@@ -12,7 +12,7 @@
 - Description: Stabilize full `flutter test --coverage` lane and refresh canonical hotspot ranking artifact.
 - Acceptance Criteria: deterministic coverage lane; hotspot file reproducibly generated.
 - Testing: run lane twice consecutively with identical pass/fail.
-- Status: in_progress
+- Status: completed (2026-03-12)
 
 ### TEST-002 - Critical Journey Integration Suite
 - Files: `integration_test/e2e_onboarding_to_chat_test.dart`, related helpers
@@ -26,18 +26,18 @@
 - Description: Enforce cold start smoke test to prevent blank-launch regressions.
 - Acceptance Criteria: test fails fast if first frame content not visible in timeout.
 - Testing: dedicated startup lane in CI.
-- Status: in_progress
+- Status: completed (2026-03-12)
 
 ### TEST-004 - Device Matrix Runbook
 - Files: `docs/web_testing_plan.md`, new `docs/device_matrix_report.md`
 - Description: Formalize required iOS/Android/web device/browser matrix and evidence capture.
 - Acceptance Criteria: runbook includes required devices, OS versions, and pass evidence format.
 - Testing: dry run evidence pack for at least one device per platform.
-- Status: todo
+- Status: completed (2026-03-12)
 
 ### TEST-005 - Security and Abuse Test Lanes
 - Files: `functions/src/**/*`, CI workflows
 - Description: Add automated tests for auth abuse, OTP limits, report/block abuse, and unauthorized access.
 - Acceptance Criteria: CI lane blocks merges on critical security path failures.
 - Testing: function test suite with malicious fixture set.
-- Status: todo
+- Status: completed (2026-03-12)

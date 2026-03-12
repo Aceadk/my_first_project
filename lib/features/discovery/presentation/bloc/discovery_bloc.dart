@@ -14,6 +14,7 @@ import 'package:crushhour/features/discovery/domain/repositories/discovery_repos
 import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
 import 'package:crushhour/features/profile/domain/repositories/profile_repository.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/usecases/check_entitlement.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'discovery_event.dart';
@@ -25,6 +26,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final ProfileRepository? profileRepository;
   final AuthRepository authRepository;
   final SwipeRightUseCase swipeRightUseCase;
+  final CheckEntitlementUseCase checkEntitlementUseCase;
 
   StreamSubscription? _authSubscription;
   Timer? _retryTimer;
@@ -46,13 +48,18 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     required this.subscriptionRepository,
     required this.authRepository,
     required this.swipeRightUseCase,
+    CheckEntitlementUseCase? checkEntitlementUseCase,
     this.profileRepository,
-  }) : super(const DiscoveryState()) {
+  }) : checkEntitlementUseCase =
+           checkEntitlementUseCase ??
+           CheckEntitlementUseCase(subscriptionRepository),
+       super(const DiscoveryState()) {
     on<DiscoveryDeckRequested>(_onDeckRequested);
     on<DiscoverySwipedRight>(_onSwipedRight);
     on<DiscoverySwipedLeft>(_onSwipedLeft);
     on<DiscoveryLoadMoreRequested>(_onLoadMoreRequested);
     on<DiscoveryMatchCelebrationShown>(_onMatchCelebrationShown);
+    on<DiscoveryPremiumGateHandled>(_onPremiumGateHandled);
     on<DiscoverySuperLiked>(_onSuperLiked);
     on<DiscoveryRewindRequested>(_onRewindRequested);
     on<DiscoveryResetRequested>(_onResetRequested);
@@ -73,6 +80,13 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     emit(state.copyWith(newMatch: null));
   }
 
+  void _onPremiumGateHandled(
+    DiscoveryPremiumGateHandled event,
+    Emitter<DiscoveryState> emit,
+  ) {
+    emit(state.copyWith(premiumGateSource: null));
+  }
+
   /// Reset discovery state on logout.
   /// CRITICAL: Prevents data leakage to next user.
   void _onResetRequested(
@@ -86,6 +100,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     _lastRequestedUserId = null;
     _isManualRefresh = false;
     swipeRightUseCase.resetDailyCounter();
+    checkEntitlementUseCase.clearCache();
     _cachedPreferences = null;
     _userLatitude = null;
     _userLongitude = null;
@@ -137,9 +152,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     await _loadUserPreferencesAndLocation();
 
     final prefs = _cachedPreferences;
-    final isPlusUser = tier.isPlus;
+    final isPremiumUser = tier.hasPremium;
     final passportModeEnabled =
-        isPlusUser && (prefs?.passportModeEnabled ?? false);
+        isPremiumUser && (prefs?.passportModeEnabled ?? false);
 
     // Determine distance limit based on subscription and passport mode
     double distanceLimit;
@@ -333,6 +348,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         lastSwipeDirection: 'right',
         canRewind: true,
         errorMessage: null,
+        premiumGateSource: null,
       ),
     );
 
@@ -373,10 +389,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         state.copyWith(
           currentIndex: currentIndex,
           status: DeckStatus.ready,
-          errorMessage: 'Daily swipe limit reached.',
+          errorMessage:
+              result.data?.blockedMessage ?? 'Daily swipe limit reached.',
           canRewind: false,
           lastSwipedProfile: null,
           lastSwipeDirection: null,
+          premiumGateSource: result.data?.paywallSource,
         ),
       );
     } else {
@@ -389,6 +407,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           canRewind: false,
           lastSwipedProfile: null,
           lastSwipeDirection: null,
+          premiumGateSource: null,
         ),
       );
     }
@@ -419,6 +438,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         lastSwipeDirection: 'left',
         canRewind: true,
         errorMessage: null,
+        premiumGateSource: null,
       ),
     );
 
@@ -445,6 +465,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           canRewind: false,
           lastSwipedProfile: null,
           lastSwipeDirection: null,
+          premiumGateSource: null,
         ),
       );
     }
@@ -475,7 +496,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         fallbackError: 'Could not super like. Please try again.',
       );
       final tier = planResult.data ?? SubscriptionTier.free;
-      superLikesRemaining = tier.isPlus
+      superLikesRemaining = tier.hasPremium
           ? CrushConstants.premiumDailySuperLikes
           : CrushConstants.freeDailySuperLikes;
       resetDate = today;
@@ -575,51 +596,32 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       return;
     }
 
-    // Check subscription - rewind is premium only
-    final planResult = await Result.guard(
-      () => subscriptionRepository.getCurrentPlan(),
-      logLabel: 'SubscriptionRepository.getCurrentPlan',
-      fallbackError: ErrorMessages.rewindFailed,
+    final entitlementResult = await checkEntitlementUseCase(
+      const CheckEntitlementParams(
+        feature: SubscriptionEntitlementFeature.rewind,
+      ),
     );
 
-    if (!planResult.isSuccess) {
+    if (!entitlementResult.isSuccess || entitlementResult.data == null) {
       emit(
         state.copyWith(
           status: DeckStatus.ready,
-          errorMessage: planResult.errorMessage,
+          errorMessage: entitlementResult.errorMessage,
         ),
       );
       return;
     }
 
-    final tier = planResult.data ?? SubscriptionTier.free;
-
-    // Check if free user can use their daily undo
-    if (tier.isFree) {
-      final now = DateTime.now();
-      final lastUsedDate = state.freeUndoLastUsedDate;
-
-      // Check if it's a new day (reset at midnight)
-      final isNewDay =
-          lastUsedDate == null ||
-          now.year != lastUsedDate.year ||
-          now.month != lastUsedDate.month ||
-          now.day != lastUsedDate.day;
-
-      final hasUsedFreeUndo = !isNewDay && state.freeUndoUsedToday;
-
-      if (hasUsedFreeUndo) {
-        emit(
-          state.copyWith(
-            status: DeckStatus.ready,
-            errorMessage: ErrorMessages.freeUndoUsed,
-          ),
-        );
-        return;
-      }
-
-      // Mark free undo as used for today
-      emit(state.copyWith(freeUndoUsedToday: true, freeUndoLastUsedDate: now));
+    final entitlement = entitlementResult.data!;
+    if (!entitlement.isAllowed) {
+      emit(
+        state.copyWith(
+          status: DeckStatus.ready,
+          errorMessage: entitlement.blockedMessage,
+          premiumGateSource: entitlement.paywallSource,
+        ),
+      );
+      return;
     }
 
     // Call repository to rewind
@@ -661,6 +663,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           canRewind: false,
           superLikesRemaining: superLikesRemaining,
           errorMessage: null,
+          premiumGateSource: null,
         ),
       );
 
@@ -671,6 +674,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         state.copyWith(
           status: DeckStatus.ready,
           errorMessage: rewindResult.errorMessage,
+          premiumGateSource: null,
         ),
       );
     }
@@ -729,7 +733,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
   /// Check if we should preload more and trigger loading if needed.
   void _maybeLoadMore(String userId) {
-    if (state.shouldLoadMore) {
+    if (!isClosed && state.shouldLoadMore) {
       add(DiscoveryLoadMoreRequested(userId));
     }
   }

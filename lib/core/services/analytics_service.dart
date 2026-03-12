@@ -481,17 +481,91 @@ class AnalyticsService {
   }
 
   /// Track subscription purchased
+  Future<void> logSubscriptionPurchaseCompleted({
+    required String tier,
+    required double price,
+    required String currency,
+    String? productId,
+  }) async {
+    final purchaseCompletedParams = <String, Object>{
+      'tier': tier,
+      'price': price,
+      'currency': currency,
+    };
+    if (productId != null) {
+      purchaseCompletedParams['product_id'] = productId;
+    }
+    await _analytics.logPurchase(currency: currency, value: price);
+    await _analytics.logEvent(
+      name: 'purchase_completed',
+      parameters: purchaseCompletedParams,
+    );
+    await _analytics.logEvent(
+      name: 'subscription_purchased',
+      parameters: purchaseCompletedParams,
+    );
+    final purchaseCompletedLog = <String, Object>{'tier': tier, 'price': price};
+    if (productId != null) {
+      purchaseCompletedLog['product'] = productId;
+    }
+    _log('purchase_completed', purchaseCompletedLog);
+  }
+
+  /// Track subscription purchased
   Future<void> logSubscriptionPurchased({
     required String tier,
     required double price,
     required String currency,
+    String? productId,
+  }) async => logSubscriptionPurchaseCompleted(
+    tier: tier,
+    price: price,
+    currency: currency,
+    productId: productId,
+  );
+
+  /// Track failed purchase attempt
+  Future<void> logSubscriptionPurchaseFailed({
+    required String tier,
+    required String reason,
+    String? productId,
   }) async {
-    await _analytics.logPurchase(currency: currency, value: price);
+    final purchaseFailedParams = <String, Object>{
+      'tier': tier,
+      'reason': reason,
+    };
+    if (productId != null) {
+      purchaseFailedParams['product_id'] = productId;
+    }
     await _analytics.logEvent(
-      name: 'subscription_purchased',
-      parameters: {'tier': tier, 'price': price, 'currency': currency},
+      name: 'purchase_failed',
+      parameters: purchaseFailedParams,
     );
-    _log('subscription_purchased', {'tier': tier, 'price': price});
+    final purchaseFailedLog = <String, Object>{'tier': tier, 'reason': reason};
+    if (productId != null) {
+      purchaseFailedLog['product'] = productId;
+    }
+    _log('purchase_failed', purchaseFailedLog);
+  }
+
+  /// Track restored subscription
+  Future<void> logSubscriptionRestored({
+    required String tier,
+    String? productId,
+  }) async {
+    final restoredParams = <String, Object>{'tier': tier};
+    if (productId != null) {
+      restoredParams['product_id'] = productId;
+    }
+    await _analytics.logEvent(
+      name: 'purchase_restored',
+      parameters: restoredParams,
+    );
+    final restoredLog = <String, Object>{'tier': tier};
+    if (productId != null) {
+      restoredLog['product'] = productId;
+    }
+    _log('purchase_restored', restoredLog);
   }
 
   /// Track subscription cancelled

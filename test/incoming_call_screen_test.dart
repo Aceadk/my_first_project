@@ -106,6 +106,25 @@ void main() {
       expect(acceptedCall!.type, CallType.audio);
     });
 
+    testWidgets('decline button invokes decline callback', (tester) async {
+      Call? declinedCall;
+
+      await pumpIncoming(
+        tester,
+        call: buildIncoming(type: CallType.audio),
+        onDeclined: (call) async {
+          declinedCall = call;
+        },
+      );
+
+      await tester.tap(find.byKey(const Key('incoming_decline_button')));
+      await tester.pump(const Duration(milliseconds: 150));
+
+      expect(declinedCall, isNotNull);
+      expect(declinedCall!.id, 'incoming-audio');
+      expect(declinedCall!.status, CallStatus.ringing);
+    });
+
     testWidgets('slide-to-answer triggers default accept type', (tester) async {
       CallType? acceptedType;
 

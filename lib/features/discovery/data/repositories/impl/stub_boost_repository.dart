@@ -46,7 +46,7 @@ class StubBoostRepository implements BoostRepository {
     }
 
     // Calculate cooldown based on subscription
-    final cooldownHours = tier.isPlus
+    final cooldownHours = tier.hasPremium
         ? CrushConstants.premiumBoostCooldownHours
         : CrushConstants.freeBoostCooldownHours;
 
@@ -82,7 +82,7 @@ class StubBoostRepository implements BoostRepository {
     final tier = await subscriptionRepository.getCurrentPlan();
 
     // Calculate boost duration based on subscription
-    final boostMinutes = tier.isPlus
+    final boostMinutes = tier.hasPremium
         ? CrushConstants.premiumBoostDurationMinutes
         : CrushConstants.freeBoostDurationMinutes;
 

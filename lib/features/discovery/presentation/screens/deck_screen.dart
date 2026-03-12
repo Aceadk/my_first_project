@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/routing/premium_cta_helper.dart';
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/location_service.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
@@ -236,8 +237,15 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     return BlocConsumer<DiscoveryBloc, DiscoveryState>(
       listenWhen: (previous, current) =>
           previous.errorMessage != current.errorMessage ||
-          previous.newMatch != current.newMatch,
+          previous.newMatch != current.newMatch ||
+          previous.premiumGateSource != current.premiumGateSource,
       listener: (context, state) {
+        final premiumGateSource = state.premiumGateSource;
+        if (premiumGateSource != null) {
+          context.read<DiscoveryBloc>().add(DiscoveryPremiumGateHandled());
+          PremiumCtaHelper.showPaywall(context, source: premiumGateSource);
+          return;
+        }
         final error = state.errorMessage;
         if (error != null && error.isNotEmpty) {
           showErrorSnackBar(context, error);
@@ -296,8 +304,8 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
 
         final locationLabel = _locationLabel(profile);
         final radiusKm = profile?.preferences.maxDistanceKm;
-        final isPlus = context.select<SubscriptionBloc, bool>(
-          (b) => b.state.tier == SubscriptionTier.plus,
+        final isPremium = context.select<SubscriptionBloc, bool>(
+          (b) => b.state.tier.hasPremium,
         );
         final status = state.status;
         final retryInSeconds = state.nextRetrySeconds;
@@ -356,7 +364,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
               ? DeckErrorStateView(
                   appBar: appBar,
                   retryInSeconds: retryInSeconds,
-                  isPlus: isPlus,
+                  isPlus: isPremium,
                   locationLabel: locationLabel,
                   radiusKm: radiusKm,
                   onRetry: refreshDeck,
@@ -366,7 +374,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
           empty: isEmptyDeck
               ? DeckOutOfPeopleView(
                   discoveryState: state,
-                  isPlus: isPlus,
+                  isPlus: isPremium,
                   locationLabel: locationLabel,
                   onRefresh: refreshDeck,
                   onShowPassportUpsell: () => _showPassportUpsell(context),
@@ -1565,7 +1573,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                 previous.tier != current.tier ||
                 previous.isCheckoutInProgress != current.isCheckoutInProgress,
             builder: (context, subState) {
-              final isPlus = subState.tier == SubscriptionTier.plus;
+              final isPlus = subState.tier.hasPremium;
               final loading = subState.isCheckoutInProgress;
               return Padding(
                 padding: const EdgeInsets.all(16),

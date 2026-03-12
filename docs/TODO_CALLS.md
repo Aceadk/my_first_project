@@ -49,40 +49,40 @@
 ## CALL-004: Build Incoming Call Screen
 
 **Files:** `lib/features/calls/presentation/screens/incoming_call_screen.dart` (new)
-**Description:** No Flutter-layer incoming call screen exists. `CallService.handleIncomingCall()` updates state but no UI presents it.
+**Description:** Added a dedicated Flutter incoming-call screen with caller identity, countdown, decline/audio/video quick actions, slide-to-answer affordance, and router/app wiring so `CallService.handleIncomingCall()` presents real UI instead of only updating state.
 **Acceptance Criteria:**
 
-**Testing:** Widget tests added for layout/actions, slide-to-answer behavior, and timeout handling.
+**Testing:** Widget tests cover layout/actions, decline + accept flows, slide-to-answer behavior, and timeout handling in `test/incoming_call_screen_test.dart`; router coverage confirms the incoming-call route branch renders correctly in `test/router_create_router_test.dart`.
 
 ---
 
 ## CALL-005: Implement Call Signaling via Cloud Functions
 
 **Files:** `functions/src/calls/signaling.ts` (new), `functions/src/index.ts`
-**Description:** Added production signaling callables: `initiateCall`, `answerCall`, `endCall`, `addIceCandidate`, and `getIceServers`. Calls now persist to Firestore `calls/{callId}` with participant validation, ring timeout metadata, and ICE candidate exchange via `calls/{callId}/iceCandidates`. A Firestore trigger enforces 30-second ringing timeout to `missed/timeout`.
+**Description:** Added production signaling callables: `initiateCall`, `answerCall`, `endCall`, `addIceCandidate`, and `getIceServers`. Calls persist to Firestore `calls/{callId}` with participant validation, ring-timeout metadata, ICE candidate exchange via `calls/{callId}/iceCandidates`, and the exported trigger `enforceCallRingTimeout` moves unanswered ringing calls to `missed/timeout` after 30 seconds.
 **Acceptance Criteria:**
 
-**Testing:** Cloud Function unit tests added in `functions/test/call-signaling.test.js` and passing in CI-local lane (`npm --prefix functions test`). Emulator integration test for full device-to-device signaling flow remains recommended.
+**Testing:** Focused Cloud Function tests cover auth/validation helpers, ICE config, and signaling callable guards in `functions/test/call-signaling.test.js`; targeted build + test verification passes locally. Emulator integration coverage for full device-to-device signaling flow remains recommended.
 
 ---
 
 ## CALL-006: Implement Call History and Missed Call Tracking
 
 **Files:** `lib/features/calls/data/services/call_service.dart`, `lib/features/calls/presentation/screens/call_history_screen.dart` (new)
-**Description:** Call history now includes a dedicated paginated UI with pull-to-refresh and grouping. `CallService` performs best-effort Firestore persistence to per-user `users/{uid}/call_history` records with in-memory fallback, emits missed-call events, and app host wiring triggers local missed-call notifications with deep links to history.
+**Description:** Call history now includes a dedicated paginated UI with pull-to-refresh and grouping. `CallService` performs best-effort Firestore persistence to per-user `users/{uid}/call_history` records with in-memory fallback, emits missed-call events, and app-host wiring presents local missed-call notifications that deep-link to `CrushRoutes.callHistory`.
 **Acceptance Criteria:**
 
-**Testing:** Widget tests for grouped rendering, missed call status display, pagination, refresh behavior; unit tests for missed-call event stream emission/non-emission paths.
+**Testing:** Widget tests cover grouped rendering, missed-call status display, pagination, and refresh behavior in `test/call_history_screen_test.dart`; service tests cover missed-call event emission/non-emission plus history persistence in `test/call_service_test.dart`; router coverage confirms the call-history branch in `test/router_create_router_test.dart`.
 
 ---
 
 ## CALL-007: Add Call Quality Monitoring and Adaptive Bitrate
 
 **Files:** `lib/features/calls/data/services/call_quality_service.dart` (new), `lib/features/calls/presentation/screens/call_screen.dart`
-**Description:** Replaced static quality badge with sampled connection telemetry. `CallQualityService` now tracks latency, packet loss, bitrate, and frame rate, emits quality state, degrades video tier (`HD → SD → Audio`) on sustained poor quality, and triggers reconnect attempts on severe degradation.
+**Description:** Replaced the static quality badge with sampled connection telemetry. `CallQualityService` now tracks latency, packet loss, bitrate, and frame rate, emits adaptive quality state, degrades video tier (`HD → SD → Audio`) on sustained poor quality, and flags reconnect attempts on severe degradation; `CallScreen` consumes that state for the connection indicator, automatic video fallback, and reconnect UI handling.
 **Acceptance Criteria:**
 
-**Testing:** Added unit tests for classification thresholds, adaptive degradation/recovery, and reconnect triggers (`test/call_quality_service_test.dart`); manual throttling still recommended on devices.
+**Testing:** Unit tests cover classification thresholds, adaptive degradation/recovery, reconnect triggers, and audio-call badge behavior in `test/call_quality_service_test.dart`; `test/features/calls/presentation/screens/call_screen_responsive_test.dart` keeps the call-screen compile path covered; manual throttling remains recommended on devices.
 
 ---
 

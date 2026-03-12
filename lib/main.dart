@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
+import 'core/di.dart';
 import 'core/app_logger.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/services/crash_reporting_service.dart';
@@ -109,6 +110,13 @@ class _StartupBootstrapAppState extends State<_StartupBootstrapApp> {
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       PerformanceMonitor.instance.recordFirstFrame();
+      unawaited(
+        _runStartupTask(
+          name: 'CrushDI.initializePlatformServices',
+          action: CrushDI.initializePlatformServices,
+          timeout: const Duration(seconds: 12),
+        ),
+      );
       unawaited(
         _runStartupTask(
           name: 'TrackingConsentService.requestConsent',

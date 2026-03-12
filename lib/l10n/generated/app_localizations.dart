@@ -1886,7 +1886,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSubscriptionManageBillingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage billing or renew your Plus tier.'**
+  /// **'Manage billing or renew your Plus plan.'**
   String get settingsSubscriptionManageBillingSubtitle;
 
   /// No description provided for @settingsSubscriptionUpgradePitchSubtitle.
@@ -2426,7 +2426,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsPrivacyFamilyPlansSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Show your family tiers'**
+  /// **'Show your family plans'**
   String get settingsPrivacyFamilyPlansSubtitle;
 
   /// No description provided for @settingsPrivacyPersonalityTypeTitle.
@@ -3950,7 +3950,7 @@ abstract class AppLocalizations {
   /// No description provided for @profileFamilyPlans.
   ///
   /// In en, this message translates to:
-  /// **'Family tiers'**
+  /// **'Family plans'**
   String get profileFamilyPlans;
 
   /// No description provided for @profilePersonalityType.
@@ -4472,7 +4472,7 @@ abstract class AppLocalizations {
   /// No description provided for @onboardingTermsSafetyBody.
   ///
   /// In en, this message translates to:
-  /// **'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your tiers.'**
+  /// **'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your plans.'**
   String get onboardingTermsSafetyBody;
 
   /// No description provided for @onboardingTermsTerminationTitle.

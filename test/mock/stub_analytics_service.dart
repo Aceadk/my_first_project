@@ -262,8 +262,42 @@ class StubAnalyticsService extends AnalyticsService {
     required String tier,
     required double price,
     required String currency,
+    String? productId,
   }) async {
-    _trackEvent('logSubscriptionPurchased:$tier:$price:$currency');
+    _trackEvent(
+      'logSubscriptionPurchased:$tier:$price:$currency:${productId ?? ""}',
+    );
+  }
+
+  @override
+  Future<void> logSubscriptionPurchaseCompleted({
+    required String tier,
+    required double price,
+    required String currency,
+    String? productId,
+  }) async {
+    _trackEvent(
+      'logSubscriptionPurchaseCompleted:$tier:$price:$currency:${productId ?? ""}',
+    );
+  }
+
+  @override
+  Future<void> logSubscriptionPurchaseFailed({
+    required String tier,
+    required String reason,
+    String? productId,
+  }) async {
+    _trackEvent(
+      'logSubscriptionPurchaseFailed:$tier:$reason:${productId ?? ""}',
+    );
+  }
+
+  @override
+  Future<void> logSubscriptionRestored({
+    required String tier,
+    String? productId,
+  }) async {
+    _trackEvent('logSubscriptionRestored:$tier:${productId ?? ""}');
   }
 
   @override

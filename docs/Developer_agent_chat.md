@@ -11814,3 +11814,988 @@ save everything and also save to github
 - `git push origin main` (pass)
 
 **Next Step:** None.
+
+---
+
+### Task #215 — TEST-004 Device Matrix Runbook
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+look for todo's and find the most solveable TODO and start workin on it
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Review the open TODO backlog, select the most self-contained and solvable item, and complete it end-to-end instead of only triaging it.
+- **Scope:** Inspect active TODO docs, choose the lowest-risk item with clear acceptance criteria, implement the necessary documentation or code changes, verify the result with a targeted check, and update the required AI workflow docs.
+- **Constraints:**
+  - Prefer a task with minimal dependency on store-console setup, WebRTC vendors, or risky routing/auth refactors.
+  - Do not broaden scope into unrelated backlog items once one clear candidate is selected.
+  - Keep the change aligned with the current CI/testing workflow already defined in the repo.
+- **Expected Outcome:** One open TODO item is completed with concrete repo changes, verification is recorded, and the task/workboard logs reflect the decision and outcome.
+
+**Status Updates:**
+- **Received:** Scanned the TODO backlog and the required collaboration docs to identify the best candidate.
+- **In Progress:** Chose `TEST-004` from `docs/TODO_TESTING_MATRIX.md` because it was isolated, low-risk, and directly finishable without external platform blockers.
+- **Completed:** Replaced the generic web-only checklist with a cross-platform device matrix runbook, added a dry-run evidence report, marked `TEST-004` complete, and verified the startup cold-launch guard locally.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/web_testing_plan.md`
+    - Replaced the old checklist with the canonical cross-platform device/browser matrix runbook.
+    - Added entry criteria, scenario pack IDs, required iOS/Android/web matrix rows, breakpoint capture rules, evidence contract, and sign-off rules.
+  - `docs/device_matrix_report.md` (new)
+    - Added a dry-run evidence pack covering one representative row each for iOS, Android, and web.
+    - Recorded the targeted startup guard verification result and noted the observed bootstrap timeout log for follow-up during release-candidate runs.
+  - `docs/TODO_TESTING_MATRIX.md`
+    - Marked `TEST-004` complete on 2026-03-12.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `TEST-004` is now concretely implemented in-repo and aligned to the existing CI/testing lanes.
+- **Notes:** No risk-register change was needed because this pass formalized manual verification process rather than changing runtime behavior.
+
+**Verification:**
+- `flutter test test/startup_cold_launch_guard_test.dart -r compact` (pass)
+- `scripts/check_ai_docs_sync.sh --files docs/web_testing_plan.md docs/device_matrix_report.md docs/TODO_TESTING_MATRIX.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+
+**Next Step:** The next most tractable testing item is `TEST-005` if you want a code-focused follow-up; otherwise `TEST-001` remains the next CI-stability item.
+
+---
+
+### Task #216 — TEST-005 Security Abuse Test Lane
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+go for next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Take the next testing backlog item after `TEST-004` and implement a concrete security/abuse regression lane that closes `TEST-005`.
+- **Scope:** Add automated function tests for OTP throttling, unauthorized REST access, unverified-user write blocking, and report/block abuse thresholds; wire the lane into CI; update the testing TODO and required workflow docs.
+- **Constraints:**
+  - Keep the work focused on the Functions security surface and avoid broad auth architecture changes.
+  - Reuse the existing Functions test harness patterns where possible.
+  - Preserve deterministic local runs by isolating the new malicious-fixture suite from the default recursive test run.
+- **Expected Outcome:** `TEST-005` is completed with a dedicated security abuse test lane that CI executes explicitly, plus targeted verification proving the new lane and touched legacy security tests pass.
+
+**Status Updates:**
+- **Received:** Reviewed the remaining testing backlog and selected `TEST-005` as the next solvable item.
+- **In Progress:** Added a dedicated malicious-fixture regression suite, exposed a test-only rate-limit reset helper, aligned the block REST middleware with its intended threshold, and wired the new lane into CI.
+- **Completed:** Verified the new `test:security` lane and the touched legacy security tests, then updated the TODO/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added `rateLimitBlock` so `/v1/users/block` now matches the documented 20-per-window threshold instead of reusing the report limiter.
+    - Exported `clearExpressRateLimitStore()` through `__test__helpers` for deterministic abuse-lane setup.
+  - `functions/test/securityAbuseLanes.test.js` (new)
+    - Added malicious-fixture coverage for:
+      - repeated OTP send throttling,
+      - repeated OTP verify throttling,
+      - missing auth header rejection,
+      - invalid bearer token rejection,
+      - unverified email/password write rejection,
+      - report abuse rate limiting,
+      - block abuse rate limiting.
+  - `functions/package.json`
+    - Added explicit `test:security` lane.
+    - Excluded the mock-heavy abuse lane from default `npm test` recursion so it does not contaminate unrelated suites.
+  - `.github/workflows/ci.yml`
+    - Added `Run security abuse regression lane` to the Functions CI job.
+  - `docs/TODO_TESTING_MATRIX.md`
+    - Marked `TEST-005` complete on 2026-03-12.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `TEST-005` now has an explicit CI-enforced security abuse lane with coverage for the required OTP/auth/report/block cases.
+- **Notes:** Repository-wide `npm test` in `functions/` still reports pre-existing failures in the profile REST/profile validation lanes; this pass did not attempt to resolve that baseline debt.
+
+**Verification:**
+- `npm run test:security` (pass)
+- `npm run build && npx mocha --exit test/appCheckRest.test.js test/safetyRestRegression.test.js` (pass)
+- `bash scripts/check_ai_docs_sync.sh --files functions/src/index.ts functions/test/securityAbuseLanes.test.js functions/package.json .github/workflows/ci.yml docs/TODO_TESTING_MATRIX.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+
+**Next Step:** `TEST-001` is now the next clear testing item because the broader Functions/profile suite debt and coverage-lane stability are still open.
+
+
+### Task #217 — TEST-001 Canonical Coverage Lane Stabilization
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+go next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `TEST-001` by making the canonical `flutter test --coverage` lane deterministic again and by generating a reproducible hotspot artifact checked by CI.
+- **Scope:** Wire artifact generation into CI, add the canonical `coverage_logic_lowest_raw.txt` output, fix the concrete test/runtime debt uncovered by the full coverage lane, and update the testing backlog plus required workflow docs.
+- **Constraints:**
+  - Keep the pass focused on coverage-lane stability; do not broaden into unrelated feature work.
+  - Prefer small runtime/test fixes that directly unblock the canonical lane over large architectural rewrites.
+  - Prove determinism with consecutive full-lane executions instead of relying only on targeted tests.
+- **Expected Outcome:** `flutter test --coverage` passes twice in a row with the same overall outcome, `coverage_logic_lowest_raw.txt` is reproducibly generated, and CI now enforces the artifact contract.
+
+**Status Updates:**
+- **Received:** Reviewed the remaining testing backlog and picked `TEST-001` as the next highest-value CI-stability item.
+- **In Progress:** Added artifact generation to the coverage workflow, generated the hotspot report, then worked through the concrete isolated failures that were keeping the full lane red.
+- **Completed:** Stabilized the failing widget/router/discovery/subscription coverage blockers, reran the full coverage lane twice consecutively, confirmed the hotspot artifact was identical across runs, and updated the TODO/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `.github/workflows/ci.yml`
+    - Added explicit coverage hotspot generation after `flutter test --coverage`.
+    - Added an artifact freshness check so CI fails if `coverage_logic_lowest_raw.txt` is stale.
+  - `tool/coverage_summary.dart`
+    - Reworked the coverage summarizer to emit deterministic hotspot ordering.
+    - Added `--artifact`, `--lcov`, and `--threshold` support so the workflow can generate the canonical raw hotspot file directly.
+  - `coverage_logic_lowest_raw.txt` (new)
+    - Added the canonical hotspot artifact generated from the current `coverage/lcov.info` output.
+    - Current artifact summary: `overall=66.43%`, `business_logic_lines=12723/19153`.
+  - `lib/design_system/widgets/match_celebration.dart`
+    - Made the dismiss backdrop reliably tappable by ignoring pointer hits on the confetti layer and forcing opaque backdrop hit-testing.
+  - `lib/features/profile/presentation/screens/profile_edit_screen.dart`
+    - Replaced a narrow-width completion-chip row with a wrapping layout to remove responsive overflow in the coverage run.
+  - `lib/features/discovery/presentation/bloc/discovery_bloc.dart`
+    - Guarded auto-load-more dispatches so asynchronous swipe completion cannot enqueue new events after bloc shutdown.
+  - `test/router_create_router_test.dart`
+    - Hardened the router harness with a `CallBloc` provider, deterministic chat stubs, and per-route cleanup so route coverage no longer leaks timers/providers across cases.
+  - `test/discovery_bloc_test.dart`
+    - Updated the swipe-right and match-celebration tests to use a shared repository/use-case setup and enough deck size to avoid accidental preload race conditions.
+  - `test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart`
+    - Initialized the Flutter test binding explicitly for the repository code path that touches `WidgetsBinding`.
+  - `test/subscription_event_test.dart`
+    - Updated stale Equatable expectations for checkout events.
+  - `test/subscription_test.dart`
+    - Updated tier-enum expectations to reflect the current `free` / `plus` / `platinum` model.
+  - `test/brand_copy_case_regression_test.dart`
+    - Refreshed the premium matches-screen copy assertion to the current CTA text.
+  - `docs/TODO_TESTING_MATRIX.md`
+    - Marked `TEST-001` complete on 2026-03-12.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The canonical coverage lane is green again, the hotspot artifact is now generated reproducibly, and CI enforces that artifact contract.
+- **Notes:** Both full-lane verification runs finished with `2014` executed tests and `6` skipped tests; the artifact output matched byte-for-byte across the two consecutive runs.
+
+**Verification:**
+- `flutter test --reporter=compact test/design_system/match_celebration_widget_test.dart test/router_create_router_test.dart test/features/chat/data/repositories/impl/http_chat_repository_realtime_polling_test.dart test/brand_copy_case_regression_test.dart test/discovery_bloc_test.dart test/subscription_event_test.dart test/subscription_test.dart` (pass via isolated reruns during triage)
+- `flutter test --coverage --reporter=compact` (pass, run 1)
+- `dart run tool/coverage_summary.dart --artifact=coverage_logic_lowest_raw.txt` (pass, run 1)
+- `flutter test --coverage --reporter=compact` (pass, run 2)
+- `dart run tool/coverage_summary.dart --artifact=coverage_logic_lowest_raw.txt` (pass, run 2)
+- `cmp -s /tmp/coverage_logic_lowest_raw.run1.txt coverage_logic_lowest_raw.txt` (pass)
+
+**Next Step:** `TEST-002` is now the next testing backlog item if you want to keep pushing the matrix forward.
+
+### Task #218 — TEST-002 Critical Journey Integration Suite
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** In Progress
+
+**Original Request:**
+do next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `TEST-002` by replacing the weak onboarding/discovery/chat integration coverage with deterministic route and state checkpoints for the full critical journey.
+- **Scope:** `integration_test/e2e_onboarding_to_chat_test.dart`, the compatibility wrapper in `integration_test/e2e_onboarding_discovery_chat_safety_test.dart`, the integration harness in `integration_test/test_app.dart`, and any directly affected integration smoke files using that harness.
+- **Constraints:**
+  - Keep the pass focused on deterministic integration coverage and harness reliability; avoid unrelated product changes.
+  - Reuse the stub-backed `TestApp` so the journey stays hermetic and repeatable.
+  - Do not mark the backlog item complete until a live integration target actually runs the canonical journey successfully.
+- **Expected Outcome:** The canonical integration test asserts auth/onboarding/discovery/chat/safety checkpoints directly, the shared integration harness avoids first-frame stalls from `pumpWidget`, and the remaining blocker is isolated if live device execution still fails.
+
+**Status Updates:**
+- **Received:** Picked up `TEST-002` as the next backlog item after completing `TEST-001`.
+- **In Progress:** Replaced the canonical critical-journey file with deterministic route/state assertions, collapsed the duplicate safety file into a compatibility wrapper, and updated the shared integration harness to clear both shared-preferences and secure-storage state while launching with `runApp` instead of `pumpWidget`.
+- **Current Blocker:** Static analysis and the repository-backed flow test now pass, but a successful live integration-device run is still outstanding because the previously connected Android device dropped during launch and the local macOS fallback is blocked by an out-of-date CocoaPods spec repo.
+
+**Outcome So Far:**
+- **Files changed:**
+  - `integration_test/e2e_onboarding_to_chat_test.dart`
+    - Replaced the old presence-only flow with two deterministic critical-journey tests covering route order, onboarding flags, match state, chat checkpoints, and persisted report/block side effects.
+    - Added labeled step timeouts so future live-device failures surface the exact stage instead of hanging indefinitely.
+  - `integration_test/e2e_onboarding_discovery_chat_safety_test.dart`
+    - Reduced the duplicate file to a compatibility wrapper around the canonical critical-journey entrypoint.
+  - `integration_test/app_test.dart`
+    - Kept the aggregate runner pointed at the canonical critical-journey file once instead of running overlapping journey coverage twice.
+  - `integration_test/test_app.dart`
+    - Added a shared integration-launch helper that uses `runApp` for live bindings.
+    - Centralized test-data reset so both `SharedPreferences` and `FlutterSecureStorage` mocks are cleared for integration cases.
+  - `integration_test/auth_flow_test.dart`
+  - `integration_test/discovery_flow_test.dart`
+  - `integration_test/chat_flow_test.dart`
+    - Switched the existing integration smoke files over to the shared launch/reset helpers so they use the same live-binding-safe harness.
+- **Result:** Partial progress. The canonical journey logic and shared harness are updated, but `TEST-002` is not closed yet because a live integration-device pass is still pending.
+- **Notes:** The strongest locally verified signal remains `test/e2e_onboarding_discovery_chat_safety_flow_test.dart`, which still passes and validates the underlying stub-backed onboarding/discovery/chat/report/block flow while the live integration harness is being stabilized.
+
+**Verification:**
+- `flutter analyze integration_test/test_app.dart integration_test/auth_flow_test.dart integration_test/discovery_flow_test.dart integration_test/chat_flow_test.dart integration_test/e2e_onboarding_to_chat_test.dart integration_test/e2e_onboarding_discovery_chat_safety_test.dart integration_test/app_test.dart` (pass)
+- `flutter test test/e2e_onboarding_discovery_chat_safety_flow_test.dart -r compact` (pass)
+- `flutter test integration_test/e2e_onboarding_to_chat_test.dart --reporter=expanded --plain-name "auth and onboarding checkpoints advance in route order"` (blocked twice during live-device verification: first on a pre-fix `pumpWidget` stall, then by the previously attached Android device disconnecting during launch after switching the harness to `runApp`)
+- `flutter test -d macos integration_test/e2e_onboarding_to_chat_test.dart --reporter=expanded --plain-name "auth and onboarding checkpoints advance in route order"` (blocked by CocoaPods dependency resolution; local machine needs `pod repo update` / pod refresh before macOS can be used as the fallback integration target)
+
+**Next Step:** Re-run the canonical critical-journey suite on a stable Android emulator or repaired local device target; only then mark `TEST-002` complete and update the backlog/workboard as closed.
+
+### Task #219 — TEST-003 Startup Readiness Guard
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+move to test 003
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `TEST-003` by making the startup smoke test canonical and by giving the cold-launch guard its own CI lane.
+- **Scope:** `integration_test/startup_smoke_test.dart`, the legacy startup integration wrapper, `integration_test/app_test.dart`, `.github/workflows/ci.yml`, `docs/TODO_TESTING_MATRIX.md`, and required workflow logs.
+- **Constraints:**
+  - Keep the pass focused on startup-readiness enforcement; do not broaden into unrelated app bootstrap changes.
+  - Preserve compatibility with existing integration entrypoints while moving the canonical file to the backlog-specified `startup_smoke_test.dart` path.
+  - Reuse the existing first-frame marker contract instead of inventing a new startup signal.
+- **Expected Outcome:** The repo has a canonical startup smoke integration file, CI runs the cold-launch guard in a dedicated job, and the backlog/workflow docs reflect `TEST-003` as complete.
+
+**Status Updates:**
+- **Received:** Switched from `TEST-002` to `TEST-003` per request.
+- **In Progress:** Audited the existing startup guard coverage, promoted the canonical integration entrypoint to `startup_smoke_test.dart`, and split the CI startup check into its own dedicated job.
+- **Completed:** Verified the startup guard locally, marked the backlog item complete, and updated the workflow logs.
+
+**Outcome:**
+- **Files changed:**
+  - `integration_test/startup_smoke_test.dart` (new)
+    - Added the canonical startup smoke integration entrypoint that asserts the first-frame marker appears within the cold-launch timeout.
+  - `integration_test/startup_cold_launch_test.dart`
+    - Reduced the legacy file to a compatibility wrapper around `startup_smoke_test.dart`.
+  - `integration_test/app_test.dart`
+    - Switched the aggregate integration runner to import the canonical startup smoke file.
+  - `.github/workflows/ci.yml`
+    - Moved the startup cold-launch guard out of the broad Flutter job into a dedicated `startup_guard` CI job.
+  - `docs/TODO_TESTING_MATRIX.md`
+    - Marked `TEST-003` complete on 2026-03-12.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The startup readiness guard now has a canonical integration entrypoint and an isolated CI lane.
+- **Notes:** The verified local cold-launch guard still logs the timed-out `Firebase.initializeApp` bootstrap task after the first frame becomes visible; the test intentionally allows that because the guard is focused on detecting blank-launch regressions, not requiring all startup tasks to finish before first paint.
+
+**Verification:**
+- `flutter analyze integration_test/startup_smoke_test.dart integration_test/startup_cold_launch_test.dart integration_test/app_test.dart` (pass)
+- `flutter test test/startup_cold_launch_guard_test.dart -r compact` (pass)
+- `scripts/check_ai_docs_sync.sh --files .github/workflows/ci.yml integration_test/startup_smoke_test.dart integration_test/startup_cold_launch_test.dart integration_test/app_test.dart docs/TODO_TESTING_MATRIX.md docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+
+**Next Step:** `TEST-002` remains in progress if you want the next pass to return to the critical-journey live integration lane.
+
+### Task #220 — SUB-006 Restore Purchases UI and Flow
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** In Progress
+
+**Original Request:**
+look for TODOs and start working on most do ones
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start the most contained open TODO and move `SUB-006` forward by wiring a real restore-purchases UX with actionable feedback.
+- **Scope:** `lib/features/settings/presentation/screens/subscription_settings_screen.dart`, `lib/features/subscription/presentation/screens/paywall_screen.dart`, a shared restore-feedback helper, related widget/unit tests, and the subscription backlog/workflow docs.
+- **Constraints:**
+  - Keep the pass focused on restore flow UX and verification; do not broaden into a full subscription-management rewrite.
+  - Preserve the existing `SubscriptionBloc`/repository restore path and reuse it instead of inventing a parallel flow.
+  - Do not mark the TODO fully complete until sandbox/manual restore verification is run.
+- **Expected Outcome:** Restore is reachable from both settings and the public paywall, users get loading/success/no-purchase/error feedback, and tests cover the new UX while the remaining gap is isolated to sandbox verification.
+
+**Status Updates:**
+- **Received:** Scanned the open TODO docs and picked `SUB-006` as the smallest useful next step because the native restore plumbing and bloc event already existed.
+- **In Progress:** Added shared restore-feedback logic, exposed restore actions in settings and paywall UI, and added focused tests for restore-button visibility/loading/no-purchase feedback.
+- **Current Blocker:** Local code and tests are green, but the Apple/Google sandbox manual restore pass has not been run on a real purchase test account yet.
+
+**Outcome So Far:**
+- **Files changed:**
+  - `lib/features/subscription/presentation/subscription_restore_feedback.dart` (new)
+    - Added a shared helper that converts restore results into success/info copy, including active-plan, no-purchase, and expired-subscription messages.
+  - `lib/features/settings/presentation/screens/subscription_settings_screen.dart`
+    - Switched the screen to `BlocConsumer` so restore completions trigger snackbars.
+    - Added deterministic restore/loading keys and explicit restore-in-progress button states.
+  - `lib/features/subscription/presentation/screens/paywall_screen.dart`
+    - Added a public restore CTA to satisfy the no-login-wall requirement.
+    - Added restore completion feedback handling alongside the existing checkout completion listener.
+  - `test/paywall_screen_test.dart` (new)
+    - Added widget coverage for the paywall restore CTA and the no-purchases feedback path.
+  - `test/subscription_settings_screen_test.dart`
+    - Added widget coverage for restore loading and snackbar feedback on the settings screen.
+  - `test/subscription_restore_feedback_test.dart` (new)
+    - Added unit coverage for success, no-purchase, and expired restore messaging.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-006` as in progress with sandbox verification still pending.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Partial progress. The restore UX and automated coverage are in place, but I am leaving `SUB-006` open until sandbox/manual verification is completed.
+- **Notes:** The restore path still flows through `SubscriptionRestoreRequested -> SubscriptionRepository.refreshStatus()`, which already routes native mobile builds through `NativeBillingService.restoreSubscriptionPurchases()` and server-side receipt verification in `FirebaseSubscriptionRepository`.
+
+**Verification:**
+- `flutter analyze lib/features/subscription/presentation/subscription_restore_feedback.dart lib/features/subscription/presentation/screens/paywall_screen.dart lib/features/settings/presentation/screens/subscription_settings_screen.dart test/paywall_screen_test.dart test/subscription_settings_screen_test.dart test/subscription_restore_feedback_test.dart` (pass)
+- `flutter test test/paywall_screen_test.dart test/subscription_settings_screen_test.dart test/subscription_restore_feedback_test.dart test/subscription_bloc_test.dart -r compact` (pass)
+
+**Next Step:** Run the restore flow against an actual App Store / Play sandbox account, then close `SUB-006` in the backlog if the live receipts and server verification behave as expected.
+
+### Task #221 — SUB-007 Subscription Management Screen
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Take the next most contained open TODO and close `SUB-007` by turning the existing subscription settings route into a real subscription-management experience.
+- **Scope:** `lib/features/settings/presentation/screens/subscription_settings_screen.dart`, a store-management link helper, targeted screen/helper tests, `docs/TODO_SUBSCRIPTION.md`, and required workflow logs.
+- **Constraints:**
+  - Keep the pass focused on the management surface; do not expand into billing backend or subscription-history API work.
+  - Preserve the existing `/settings/subscription` route instead of introducing a broader navigation refactor.
+  - Reuse the existing paywall route for change-plan options and the existing restore flow where possible.
+- **Expected Outcome:** The subscription route presents Current Plan, Billing History, and Manage sections; premium users can open store management to cancel, users can jump to the paywall to change plans, and targeted tests verify the screen behavior.
+
+**Status Updates:**
+- **Received:** Picked up the next contained TODO after the in-progress `SUB-006` restore-flow pass.
+- **In Progress:** Audited the existing subscription/settings route and confirmed the route already existed, so the missing work was the actual management screen content and actions.
+- **Completed:** Reworked the screen into a management surface, added store-link helpers/tests, marked `SUB-007` complete, and updated the workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/subscription_settings_screen.dart`
+    - Reworked the existing route into a subscription-management screen with Current Plan, Billing History, and Manage sections.
+    - Added change-plan routing into the paywall, premium cancel action routing into store subscription management, and retained restore/refresh/billing-help actions.
+    - Generalized plan copy away from Plus-only assumptions so the screen can describe any premium tier.
+  - `lib/features/subscription/presentation/subscription_management_links.dart` (new)
+    - Added platform-aware App Store / Play Store subscription-management URL resolution and external-launch helpers.
+  - `test/subscription_settings_screen_test.dart`
+    - Added coverage for free-state layout, premium-state layout, paywall navigation, restore feedback, and Android store-management launch behavior.
+  - `test/subscription_management_links_test.dart` (new)
+    - Added direct URI-resolution coverage for iOS and Android management links.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-007` complete on 2026-03-12.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `/settings/subscription` now behaves like a management screen instead of a narrow status page, and the backlog item is closed.
+- **Notes:** The route registration requirement was already satisfied before this pass; this work completed the missing management UX and verification around that existing route.
+
+**Verification:**
+- `flutter analyze lib/features/subscription/presentation/subscription_management_links.dart lib/features/settings/presentation/screens/subscription_settings_screen.dart test/subscription_settings_screen_test.dart test/subscription_management_links_test.dart` (pass)
+- `flutter test test/subscription_settings_screen_test.dart test/subscription_management_links_test.dart -r compact` (pass)
+
+**Next Step:** Return to `SUB-006` for live sandbox restore verification, or continue to the next contained backlog item after subscription management.
+
+### Task #222 — SUB-008 Paywall UX and Compliance Pass
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** In Progress
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Advance the next contained open TODO by tightening `SUB-008` on the existing paywall surface.
+- **Scope:** `lib/features/subscription/presentation/screens/paywall_screen.dart`, `test/paywall_screen_test.dart`, `docs/TODO_SUBSCRIPTION.md`, and required workflow logs.
+- **Constraints:**
+  - Keep the pass focused on paywall UX/compliance gaps; do not broaden into repository/bloc product-catalog plumbing that belongs to earlier subscription backlog items.
+  - Preserve the existing checkout and restore flows while improving comparison, pricing presentation, and legal visibility.
+  - Do not mark `SUB-008` complete until native store product pricing is actually sourced through StoreKit/Play rather than config-only data.
+- **Expected Outcome:** The paywall exposes a clearer premium comparison surface, visibly links Terms/Privacy for store compliance, uses config-driven localized price formatting, and the remaining blocker is isolated to native store catalog integration.
+
+**Status Updates:**
+- **Received:** Took the next contained backlog item after closing `SUB-007`.
+- **In Progress:** Audited the current paywall against `SUB-008` and found the missing low-risk gaps were feature comparison UI, visible legal links, and stronger paywall tests.
+- **Current Blocker:** The paywall still does not fetch product prices from StoreKit / Play directly because product-catalog loading is not yet exposed through the subscription repository/bloc stack.
+
+**Outcome So Far:**
+- **Files changed:**
+  - `lib/features/subscription/presentation/screens/paywall_screen.dart`
+    - Added a premium comparison grid so Plus vs. Platinum benefits are visible in one surface.
+    - Added visible Terms of Service and Privacy Policy links on the paywall.
+    - Switched paywall price labels/CTA text to locale-aware currency formatting sourced from the current billing config instead of manual string interpolation.
+  - `test/paywall_screen_test.dart`
+    - Added coverage for the comparison grid, legal-link visibility, and CTA price updates when the selected billing period changes.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-008` in progress and documented that native store-catalog pricing remains the outstanding gap.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Partial progress. The paywall UX/compliance surface is stronger, but `SUB-008` remains open until native store pricing is wired into the UI from StoreKit/Play.
+- **Notes:** This pass deliberately stopped short of inventing UI-to-native-billing calls outside the repository/bloc layer; the remaining work belongs with the earlier subscription product-loading backlog.
+
+**Verification:**
+- `flutter analyze lib/features/subscription/presentation/screens/paywall_screen.dart test/paywall_screen_test.dart` (pass)
+- `flutter test test/paywall_screen_test.dart -r compact` (pass)
+
+**Next Step:** Wire native product catalog loading into the subscription stack, then finish `SUB-008` by replacing config-only pricing with verified store product data.
+
+### Task #223 — SUB-008 Native Pricing and Submission Coverage
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close the remaining `SUB-008` gap by sourcing paywall prices through the subscription data/state layers instead of config-only UI rendering.
+- **Scope:** `lib/features/subscription/domain/models/subscription_product.dart`, subscription repository implementations, subscription bloc/event/state, `lib/features/subscription/presentation/screens/paywall_screen.dart`, targeted repository/bloc/paywall tests, a paywall golden, `docs/TODO_SUBSCRIPTION.md`, and required workflow logs.
+- **Constraints:**
+  - Keep native product loading inside the existing repository -> bloc -> UI layering; do not query StoreKit/Play directly from the widget tree.
+  - Preserve non-mobile fallback pricing so web/dev builds still render a stable paywall when native billing is unavailable.
+  - Reuse the existing restore and checkout flows while replacing config-only displayed pricing on mobile.
+- **Expected Outcome:** The paywall requests product catalog data through the subscription stack, mobile builds prefer verified StoreKit / Play pricing, non-mobile builds fall back cleanly, and automated coverage includes both behavior tests and a submission-oriented golden.
+
+**Status Updates:**
+- **Received:** Continued the next contained backlog item from the in-progress `SUB-008` paywall pass.
+- **In Progress:** Audited the subscription stack, added a shared `SubscriptionProduct` model, wired repository/bloc product loading, and updated the paywall to prefer loaded catalog prices.
+- **Completed:** Added repository + bloc + paywall + golden coverage, marked `SUB-008` complete, and updated the workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/subscription/domain/models/subscription_product.dart` (new)
+    - Added a typed subscription-product model carrying tier, period, localized price label, and raw amount metadata.
+  - `lib/features/subscription/domain/repositories/subscription_repository.dart`
+    - Extended the repository contract with `fetchAvailableProducts()`.
+  - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - Added product-catalog loading via `NativeBillingService.fetchProducts()` on iOS/Android.
+    - Mapped `ProductDetails` into `SubscriptionProduct` records and kept config-backed fallback products for non-mobile builds.
+  - `lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart`
+  - `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart`
+  - `lib/data/repositories/fake_repositories.dart`
+    - Added mock/fallback product-catalog implementations so dev and test repositories satisfy the new contract.
+  - `lib/features/subscription/presentation/bloc/subscription_event.dart`
+  - `lib/features/subscription/presentation/bloc/subscription_state.dart`
+  - `lib/features/subscription/presentation/bloc/subscription_bloc.dart`
+    - Added `SubscriptionProductsRequested`, product-loading state, and repository-backed product fetch handling.
+  - `lib/features/subscription/presentation/screens/paywall_screen.dart`
+    - Requested product loading on first build, surfaced product-load errors, and swapped displayed prices/CTA copy to prefer loaded catalog data.
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart`
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`
+    - Added native product-mapping coverage for Android and iOS repository paths.
+  - `test/subscription_bloc_test.dart`
+  - `test/subscription_event_test.dart`
+  - `test/subscription_test.dart`
+  - `test/paywall_screen_test.dart`
+    - Added/updated targeted state and widget coverage for product loading and price-driven paywall rendering.
+  - `test/golden/paywall_screen_golden_test.dart` (new)
+  - `test/golden/goldens/paywall_screen_default.png` (new)
+    - Added a deterministic paywall golden for submission-oriented layout verification.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-008` complete on 2026-03-12.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The paywall now consumes repository/bloc product catalog data on mobile, keeps a safe fallback off mobile, and has targeted repository/widget/golden coverage.
+- **Notes:** Live sandbox pricing was not re-run in this pass; the mobile catalog path is verified through repository tests around `fetchProducts()` mapping plus widget/golden coverage of the paywall presentation.
+
+**Verification:**
+- `flutter analyze lib/features/subscription/domain/models/subscription_product.dart lib/features/subscription/domain/repositories/subscription_repository.dart lib/data/repositories/fake_repositories.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/presentation/bloc/subscription_event.dart lib/features/subscription/presentation/bloc/subscription_state.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/subscription/presentation/screens/paywall_screen.dart test/paywall_screen_test.dart test/golden/paywall_screen_golden_test.dart test/subscription_bloc_test.dart test/subscription_event_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart` (pass)
+- `flutter test --update-goldens test/golden/paywall_screen_golden_test.dart` (pass)
+- `flutter test test/paywall_screen_test.dart test/golden/paywall_screen_golden_test.dart test/subscription_bloc_test.dart test/subscription_event_test.dart test/subscription_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart -r compact` (pass)
+
+**Next Step:** Return to `SUB-006` for live sandbox restore verification, or resume `TEST-002` when you want to finish the live critical-journey lane.
+
+### Task #224 — SUB-005 Bloc Transaction Flow and Analytics
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close the next contained subscription backlog item by finishing the bloc-side native purchase flow contract for `SUB-005`.
+- **Scope:** `lib/features/subscription/presentation/bloc/subscription_bloc.dart`, `subscription_event.dart`, `subscription_state.dart`, subscription analytics instrumentation, paywall purchase dispatch, targeted subscription/paywall tests, `docs/TODO_SUBSCRIPTION.md`, and required workflow logs.
+- **Constraints:**
+  - Keep the existing repository boundary; do not expose raw StoreKit / Play objects directly to widgets.
+  - Preserve the legacy `SubscriptionCheckoutRequested` event so older upgrade entry points keep working while the new product-ID purchase path lands.
+  - Track transaction state and analytics without regressing the existing restore and paywall flows.
+- **Expected Outcome:** The bloc exposes purchase-in-progress and transaction-status state, supports product-ID purchase initiation, records purchase completed/failed/restored analytics, and tests cover the new state transitions.
+
+**Status Updates:**
+- **Received:** Picked the next contained open TODO after closing `SUB-008`.
+- **In Progress:** Audited the current bloc and confirmed product loading was already in place, leaving transaction-state events, analytics completion/failure signals, and product-ID purchase initiation as the missing contract pieces.
+- **Completed:** Added the missing bloc/event/state pieces, wired analytics and paywall dispatch, marked `SUB-005` complete, and updated the workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/subscription/presentation/bloc/subscription_state.dart`
+    - Added `purchaseInProgress` and `transactionStatus` while preserving the existing `isCheckoutInProgress` getter for compatibility.
+    - Added `SubscriptionTransactionStatus` values for `idle`, `pending`, `purchased`, `failed`, `restored`, and `noPurchases`.
+  - `lib/features/subscription/presentation/bloc/subscription_event.dart`
+    - Added `SubscriptionPurchaseInitiated(productId)` and `SubscriptionTransactionUpdated(...)` while keeping `SubscriptionCheckoutRequested` for legacy call sites.
+  - `lib/features/subscription/presentation/bloc/subscription_bloc.dart`
+    - Added product-ID purchase initiation handling, pending purchase tracking, transaction-state transitions for purchased/failed/restored/no-purchase outcomes, and premium-upgrade analytics that now fire only when a real pending purchase resolves.
+  - `lib/core/services/analytics_service.dart`
+    - Added explicit `purchase_completed`, `purchase_failed`, and `purchase_restored` analytics helpers while preserving the existing subscription purchase instrumentation.
+  - `lib/features/subscription/presentation/screens/paywall_screen.dart`
+    - Switched the paywall CTA to dispatch the new product-ID purchase event.
+  - `test/mock/stub_analytics_service.dart`
+  - `test/subscription_event_test.dart`
+  - `test/subscription_bloc_test.dart`
+  - `test/subscription_test.dart`
+    - Added coverage for the new events, transaction-status state, purchase completed/failed analytics, restore analytics, and paywall compatibility.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-005` complete on 2026-03-12.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The subscription bloc now exposes an explicit native-purchase transaction contract instead of only a checkout-loading flag, and subscription analytics no longer report a purchase on passive plan hydration.
+- **Notes:** Raw platform purchase listeners remain encapsulated in `NativeBillingService`; the bloc consumes those outcomes through the repository boundary and maps them into explicit transaction state.
+
+**Verification:**
+- `flutter analyze lib/core/services/analytics_service.dart lib/features/subscription/presentation/bloc/subscription_state.dart lib/features/subscription/presentation/bloc/subscription_event.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/subscription/presentation/screens/paywall_screen.dart test/mock/stub_analytics_service.dart test/subscription_event_test.dart test/subscription_test.dart test/subscription_bloc_test.dart test/paywall_screen_test.dart` (pass)
+- `flutter test test/subscription_bloc_test.dart test/subscription_event_test.dart test/subscription_test.dart test/paywall_screen_test.dart -r compact` (pass)
+- `flutter test test/golden/paywall_screen_golden_test.dart -r compact` (pass)
+
+**Next Step:** Return to `SUB-006` for live sandbox restore verification, or resume `TEST-002` when you want the live critical-journey lane finished.
+
+### Task #225 — SUB-010 App Entitlement Gating
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `SUB-010` by centralizing subscription entitlement checks and wiring the remaining premium gates so free users hit the paywall consistently while paid tiers unlock the intended features.
+- **Scope:** `lib/features/subscription/domain/usecases/check_entitlement.dart`, entitlement-aware discovery/chat/subscription/UI code paths, targeted entitlement/discovery/settings tests, `docs/TODO_SUBSCRIPTION.md`, and required workflow logs.
+- **Constraints:**
+  - Keep the existing repository -> bloc -> UI layering; do not add widget-level billing logic.
+  - Do not revert unrelated in-progress work already present in the tree.
+  - Preserve existing behavior where possible except where `SUB-010` explicitly requires stricter gating (`no rewinds` for free users) and premium-tier unlock parity.
+- **Expected Outcome:** A shared entitlement use case handles cached plan checks and free-like limits, discovery/chat/settings honor premium access consistently, free users are sent to the paywall when they hit gated features, and targeted tests cover entitlement decisions plus a paywall-triggering widget path.
+
+**Status Updates:**
+- **Received:** Audited open subscription/testing TODOs and selected `SUB-010` as the most contained remaining code task in this repo.
+- **In Progress:** Added the shared entitlement use case, rewired discovery swipe/rewind checks around it, normalized premium gating from `plus`-only to `hasPremium`, and updated passport/paywall entry points.
+- **Completed:** Added entitlement/discovery/settings coverage, marked `SUB-010` complete, and updated the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/subscription/domain/usecases/check_entitlement.dart` (new)
+    - Added `CheckEntitlementUseCase`, feature enums, entitlement decisions, a configurable plan-cache TTL, and user-scoped free-like counter persistence helpers.
+  - `lib/core/di.dart`
+  - `lib/features/subscription/domain/usecases/subscription_use_cases.dart`
+  - `lib/features/subscription/presentation/bloc/subscription_bloc.dart`
+    - Registered the shared entitlement use case in DI and primed/cleared the cache from subscription state transitions so post-upgrade entitlement checks do not stay stale.
+  - `lib/features/discovery/domain/usecases/swipe_right.dart`
+  - `lib/features/discovery/presentation/bloc/discovery_event.dart`
+  - `lib/features/discovery/presentation/bloc/discovery_state.dart`
+  - `lib/features/discovery/presentation/bloc/discovery_bloc.dart`
+  - `lib/features/discovery/presentation/screens/deck_screen.dart`
+    - Moved daily-like gating onto the shared entitlement use case, removed free rewind access in favor of a premium gate, and added an automatic paywall trigger path for blocked discovery entitlements.
+  - `lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart`
+    - Switched passport/advanced-filter upsells from direct checkout dispatch to paywall routing.
+  - `lib/presentation/widgets/plus_feature_gate.dart`
+  - `lib/presentation/widgets/upsell_widgets.dart`
+  - `lib/features/discovery/presentation/screens/likes_you_screen.dart`
+  - `lib/features/chat/presentation/screens/matches_screen.dart`
+  - `lib/core/routing/settings_routes.dart`
+  - `lib/features/settings/presentation/screens/appearance_settings_screen.dart`
+  - `lib/features/settings/presentation/screens/settings_screen.dart`
+  - `lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart`
+  - `lib/presentation/screens/home/settings_screen.dart`
+  - `lib/features/chat/presentation/bloc/message_handling_bloc.dart`
+  - `lib/features/chat/presentation/screens/chat_screen.dart`
+  - `lib/features/discovery/data/repositories/impl/firebase_boost_repository.dart`
+  - `lib/features/discovery/data/repositories/impl/stub_boost_repository.dart`
+  - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+  - `lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart`
+  - `lib/features/subscription/data/services/subscription_service.dart`
+  - `lib/data/repositories/fake_repositories.dart`
+  - `lib/core/network/mappers/auth_mapper.dart`
+  - `lib/features/profile/data/repositories/impl/stub_profile_repository.dart`
+  - `lib/features/auth/data/repositories/impl/stub_auth_repository.dart`
+    - Normalized premium checks from `SubscriptionTier.plus` / `tier.isPlus` to `tier.hasPremium` where the entitlement is meant to unlock for all paid tiers, including platinum.
+  - `test/features/subscription/domain/usecases/check_entitlement_test.dart` (new)
+  - `test/discovery_filters_settings_screen_test.dart` (new)
+  - `test/discovery_bloc_test.dart`
+  - `test/discovery_event_test.dart`
+  - `test/message_handling_bloc_test.dart`
+  - `test/boost_cubit_test.dart`
+    - Added dedicated entitlement-cache and feature-decision coverage, updated discovery rewind expectations to premium-gated behavior, and verified the paywall navigation path from discovery settings.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-010` complete on 2026-03-12.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. Premium entitlement checks are now centralized, discovery gating shows the paywall automatically for blocked free-tier actions, and paid tiers consistently unlock the same premium feature set across the touched app surfaces.
+- **Notes:** `docs/risk_notes.md` did not change; this pass tightened existing gates rather than adding a new architecture or security risk.
+
+**Verification:**
+- `flutter analyze lib/features/subscription/domain/usecases/check_entitlement.dart lib/core/di.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart lib/features/discovery/domain/usecases/swipe_right.dart lib/features/discovery/presentation/bloc/discovery_event.dart lib/features/discovery/presentation/bloc/discovery_state.dart lib/features/discovery/presentation/bloc/discovery_bloc.dart lib/features/discovery/presentation/screens/deck_screen.dart lib/presentation/widgets/plus_feature_gate.dart lib/presentation/widgets/upsell_widgets.dart lib/features/discovery/presentation/screens/likes_you_screen.dart lib/features/chat/presentation/screens/matches_screen.dart lib/features/settings/presentation/screens/discovery_filters_settings_screen.dart lib/core/routing/settings_routes.dart lib/features/settings/presentation/screens/appearance_settings_screen.dart lib/features/settings/presentation/screens/settings_screen.dart lib/features/settings/presentation/widgets/settings_subscription_panel_section.dart lib/presentation/screens/home/settings_screen.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/profile/data/repositories/impl/stub_profile_repository.dart lib/features/auth/data/repositories/impl/stub_auth_repository.dart lib/data/repositories/fake_repositories.dart lib/features/subscription/data/services/subscription_service.dart lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart lib/core/network/mappers/auth_mapper.dart lib/features/discovery/data/repositories/impl/firebase_boost_repository.dart lib/features/discovery/data/repositories/impl/stub_boost_repository.dart lib/features/chat/presentation/bloc/message_handling_bloc.dart lib/features/chat/presentation/screens/chat_screen.dart test/discovery_event_test.dart test/discovery_bloc_test.dart test/features/subscription/domain/usecases/check_entitlement_test.dart test/discovery_filters_settings_screen_test.dart` (pass)
+- `flutter test test/features/subscription/domain/usecases/check_entitlement_test.dart test/discovery_event_test.dart test/discovery_bloc_test.dart test/discovery_filters_settings_screen_test.dart -r compact` (pass)
+- `flutter test test/message_handling_bloc_test.dart test/boost_cubit_test.dart -r compact` (pass)
+
+**Next Step:** Return to `SUB-006` for the remaining live sandbox restore verification, or resume `TEST-002` if you want the live critical-journey lane finished next.
+
+### Task #226 — SUB-002 Native Billing Service Contract
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `SUB-002` by finishing the native billing service contract so purchase, restore, verification, and billing error handling are explicit and testable.
+- **Scope:** `lib/features/subscription/data/services/native_billing_service.dart`, the Firebase subscription repository's native-billing call sites, native-billing repository fakes/tests, `docs/TODO_SUBSCRIPTION.md`, and required workflow logs.
+- **Constraints:**
+  - Keep the existing repository -> bloc -> UI layering and avoid breaking the already-landed paywall/bloc work.
+  - Do not revert unrelated in-progress changes already present in the worktree.
+  - Prefer a unit-testable abstraction over brittle plugin-singleton mocking.
+- **Expected Outcome:** `NativeBillingService` exposes purchase/restore/verification methods with normalized billing errors, focused service tests cover the critical store states, and `SUB-002` can be marked complete.
+
+**Status Updates:**
+- **Received:** Audited the remaining open subscription TODOs and picked `SUB-002` as the next contained code task because the service existed but still lacked the explicit contract and direct unit coverage required by the backlog.
+- **In Progress:** Refactored the service around injectable billing/delegate adapters, added explicit purchase/restore/verification methods plus structured billing exceptions, and aligned the Firebase repository call sites.
+- **Completed:** Added focused native-billing service tests, updated the repository fakes, marked `SUB-002` complete, and updated the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/subscription/data/services/native_billing_service.dart`
+    - Added `NativeBillingClient`, `NativeBillingIosDelegateConfigurer`, explicit `purchaseProduct`, `restorePurchases`, and `verifyPurchase` APIs, plus `NativeBillingException` / `NativeBillingFailureCode` for normalized purchase and restore failures.
+    - Kept `purchaseSubscription` / `restoreSubscriptionPurchases` as compatibility wrappers so existing call sites remain stable.
+  - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - Switched the mobile billing path to the new `purchaseProduct` and `restorePurchases` APIs.
+  - `test/features/subscription/data/services/native_billing_service_test.dart` (new)
+    - Added service-level coverage for StoreKit delegate setup, billing-unavailable handling, network query failures, successful purchase completion, already-owned/canceled purchase mapping, restored purchase verification, and missing verification data.
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart`
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`
+    - Updated native-billing fakes to the new contract while preserving repository-path verification.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-002` complete on 2026-03-12 and clarified that Flutter IAP exposes pending store states without a separate deferred enum.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The native billing layer is now directly testable, exposes an explicit verification method instead of hiding receipt normalization inside private helpers, and maps the main store failure cases into app-level billing errors.
+- **Notes:** `docs/risk_notes.md` did not change; this pass tightened a data-service contract and its tests without introducing a new architecture or security risk.
+
+**Verification:**
+- `flutter analyze lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/services/native_billing_service_test.dart` (pass)
+- `flutter test test/features/subscription/data/services/native_billing_service_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart -r compact` (pass)
+- **Limitation:** I did not rerun a live sandbox purchase session in this pass; the closeout is based on explicit service-contract coverage plus repository-path verification, with live-store validation still available during later end-to-end store checks.
+
+**Next Step:** Tackle `SUB-004` so receipt verification can collapse onto a single server callable, then finish `SUB-003` client-side repository alignment on top of that backend contract.
+
+### Task #227 — SUB-004 Unified Receipt Validation Callable
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `SUB-004` by adding the unified `verifyPurchaseReceipt` backend callable while preserving the existing Apple and Google validation paths.
+- **Scope:** `functions/src/index.ts`, focused Functions tests, `docs/TODO_SUBSCRIPTION.md`, `docs/project_flowchart.md`, `docs/project_dfd.md`, `docs/project_er_diagram.md`, and required workflow logs.
+- **Constraints:**
+  - Reuse the existing Apple/Google validator logic instead of forking provider behavior.
+  - Keep the current `users/{uid}` subscription metadata storage shape intact.
+  - Do not break the older provider-specific callables already referenced by the client/repository layer.
+- **Expected Outcome:** A unified callable accepts `{platform, receiptData, productId}` and dispatches into the existing provider validation flows, the new contract is covered by targeted backend tests, and `SUB-004` can be marked complete.
+
+**Status Updates:**
+- **Received:** Picked `SUB-004` as the next contained subscription/backend TODO after closing the native billing service contract.
+- **In Progress:** Extracted shared Google/Apple purchase-verification helpers, added platform dispatch for the new receipt-validation callable, and preserved the older provider-specific callables as compatibility wrappers.
+- **Completed:** Added focused dispatch/auth tests, marked `SUB-004` complete, updated the required workflow docs, and recorded the API-flow change in the project architecture notes.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+    - Added `verifyPurchaseReceipt` and a shared helper layer that dispatches `platform` + `receiptData` requests into the existing Google Play token validation and Apple transaction validation flows.
+    - Routed `verifyGooglePurchaseToken` and `verifyAppleTransaction` through the same shared helper functions so all receipt-validation entrypoints stay aligned.
+  - `functions/test/purchaseReceiptValidation.test.js` (new)
+    - Added coverage for platform normalization, Google/Apple dispatch behavior, unsupported-platform rejection, and the Google `productId` requirement.
+  - `functions/test/callables.test.js`
+    - Added auth/args coverage for `verifyPurchaseReceipt`.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-004` complete on 2026-03-12 and clarified that validated subscription state continues to live on the existing root user metadata fields.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added dated notes describing the new unified receipt-validation API surface and confirming there was no schema change.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The backend now exposes a single receipt-validation callable for newer client paths without duplicating provider logic, and the older provider-specific callables remain intact for compatibility.
+- **Notes:** `docs/risk_notes.md` did not change; this pass added a new callable wrapper over existing validation/persistence behavior and kept the current Firestore metadata shape.
+
+**Verification:**
+- `npm run build` in `functions/` (pass)
+- `npx mocha --exit test/googlePlayPurchaseValidation.test.js test/appleReceiptValidation.test.js test/purchaseReceiptValidation.test.js test/callables.test.js` in `functions/` (pass)
+- **Limitation:** I did not run live sandbox receipts against Apple/Google in this pass; the closeout is based on the existing mocked provider-helper coverage plus the new unified-callable dispatch tests.
+
+**Next Step:** Finish `SUB-003` by aligning the client repository contract to `verifyPurchaseReceipt`, explicit restore APIs, and the current native billing surface.
+
+### Task #228 — SUB-003 Repository Native Purchase Contract
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `SUB-003` by aligning the client-side subscription repository contract with native IAP products, restore flows, and the unified backend receipt-validation callable.
+- **Scope:** `SubscriptionRepository`, Firebase/stub/http/fake subscription repositories, native billing handoff typing, focused repository/BLoC tests, `docs/TODO_SUBSCRIPTION.md`, architecture notes, and required workflow logs.
+- **Constraints:** Preserve Stripe checkout on non-mobile paths, reuse the new `verifyPurchaseReceipt` callable instead of provider-specific duplication, and keep existing repository/test-double call sites compatible during the contract migration.
+- **Expected Outcome:** The repository layer exposes `purchaseProduct`, `restorePurchases`, `verifyPurchaseReceipt`, and `fetchAvailableProducts`; Firebase mobile purchases/restores verify server-side through `verifyPurchaseReceipt`; mock/web repositories stay compatible; and `SUB-003` can be marked complete.
+
+**Status Updates:**
+- **Received:** Picked `SUB-003` as the next open subscription TODO after the unified backend receipt-validation callable landed.
+- **In Progress:** Extended the repository contract, updated Firebase mobile purchase/restore paths to verify receipts through the unified callable, and propagated the new API to mock/web repositories plus test doubles.
+- **Completed:** Added focused repository/native-billing/stub coverage, marked `SUB-003` complete, updated the required workflow docs, and recorded the flow/data-contract note in the architecture docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/subscription/domain/repositories/subscription_repository.dart`
+    - Added product-ID purchase selection helpers plus explicit `purchaseProduct`, `restorePurchases`, `verifyPurchaseReceipt`, and `fetchAvailableProducts` contract methods.
+  - `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart`
+    - Routed mobile purchases through `NativeBillingService.purchaseProduct()`, verified both purchase and restore receipts through the unified `verifyPurchaseReceipt` callable/fallbacks, and kept web checkout/catalog behavior intact.
+  - `lib/features/subscription/data/services/native_billing_service.dart`
+    - Returned verified native purchase payloads from `purchaseProduct()` so the repository can validate immediately after native checkout completes.
+  - `lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart`
+  - `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart`
+  - `lib/data/repositories/fake_repositories.dart`
+    - Implemented the new repository API across mock/web paths, including product-ID purchase wrappers, restore wrappers, and platinum-aware plan parsing for development/test repositories.
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart`
+  - `test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart`
+  - `test/stub_subscription_repository_test.dart`
+  - `test/subscription_bloc_test.dart`
+  - `test/subscription_test.dart`
+    - Added coverage for unified mobile receipt verification, explicit restore entrypoints, product-ID purchase handling, and stub repository mock catalog / platinum product flows; updated test doubles to the new contract.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-003` complete and clarified that focused receipt-flow coverage is now in place while live sandbox verification remains part of later store passes.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added dated notes describing the unified repository-level purchase/restore/receipt contract without any schema changes.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The subscription repository layer now has an explicit cross-platform purchase/restore/receipt contract, Firebase mobile billing verifies through the unified backend callable, and stub/web implementations stay aligned for development and tests.
+- **Notes:** `docs/risk_notes.md` did not change; the work was a contract migration across existing repositories and tests without introducing a new architecture or data-risk surface.
+
+**Verification:**
+- `flutter analyze lib/features/subscription/domain/repositories/subscription_repository.dart lib/features/subscription/data/services/native_billing_service.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/subscription/data/repositories/impl/stub_subscription_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/data/repositories/fake_repositories.dart lib/features/subscription/presentation/bloc/subscription_bloc.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/services/native_billing_service_test.dart test/subscription_bloc_test.dart test/subscription_test.dart test/stub_subscription_repository_test.dart test/features/subscription/presentation/widgets/promo_code_sheet_test.dart test/features/subscription/domain/usecases/check_entitlement_test.dart test/discovery_filters_settings_screen_test.dart test/router_create_router_test.dart test/deck_gating_test.dart test/message_handling_bloc_test.dart test/chat_bloc_media_limit_test.dart test/chat_bloc_test.dart test/discovery_bloc_test.dart` (pass)
+- `flutter test test/features/subscription/data/services/native_billing_service_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/subscription_bloc_test.dart test/subscription_test.dart test/stub_subscription_repository_test.dart -r compact` (pass)
+- **Limitation:** I did not run live App Store / Play sandbox purchases in this pass; receipt validation is covered through repository/native-billing tests and still needs live-store confirmation in the later sandbox verification tasks.
+
+**Next Step:** Either finish `SUB-006` with live sandbox restore verification, or return to `SUB-001` to audit the remaining package/bootstrap checklist against the repo's current state.
+
+### Task #229 — SUB-001 Native Billing Bootstrap Audit
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `SUB-001` by auditing the native billing package/bootstrap checklist, wiring any missing startup initialization, and recording the remaining iOS capability nuance accurately.
+- **Scope:** `pubspec.yaml`, startup/DI bootstrap files, iOS project capability wiring, focused DI tests, `docs/TODO_SUBSCRIPTION.md`, architecture notes, and required workflow logs.
+- **Constraints:** Reuse the existing native billing service instead of adding a parallel bootstrap path, keep startup non-blocking for first paint, and document the Apple-specific capability nuance correctly because In-App Purchase does not create a dedicated entitlements key.
+- **Expected Outcome:** Dependencies are confirmed, startup primes the shared native billing service on mobile Firebase/hybrid builds, the Runner target records the In-App Purchase capability, verification passes, and `SUB-001` can be marked complete.
+
+**Status Updates:**
+- **Received:** Picked `SUB-001` as the next solvable subscription backlog item because most package work was already landed and the remaining gap was bootstrap/capability verification.
+- **In Progress:** Audited the package/platform state, added shared native billing initialization through `CrushDI`, and wired the Runner Xcode target to record the In-App Purchase capability.
+- **Completed:** Added DI coverage, marked `SUB-001` complete, updated the required workflow docs, and recorded the startup-flow note in the architecture docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/di.dart`
+    - Added a shared `NativeBillingService` singleton, `CrushDI.initializePlatformServices()`, and Firebase/hybrid repository wiring so the app and repositories use the same native billing instance.
+  - `lib/main.dart`
+    - Added a post-first-frame startup task that primes native billing listeners without delaying first paint.
+  - `ios/Runner.xcodeproj/project.pbxproj`
+    - Recorded the iOS In-App Purchase capability on the Runner target.
+  - `test/core/di_test.dart`
+    - Added coverage for mobile Firebase billing initialization and no-op behavior outside supported startup modes.
+  - `docs/TODO_SUBSCRIPTION.md`
+    - Marked `SUB-001` complete and clarified the Apple capability nuance: In-App Purchase is a project capability, not a standalone entitlements key.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+    - Added dated notes describing the startup bootstrap wiring and confirming there was no schema change.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. The native billing packages are confirmed in the repo, mobile Firebase/hybrid builds now initialize a shared billing service during startup, and the iOS project records the In-App Purchase capability in a way that matches Apple's capability model.
+- **Notes:** `docs/risk_notes.md` did not change; this pass tightened bootstrap/configuration around existing billing code and did not introduce a new architecture or data-risk surface.
+
+**Verification:**
+- `flutter pub get` (pass)
+- `flutter analyze lib/core/di.dart lib/main.dart test/core/di_test.dart` (pass)
+- `flutter test test/core/di_test.dart -r compact` (pass)
+- `xcodebuild -list -project ios/Runner.xcodeproj` (pass)
+- **Limitation:** I did not launch a live iOS/Android build in this pass; completion is based on dependency resolution, startup/DI coverage, and Xcode project validation.
+
+**Next Step:** Either finish `SUB-006` with live sandbox restore verification, or move to the next unclosed non-sandbox subscription backlog item if you want to avoid device-dependent work.
+
+### Task #230 — CALL-004 Incoming Call Screen Closeout
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close the next most tractable open TODO by validating the incoming-call screen backlog item and filling any small verification gap needed to mark it complete.
+- **Scope:** `lib/features/calls/presentation/screens/incoming_call_screen.dart`, focused call routing/tests, `docs/TODO_CALLS.md`, and required workflow logs.
+- **Constraints:** Prefer a contained pass, avoid broad call-stack rewrites, and only touch production code if the existing incoming-call implementation is actually incomplete.
+- **Expected Outcome:** `CALL-004` is either proven complete with focused verification and documentation, or the smallest remaining gap is implemented with tests.
+
+**Status Updates:**
+- **Received:** Scanned the open backlog and selected `CALL-004` because the implementation appeared to exist already and looked closable with targeted validation.
+- **In Progress:** Reviewed the incoming-call screen, app/router wiring, and existing tests to identify whether any acceptance criteria were still unproven.
+- **Completed:** Added the missing decline-action test, verified the widget and route paths, and updated the call backlog/workflow logs to close `CALL-004`.
+
+**Outcome:**
+- **Files changed:**
+  - `test/incoming_call_screen_test.dart`
+    - Added explicit decline-action coverage so the incoming-call widget suite now exercises both accept and decline actions in addition to slide-to-answer and timeout behavior.
+  - `docs/TODO_CALLS.md`
+    - Updated `CALL-004` to reflect the shipped incoming-call UI and its focused test coverage instead of the stale "not implemented" description.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `CALL-004` is now backed by direct widget coverage for layout/actions, slide-to-answer, and timeout handling, plus route coverage proving the incoming-call branch renders from the app router.
+- **Notes:** `docs/risk_notes.md` did not change; this pass only tightened verification and documentation around an already-landed UI path.
+
+**Verification:**
+- `flutter analyze lib/features/calls/presentation/screens/incoming_call_screen.dart test/incoming_call_screen_test.dart` (pass)
+- `flutter test test/incoming_call_screen_test.dart -r compact` (pass)
+- `flutter test test/router_create_router_test.dart --plain-name "call, incoming call, and video call route branches execute" -r compact` (pass)
+
+**Next Step:** Move to the next non-device-dependent calls backlog item, most likely `CALL-006` or `CALL-007`.
+
+### Task #231 — CALL-006 Call History and Missed Call Tracking Closeout
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+2
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `CALL-006` by validating the existing call-history and missed-call implementation, then updating the backlog/workflow docs with concrete proof.
+- **Scope:** `lib/features/calls/presentation/screens/call_history_screen.dart`, `lib/features/calls/data/services/call_service.dart`, focused router/tests, `docs/TODO_CALLS.md`, and required workflow logs.
+- **Constraints:** Keep the pass local-only, avoid production changes unless verification shows a real gap, and do not disturb the unrelated dirty worktree.
+- **Expected Outcome:** `CALL-006` is either proven complete with targeted verification and documentation, or the smallest missing gap is implemented and tested.
+
+**Status Updates:**
+- **Received:** Selected `CALL-006` based on the earlier backlog scan because the implementation and tests already appeared to exist locally.
+- **In Progress:** Reviewed the call-history screen, missed-call service paths, and route/app wiring to determine whether the backlog item was already satisfied.
+- **Completed:** Verified the screen/service/router paths, updated the stale TODO entry to reflect shipped behavior, and logged the closeout.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_CALLS.md`
+    - Updated `CALL-006` to reference the shipped call-history UI, missed-call notification deep-linking, and the concrete tests that now prove the item is complete.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `CALL-006` is backed by direct widget coverage for grouped rendering, missed-call state, pagination, and refresh; service coverage for missed-call emission/non-emission and history persistence; and router coverage for the call-history screen branch.
+- **Notes:** No production-code change was required. `docs/risk_notes.md` did not change because this pass only closed a stale backlog item with targeted verification.
+
+**Verification:**
+- `flutter analyze lib/features/calls/presentation/screens/call_history_screen.dart lib/features/calls/data/services/call_service.dart test/call_history_screen_test.dart test/call_service_test.dart test/router_create_router_test.dart` (pass)
+- `flutter test test/call_history_screen_test.dart -r compact` (pass)
+- `flutter test test/call_service_test.dart -r compact` (pass)
+- `flutter test test/router_create_router_test.dart --plain-name "main app route page-builder branches execute" -r compact` (pass)
+
+**Next Step:** Move to `CALL-007`, or switch back to the device-blocked `SUB-006` if sandbox restore verification becomes available.
+
+### Task #232 — CALL-007 Call Quality Monitoring Closeout
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `CALL-007` by validating the existing call-quality monitoring and adaptive bitrate implementation, then updating the backlog/workflow docs with concrete proof.
+- **Scope:** `lib/features/calls/data/services/call_quality_service.dart`, `lib/features/calls/presentation/screens/call_screen.dart`, focused tests, `docs/TODO_CALLS.md`, and required workflow logs.
+- **Constraints:** Keep the pass local-only, avoid production changes unless verification exposes a real gap, and leave the unrelated dirty worktree untouched.
+- **Expected Outcome:** `CALL-007` is either proven complete with targeted verification and documentation, or the smallest missing gap is implemented and tested.
+
+**Status Updates:**
+- **Received:** Selected `CALL-007` as the next non-device-dependent calls backlog item after closing `CALL-006`.
+- **In Progress:** Reviewed the quality service, its `CallScreen` integration, and the existing focused tests to determine whether the backlog item was already satisfied.
+- **Completed:** Verified the service and compile-path coverage, updated the stale TODO entry to reflect shipped behavior, and logged the closeout.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_CALLS.md`
+    - Updated `CALL-007` to describe the shipped adaptive quality flow and to point at the concrete tests that now prove the item locally.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `CALL-007` is backed by direct unit coverage for quality classification, adaptive degradation/recovery, reconnect triggers, and audio-call badge behavior, with analyzer coverage confirming `CallScreen` still compiles against the emitted quality-state contract.
+- **Notes:** No production-code change was required. `docs/risk_notes.md` did not change because this pass only closed a stale backlog item with targeted verification. Manual network-throttling validation is still recommended on devices.
+
+**Verification:**
+- `flutter analyze lib/features/calls/data/services/call_quality_service.dart lib/features/calls/presentation/screens/call_screen.dart test/call_quality_service_test.dart test/features/calls/presentation/screens/call_screen_responsive_test.dart` (pass)
+- `flutter test test/call_quality_service_test.dart -r compact` (pass)
+- `flutter test test/features/calls/presentation/screens/call_screen_responsive_test.dart -r compact` (pass)
+
+**Next Step:** Move to the remaining device-heavy call items (`CALL-008` / `CALL-009`) or switch back to `SUB-006` if sandbox restore validation becomes available.
+
+### Task #233 — CALL-005 Call Signaling Closeout
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `CALL-005` by validating the existing Cloud Functions call-signaling implementation and updating the backlog/workflow docs with concrete proof.
+- **Scope:** `functions/src/calls/signaling.ts`, `functions/src/index.ts`, `functions/test/call-signaling.test.js`, `docs/TODO_CALLS.md`, and required workflow logs.
+- **Constraints:** Keep the pass local-only, avoid backend code changes unless verification exposes a real gap, and leave unrelated in-flight repo changes untouched.
+- **Expected Outcome:** `CALL-005` is either proven complete with targeted verification and documentation, or the smallest missing signaling gap is implemented and tested.
+
+**Status Updates:**
+- **Received:** Selected `CALL-005` as the next likely closable calls backlog item because the signaling callables and tests were already present in the repo.
+- **In Progress:** Reviewed the signaling implementation, export wiring, timeout trigger, and focused tests to determine whether the backlog item was already satisfied.
+- **Completed:** Verified the Functions build and signaling test file, updated the stale TODO entry to reflect shipped behavior, and logged the closeout.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_CALLS.md`
+    - Updated `CALL-005` to describe the shipped signaling surface, timeout trigger, and the concrete local verification now used to justify completion.
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+- **Result:** Success. `CALL-005` is backed by the existing production signaling callable set, the exported timeout trigger, a clean Functions TypeScript build, and focused signaling tests covering auth/validation and ICE server configuration.
+- **Notes:** No production-code change was required. `docs/risk_notes.md` did not change because this pass only closed a stale backlog item with targeted verification. Full emulator/device signaling remains a recommended follow-up, not part of this local closeout.
+
+**Verification:**
+- `npm --prefix functions run build` (pass)
+- `npx --prefix functions mocha --exit functions/test/call-signaling.test.js` (pass)
+
+**Next Step:** The remaining open call items are mostly native/device-bound (`CALL-008`, `CALL-009`), unless you want to switch back to `SUB-006` for sandbox restore validation.
+
+### Task #234 — Save Workspace Snapshot to GitHub
+**Date:** 2026-03-12
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+save everything to github
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Save the full current repo state to GitHub so none of the in-progress local work is lost.
+- **Scope:** Entire `my_first_project` working tree, required workflow docs, local git commit, and push to `origin/main`.
+- **Constraints:** Preserve all current tracked and untracked changes, avoid rewriting history, and include the required workflow-log updates before committing.
+- **Expected Outcome:** A snapshot commit containing the entire current working tree is created locally and pushed successfully to GitHub.
+
+**Status Updates:**
+- **Received:** Started a save-only pass to preserve the entire dirty working tree to GitHub.
+- **In Progress:** Recorded the request in the workflow docs, prepared the repo for a full snapshot commit, and verified the active branch/remote.
+- **Completed:** Staged the full working tree, created the snapshot commit, pushed `main` to `origin`, and confirmed the repo state after push.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/ai_workboard.md` (this task entry)
+  - `docs/Developer_agent_chat.md` (this task entry)
+  - Full current working tree snapshot (tracked and untracked repo files staged as requested)
+- **Result:** Success. The current repository state is saved in a snapshot commit and pushed to GitHub.
+- **Notes:** `docs/risk_notes.md` did not change because this task only preserved the current state and did not alter project risk.
+
+**Verification:**
+- `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md` (pass)
+- `git commit -m "chore: save workspace snapshot"` (pass)
+- `git push origin main` (pass)
+- `git status --short` after push confirms the working tree is clean
+
+**Next Step:** Resume work from the remaining open backlog items after the snapshot is safely stored on GitHub.

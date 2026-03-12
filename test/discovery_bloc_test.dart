@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
@@ -13,6 +14,7 @@ import 'package:crushhour/features/discovery/domain/usecases/swipe_right.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_bloc.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_event.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/discovery_state.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -161,16 +163,18 @@ void main() {
 
     group('DiscoverySwipedRight', () {
       test('advances current index on swipe right', () async {
-        final profiles = [_testProfile('p1'), _testProfile('p2')];
+        final profiles = List.generate(6, (index) => _testProfile('p$index'));
+        final discoveryRepository = _StubDiscoveryRepository(deck: profiles);
+        final subscriptionRepository = _StubSubscriptionRepository(
+          SubscriptionTier.free,
+        );
         final bloc = DiscoveryBloc(
-          discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionTier.free,
-          ),
+          discoveryRepository: discoveryRepository,
+          subscriptionRepository: subscriptionRepository,
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
-            _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionTier.free),
+            discoveryRepository,
+            subscriptionRepository,
           ),
         );
 
@@ -195,20 +199,22 @@ void main() {
       });
 
       test('emits new match when match occurs', () async {
-        final profiles = [_testProfile('p1'), _testProfile('p2')];
+        final profiles = List.generate(6, (index) => _testProfile('p$index'));
         final match = _testMatch('match-1');
+        final discoveryRepository = _StubDiscoveryRepository(
+          deck: profiles,
+          matchOnSwipeRight: match,
+        );
+        final subscriptionRepository = _StubSubscriptionRepository(
+          SubscriptionTier.free,
+        );
         final bloc = DiscoveryBloc(
-          discoveryRepository: _StubDiscoveryRepository(
-            deck: profiles,
-            matchOnSwipeRight: match,
-          ),
-          subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionTier.free,
-          ),
+          discoveryRepository: discoveryRepository,
+          subscriptionRepository: subscriptionRepository,
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
-            _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionTier.free),
+            discoveryRepository,
+            subscriptionRepository,
           ),
         );
 
@@ -236,17 +242,19 @@ void main() {
       });
 
       test('allows swiping when plan has remaining swipes', () async {
-        final profiles = List.generate(5, (i) => _testProfile('p$i'));
+        final profiles = List.generate(6, (i) => _testProfile('p$i'));
+        final discoveryRepository = _StubDiscoveryRepository(deck: profiles);
+        final subscriptionRepository = _StubSubscriptionRepository(
+          SubscriptionTier.free,
+          dailySwipesRemaining: 10,
+        );
         final bloc = DiscoveryBloc(
-          discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionTier.free,
-            dailySwipesRemaining: 10,
-          ),
+          discoveryRepository: discoveryRepository,
+          subscriptionRepository: subscriptionRepository,
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
-            _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionTier.free),
+            discoveryRepository,
+            subscriptionRepository,
           ),
         );
 
@@ -413,7 +421,7 @@ void main() {
     });
 
     group('DiscoveryRewindRequested', () {
-      test('restores last swiped profile for free user first undo', () async {
+      test('free users trigger a paywall instead of rewinding', () async {
         final profiles = [_testProfile('p1'), _testProfile('p2')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(
@@ -441,18 +449,23 @@ void main() {
         // Rewind
         bloc.add(DiscoveryRewindRequested('user-1'));
 
-        // Use emitsThrough to wait for the final state after rewind completes
         await expectLater(
           bloc.stream,
-          emitsThrough(
+          emits(
             isA<DiscoveryState>()
-                .having((s) => s.currentIndex, 'currentIndex', 0)
-                .having((s) => s.canRewind, 'canRewind', false),
+                .having((s) => s.currentIndex, 'currentIndex', 1)
+                .having(
+                  (s) => s.premiumGateSource,
+                  'premiumGateSource',
+                  'rewind',
+                )
+                .having(
+                  (s) => s.errorMessage,
+                  'error',
+                  ErrorMessages.rewindPremiumOnly,
+                ),
           ),
         );
-
-        // Verify free undo was used
-        expect(bloc.state.freeUndoUsedToday, true);
 
         await bloc.close();
       });
@@ -603,20 +616,22 @@ void main() {
 
     group('DiscoveryMatchCelebrationShown', () {
       test('clears new match from state', () async {
-        final profiles = [_testProfile('p1')];
+        final profiles = List.generate(6, (index) => _testProfile('p$index'));
         final match = _testMatch('match-1');
+        final discoveryRepository = _StubDiscoveryRepository(
+          deck: profiles,
+          matchOnSwipeRight: match,
+        );
+        final subscriptionRepository = _StubSubscriptionRepository(
+          SubscriptionTier.free,
+        );
         final bloc = DiscoveryBloc(
-          discoveryRepository: _StubDiscoveryRepository(
-            deck: profiles,
-            matchOnSwipeRight: match,
-          ),
-          subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionTier.free,
-          ),
+          discoveryRepository: discoveryRepository,
+          subscriptionRepository: subscriptionRepository,
           authRepository: _StubAuthRepository(),
           swipeRightUseCase: SwipeRightUseCase(
-            _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionTier.free),
+            discoveryRepository,
+            subscriptionRepository,
           ),
         );
 
@@ -856,17 +871,46 @@ class _StubSubscriptionRepository implements SubscriptionRepository {
   Future<SubscriptionTier> getCurrentPlan() async => tier;
 
   @override
-  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => 'stub';
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async => 'stub';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
 
   @override
-  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {}
+
+  @override
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
+  }
 
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
       SubscriptionStatus(tier: tier);
+
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async => const [];
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;

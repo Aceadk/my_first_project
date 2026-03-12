@@ -76,7 +76,7 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPremium = context.select<SubscriptionBloc, bool>(
-      (bloc) => bloc.state.tier == SubscriptionTier.plus,
+      (bloc) => bloc.state.tier.hasPremium,
     );
 
     return Scaffold(

@@ -2,12 +2,16 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:crushhour/config/billing_config.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/subscription/data/services/native_billing_service.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -23,6 +27,14 @@ typedef AppleTransactionVerifier =
       required String transactionId,
     });
 
+typedef PurchaseReceiptVerifier =
+    Future<Map<String, dynamic>> Function({
+      required String platform,
+      required String receiptData,
+      required String productId,
+      String? packageName,
+    });
+
 /// Firebase implementation of SubscriptionRepository.
 /// Includes fallback demo promo codes when Cloud Functions are not deployed.
 class FirebaseSubscriptionRepository implements SubscriptionRepository {
@@ -31,6 +43,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     FirebaseFunctions? functions,
     FirebaseAuth? auth,
     NativeBillingService? nativeBillingService,
+    PurchaseReceiptVerifier? purchaseReceiptVerifier,
     GooglePurchaseTokenVerifier? googlePurchaseTokenVerifier,
     AppleTransactionVerifier? appleTransactionVerifier,
   }) : _firestoreOverride = firestore,
@@ -38,6 +51,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
        _authOverride = auth,
        _nativeBillingService =
            nativeBillingService ?? InAppPurchaseNativeBillingService(),
+       _purchaseReceiptVerifier = purchaseReceiptVerifier,
        _googlePurchaseTokenVerifier = googlePurchaseTokenVerifier,
        _appleTransactionVerifier = appleTransactionVerifier;
 
@@ -45,6 +59,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   final FirebaseFunctions? _functionsOverride;
   final FirebaseAuth? _authOverride;
   final NativeBillingService _nativeBillingService;
+  final PurchaseReceiptVerifier? _purchaseReceiptVerifier;
   final GooglePurchaseTokenVerifier? _googlePurchaseTokenVerifier;
   final AppleTransactionVerifier? _appleTransactionVerifier;
 
@@ -64,6 +79,8 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
   bool get _isIosNativeMobilePurchase =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  String get _nativeReceiptPlatform =>
+      _isAndroidNativeMobilePurchase ? 'android' : 'ios';
 
   // Keys for local promo code storage (fallback)
   static const _redeemedCodesKey = 'redeemed_promo_codes_firebase';
@@ -114,8 +131,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     return _firestore.collection('users').doc(userId).snapshots().map((doc) {
       if (!doc.exists) return SubscriptionTier.free;
       final data = doc.data();
-      final tier = data?['plan'] as String?;
-      return tier == 'plus' ? SubscriptionTier.plus : SubscriptionTier.free;
+      return _tierFromPlan(data?['plan'] as String?);
     });
   }
 
@@ -127,8 +143,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     final doc = await _firestore.collection('users').doc(userId).get();
     if (!doc.exists) return SubscriptionTier.free;
 
-    final tier = doc.data()?['plan'] as String?;
-    return tier == 'plus' ? SubscriptionTier.plus : SubscriptionTier.free;
+    return _tierFromPlan(doc.data()?['plan'] as String?);
   }
 
   @override
@@ -137,15 +152,43 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     required BillingPeriod period,
   }) async {
     if (_requiresNativeMobilePurchase) {
-      // Configure productId appropriately based on tier and period
-      final productId = '${tier.name}_${period.name}';
-      await _nativeBillingService.purchaseSubscription(productId: productId);
+      await purchaseProduct(productId: '${tier.name}_${period.name}');
       return;
     }
 
     // Start checkout and launch the URL
     final url = await startCheckout(tier: tier, period: period);
     await launchCheckoutUrl(url);
+  }
+
+  @override
+  Future<void> purchaseProduct({required String productId}) async {
+    if (!_requiresNativeMobilePurchase) {
+      final selection = subscriptionSelectionForProductId(productId);
+      if (selection == null) {
+        throw UnsupportedError('Unknown subscription product: $productId');
+      }
+      await purchaseSubscription(
+        tier: selection.tier,
+        period: selection.period,
+      );
+      return;
+    }
+
+    final purchase = await _nativeBillingService.purchaseProduct(
+      productId: productId,
+    );
+    final status = await verifyPurchaseReceipt(
+      platform: _nativeReceiptPlatform,
+      receiptData: _receiptDataForPurchase(purchase),
+      productId: purchase.productId,
+    );
+
+    if (!status.tier.hasPremium) {
+      throw StateError(
+        'Purchase verification did not activate premium access.',
+      );
+    }
   }
 
   @override
@@ -199,10 +242,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       final result = await callable.call<Map<String, dynamic>>();
 
       final data = result.data;
-      final planStr = data['plan'] as String?;
-      final tier = planStr == 'plus'
-          ? SubscriptionTier.plus
-          : SubscriptionTier.free;
+      final tier = _tierFromPlan(data['plan'] as String?);
 
       return SubscriptionStatus(
         tier: tier,
@@ -215,14 +255,63 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
       final tier = await getCurrentPlan();
       return SubscriptionStatus(
         tier: tier,
-        status: tier == SubscriptionTier.plus ? 'active' : null,
+        status: tier.hasPremium ? 'active' : null,
       );
     }
   }
 
+  @override
+  Future<SubscriptionStatus> restorePurchases() async {
+    if (_requiresNativeMobilePurchase) {
+      return _refreshNativePurchaseStatus();
+    }
+    return refreshStatus();
+  }
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) async {
+    final payload = await _invokePurchaseReceiptVerifier(
+      platform: platform,
+      receiptData: receiptData,
+      productId: productId,
+      packageName: packageName,
+    );
+    return _subscriptionStatusFromGooglePayload(payload);
+  }
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async {
+    if (_requiresNativeMobilePurchase) {
+      final productDetails = await _nativeBillingService.fetchProducts(
+        _knownProductIds,
+      );
+      final products = productDetails
+          .map(_subscriptionProductFromStoreDetails)
+          .whereType<SubscriptionProduct>()
+          .toList(growable: false);
+      products.sort(_sortProducts);
+      return products;
+    }
+
+    return BillingConfig.tiers
+        .where((plan) => plan.tier != SubscriptionTier.free)
+        .expand(
+          (plan) => [
+            _fallbackProductFor(plan, BillingPeriod.monthly),
+            _fallbackProductFor(plan, BillingPeriod.quarterly),
+            _fallbackProductFor(plan, BillingPeriod.yearly),
+          ],
+        )
+        .toList(growable: false);
+  }
+
   Future<SubscriptionStatus> _refreshNativePurchaseStatus() async {
-    final restoredPurchases = await _nativeBillingService
-        .restoreSubscriptionPurchases();
+    final restoredPurchases = await _nativeBillingService.restorePurchases();
 
     if (restoredPurchases.isEmpty) {
       return SubscriptionStatus(tier: SubscriptionTier.free, status: 'none');
@@ -245,69 +334,72 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
     final currentPlan = await getCurrentPlan();
     return SubscriptionStatus(
       tier: currentPlan,
-      status: currentPlan == SubscriptionTier.plus ? 'active' : 'none',
+      status: currentPlan.hasPremium ? 'active' : 'none',
     );
   }
 
   Future<SubscriptionStatus> _verifyGooglePlayRestoredPurchase(
     NativeSubscriptionPurchase purchase,
-  ) async {
-    final payload = await _invokeGooglePurchaseVerifier(
-      productId: purchase.productId,
-      purchaseToken: purchase.serverVerificationData,
-    );
-    return _subscriptionStatusFromGooglePayload(payload);
-  }
+  ) => verifyPurchaseReceipt(
+    platform: 'android',
+    receiptData: purchase.serverVerificationData,
+    productId: purchase.productId,
+  );
 
   Future<SubscriptionStatus> _verifyAppleRestoredPurchase(
     NativeSubscriptionPurchase purchase,
-  ) async {
-    final transactionId = purchase.transactionId;
-    if (transactionId == null || transactionId.isEmpty) {
-      throw StateError(
-        'Missing App Store transaction ID for restored purchase.',
+  ) => verifyPurchaseReceipt(
+    platform: 'ios',
+    receiptData: _receiptDataForPurchase(purchase),
+    productId: purchase.productId,
+  );
+
+  Future<Map<String, dynamic>> _invokePurchaseReceiptVerifier({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) async {
+    final verifier = _purchaseReceiptVerifier;
+    if (verifier != null) {
+      return verifier(
+        platform: platform,
+        receiptData: receiptData,
+        productId: productId,
+        packageName: packageName,
       );
     }
 
-    final payload = await _invokeAppleTransactionVerifier(
-      productId: purchase.productId,
-      transactionId: transactionId,
-    );
-    return _subscriptionStatusFromGooglePayload(payload);
-  }
-
-  Future<Map<String, dynamic>> _invokeGooglePurchaseVerifier({
-    required String productId,
-    required String purchaseToken,
-  }) async {
-    final verifier = _googlePurchaseTokenVerifier;
-    if (verifier != null) {
-      return verifier(productId: productId, purchaseToken: purchaseToken);
+    final googleVerifier = _googlePurchaseTokenVerifier;
+    if (platform == 'android' && googleVerifier != null) {
+      return googleVerifier(productId: productId, purchaseToken: receiptData);
+    }
+    final appleVerifier = _appleTransactionVerifier;
+    if (platform == 'ios' && appleVerifier != null) {
+      return appleVerifier(productId: productId, transactionId: receiptData);
     }
 
-    final callable = _functions.httpsCallable('verifyGooglePurchaseToken');
+    final callable = _functions.httpsCallable('verifyPurchaseReceipt');
     final result = await callable.call<Map<String, dynamic>>({
+      'platform': platform,
+      'receiptData': receiptData,
       'productId': productId,
-      'purchaseToken': purchaseToken,
+      ...?(packageName == null ? null : {'packageName': packageName}),
     });
     return Map<String, dynamic>.from(result.data);
   }
 
-  Future<Map<String, dynamic>> _invokeAppleTransactionVerifier({
-    required String productId,
-    required String transactionId,
-  }) async {
-    final verifier = _appleTransactionVerifier;
-    if (verifier != null) {
-      return verifier(productId: productId, transactionId: transactionId);
+  String _receiptDataForPurchase(NativeSubscriptionPurchase purchase) {
+    if (_isIosNativeMobilePurchase) {
+      final transactionId = purchase.transactionId;
+      if (transactionId == null || transactionId.isEmpty) {
+        throw StateError(
+          'Missing App Store transaction ID for restored purchase.',
+        );
+      }
+      return transactionId;
     }
-
-    final callable = _functions.httpsCallable('verifyAppleTransaction');
-    final result = await callable.call<Map<String, dynamic>>({
-      'productId': productId,
-      'transactionId': transactionId,
-    });
-    return Map<String, dynamic>.from(result.data);
+    return purchase.serverVerificationData;
   }
 
   Future<SubscriptionStatus> _restoreStatusesFromPurchases(
@@ -340,10 +432,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   SubscriptionStatus _subscriptionStatusFromGooglePayload(
     Map<String, dynamic> payload,
   ) {
-    final planValue = payload['plan'] as String?;
-    final tier = planValue == 'plus'
-        ? SubscriptionTier.plus
-        : SubscriptionTier.free;
+    final tier = _tierFromPlan(payload['plan'] as String?);
 
     return SubscriptionStatus(
       tier: tier,
@@ -358,12 +447,126 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   SubscriptionStatus _selectMostEntitledStatus(
     List<SubscriptionStatus> statuses,
   ) {
-    for (final status in statuses) {
-      if (status.tier == SubscriptionTier.plus) {
-        return status;
-      }
-    }
+    statuses.sort(
+      (left, right) =>
+          _tierPriority(right.tier).compareTo(_tierPriority(left.tier)),
+    );
     return statuses.first;
+  }
+
+  SubscriptionTier _tierFromPlan(String? planValue) {
+    return switch (planValue) {
+      'plus' => SubscriptionTier.plus,
+      'platinum' => SubscriptionTier.platinum,
+      _ => SubscriptionTier.free,
+    };
+  }
+
+  int _tierPriority(SubscriptionTier tier) {
+    return switch (tier) {
+      SubscriptionTier.free => 0,
+      SubscriptionTier.plus => 1,
+      SubscriptionTier.platinum => 2,
+    };
+  }
+
+  SubscriptionProduct? _subscriptionProductFromStoreDetails(
+    ProductDetails details,
+  ) {
+    final metadata = _metadataForProductId(details.id);
+    if (metadata == null) {
+      return null;
+    }
+
+    return SubscriptionProduct(
+      productId: details.id,
+      tier: metadata.tier,
+      period: metadata.period,
+      title: details.title,
+      description: details.description,
+      priceLabel: details.price,
+      price: details.rawPrice,
+      currencyCode: details.currencyCode,
+      currencySymbol: details.currencySymbol,
+    );
+  }
+
+  SubscriptionProduct _fallbackProductFor(
+    BillingPlanConfig plan,
+    BillingPeriod period,
+  ) {
+    final price = plan.getPriceForPeriod(period);
+    return SubscriptionProduct(
+      productId: '${plan.tier.name}_${period.name}',
+      tier: plan.tier,
+      period: period,
+      title: plan.name,
+      description: plan.description,
+      priceLabel: NumberFormat.simpleCurrency(name: 'USD').format(price),
+      price: price,
+      currencyCode: 'USD',
+      currencySymbol: '\$',
+    );
+  }
+
+  ({SubscriptionTier tier, BillingPeriod period})? _metadataForProductId(
+    String productId,
+  ) {
+    return switch (productId) {
+      'plus_monthly' => (
+        tier: SubscriptionTier.plus,
+        period: BillingPeriod.monthly,
+      ),
+      'plus_quarterly' => (
+        tier: SubscriptionTier.plus,
+        period: BillingPeriod.quarterly,
+      ),
+      'plus_yearly' => (
+        tier: SubscriptionTier.plus,
+        period: BillingPeriod.yearly,
+      ),
+      'platinum_monthly' => (
+        tier: SubscriptionTier.platinum,
+        period: BillingPeriod.monthly,
+      ),
+      'platinum_quarterly' => (
+        tier: SubscriptionTier.platinum,
+        period: BillingPeriod.quarterly,
+      ),
+      'platinum_yearly' => (
+        tier: SubscriptionTier.platinum,
+        period: BillingPeriod.yearly,
+      ),
+      _ => null,
+    };
+  }
+
+  Set<String> get _knownProductIds => const {
+    'plus_monthly',
+    'plus_quarterly',
+    'plus_yearly',
+    'platinum_monthly',
+    'platinum_quarterly',
+    'platinum_yearly',
+  };
+
+  int _sortProducts(SubscriptionProduct a, SubscriptionProduct b) {
+    int tierScore(SubscriptionTier tier) => switch (tier) {
+      SubscriptionTier.plus => 1,
+      SubscriptionTier.platinum => 2,
+      SubscriptionTier.free => 0,
+    };
+    int periodScore(BillingPeriod period) => switch (period) {
+      BillingPeriod.monthly => 1,
+      BillingPeriod.quarterly => 2,
+      BillingPeriod.yearly => 3,
+    };
+
+    final tierComparison = tierScore(a.tier).compareTo(tierScore(b.tier));
+    if (tierComparison != 0) {
+      return tierComparison;
+    }
+    return periodScore(a.period).compareTo(periodScore(b.period));
   }
 
   DateTime? _parseEpochSeconds(dynamic value) {

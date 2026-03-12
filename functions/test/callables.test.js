@@ -60,6 +60,17 @@ describe('callables auth/args', () => {
     }
   });
 
+  it('verifyPurchaseReceipt requires auth', async () => {
+    const wrapped = functionsTest.wrap(functions.verifyPurchaseReceipt);
+    try {
+      await wrapped({ platform: 'ios', receiptData: 'tx-1' }, { auth: null });
+      throw new Error('Expected unauthenticated error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('unauthenticated');
+    }
+  });
+
   it('getAgoraToken requires auth', async () => {
     const wrapped = functionsTest.wrap(functions.getAgoraToken);
     try {

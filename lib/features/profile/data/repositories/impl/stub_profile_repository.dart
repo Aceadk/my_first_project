@@ -660,7 +660,7 @@ class StubProfileRepository
       'isEmailVerified': user.isEmailVerified,
       'isPhoneVerified': user.isPhoneVerified,
       'isIdVerified': user.isIdVerified,
-      'plan': user.tier == SubscriptionTier.plus ? 'plus' : 'free',
+      'plan': user.tier.hasPremium ? user.tier.name : 'free',
       'themePreference': user.themePreference,
       'profile': profileJson,
       'hasAcceptedTerms': user.hasAcceptedTerms,

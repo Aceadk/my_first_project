@@ -4,8 +4,10 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
 import 'package:crushhour/core/utils/managed_timer_registry.dart';
+import 'package:crushhour/config/billing_config.dart';
 import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/subscription.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -81,9 +83,7 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     }
 
     final planStr = result.data?['plan'] as String? ?? 'free';
-    _currentPlan = planStr == 'plus'
-        ? SubscriptionTier.plus
-        : SubscriptionTier.free;
+    _currentPlan = _tierFromPlan(planStr);
 
     return _currentPlan;
   }
@@ -102,6 +102,15 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     // Start checkout and launch URL
     final checkoutUrl = await startCheckout(tier: tier, period: period);
     await launchCheckoutUrl(checkoutUrl);
+  }
+
+  @override
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
   }
 
   @override
@@ -161,10 +170,7 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     }
 
     final data = result.data!;
-    final planStr = data['plan'] as String? ?? 'free';
-    final tier = planStr == 'plus'
-        ? SubscriptionTier.plus
-        : SubscriptionTier.free;
+    final tier = _tierFromPlan(data['plan'] as String? ?? 'free');
 
     _currentPlan = tier;
     _planController.add(tier);
@@ -179,10 +185,61 @@ class HttpSubscriptionRepository implements SubscriptionRepository {
     );
   }
 
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async {
+    return BillingConfig.tiers
+        .where((plan) => plan.tier != SubscriptionTier.free)
+        .expand(
+          (plan) => [
+            _productFor(plan, BillingPeriod.monthly),
+            _productFor(plan, BillingPeriod.quarterly),
+            _productFor(plan, BillingPeriod.yearly),
+          ],
+        )
+        .toList(growable: false);
+  }
+
   /// Dispose resources.
   void dispose() {
     _timers.cancelAll();
     _planController.close();
+  }
+
+  SubscriptionProduct _productFor(
+    BillingPlanConfig plan,
+    BillingPeriod period,
+  ) {
+    final price = plan.getPriceForPeriod(period);
+    return SubscriptionProduct(
+      productId: '${plan.tier.name}_${period.name}',
+      tier: plan.tier,
+      period: period,
+      title: plan.name,
+      description: plan.description,
+      priceLabel: '\$${price.toStringAsFixed(2)}',
+      price: price,
+      currencyCode: 'USD',
+      currencySymbol: '\$',
+    );
+  }
+
+  SubscriptionTier _tierFromPlan(String? planValue) {
+    return switch (planValue) {
+      'plus' => SubscriptionTier.plus,
+      'platinum' => SubscriptionTier.platinum,
+      _ => SubscriptionTier.free,
+    };
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

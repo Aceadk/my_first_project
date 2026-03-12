@@ -955,7 +955,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get settingsSubscriptionManageBillingSubtitle =>
-      'Manage billing or renew your Plus tier.';
+      'Manage billing or renew your Plus plan.';
 
   @override
   String get settingsSubscriptionUpgradePitchSubtitle =>
@@ -1264,7 +1264,7 @@ class AppLocalizationsVi extends AppLocalizations {
   String get settingsPrivacyFamilyPlansTitle => 'Family Plans';
 
   @override
-  String get settingsPrivacyFamilyPlansSubtitle => 'Show your family tiers';
+  String get settingsPrivacyFamilyPlansSubtitle => 'Show your family plans';
 
   @override
   String get settingsPrivacyPersonalityTypeTitle => 'Personality Type';
@@ -2435,7 +2435,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get onboardingTermsSafetyBody =>
-      'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your tiers.';
+      'While we implement safety measures, you are responsible for your own safety when meeting people from the app. We recommend meeting in public places and informing someone you trust about your plans.';
 
   @override
   String get onboardingTermsTerminationTitle => '7. Termination';

@@ -88,9 +88,12 @@ import 'package:crushhour/features/social/presentation/bloc/date_ideas_cubit.dar
 import 'package:crushhour/features/subscription/data/repositories/impl/firebase_subscription_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/impl/http_subscription_repository.dart';
 import 'package:crushhour/features/subscription/data/repositories/impl/stub_subscription_repository.dart';
+import 'package:crushhour/features/subscription/data/services/native_billing_service.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:crushhour/features/subscription/domain/usecases/check_entitlement.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -134,6 +137,7 @@ class CrushDI {
   /// Singleton API client for HTTP mode.
   static ApiClient? _apiClient;
   static HttpAuthRepository? _httpAuthRepository;
+  static NativeBillingService? _nativeBillingService;
 
   /// Get or create the API client.
   static ApiClient get apiClient {
@@ -165,6 +169,31 @@ class CrushDI {
     return _apiClient!;
   }
 
+  static NativeBillingService get nativeBillingService {
+    _nativeBillingService ??= InAppPurchaseNativeBillingService();
+    return _nativeBillingService!;
+  }
+
+  static Future<void> initializePlatformServices() async {
+    if (kIsWeb) {
+      return;
+    }
+    if (_backendMode != BackendMode.firebase &&
+        _backendMode != BackendMode.hybrid) {
+      return;
+    }
+    if (defaultTargetPlatform != TargetPlatform.iOS &&
+        defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
+
+    await nativeBillingService.initialize();
+  }
+
+  static void setNativeBillingServiceForTesting(NativeBillingService service) {
+    _nativeBillingService = service;
+  }
+
   static List<RepositoryProvider> buildRepositories() {
     // Create repositories based on backend mode
     final AuthRepository authRepo;
@@ -194,7 +223,9 @@ class CrushDI {
         // Using FirebaseDiscoveryRepository to show only real users
         authRepo = FirebaseAuthRepository();
         profileRepo = FirebaseProfileRepository();
-        subRepo = FirebaseSubscriptionRepository();
+        subRepo = FirebaseSubscriptionRepository(
+          nativeBillingService: nativeBillingService,
+        );
         discoveryRepo = FirebaseDiscoveryRepository();
         chatRepo = FirebaseChatRepository();
         callRepo = FirebaseCallRepository();
@@ -206,7 +237,9 @@ class CrushDI {
         // Discovery uses HybridDiscoveryRepository to show both real + stub profiles
         authRepo = FirebaseAuthRepository();
         profileRepo = FirebaseProfileRepository();
-        subRepo = FirebaseSubscriptionRepository();
+        subRepo = FirebaseSubscriptionRepository(
+          nativeBillingService: nativeBillingService,
+        );
         discoveryRepo =
             HybridDiscoveryRepository(); // Shows both real and fake profiles
         chatRepo = FirebaseChatRepository();
@@ -239,6 +272,9 @@ class CrushDI {
       RepositoryProvider<AuthRepository>.value(value: authRepo),
       RepositoryProvider<ProfileRepository>.value(value: profileRepo),
       RepositoryProvider<SubscriptionRepository>.value(value: subRepo),
+      RepositoryProvider<CheckEntitlementUseCase>(
+        create: (_) => CheckEntitlementUseCase(subRepo),
+      ),
       RepositoryProvider<DiscoveryRepository>.value(value: discoveryRepo),
       RepositoryProvider<ChatRepository>.value(value: chatRepo),
       RepositoryProvider<CallRepository>.value(value: callRepo),
@@ -299,6 +335,7 @@ class CrushDI {
         create: (context) => SubscriptionBloc(
           subscriptionRepository: context.read<SubscriptionRepository>(),
           authRepository: context.read<AuthRepository>(),
+          checkEntitlementUseCase: context.read<CheckEntitlementUseCase>(),
         )..add(SubscriptionWatchStarted()),
       ),
       BlocProvider<ProfileBloc>(
@@ -313,9 +350,11 @@ class CrushDI {
           subscriptionRepository: context.read<SubscriptionRepository>(),
           authRepository: context.read<AuthRepository>(),
           profileRepository: context.read<ProfileRepository>(),
+          checkEntitlementUseCase: context.read<CheckEntitlementUseCase>(),
           swipeRightUseCase: SwipeRightUseCase(
             context.read<DiscoveryRepository>(),
             context.read<SubscriptionRepository>(),
+            checkEntitlementUseCase: context.read<CheckEntitlementUseCase>(),
           ),
         ),
       ),
@@ -414,5 +453,7 @@ class CrushDI {
     _apiClient = null;
     _httpAuthRepository?.dispose();
     _httpAuthRepository = null;
+    _nativeBillingService?.dispose();
+    _nativeBillingService = null;
   }
 }

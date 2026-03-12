@@ -1,230 +1,111 @@
-# CrushHour Web App Testing Plan
+# CRUSH Device Matrix Runbook
 
-**Created:** 2026-02-06
-**Version:** 1.0
-**Tester:** Manual Testing
+This document is the canonical manual device and browser verification runbook for `TEST-004`.
+The legacy filename is retained so existing references stay valid.
 
----
+## Objective
 
-## Phase 1: Critical - Authentication & Onboarding
+Run one consistent release-readiness matrix across iOS, Android, and web so the same core journey is verified on representative hardware, browser engines, and responsive breakpoints before ship sign-off.
 
-### 1.1 Auth Gateway
-| Test | Status | Notes |
-|------|--------|-------|
-| App loads at localhost | [ ] | |
-| Splash screen displays | [ ] | |
-| Auth gateway shows login/signup options | [ ] | |
-| Logo and branding display correctly | [ ] | |
+## Entry Criteria
 
-### 1.2 Sign Up Flow
-| Test | Status | Notes |
-|------|--------|-------|
-| Sign up button navigates to signup screen | [ ] | |
-| Email input validates format | [ ] | |
-| Password strength indicator works | [ ] | |
-| Username validation works | [ ] | |
-| Show/hide password toggle | [ ] | |
-| Sign up creates account successfully | [ ] | |
-| Error messages display for invalid input | [ ] | |
+Do not start the manual matrix until the current branch satisfies all of the following:
 
-### 1.3 Login Flow
-| Test | Status | Notes |
-|------|--------|-------|
-| Login button navigates to login screen | [ ] | |
-| Email/username input works | [ ] | |
-| Password input works | [ ] | |
-| Login succeeds with valid credentials | [ ] | |
-| Error message for invalid credentials | [ ] | |
-| Redirect to home after login | [ ] | |
+- `flutter analyze`
+- `flutter test --coverage`
+- `flutter test test/startup_cold_launch_guard_test.dart -r compact`
+- `npm --prefix functions test`
+- Release candidate commit SHA and environment are recorded in the report
 
-### 1.4 Password Recovery
-| Test | Status | Notes |
-|------|--------|-------|
-| Forgot password link works | [ ] | |
-| Email input for reset | [ ] | |
-| OTP/reset email sent | [ ] | |
-| Password reset completes | [ ] | |
+If any automated preflight step is red, record the blocker in the report and stop the manual matrix.
 
-### 1.5 Onboarding Steps
-| Test | Status | Notes |
-|------|--------|-------|
-| Terms & Conditions screen displays | [ ] | |
-| Accept terms enables continue | [ ] | |
-| Basic info form (name, DOB, gender) | [ ] | |
-| Photo upload works | [ ] | |
-| Bio text editor works | [ ] | |
-| Profile setup completes | [ ] | |
-| Redirect to home after onboarding | [ ] | |
+## Scenario Packs
 
----
+Use these scenario pack IDs in the evidence report so runs are comparable across platforms:
 
-## Phase 2: Critical - Discovery & Matching
+| ID | Scope | Minimum evidence |
+| --- | --- | --- |
+| `SMK-001` | Cold launch, splash, auth shell, no blank screen | Launch screenshot + startup logs |
+| `AUTH-001` | Login, logout, invalid credentials, password reset entry point | Screen recording or screenshot sequence |
+| `ONB-001` | Onboarding completion through first arrival on home/discovery | Final landing screenshot |
+| `CORE-001` | Discovery -> like/match -> chat send -> report/block access path | Screen recording + chat evidence |
+| `SET-001` | Profile/settings load, privacy/settings persistence, subscription surface visibility | Settings screenshots |
+| `WEB-001` | Browser navigation, deep link handling, responsive breakpoints | Desktop + tablet + mobile screenshots |
 
-### 2.1 Discovery Feed
-| Test | Status | Notes |
-|------|--------|-------|
-| Discovery screen loads | [ ] | |
-| Profile cards display with images | [ ] | |
-| Name, age, location visible | [ ] | |
-| Bio text displays | [ ] | |
-| Swipe left (pass) works | [ ] | |
-| Swipe right (like) works | [ ] | |
-| Super like button works | [ ] | |
-| Empty deck state shows | [ ] | |
+## Required Release Matrix
 
-### 2.2 Matching
-| Test | Status | Notes |
-|------|--------|-------|
-| Match celebration shows on mutual like | [ ] | |
-| Match appears in matches list | [ ] | |
-| Can start chat from match | [ ] | |
+### Mobile
 
----
+| Platform | Device | OS target | Required cadence | Why it is in the matrix |
+| --- | --- | --- | --- | --- |
+| iOS | iPhone 15 or current flagship | Latest iOS major supported at release time | Every release | Primary iPhone baseline for auth, discovery, chat, and subscription flows |
+| iOS | iPhone SE (3rd gen) or equivalent compact device | Lowest supported iOS major | Every release | Small-screen layout and keyboard pressure path |
+| iPadOS | iPad 10th gen or Air-class tablet | Latest iPadOS major supported at release time | Every release | Multitasking, adaptive layout, onboarding/settings readability |
+| Android | Pixel 8 or current flagship | Latest Android major supported at release time | Every release | Clean AOSP baseline and notification behavior |
+| Android | Galaxy A54 or equivalent mid-range device | One previous Android major | Every release | Mid-range performance and OEM behavior |
 
-## Phase 3: Critical - Chat & Messaging
+### Web
 
-### 3.1 Matches Screen
-| Test | Status | Notes |
-|------|--------|-------|
-| Matches tab loads | [ ] | |
-| All matches display | [ ] | |
-| Last message preview shows | [ ] | |
-| Unread badge appears | [ ] | |
-| Click opens chat | [ ] | |
+| Platform | Browser / device class | OS target | Required cadence | Why it is in the matrix |
+| --- | --- | --- | --- | --- |
+| Web | Chrome latest desktop | macOS latest or Windows 11 | Every release | Primary desktop browser and Lighthouse baseline |
+| Web | Safari latest desktop | macOS latest | Every release | WebKit compatibility and Apple review parity |
+| Web | Edge latest desktop | Windows 11 latest | Every release | Chromium variant and Windows baseline |
+| Web | Safari mobile | Latest iPhone iOS major | Every release | Mobile web responsive behavior and login/onboarding checks |
+| Web | Chrome mobile | Latest Android major | Every release | Mobile web responsive behavior on Android |
 
-### 3.2 Chat Screen
-| Test | Status | Notes |
-|------|--------|-------|
-| Chat screen loads | [ ] | |
-| Message history displays | [ ] | |
-| Send text message | [ ] | |
-| Message appears in chat | [ ] | |
-| Typing indicator shows | [ ] | |
-| Read receipts work | [ ] | |
-| Real-time messages arrive | [ ] | |
+## Breakpoints To Capture
 
-### 3.3 Chat Features
-| Test | Status | Notes |
-|------|--------|-------|
-| Send image/media | [ ] | |
-| Emoji support | [ ] | |
-| Delete message | [ ] | |
-| Report/block user | [ ] | |
+For every web run, capture these viewport widths in addition to any browser-native screenshots:
 
----
+- `390px` wide mobile portrait
+- `820px` wide tablet portrait
+- `1440px` wide desktop
 
-## Phase 4: High - Profile & Settings
+If a flow fails only at one breakpoint, record the failing width explicitly in the report.
 
-### 4.1 Profile View
-| Test | Status | Notes |
-|------|--------|-------|
-| Profile tab loads | [ ] | |
-| User photos display | [ ] | |
-| Bio and info visible | [ ] | |
-| Edit profile button works | [ ] | |
+## Evidence Capture Contract
 
-### 4.2 Profile Edit
-| Test | Status | Notes |
-|------|--------|-------|
-| Edit mode opens | [ ] | |
-| Can change photos | [ ] | |
-| Can edit bio | [ ] | |
-| Save changes works | [ ] | |
-| Cancel discards changes | [ ] | |
+Record every matrix run in [docs/device_matrix_report.md](/Users/ace/my_first_project/docs/device_matrix_report.md) using the fields below:
 
-### 4.3 Settings
-| Test | Status | Notes |
-|------|--------|-------|
-| Settings screen opens | [ ] | |
-| Privacy settings work | [ ] | |
-| Notification settings work | [ ] | |
-| Discovery filters work | [ ] | |
-| Theme toggle works | [ ] | |
-| Logout works | [ ] | |
-| Delete account flow | [ ] | |
+| Field | Requirement |
+| --- | --- |
+| Run ID | `DM-YYYYMMDD-<platform>-<index>` |
+| Commit | Exact git SHA under test |
+| Environment | `dev`, `staging`, or `prod-like` |
+| Platform | `iOS`, `Android`, `iPadOS`, or `Web` |
+| Device / Browser | Exact hardware model or browser + OS |
+| Scenario packs | Comma-separated pack IDs from this runbook |
+| Result | `Pass`, `Fail`, `Blocked`, or `Dry run` |
+| Evidence | Screenshot paths, screen recording paths, log bundle paths, or issue IDs |
+| Notes | Known limitations, flaky behavior, retries, or blockers |
 
----
+Minimum evidence required for a `Pass` result:
 
-## Phase 5: High - Safety & Payments
+- One launch screenshot for `SMK-001`
+- One screen recording or equivalent screenshot sequence for `CORE-001`
+- One log reference for crashes, console errors, or notable warnings
 
-### 5.1 Safety Features
-| Test | Status | Notes |
-|------|--------|-------|
-| Block user works | [ ] | |
-| Report user works | [ ] | |
-| Date plan creation | [ ] | |
-| Emergency contact notification | [ ] | |
+If a run fails:
 
-### 5.2 Subscription
-| Test | Status | Notes |
-|------|--------|-------|
-| Subscription screen shows | [ ] | |
-| Plan options display | [ ] | |
-| Payment flow initiates | [ ] | |
-| Premium features unlock | [ ] | |
+- Capture the exact failing step
+- Link the issue ID if one is filed
+- Mark downstream dependent runs as `Blocked` instead of `Fail`
 
----
+## Execution Order
 
-## Phase 6: Web-Specific Testing
+1. Confirm the automated preflight commands are green.
+2. Record the branch, commit SHA, environment, and tester in the report.
+3. Run `SMK-001`, `AUTH-001`, `ONB-001`, `CORE-001`, and `SET-001` on each required mobile device.
+4. Run `SMK-001`, `AUTH-001`, `CORE-001`, `SET-001`, and `WEB-001` on each required browser/device class.
+5. Attach evidence paths for each run as you go; do not backfill from memory later.
+6. Summarize open defects and release blockers at the bottom of the report.
 
-### 6.1 Responsive Design
-| Test | Status | Notes |
-|------|--------|-------|
-| Mobile layout (< 640px) | [ ] | |
-| Tablet layout (640-1024px) | [ ] | |
-| Desktop layout (> 1024px) | [ ] | |
-| No horizontal scrolling | [ ] | |
+## Release Sign-Off Rule
 
-### 6.2 Browser Compatibility
-| Test | Status | Notes |
-|------|--------|-------|
-| Chrome | [ ] | |
-| Firefox | [ ] | |
-| Safari | [ ] | |
-| Edge | [ ] | |
+The release matrix is complete only when all required rows for the current release are present in the report and each row is either:
 
-### 6.3 Navigation
-| Test | Status | Notes |
-|------|--------|-------|
-| Browser back button works | [ ] | |
-| Browser forward button works | [ ] | |
-| Deep links work | [ ] | |
-| URL updates on navigation | [ ] | |
+- `Pass`, or
+- `Blocked` by an already-documented release-blocking issue with a linked owner
 
-### 6.4 Performance
-| Test | Status | Notes |
-|------|--------|-------|
-| Page load < 3 seconds | [ ] | |
-| Smooth animations | [ ] | |
-| No console errors | [ ] | |
-| Images load correctly | [ ] | |
-
----
-
-## Test Results Summary
-
-| Phase | Total Tests | Passed | Failed | Blocked |
-|-------|-------------|--------|--------|---------|
-| Phase 1: Auth | 25 | 0 | 0 | 0 |
-| Phase 2: Discovery | 10 | 0 | 0 | 0 |
-| Phase 3: Chat | 14 | 0 | 0 | 0 |
-| Phase 4: Profile | 12 | 0 | 0 | 0 |
-| Phase 5: Safety | 8 | 0 | 0 | 0 |
-| Phase 6: Web | 12 | 0 | 0 | 0 |
-| **TOTAL** | **81** | **0** | **0** | **0** |
-
----
-
-## Issues Found
-
-| ID | Severity | Description | Status |
-|----|----------|-------------|--------|
-| | | | |
-
----
-
-## Notes
-
-- Testing performed on: Chrome (version)
-- Screen resolution:
-- Date completed:
+Rows left blank do not count as deferred; they count as missing coverage.

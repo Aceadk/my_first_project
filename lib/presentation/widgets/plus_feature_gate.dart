@@ -21,7 +21,7 @@ class PlusFeatureGate extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SubscriptionBloc, SubscriptionState>(
       builder: (context, state) {
-        final isPlus = state.tier == SubscriptionTier.plus;
+        final isPlus = state.tier.hasPremium;
 
         return InkWell(
           onTap: () {

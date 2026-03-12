@@ -20,6 +20,7 @@ class DiscoveryState extends Equatable {
   final DeckStatus status;
   final String? errorMessage;
   final int? nextRetrySeconds;
+  final String? premiumGateSource;
 
   /// Set when a match occurs, should be cleared after showing celebration.
   final MatchResult? newMatch;
@@ -65,6 +66,7 @@ class DiscoveryState extends Equatable {
     this.status = DeckStatus.initial,
     this.errorMessage,
     this.nextRetrySeconds,
+    this.premiumGateSource,
     this.newMatch,
     this.localDeckExhausted = false,
     this.passportModeActive = false,
@@ -107,6 +109,7 @@ class DiscoveryState extends Equatable {
     DeckStatus? status,
     String? errorMessage, // pass null explicitly to clear
     int? nextRetrySeconds,
+    Object? premiumGateSource = _unset,
     Object? newMatch = _unset,
     bool? localDeckExhausted,
     bool? passportModeActive,
@@ -128,6 +131,9 @@ class DiscoveryState extends Equatable {
       status: status ?? this.status,
       errorMessage: errorMessage,
       nextRetrySeconds: nextRetrySeconds,
+      premiumGateSource: identical(premiumGateSource, _unset)
+          ? this.premiumGateSource
+          : premiumGateSource as String?,
       newMatch: identical(newMatch, _unset)
           ? this.newMatch
           : newMatch as MatchResult?,
@@ -163,6 +169,7 @@ class DiscoveryState extends Equatable {
     status,
     errorMessage,
     nextRetrySeconds,
+    premiumGateSource,
     newMatch,
     localDeckExhausted,
     passportModeActive,

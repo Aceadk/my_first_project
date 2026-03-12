@@ -11,13 +11,13 @@ void main() {
   group('Authentication Flow', () {
     setUp(() async {
       // Clear all stored data before each test
-      SharedPreferences.setMockInitialValues({});
+      await TestHelpers.clearTestData();
     });
 
     testWidgets('displays auth gateway screen on first launch', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
       final l10n = TestHelpers.l10n(tester);
 
@@ -33,7 +33,7 @@ void main() {
     testWidgets('navigates to login screen from auth gateway', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
       final l10n = TestHelpers.l10n(tester);
 
@@ -49,7 +49,7 @@ void main() {
     testWidgets('shows validation errors on empty login', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Navigate to login
@@ -65,11 +65,12 @@ void main() {
       expect(find.text('Please enter your password'), findsOneWidget);
     });
 
-    testWidgets('successful login with dev admin bypass navigates to home',
-        (tester) async {
+    testWidgets('successful login with dev admin bypass navigates to home', (
+      tester,
+    ) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
       final l10n = TestHelpers.l10n(tester);
 
@@ -78,13 +79,17 @@ void main() {
       await tester.pumpAndSettle();
 
       // Enter dev admin credentials
-      final identifierField =
-          TestHelpers.textFieldByLabel(tester, l10n.authEmailOrUsername);
+      final identifierField = TestHelpers.textFieldByLabel(
+        tester,
+        l10n.authEmailOrUsername,
+      );
       await tester.enterText(identifierField, 'admin123');
       await tester.pumpAndSettle();
 
-      final passwordField =
-          TestHelpers.textFieldByLabel(tester, l10n.authPassword);
+      final passwordField = TestHelpers.textFieldByLabel(
+        tester,
+        l10n.authPassword,
+      );
       await tester.enterText(passwordField, 'admin123');
       await tester.pumpAndSettle();
 
@@ -99,11 +104,12 @@ void main() {
       expect(find.text(l10n.authWelcomeBack), findsNothing);
     });
 
-    testWidgets('navigates to sign up screen from auth gateway',
-        (tester) async {
+    testWidgets('navigates to sign up screen from auth gateway', (
+      tester,
+    ) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Tap Create Account button
@@ -123,7 +129,7 @@ void main() {
     testWidgets('can navigate to phone auth from login screen', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Navigate to login
@@ -138,11 +144,12 @@ void main() {
       }
     });
 
-    testWidgets('can navigate to email OTP auth from login screen',
-        (tester) async {
+    testWidgets('can navigate to email OTP auth from login screen', (
+      tester,
+    ) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Navigate to login
@@ -157,11 +164,12 @@ void main() {
       }
     });
 
-    testWidgets('can navigate to forgot password from login screen',
-        (tester) async {
+    testWidgets('can navigate to forgot password from login screen', (
+      tester,
+    ) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Navigate to login
@@ -173,18 +181,21 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should navigate away from login screen
-      expect(find.text(TestHelpers.l10n(tester).authSignInToContinue),
-          findsNothing);
+      expect(
+        find.text(TestHelpers.l10n(tester).authSignInToContinue),
+        findsNothing,
+      );
     });
   });
 
   group('Session Persistence', () {
-    testWidgets('remembers authenticated user across app restarts',
-        (tester) async {
+    testWidgets('remembers authenticated user across app restarts', (
+      tester,
+    ) async {
       // Start with authenticated state by using dev bypass
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login first
@@ -192,12 +203,16 @@ void main() {
       await tester.pumpAndSettle();
 
       final l10n = TestHelpers.l10n(tester);
-      final identifierField =
-          TestHelpers.textFieldByLabel(tester, l10n.authEmailOrUsername);
+      final identifierField = TestHelpers.textFieldByLabel(
+        tester,
+        l10n.authEmailOrUsername,
+      );
       await tester.enterText(identifierField, 'admin123');
 
-      final passwordField =
-          TestHelpers.textFieldByLabel(tester, l10n.authPassword);
+      final passwordField = TestHelpers.textFieldByLabel(
+        tester,
+        l10n.authPassword,
+      );
       await tester.enterText(passwordField, 'admin123');
 
       await tester.tap(TestHelpers.loginSignInButton(tester));
@@ -212,7 +227,7 @@ void main() {
     testWidgets('logout returns to auth gateway', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // This test would require being logged in first and finding the logout option

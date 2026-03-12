@@ -27,7 +27,7 @@ class SubscriptionService {
 
     return SubscriptionStatus(
       tier: tier,
-      status: status ?? (tier.isPlus ? 'active' : null),
+      status: status ?? (tier.hasPremium ? 'active' : null),
       nextRenewal: renewal,
       cancelAtPeriodEnd: false,
     );

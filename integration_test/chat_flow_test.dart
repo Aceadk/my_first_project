@@ -10,13 +10,13 @@ void main() {
 
   group('Chat Flow', () {
     setUp(() async {
-      SharedPreferences.setMockInitialValues({});
+      await TestHelpers.clearTestData();
     });
 
     testWidgets('can access chat list from home', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -50,7 +50,7 @@ void main() {
     testWidgets('empty chat list shows appropriate message', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -72,7 +72,7 @@ void main() {
     testWidgets('can access matches screen from home', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -105,7 +105,7 @@ void main() {
       // which requires having a match. For now, verify the structure exists.
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -122,7 +122,7 @@ void main() {
     testWidgets('safety features are accessible', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -148,7 +148,7 @@ void main() {
     testWidgets('blocked users list is accessible', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -171,7 +171,7 @@ void main() {
     testWidgets('free user has limited features', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -187,7 +187,7 @@ void main() {
     testWidgets('plus user has full features', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login with admin (Plus tier)
@@ -206,12 +206,13 @@ Future<void> _loginWithAdmin(WidgetTester tester) async {
   await tester.tap(TestHelpers.authGatewaySignInButton(tester));
   await tester.pumpAndSettle();
 
-  final identifierField =
-      TestHelpers.textFieldByLabel(tester, l10n.authEmailOrUsername);
+  final identifierField = TestHelpers.textFieldByLabel(
+    tester,
+    l10n.authEmailOrUsername,
+  );
   await tester.enterText(identifierField, 'admin123');
 
-  final passwordField =
-      TestHelpers.textFieldByLabel(tester, l10n.authPassword);
+  final passwordField = TestHelpers.textFieldByLabel(tester, l10n.authPassword);
   await tester.enterText(passwordField, 'admin123');
 
   await tester.tap(TestHelpers.loginSignInButton(tester));

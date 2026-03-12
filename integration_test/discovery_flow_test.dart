@@ -10,14 +10,15 @@ void main() {
 
   group('Discovery Flow', () {
     setUp(() async {
-      SharedPreferences.setMockInitialValues({});
+      await TestHelpers.clearTestData();
     });
 
-    testWidgets('authenticated user sees home screen with deck',
-        (tester) async {
+    testWidgets('authenticated user sees home screen with deck', (
+      tester,
+    ) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
       final l10n = TestHelpers.l10n(tester);
 
@@ -32,7 +33,7 @@ void main() {
     testWidgets('deck screen shows loading state initially', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -47,7 +48,7 @@ void main() {
     testWidgets('can navigate to profile from home', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -69,7 +70,7 @@ void main() {
     testWidgets('can navigate to settings from home', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -94,7 +95,7 @@ void main() {
       // This tests the profile completeness requirement for swiping
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login - the dev admin has a complete profile, so we might not see the gate
@@ -111,7 +112,7 @@ void main() {
     testWidgets('swipe left action (pass) works', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -128,7 +129,7 @@ void main() {
     testWidgets('swipe right action (like) works', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -152,7 +153,7 @@ void main() {
     testWidgets('shows empty state when no profiles available', (tester) async {
       final prefs = await SharedPreferences.getInstance();
 
-      await tester.pumpWidget(TestApp(preferences: prefs));
+      await TestHelpers.launchApp(tester, preferences: prefs);
       await TestHelpers.pumpAndWait(tester, wait: const Duration(seconds: 2));
 
       // Login
@@ -173,12 +174,13 @@ Future<void> _loginWithAdmin(WidgetTester tester) async {
   await tester.tap(TestHelpers.authGatewaySignInButton(tester));
   await tester.pumpAndSettle();
 
-  final identifierField =
-      TestHelpers.textFieldByLabel(tester, l10n.authEmailOrUsername);
+  final identifierField = TestHelpers.textFieldByLabel(
+    tester,
+    l10n.authEmailOrUsername,
+  );
   await tester.enterText(identifierField, 'admin123');
 
-  final passwordField =
-      TestHelpers.textFieldByLabel(tester, l10n.authPassword);
+  final passwordField = TestHelpers.textFieldByLabel(tester, l10n.authPassword);
   await tester.enterText(passwordField, 'admin123');
 
   await tester.tap(TestHelpers.loginSignInButton(tester));

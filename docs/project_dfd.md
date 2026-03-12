@@ -1153,3 +1153,15 @@ flowchart TB
 - **2026-03-08 (Store Apple S2S Lifecycle):**
   - Added `appleSubscriptionWebhook` endpoint to process App Store Server Notifications v2 signed payloads.
   - Apple webhook flow verifies payload signatures, maps lifecycle notifications (renewal/billing retry/expired/refund/grace-period-expired), and updates `subscriptionLifecycle` + user plan reconciliation fields.
+- **2026-03-12 (Subscription Entitlement Gating):**
+  - Added a shared `CheckEntitlementUseCase` between subscription, discovery, and settings flows for cached plan reads plus user-scoped free-like quota checks.
+  - Discovery rewind/passport gating and premium chat/media unlock checks now branch on centralized entitlement decisions instead of feature-local `plus` equality checks.
+- **2026-03-12 (Store Receipt Validation Callable):**
+  - Added a unified callable entrypoint `verifyPurchaseReceipt` for mobile receipt verification requests.
+  - The callable dispatches to the existing Google Play token validation and Apple transaction validation flows, then reuses the same `users/{uid}` subscription metadata fields (`plan`, `googlePlayPurchase`, `applePurchase`, `subscriptionLifecycle`) instead of introducing a new subscription subdocument.
+- **2026-03-12 (Store Repository IAP Contract):**
+  - `SubscriptionRepository` now standardizes product catalog loading, product-ID purchase initiation, restore, and receipt verification across Firebase, stub, HTTP, and fake repository implementations.
+  - Firebase mobile purchase / restore flows now feed native purchase details into the unified `verifyPurchaseReceipt` callable, while non-mobile paths continue to route through checkout URLs and local/mock catalogs.
+- **2026-03-12 (Store Bootstrap Setup):**
+  - App startup now schedules `CrushDI.initializePlatformServices()` after first frame so iOS/Android Firebase and hybrid builds install the shared native billing listeners before paywall/store flows are exercised.
+  - The iOS Runner target now records the In-App Purchase capability in the Xcode project; Apple does not generate a dedicated entitlements key for this capability.

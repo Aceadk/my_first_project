@@ -11,6 +11,7 @@ import 'package:crushhour/data/models/promo_code.dart';
 import 'package:crushhour/data/models/user.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
@@ -94,17 +95,19 @@ class _FakeChatRepository implements ChatRepository {
     required String content,
     required MessageType type,
   }) async {
-    sent.add(Message(
-      id: 'new',
-      matchId: matchId,
-      fromUserId: fromUserId,
-      toUserId: toUserId,
-      content: content,
-      type: type,
-      sentAt: DateTime.now(),
-      isRead: false,
-      isDeletedForSender: false,
-    ));
+    sent.add(
+      Message(
+        id: 'new',
+        matchId: matchId,
+        fromUserId: fromUserId,
+        toUserId: toUserId,
+        content: content,
+        type: type,
+        sentAt: DateTime.now(),
+        isRead: false,
+        isDeletedForSender: false,
+      ),
+    );
   }
 
   @override
@@ -167,8 +170,7 @@ class _FakeChatRepository implements ChatRepository {
     String userId, {
     int offset = 0,
     int limit = 20,
-  }) async =>
-      const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Future<String> uploadMedia({
@@ -185,8 +187,7 @@ class _FakeChatRepository implements ChatRepository {
     String matchId, {
     int limit = 30,
     DateTime? beforeTimestamp,
-  }) async =>
-      const PaginatedResult(items: [], total: 0, hasMore: false);
+  }) async => const PaginatedResult(items: [], total: 0, hasMore: false);
 
   @override
   Stream<List<Message>> watchNewMessages(
@@ -206,8 +207,7 @@ class _FakeChatRepository implements ChatRepository {
     String? fromUserPhotoUrl,
     String? toUserName,
     String? toUserPhotoUrl,
-  }) async =>
-      null;
+  }) async => null;
 
   @override
   Future<List<MessageRequest>> fetchMessageRequests(String userId) async =>
@@ -217,15 +217,13 @@ class _FakeChatRepository implements ChatRepository {
   Future<bool> hasPendingMessageRequest({
     required String userId,
     required String otherUserId,
-  }) async =>
-      false;
+  }) async => false;
 
   @override
   Future<int> migrateMessageRequestsForMatches({
     required String userId,
     required List<CrushMatch> matches,
-  }) async =>
-      0;
+  }) async => 0;
 
   // ── E2EE stubs ──
   @override
@@ -254,10 +252,25 @@ class _FakeSubscriptionRepository implements SubscriptionRepository {
   Future<SubscriptionTier> getCurrentPlan() async => tier;
 
   @override
-  Future<void> purchaseSubscription({required SubscriptionTier tier, required BillingPeriod period}) async {}
+  Future<void> purchaseSubscription({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async {}
 
   @override
-  Future<String> startCheckout({required SubscriptionTier tier, required BillingPeriod period}) async => '';
+  Future<void> purchaseProduct({required String productId}) async {
+    final selection = subscriptionSelectionForProductId(productId);
+    if (selection == null) {
+      throw UnsupportedError('Unknown subscription product: $productId');
+    }
+    await purchaseSubscription(tier: selection.tier, period: selection.period);
+  }
+
+  @override
+  Future<String> startCheckout({
+    required SubscriptionTier tier,
+    required BillingPeriod period,
+  }) async => '';
 
   @override
   Future<void> launchCheckoutUrl(String url) async {}
@@ -265,6 +278,20 @@ class _FakeSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<SubscriptionStatus> refreshStatus() async =>
       SubscriptionStatus(tier: SubscriptionTier.free);
+
+  @override
+  Future<SubscriptionStatus> restorePurchases() => refreshStatus();
+
+  @override
+  Future<SubscriptionStatus> verifyPurchaseReceipt({
+    required String platform,
+    required String receiptData,
+    required String productId,
+    String? packageName,
+  }) => refreshStatus();
+
+  @override
+  Future<List<SubscriptionProduct>> fetchAvailableProducts() async => const [];
 
   @override
   Future<PromoCode?> validatePromoCode(String code) async => null;
@@ -307,8 +334,7 @@ class _FakeAuthRepository implements AuthRepository {
   Future<CrushUser> verifyOtp({
     required String phoneNumber,
     required String otp,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> sendEmailSignInLink(String email) async =>
@@ -318,15 +344,13 @@ class _FakeAuthRepository implements AuthRepository {
   Future<CrushUser> signInWithEmailLink({
     required String email,
     required String emailLink,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithEmailPassword({
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signInWithApple() async => throw UnimplementedError();
@@ -335,24 +359,21 @@ class _FakeAuthRepository implements AuthRepository {
   Future<CrushUser> loginWithPassword({
     required String identifier,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser> signUpWithPassword({
     required String username,
     required String email,
     required String password,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> requestEmailOtp({
     required String identifier,
     required EmailOtpPurpose purpose,
     String? email,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<CrushUser?> verifyEmailOtp({
@@ -361,8 +382,7 @@ class _FakeAuthRepository implements AuthRepository {
     required EmailOtpPurpose purpose,
     String? newEmail,
     String? newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> requestPasswordReset({required String email}) async =>
@@ -372,16 +392,14 @@ class _FakeAuthRepository implements AuthRepository {
   Future<String> verifyPasswordResetOtp({
     required String email,
     required String otp,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> resetPasswordWithToken({
     required String email,
     required String resetToken,
     required String newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> signOut() async {
@@ -399,15 +417,14 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> schedulePhoneDeletion() async => throw UnimplementedError();
 
   @override
-@override
+  @override
   Future<void> verifyPassword(String password) async {}
 
   @override
   Future<void> changePassword({
     required String currentPassword,
     required String newPassword,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> deactivateAccount({required String reason}) async =>
@@ -417,8 +434,7 @@ class _FakeAuthRepository implements AuthRepository {
   Future<void> deleteAccount({
     required String password,
     required String reason,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<bool> isEmailRegistered(String email) async =>
@@ -433,16 +449,16 @@ class _FakeAuthRepository implements AuthRepository {
 }
 
 Message _mediaMessage(String userId, MessageType type) => Message(
-      id: 'm-${type.name}',
-      matchId: 'match',
-      fromUserId: userId,
-      toUserId: 'other',
-      content: 'url',
-      type: type,
-      sentAt: DateTime.now(),
-      isRead: false,
-      isDeletedForSender: false,
-    );
+  id: 'm-${type.name}',
+  matchId: 'match',
+  fromUserId: userId,
+  toUserId: 'other',
+  content: 'url',
+  type: type,
+  sentAt: DateTime.now(),
+  isRead: false,
+  isDeletedForSender: false,
+);
 
 void main() {
   group('ChatBloc media limits', () {
@@ -466,19 +482,23 @@ void main() {
       );
 
       // Seed 8 existing media messages from current user
-      bloc.add(ChatMessagesUpdated(
-        List<Message>.filled(8, _mediaMessage('me', MessageType.image)),
-        SubscriptionTier.free,
-      ));
+      bloc.add(
+        ChatMessagesUpdated(
+          List<Message>.filled(8, _mediaMessage('me', MessageType.image)),
+          SubscriptionTier.free,
+        ),
+      );
       await expectLater(bloc.stream, emits(isA<ChatState>()));
 
-      bloc.add(ChatMediaSendRequested(
-        matchId: 'match',
-        fromUserId: 'me',
-        toUserId: 'other',
-        filePath: '/tmp/img.jpg',
-        type: MessageType.image,
-      ));
+      bloc.add(
+        ChatMediaSendRequested(
+          matchId: 'match',
+          fromUserId: 'me',
+          toUserId: 'other',
+          filePath: '/tmp/img.jpg',
+          type: MessageType.image,
+        ),
+      );
 
       await expectLater(
         bloc.stream,
@@ -498,18 +518,21 @@ void main() {
         authRepository: authRepo,
       );
 
-      bloc.add(ChatMediaSendRequested(
-        matchId: 'match',
-        fromUserId: 'me',
-        toUserId: 'other',
-        filePath: '/tmp/video.mp4',
-        type: MessageType.video,
-      ));
+      bloc.add(
+        ChatMediaSendRequested(
+          matchId: 'match',
+          fromUserId: 'me',
+          toUserId: 'other',
+          filePath: '/tmp/video.mp4',
+          type: MessageType.video,
+        ),
+      );
 
       await expectLater(
         bloc.stream,
         emitsThrough(
-            predicate<ChatState>((s) => s.sendStatus == SendStatus.idle)),
+          predicate<ChatState>((s) => s.sendStatus == SendStatus.idle),
+        ),
       );
       expect(chatRepo.sent.length, 1);
       expect(chatRepo.sent.first.type, MessageType.video);

@@ -1001,7 +1001,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _showMatchChatSettings(BuildContext context) {
     final authState = context.read<AuthBloc>().state;
-    final isPremium = authState.user?.tier.isPlus ?? false;
+    final isPremium = authState.user?.tier.hasPremium ?? false;
     const initialSettings = ChatSettings();
 
     showModalBottomSheet<void>(

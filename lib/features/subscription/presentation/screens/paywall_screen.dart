@@ -1,15 +1,19 @@
 import 'package:crushhour/config/billing_config.dart';
 import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_bloc.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_event.dart';
 import 'package:crushhour/features/subscription/presentation/bloc/subscription_state.dart';
+import 'package:crushhour/features/subscription/domain/models/subscription_product.dart';
+import 'package:crushhour/features/subscription/presentation/subscription_restore_feedback.dart';
 import 'package:crushhour/shared/dto/subscription.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key, this.source});
@@ -23,6 +27,8 @@ class PaywallScreen extends StatefulWidget {
 class _PaywallScreenState extends State<PaywallScreen> {
   SubscriptionTier _selectedTier = SubscriptionTier.plus;
   int _selectedPeriodIndex = 1; // 0=monthly, 1=quarterly, 2=yearly
+  SubscriptionState? _previousSubscriptionState;
+  bool _requestedProducts = false;
 
   static const _periods = ['1 Month', '3 Months', '12 Months'];
 
@@ -39,9 +45,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _previousSubscriptionState ??= context.read<SubscriptionBloc>().state;
+    if (!_requestedProducts) {
+      context.read<SubscriptionBloc>().add(SubscriptionProductsRequested());
+      _requestedProducts = true;
+    }
+  }
+
   void _handleSubscribe() {
+    final selectedProductId =
+        '${_selectedTier.name}_${_getBillingPeriod().name}';
     context.read<SubscriptionBloc>().add(
-      SubscriptionCheckoutRequested(_selectedTier, _getBillingPeriod()),
+      SubscriptionPurchaseInitiated(selectedProductId),
     );
   }
 
@@ -54,6 +72,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final availableTiers = BillingConfig.tiers
         .where((t) => t.tier != SubscriptionTier.free)
         .toList();
+    final comparisonFeatures = _comparisonFeatureNames(availableTiers);
     final activePlanConfig = availableTiers.firstWhere(
       (t) => t.tier == _selectedTier,
       orElse: () => availableTiers.first,
@@ -65,13 +84,54 @@ class _PaywallScreenState extends State<PaywallScreen> {
         listenWhen: (previous, current) {
           return previous.isCheckoutInProgress !=
                   current.isCheckoutInProgress ||
+              previous.isRestoring != current.isRestoring ||
               previous.errorMessage != current.errorMessage ||
-              previous.tier != current.tier;
+              previous.productsErrorMessage != current.productsErrorMessage ||
+              previous.tier != current.tier ||
+              previous.statusLabel != current.statusLabel ||
+              previous.nextRenewal != current.nextRenewal ||
+              previous.cancelAtPeriodEnd != current.cancelAtPeriodEnd;
         },
         listener: (context, state) {
-          if (state.tier != SubscriptionTier.free) {
+          final previous = _previousSubscriptionState ?? state;
+          _previousSubscriptionState = state;
+          final finishedRestore = didFinishRestore(previous, state);
+          final finishedCheckout =
+              previous.isCheckoutInProgress && !state.isCheckoutInProgress;
+
+          if (previous.productsErrorMessage != state.productsErrorMessage &&
+              state.productsErrorMessage != null &&
+              state.productsErrorMessage!.isNotEmpty) {
+            showErrorSnackBar(context, state.productsErrorMessage!);
+          }
+
+          if (finishedRestore) {
+            if (state.errorMessage != null && state.errorMessage!.isNotEmpty) {
+              showErrorSnackBar(context, state.errorMessage!);
+            } else {
+              final feedback = buildSubscriptionRestoreFeedback(
+                state,
+                locale: Localizations.localeOf(context).toString(),
+              );
+              if (feedback.tone == SubscriptionRestoreFeedbackTone.success) {
+                showSuccessSnackBar(context, feedback.message);
+              } else {
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text(feedback.message)));
+              }
+            }
+
+            if (state.tier != SubscriptionTier.free) {
+              context.go(CrushRoutes.home);
+            }
+            return;
+          }
+
+          if (finishedCheckout && state.tier != SubscriptionTier.free) {
             context.go(CrushRoutes.home);
-          } else if (state.errorMessage != null &&
+          } else if (finishedCheckout &&
+              state.errorMessage != null &&
               !state.isCheckoutInProgress) {
             ScaffoldMessenger.of(
               context,
@@ -238,6 +298,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     ),
 
                     const SizedBox(height: DsSpacing.xl),
+                    _ComparisonGrid(
+                      plans: availableTiers,
+                      featureNames: comparisonFeatures,
+                    ),
+                    const SizedBox(height: DsSpacing.xl),
                     Text(
                       'Choose Your Billing Period',
                       textAlign: TextAlign.center,
@@ -252,9 +317,13 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       children: List.generate(_periods.length, (index) {
                         final isSelected = _selectedPeriodIndex == index;
                         final period = _getPeriodFromIndex(index);
-                        final price = activePlanConfig.getPriceForPeriod(
-                          period,
-                        );
+                        final resolvedProduct = _resolvedProduct(state, period);
+                        final price =
+                            resolvedProduct?.price ??
+                            activePlanConfig.getPriceForPeriod(period);
+                        final priceLabel =
+                            resolvedProduct?.priceLabel ??
+                            _formatPrice(context, price);
                         final savings = activePlanConfig.getSavingsPercentage(
                           period,
                         );
@@ -313,7 +382,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
                                       Text(
-                                        '\$${price.toStringAsFixed(2)}',
+                                        priceLabel,
                                         style: theme.textTheme.headlineSmall
                                             ?.copyWith(
                                               fontWeight: FontWeight.bold,
@@ -357,7 +426,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                                 ),
                               )
                             : Text(
-                                'Get ${activePlanConfig.name} for \$${activePlanConfig.getPriceForPeriod(_getBillingPeriod()).toStringAsFixed(2)}',
+                                'Get ${activePlanConfig.name} for ${_resolvedProduct(state, _getBillingPeriod())?.priceLabel ?? _formatPrice(context, activePlanConfig.getPriceForPeriod(_getBillingPeriod()))}',
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -368,6 +437,53 @@ class _PaywallScreenState extends State<PaywallScreen> {
                     const SizedBox(height: DsSpacing.sm),
                     Text(
                       'Recurring billing. Cancel anytime in settings.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                    ),
+                    const SizedBox(height: DsSpacing.sm),
+                    TextButton.icon(
+                      key: const Key('paywall_restore_button'),
+                      onPressed: state.isRestoring
+                          ? null
+                          : () => context.read<SubscriptionBloc>().add(
+                              SubscriptionRestoreRequested(),
+                            ),
+                      icon: state.isRestoring
+                          ? const SizedBox(
+                              key: Key('paywall_restore_loading'),
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.restore),
+                      label: Text(
+                        state.isRestoring
+                            ? 'Restoring purchases...'
+                            : 'Restore purchases',
+                      ),
+                    ),
+                    const SizedBox(height: DsSpacing.sm),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: DsSpacing.sm,
+                      runSpacing: DsSpacing.xs,
+                      children: [
+                        TextButton(
+                          key: const Key('paywall_terms_button'),
+                          onPressed: () =>
+                              context.push(CrushRoutes.termsOfService),
+                          child: const Text('Terms of Service'),
+                        ),
+                        TextButton(
+                          key: const Key('paywall_privacy_button'),
+                          onPressed: () =>
+                              context.push(CrushRoutes.privacyPolicy),
+                          child: const Text('Privacy Policy'),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      'Billing and trial terms are managed through the App Store or Google Play on mobile devices.',
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(color: muted),
                     ),
@@ -396,5 +512,170 @@ class _PaywallScreenState extends State<PaywallScreen> {
 
   BillingPeriod _getBillingPeriod() {
     return _getPeriodFromIndex(_selectedPeriodIndex);
+  }
+
+  String _formatPrice(BuildContext context, double price) {
+    final locale = Localizations.localeOf(context).toString();
+    return NumberFormat.simpleCurrency(
+      locale: locale,
+      name: 'USD',
+    ).format(price);
+  }
+
+  SubscriptionProduct? _resolvedProduct(
+    SubscriptionState state,
+    BillingPeriod period,
+  ) {
+    for (final product in state.availableProducts) {
+      if (product.tier == _selectedTier && product.period == period) {
+        return product;
+      }
+    }
+    return null;
+  }
+
+  List<String> _comparisonFeatureNames(List<BillingPlanConfig> plans) {
+    final names = <String>[];
+    for (final plan in plans) {
+      for (final feature in plan.features) {
+        if (!names.contains(feature.name)) {
+          names.add(feature.name);
+        }
+      }
+    }
+    return names;
+  }
+}
+
+class _ComparisonGrid extends StatelessWidget {
+  const _ComparisonGrid({required this.plans, required this.featureNames});
+
+  final List<BillingPlanConfig> plans;
+  final List<String> featureNames;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      key: const Key('paywall_comparison_grid'),
+      padding: const EdgeInsets.all(DsSpacing.md),
+      decoration: BoxDecoration(
+        color: isDark ? DsColors.surfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark ? DsColors.borderDark : DsColors.borderLight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Compare premium features',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: DsSpacing.sm),
+          Text(
+            'See which plan unlocks the features that matter most.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+            ),
+          ),
+          const SizedBox(height: DsSpacing.md),
+          Table(
+            columnWidths: const {
+              0: FlexColumnWidth(2.4),
+              1: FlexColumnWidth(1.1),
+              2: FlexColumnWidth(1.1),
+            },
+            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            children: [
+              TableRow(
+                children: [
+                  const _ComparisonHeaderCell(
+                    label: 'Feature',
+                    alignStart: true,
+                  ),
+                  for (final plan in plans)
+                    _ComparisonHeaderCell(label: plan.name),
+                ],
+              ),
+              for (final featureName in featureNames)
+                TableRow(
+                  children: [
+                    _ComparisonValueCell(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(featureName),
+                      ),
+                    ),
+                    for (final plan in plans)
+                      _ComparisonValueCell(
+                        child: Icon(
+                          _featureIncluded(plan, featureName)
+                              ? Icons.check_circle
+                              : Icons.remove_circle_outline,
+                          color: _featureIncluded(plan, featureName)
+                              ? DsColors.primary
+                              : DsColors.ink400,
+                          size: 18,
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _featureIncluded(BillingPlanConfig plan, String featureName) {
+    final match = plan.features.where((feature) => feature.name == featureName);
+    if (match.isEmpty) {
+      return false;
+    }
+    return match.first.included;
+  }
+}
+
+class _ComparisonHeaderCell extends StatelessWidget {
+  const _ComparisonHeaderCell({required this.label, this.alignStart = false});
+
+  final String label;
+  final bool alignStart;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DsSpacing.sm),
+      child: Align(
+        alignment: alignStart ? Alignment.centerLeft : Alignment.center,
+        child: Text(
+          label,
+          textAlign: alignStart ? TextAlign.left : TextAlign.center,
+          style: Theme.of(
+            context,
+          ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+}
+
+class _ComparisonValueCell extends StatelessWidget {
+  const _ComparisonValueCell({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Center(child: child),
+    );
   }
 }

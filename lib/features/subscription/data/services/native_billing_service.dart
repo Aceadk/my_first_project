@@ -19,35 +19,151 @@ class NativeSubscriptionPurchase {
   final String? transactionId;
 }
 
+enum NativeBillingFailureCode {
+  billingUnavailable,
+  productQueryFailed,
+  productNotFound,
+  purchaseInProgress,
+  restoreInProgress,
+  purchaseCanceled,
+  itemAlreadyOwned,
+  networkError,
+  verificationDataMissing,
+  purchaseFailed,
+  restoreFailed,
+  timeout,
+  unknown,
+}
+
+class NativeBillingException implements Exception {
+  const NativeBillingException({
+    required this.code,
+    required this.message,
+    this.details,
+  });
+
+  final NativeBillingFailureCode code;
+  final String message;
+  final Object? details;
+
+  @override
+  String toString() => 'NativeBillingException($code): $message';
+}
+
+abstract class NativeBillingClient {
+  Stream<List<PurchaseDetails>> get purchaseStream;
+
+  Future<bool> isAvailable();
+
+  Future<ProductDetailsResponse> queryProductDetails(Set<String> productIds);
+
+  Future<bool> buyNonConsumable({required PurchaseParam purchaseParam});
+
+  Future<void> completePurchase(PurchaseDetails purchase);
+
+  Future<void> restorePurchases();
+}
+
+class InAppPurchaseBillingClient implements NativeBillingClient {
+  InAppPurchaseBillingClient({InAppPurchase? inAppPurchase})
+    : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance;
+
+  final InAppPurchase _inAppPurchase;
+
+  InAppPurchase get inAppPurchase => _inAppPurchase;
+
+  @override
+  Stream<List<PurchaseDetails>> get purchaseStream =>
+      _inAppPurchase.purchaseStream;
+
+  @override
+  Future<bool> isAvailable() => _inAppPurchase.isAvailable();
+
+  @override
+  Future<ProductDetailsResponse> queryProductDetails(Set<String> productIds) =>
+      _inAppPurchase.queryProductDetails(productIds);
+
+  @override
+  Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) =>
+      _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+
+  @override
+  Future<void> completePurchase(PurchaseDetails purchase) =>
+      _inAppPurchase.completePurchase(purchase);
+
+  @override
+  Future<void> restorePurchases() => _inAppPurchase.restorePurchases();
+}
+
+abstract class NativeBillingIosDelegateConfigurer {
+  Future<void> setDelegate(SKPaymentQueueDelegateWrapper? delegate);
+}
+
+class StoreKitDelegateConfigurer implements NativeBillingIosDelegateConfigurer {
+  StoreKitDelegateConfigurer({InAppPurchase? inAppPurchase})
+    : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance;
+
+  final InAppPurchase _inAppPurchase;
+
+  @override
+  Future<void> setDelegate(SKPaymentQueueDelegateWrapper? delegate) async {
+    final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
+        _inAppPurchase
+            .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+    await iosPlatformAddition.setDelegate(delegate);
+  }
+}
+
 /// Native billing abstraction used by repository implementations.
 abstract class NativeBillingService {
   Future<void> initialize();
   Future<List<ProductDetails>> fetchProducts(Set<String> productIds);
-  Future<void> purchaseSubscription({required String productId});
-  Future<List<NativeSubscriptionPurchase>> restoreSubscriptionPurchases();
+  Future<NativeSubscriptionPurchase> purchaseProduct({
+    required String productId,
+  });
+  Future<List<NativeSubscriptionPurchase>> restorePurchases();
+  Future<NativeSubscriptionPurchase> verifyPurchase(
+    PurchaseDetails purchase,
+  ) async {
+    throw UnimplementedError('verifyPurchase must be implemented.');
+  }
+
+  Future<NativeSubscriptionPurchase> purchaseSubscription({
+    required String productId,
+  }) => purchaseProduct(productId: productId);
+  Future<List<NativeSubscriptionPurchase>> restoreSubscriptionPurchases() =>
+      restorePurchases();
   void dispose();
 }
 
 /// In-app purchase implementation backed by Flutter's IAP plugin.
 class InAppPurchaseNativeBillingService implements NativeBillingService {
   InAppPurchaseNativeBillingService({
+    NativeBillingClient? billingClient,
+    NativeBillingIosDelegateConfigurer? iosDelegateConfigurer,
     InAppPurchase? inAppPurchase,
     Duration purchaseTimeout = const Duration(minutes: 2),
     Duration restoreTimeout = const Duration(seconds: 20),
     Duration restoreSettleDelay = const Duration(milliseconds: 1500),
-  }) : _inAppPurchase = inAppPurchase ?? InAppPurchase.instance,
+  }) : _billingClient =
+           billingClient ??
+           InAppPurchaseBillingClient(inAppPurchase: inAppPurchase),
+       _iosDelegateConfigurer =
+           iosDelegateConfigurer ??
+           StoreKitDelegateConfigurer(inAppPurchase: inAppPurchase),
        _purchaseTimeout = purchaseTimeout,
        _restoreTimeout = restoreTimeout,
        _restoreSettleDelay = restoreSettleDelay;
 
-  final InAppPurchase _inAppPurchase;
+  final NativeBillingClient _billingClient;
+  final NativeBillingIosDelegateConfigurer _iosDelegateConfigurer;
   final Duration _purchaseTimeout;
   final Duration _restoreTimeout;
   final Duration _restoreSettleDelay;
 
   StreamSubscription<List<PurchaseDetails>>? _subscription;
 
-  Completer<void>? _activePurchaseCompleter;
+  Completer<NativeSubscriptionPurchase>? _activePurchaseCompleter;
   String? _activePurchaseProductId;
 
   Completer<List<NativeSubscriptionPurchase>>? _activeRestoreCompleter;
@@ -62,13 +178,10 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
     if (_isInitialized) return;
 
     if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
-          _inAppPurchase
-              .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
-      await iosPlatformAddition.setDelegate(_CrushPaymentQueueDelegate());
+      await _iosDelegateConfigurer.setDelegate(_CrushPaymentQueueDelegate());
     }
 
-    _subscription = _inAppPurchase.purchaseStream.listen(
+    _subscription = _billingClient.purchaseStream.listen(
       _onPurchaseUpdate,
       onDone: () {
         _subscription?.cancel();
@@ -84,15 +197,14 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
 
   @override
   Future<List<ProductDetails>> fetchProducts(Set<String> productIds) async {
-    final isAvailable = await _inAppPurchase.isAvailable();
-    if (!isAvailable) {
-      throw StateError('In-app purchase is not available on this device.');
-    }
+    await _ensureBillingAvailable();
 
-    final response = await _inAppPurchase.queryProductDetails(productIds);
+    final response = await _billingClient.queryProductDetails(productIds);
     if (response.error != null) {
-      throw StateError(
-        'Unable to query in-app purchase products: ${response.error!.message}',
+      throw _fromIapError(
+        response.error!,
+        fallbackCode: NativeBillingFailureCode.productQueryFailed,
+        fallbackMessage: 'Unable to query in-app purchase products.',
       );
     }
 
@@ -100,46 +212,56 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
   }
 
   @override
-  Future<void> purchaseSubscription({required String productId}) async {
+  Future<NativeSubscriptionPurchase> purchaseProduct({
+    required String productId,
+  }) async {
     if (!_isInitialized) await initialize();
 
     if (_activePurchaseCompleter != null &&
         !_activePurchaseCompleter!.isCompleted) {
-      throw StateError('A purchase is already in progress.');
+      throw const NativeBillingException(
+        code: NativeBillingFailureCode.purchaseInProgress,
+        message: 'A purchase is already in progress.',
+      );
     }
 
-    final isAvailable = await _inAppPurchase.isAvailable();
-    if (!isAvailable) {
-      throw StateError('In-app purchase is not available on this device.');
-    }
+    await _ensureBillingAvailable();
 
-    final productResponse = await _inAppPurchase.queryProductDetails({
+    final productResponse = await _billingClient.queryProductDetails({
       productId,
     });
     if (productResponse.error != null) {
-      throw StateError(
-        'Unable to query in-app purchase products: ${productResponse.error!.message}',
+      throw _fromIapError(
+        productResponse.error!,
+        fallbackCode: NativeBillingFailureCode.productQueryFailed,
+        fallbackMessage: 'Unable to query in-app purchase products.',
       );
     }
 
     if (productResponse.productDetails.isEmpty) {
-      throw StateError('Product not found for "$productId".');
+      throw NativeBillingException(
+        code: NativeBillingFailureCode.productNotFound,
+        message: 'Product not found for "$productId".',
+      );
     }
 
-    _activePurchaseCompleter = Completer<void>();
+    _activePurchaseCompleter = Completer<NativeSubscriptionPurchase>();
     _activePurchaseProductId = productId;
 
     final product = productResponse.productDetails.first;
     final purchaseParam = PurchaseParam(productDetails: product);
 
-    final purchaseStarted = await _inAppPurchase.buyNonConsumable(
+    final purchaseStarted = await _billingClient.buyNonConsumable(
       purchaseParam: purchaseParam,
     );
 
     if (!purchaseStarted) {
       _activePurchaseCompleter = null;
       _activePurchaseProductId = null;
-      throw StateError('Could not start native purchase flow.');
+      throw const NativeBillingException(
+        code: NativeBillingFailureCode.purchaseFailed,
+        message: 'Could not start native purchase flow.',
+      );
     }
 
     return _activePurchaseCompleter!.future.timeout(
@@ -147,25 +269,32 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
       onTimeout: () {
         _activePurchaseCompleter = null;
         _activePurchaseProductId = null;
-        throw TimeoutException('Purchase timed out.');
+        throw const NativeBillingException(
+          code: NativeBillingFailureCode.timeout,
+          message: 'Purchase timed out.',
+        );
       },
     );
   }
 
   @override
-  Future<List<NativeSubscriptionPurchase>>
-  restoreSubscriptionPurchases() async {
+  Future<NativeSubscriptionPurchase> purchaseSubscription({
+    required String productId,
+  }) => purchaseProduct(productId: productId);
+
+  @override
+  Future<List<NativeSubscriptionPurchase>> restorePurchases() async {
     if (!_isInitialized) await initialize();
 
     if (_activeRestoreCompleter != null &&
         !_activeRestoreCompleter!.isCompleted) {
-      throw StateError('A restore is already in progress.');
+      throw const NativeBillingException(
+        code: NativeBillingFailureCode.restoreInProgress,
+        message: 'A restore is already in progress.',
+      );
     }
 
-    final isAvailable = await _inAppPurchase.isAvailable();
-    if (!isAvailable) {
-      throw StateError('In-app purchase is not available on this device.');
-    }
+    await _ensureBillingAvailable();
 
     _activeRestoreCompleter = Completer<List<NativeSubscriptionPurchase>>();
     _restoredPurchases = [];
@@ -173,10 +302,15 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
     _restoreTimeoutTimer = Timer(_restoreTimeout, _completeRestore);
 
     try {
-      await _inAppPurchase.restorePurchases();
+      await _billingClient.restorePurchases();
     } catch (e) {
-      _failActiveRestore(e);
-      rethrow;
+      final mappedError = _mapError(
+        e,
+        fallbackCode: NativeBillingFailureCode.restoreFailed,
+        fallbackMessage: 'Could not restore purchases.',
+      );
+      _failActiveRestore(mappedError);
+      throw mappedError;
     }
 
     _restoreSettleTimer?.cancel();
@@ -185,14 +319,25 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
     return _activeRestoreCompleter!.future;
   }
 
+  @override
+  Future<List<NativeSubscriptionPurchase>> restoreSubscriptionPurchases() =>
+      restorePurchases();
+
+  @override
+  Future<NativeSubscriptionPurchase> verifyPurchase(
+    PurchaseDetails purchase,
+  ) async {
+    await _completePendingPurchaseIfNeeded(purchase);
+    return _toNativePurchase(purchase);
+  }
+
   Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
       try {
         switch (purchase.status) {
           case PurchaseStatus.purchased:
           case PurchaseStatus.restored:
-            await _completePendingPurchaseIfNeeded(purchase);
-            final nativePurchase = _toNativePurchase(purchase);
+            final nativePurchase = await verifyPurchase(purchase);
 
             if (purchase.status == PurchaseStatus.restored &&
                 _activeRestoreCompleter != null) {
@@ -205,27 +350,54 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
               if (_activePurchaseCompleter != null &&
                   purchase.productID == _activePurchaseProductId) {
                 if (!_activePurchaseCompleter!.isCompleted) {
-                  _activePurchaseCompleter!.complete();
+                  _activePurchaseCompleter!.complete(nativePurchase);
                 }
               }
             }
             break;
 
           case PurchaseStatus.error:
-            final errorMsg = purchase.error?.message ?? 'Purchase failed.';
-            _failActivePurchase(StateError(errorMsg));
+            final mappedError = _mapError(
+              purchase.error ??
+                  const NativeBillingException(
+                    code: NativeBillingFailureCode.purchaseFailed,
+                    message: 'Purchase failed.',
+                  ),
+              fallbackCode: NativeBillingFailureCode.purchaseFailed,
+              fallbackMessage: 'Purchase failed.',
+            );
+            _failActivePurchase(mappedError);
+            if (_activeRestoreCompleter != null) {
+              _failActiveRestore(mappedError);
+            }
             break;
 
           case PurchaseStatus.canceled:
-            _failActivePurchase(StateError('Purchase canceled.'));
+            const canceledError = NativeBillingException(
+              code: NativeBillingFailureCode.purchaseCanceled,
+              message: 'Purchase canceled.',
+            );
+            _failActivePurchase(canceledError);
             break;
 
           case PurchaseStatus.pending:
             break;
         }
       } catch (error) {
+        final mappedError = _mapError(
+          error,
+          fallbackCode: purchase.status == PurchaseStatus.restored
+              ? NativeBillingFailureCode.restoreFailed
+              : NativeBillingFailureCode.purchaseFailed,
+          fallbackMessage: purchase.status == PurchaseStatus.restored
+              ? 'Could not restore purchases.'
+              : 'Purchase failed.',
+        );
         if (purchase.status == PurchaseStatus.purchased) {
-          _failActivePurchase(error);
+          _failActivePurchase(mappedError);
+        }
+        if (purchase.status == PurchaseStatus.restored) {
+          _failActiveRestore(mappedError);
         }
       }
     }
@@ -257,6 +429,8 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
   }
 
   void _failActiveRestore(Object error) {
+    _restoreTimeoutTimer?.cancel();
+    _restoreSettleTimer?.cancel();
     if (_activeRestoreCompleter != null &&
         !_activeRestoreCompleter!.isCompleted) {
       _activeRestoreCompleter!.completeError(error);
@@ -268,7 +442,7 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
     PurchaseDetails purchase,
   ) async {
     if (purchase.pendingCompletePurchase) {
-      await _inAppPurchase.completePurchase(purchase);
+      await _billingClient.completePurchase(purchase);
     }
   }
 
@@ -278,8 +452,10 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
         .serverVerificationData
         .trim();
     if (serverVerificationData.isEmpty) {
-      throw StateError(
-        'Missing purchase verification data for "${purchase.productID}".',
+      throw NativeBillingException(
+        code: NativeBillingFailureCode.verificationDataMissing,
+        message:
+            'Missing purchase verification data for "${purchase.productID}".',
       );
     }
 
@@ -301,14 +477,13 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
 
   @override
   void dispose() {
+    _restoreTimeoutTimer?.cancel();
+    _restoreSettleTimer?.cancel();
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       // It's safe to clear the delegate when disposing, though generally
       // this service should live for the app lifecycle.
       try {
-        final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
-            _inAppPurchase
-                .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
-        iosPlatformAddition.setDelegate(null);
+        _iosDelegateConfigurer.setDelegate(null);
       } catch (_) {
         // Platform addition might not be ready or could throw on test environments
       }
@@ -316,6 +491,84 @@ class InAppPurchaseNativeBillingService implements NativeBillingService {
     _subscription?.cancel();
     _subscription = null;
     _isInitialized = false;
+  }
+
+  Future<void> _ensureBillingAvailable() async {
+    final isAvailable = await _billingClient.isAvailable();
+    if (!isAvailable) {
+      throw const NativeBillingException(
+        code: NativeBillingFailureCode.billingUnavailable,
+        message: 'In-app purchase is not available on this device.',
+      );
+    }
+  }
+
+  NativeBillingException _mapError(
+    Object error, {
+    required NativeBillingFailureCode fallbackCode,
+    required String fallbackMessage,
+  }) {
+    if (error is NativeBillingException) {
+      return error;
+    }
+    if (error is IAPError) {
+      return _fromIapError(
+        error,
+        fallbackCode: fallbackCode,
+        fallbackMessage: fallbackMessage,
+      );
+    }
+    if (error is TimeoutException) {
+      return const NativeBillingException(
+        code: NativeBillingFailureCode.timeout,
+        message: 'Purchase timed out.',
+      );
+    }
+    if (error is StateError) {
+      return NativeBillingException(
+        code: fallbackCode,
+        message: error.message,
+        details: error,
+      );
+    }
+    return NativeBillingException(
+      code: fallbackCode,
+      message: fallbackMessage,
+      details: error,
+    );
+  }
+
+  NativeBillingException _fromIapError(
+    IAPError error, {
+    required NativeBillingFailureCode fallbackCode,
+    required String fallbackMessage,
+  }) {
+    final normalizedCode = error.code.trim().toLowerCase();
+    final mappedCode = switch (normalizedCode) {
+      'billing_unavailable' => NativeBillingFailureCode.billingUnavailable,
+      'item_already_owned' => NativeBillingFailureCode.itemAlreadyOwned,
+      'purchase_cancelled' ||
+      'purchase_canceled' ||
+      'user_canceled' ||
+      'user_cancelled' => NativeBillingFailureCode.purchaseCanceled,
+      'network_error' => NativeBillingFailureCode.networkError,
+      _ =>
+        normalizedCode.contains('already_owned')
+            ? NativeBillingFailureCode.itemAlreadyOwned
+            : (normalizedCode.contains('cancel')
+                  ? NativeBillingFailureCode.purchaseCanceled
+                  : (normalizedCode.contains('network')
+                        ? NativeBillingFailureCode.networkError
+                        : fallbackCode)),
+    };
+    final message = error.message.trim().isEmpty
+        ? fallbackMessage
+        : error.message.trim();
+    return NativeBillingException(
+      code: mappedCode,
+      message: message,
+      details: error.details,
+    );
   }
 }
 
