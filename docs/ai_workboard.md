@@ -5541,6 +5541,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - Validated the live backend by creating one temporary flat web-shaped profile and one temporary canonical nested mobile-shaped profile in production, confirming both requesters were eligible and mutually discoverable through `/v1/discovery/deck`, then deleting the temporary docs/accounts.
   - Rebuilt `../crush-web`, committed the web discovery changes on `main` (`7818094`), and pushed them to `origin/main` so the Git-linked web deployment can pick them up.
   - Confirmed the direct local web deploy paths are currently blocked: `firebase deploy --only hosting:crushapp` fails because `../crush-web/firebase.json` targets missing `apps/web/out`, and `vercel whoami` fails because the local Vercel token is invalid.
+  - Committed and pushed the corresponding `my_first_project` discovery/backend/doc changes to `origin/main` as `3fde287` so the deployed backend source matches GitHub.
 - Decisions/Handoffs:
   - Used `gcloud functions deploy` instead of `firebase deploy --only functions` to avoid re-entering unknown production parameter values.
   - Used temporary production validation accounts because the backend deploy was complete and this was the fastest safe way to prove the live deck path; the temporary auth users and Firestore docs were cleaned up immediately after validation.
@@ -5558,6 +5559,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `pnpm --dir ../crush-web --filter @crush/web build` (pass)
   - production synthetic discovery validation script against `https://us-central1-crush-265f7.cloudfunctions.net/api/v1/discovery/deck` (pass; temporary accounts/docs cleaned up)
   - `git -C ../crush-web push origin main` (pass)
+  - `git push origin main` in `my_first_project` (pass)
   - `vercel whoami` (fails: invalid local Vercel token)
   - `firebase deploy --only hosting:crushapp --project crush-265f7` from `../crush-web` (fails: `apps/web/out` missing)
 - Next Step: Confirm the Git-linked web deployment is live or restore valid Vercel CLI auth and deploy the web app directly.

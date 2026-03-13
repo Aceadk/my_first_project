@@ -12892,6 +12892,7 @@ Do needed things now one by one until everything performs as it should.
   - `docs/Developer_agent_chat.md` (this task entry)
   - `docs/risk_notes.md`
 - **Result:** Partial success. The production backend rollout is complete and live validation proved that an eligible flat web-shaped user and an eligible canonical nested mobile-shaped user are mutually discoverable through the shared discovery deck. The remaining open item is confirming that the pushed `../crush-web` change set is live in the production web deployment.
+- **Notes:** The matching `my_first_project` source/docs changes are now committed and pushed to `origin/main` as `3fde287`; the temporary production validation users/docs were cleaned up immediately after the checks.
 - **Notes:** No additional source edits were required in `my_first_project` during rollout. The temporary production validation users/docs were cleaned up immediately after the checks.
 
 **Verification:**
