@@ -314,6 +314,8 @@ class FirebaseAuthRepository
           'isPhoneVerified': firebaseUser.phoneNumber != null,
           'isIdVerified': false,
           'plan': 'free',
+          'onboardingComplete': false,
+          'profileComplete': false,
           'themePreference': 'system',
           'profile': {
             'name': displayName,

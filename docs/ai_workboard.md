@@ -5499,3 +5499,65 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `git push origin main` (pass)
   - `git status --short` after push to confirm a clean working tree
 - Next Step: Continue from the remaining open backlog items after the snapshot is safely on GitHub.
+
+### T-2026-03-13-DISCOVERY-CROSS-PLATFORM-ELIGIBILITY
+- Date: 2026-03-13
+- Owner: Codex
+- Status: Completed
+- Goal: Fix the production discovery regression where newly created eligible accounts were not appearing across app/web discovery, and make future exclusions explicitly diagnosable.
+- Scope: `functions/src/index.ts`, discovery/profile schema helpers, mobile auth/profile write paths, cross-platform web user/discovery services in `../crush-web`, focused backend/Flutter/web tests, risk register, and required workflow logs.
+- Key Changes:
+  - Replaced fragmented discovery filtering with a single backend deck builder (`buildDiscoveryDeckPayload`) that now serves both the mobile callable path and the REST deck path used by web.
+  - Centralized discoverability on shared snapshot helpers (`buildDiscoveryUserSnapshot`, `evaluateDiscoveryEligibility`, `evaluateDiscoveryCandidateForRequester`) that normalize both canonical nested mobile docs and legacy flat web docs, then emit explicit `relationship` / `eligibility` / `filter` exclusion reasons.
+  - Added requester-side discoverability diagnostics via `requesterStatus` in deck responses and the new `getMyDiscoveryStatus` callable.
+  - Updated mobile writes so new user docs and completed profiles persist the lifecycle fields discovery still relies on (`onboardingComplete`, `profileComplete`, `lastActive`) while keeping nested canonical profile data authoritative.
+  - Reworked web profile reads/writes into shared helpers so signup/onboarding/settings now mirror canonical nested `profile.*` fields while staying compatible with existing flat-root web fields.
+  - Switched web discovery from direct Firestore user queries to the backend REST deck endpoint, removing the cross-platform query drift that was excluding mobile-created users from web discovery and web-created users from app discovery.
+- Decisions/Handoffs:
+  - Kept the product rule focused on minimum appearance conditions (name, adult age/DOB, gender, photos, active/non-hidden state) instead of requiring root onboarding/profile flags as hard discovery gates.
+  - Preserved dual-shape user-document compatibility instead of forcing a one-shot migration, because existing web users still depend on flat-root fields during rollout.
+  - Added deterministic exclusion helpers/tests rather than introducing a user-facing debug screen in this pass.
+  - Confirmed both clients target the same Firebase project (`crush-265f7`); the production issue was schema/query divergence, not environment mismatch.
+- Risks/Mitigation:
+  - Main risk was broadening discovery behavior while removing silent exclusions; centralized helper coverage across backend, Flutter schema normalization, and web helper tests mitigates that.
+  - Full `@crush/web` app typecheck is still blocked by unrelated pre-existing analytics typing errors in `../crush-web/apps/web/src/app/(app)/premium/premium-view.tsx` and `../crush-web/apps/web/src/components/analytics/user-analytics-provider.tsx`; the discovery-specific core package typecheck and focused Vitest suite are green.
+- Verification:
+  - `npm --prefix functions run build` (pass)
+  - `FIREBASE_CONFIG='{"projectId":"crush-265f7","databaseURL":"https://crush-265f7-default-rtdb.firebaseio.com"}' npx --prefix functions mocha --exit functions/test/discoveryEligibility.test.js functions/test/profileRestValidation.test.js` (pass)
+  - `flutter analyze lib/core/schema/user_document_schema.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/profile/data/repositories/impl/firebase_profile_repository.dart test/core/schema/user_document_schema_test.dart` (pass)
+  - `flutter test test/core/schema/user_document_schema_test.dart -r compact` (pass)
+  - `pnpm --dir ../crush-web --filter @crush/core typecheck` (pass)
+  - `pnpm --dir ../crush-web --filter @crush/web test -- src/lib/__tests__/discovery-schema.test.ts` (pass)
+- Next Step: Manually validate a fresh app-created account and a fresh web-created account against live discovery using `getMyDiscoveryStatus` plus the shared deck endpoint if the production test accounts need re-checking after deploy.
+
+### T-2026-03-13-DISCOVERY-PROD-ROLLOUT
+- Date: 2026-03-13
+- Owner: Codex
+- Status: In Progress
+- Goal: Roll out the cross-platform discovery fix to production, validate live discoverability behavior, and close the remaining web rollout gap.
+- Scope: Cloud Functions deployment for discovery endpoints, production live validation against the shared discovery deck, `../crush-web` production build/push, risk tracking, and workflow logs.
+- Key Changes:
+  - Deployed `fetchDiscoveryCandidates`, `api`, and `getMyDiscoveryStatus` to `crush-265f7` with the current production environment preserved from the deployed function config.
+  - Validated the live backend by creating one temporary flat web-shaped profile and one temporary canonical nested mobile-shaped profile in production, confirming both requesters were eligible and mutually discoverable through `/v1/discovery/deck`, then deleting the temporary docs/accounts.
+  - Rebuilt `../crush-web`, committed the web discovery changes on `main` (`7818094`), and pushed them to `origin/main` so the Git-linked web deployment can pick them up.
+  - Confirmed the direct local web deploy paths are currently blocked: `firebase deploy --only hosting:crushapp` fails because `../crush-web/firebase.json` targets missing `apps/web/out`, and `vercel whoami` fails because the local Vercel token is invalid.
+- Decisions/Handoffs:
+  - Used `gcloud functions deploy` instead of `firebase deploy --only functions` to avoid re-entering unknown production parameter values.
+  - Used temporary production validation accounts because the backend deploy was complete and this was the fastest safe way to prove the live deck path; the temporary auth users and Firestore docs were cleaned up immediately after validation.
+  - Pushed the web repo to GitHub as the best available rollout path while direct Vercel CLI deployment remains unavailable from this machine.
+- Risks/Mitigation:
+  - Backend rollout risk is reduced by the live production validation proving mutual discoverability for both legacy-flat and canonical-nested user shapes.
+  - Remaining risk is operational: until the Git-driven web deployment is confirmed, web clients may still use the old direct Firestore discovery path.
+- Verification:
+  - `gcloud functions deploy fetchDiscoveryCandidates --project=crush-265f7 --region=us-central1 --runtime=nodejs22 --source=. --ignore-file=/tmp/functions.gcloudignore --entry-point=fetchDiscoveryCandidates --trigger-http --allow-unauthenticated --service-account=crush-265f7@appspot.gserviceaccount.com --env-vars-file=/tmp/crush_functions_env.yaml --quiet` (pass)
+  - `gcloud functions deploy api --project=crush-265f7 --region=us-central1 --runtime=nodejs22 --source=. --ignore-file=/tmp/functions.gcloudignore --entry-point=api --trigger-http --allow-unauthenticated --service-account=crush-265f7@appspot.gserviceaccount.com --env-vars-file=/tmp/crush_functions_env.yaml --quiet` (pass)
+  - `gcloud functions deploy getMyDiscoveryStatus --no-gen2 --project=crush-265f7 --region=us-central1 --runtime=nodejs22 --source=. --ignore-file=/tmp/functions.gcloudignore --entry-point=getMyDiscoveryStatus --trigger-http --allow-unauthenticated --service-account=crush-265f7@appspot.gserviceaccount.com --env-vars-file=/tmp/crush_functions_env.yaml --quiet` (pass)
+  - `gcloud functions describe fetchDiscoveryCandidates --project=crush-265f7 --region=us-central1 --format='value(entryPoint,status,updateTime,versionId,httpsTrigger.url)'` (pass)
+  - `gcloud functions describe api --project=crush-265f7 --region=us-central1 --format='value(entryPoint,status,updateTime,versionId,httpsTrigger.url)'` (pass)
+  - `gcloud functions describe getMyDiscoveryStatus --project=crush-265f7 --region=us-central1 --format='value(entryPoint,status,updateTime,versionId,httpsTrigger.url)'` (pass)
+  - `pnpm --dir ../crush-web --filter @crush/web build` (pass)
+  - production synthetic discovery validation script against `https://us-central1-crush-265f7.cloudfunctions.net/api/v1/discovery/deck` (pass; temporary accounts/docs cleaned up)
+  - `git -C ../crush-web push origin main` (pass)
+  - `vercel whoami` (fails: invalid local Vercel token)
+  - `firebase deploy --only hosting:crushapp --project crush-265f7` from `../crush-web` (fails: `apps/web/out` missing)
+- Next Step: Confirm the Git-linked web deployment is live or restore valid Vercel CLI auth and deploy the web app directly.

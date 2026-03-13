@@ -345,6 +345,9 @@ class FirebaseProfileRepository
       'profile.interests': sanitizedInterests,
       'profile.updatedAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
+      'lastActive': FieldValue.serverTimestamp(),
+      'onboardingComplete': true,
+      'profileComplete': true,
       // Set default discovery preferences to make user discoverable
       // hideFromDiscovery: false means user appears in other users' discovery feed
       // incognitoMode: false means user is visible to others
@@ -401,6 +404,9 @@ class FirebaseProfileRepository
           '[FirebaseProfileRepo] Document does not exist, creating with set()',
         );
         await docRef.set({
+          'onboardingComplete': true,
+          'profileComplete': true,
+          'lastActive': FieldValue.serverTimestamp(),
           'profile': {
             'bio': sanitizedBio,
             'photoUrls': sanitizedPhotoUrls,
@@ -414,6 +420,16 @@ class FirebaseProfileRepository
             if (favourites != null) 'favourites': favourites.toJson(),
             'latitude': ?latitude,
             'longitude': ?longitude,
+            'preferences': {
+              'hideFromDiscovery': false,
+              'incognitoMode': false,
+              'minAge': 18,
+              'maxAge': 50,
+              'maxDistanceKm': 100,
+              'showMeGenders': showMeGenders ?? ['male', 'female'],
+              'showMyDistance': true,
+              'showMyAge': true,
+            },
             'updatedAt': FieldValue.serverTimestamp(),
           },
           'updatedAt': FieldValue.serverTimestamp(),

@@ -1509,3 +1509,59 @@ Created: 2026-03-11
 Updated: 2026-03-11
 
 ---
+
+### R-061 — Discovery Eligibility Diverged Across App/Web Creation Paths (MITIGATED)
+
+Category: Product / Architecture
+
+Description:
+Newly created users could satisfy the intended minimum appearance conditions and still fail to appear in discovery because signup/profile writes and discovery reads had drifted apart across platforms.
+Web profile creation wrote a flat user shape (`displayName`, `photos`, `location`, `interestedIn`, root completion flags), while mobile/backend discovery primarily evaluated nested `profile.*` fields.
+At the same time, web discovery queried Firestore directly with root-only completion filters, while the mobile app used a backend callable with nested-profile filters. This created a silent exclusion class where:
+- web-created users were invisible to backend/mobile discovery,
+- mobile-created users were invisible to web discovery,
+- discovery exclusions were not explainable from one centralized rule.
+The backend REST discovery deck also depended on `profile.isComplete`, which was not the canonical completion signal for newly created accounts.
+
+Impact: High (new-user activation and matching broken across platforms)
+
+Likelihood: Low (after mitigation)
+
+Affected Areas:
+
+- functions/src/index.ts
+- functions/test/discoveryEligibility.test.js
+- functions/test/profileRestValidation.test.js
+- lib/core/schema/user_document_schema.dart
+- lib/features/auth/data/repositories/impl/firebase_auth_repository.dart
+- lib/features/profile/data/repositories/impl/firebase_profile_repository.dart
+- test/core/schema/user_document_schema_test.dart
+- ../crush-web/packages/core/src/services/match.ts
+- ../crush-web/packages/core/src/services/user.ts
+- ../crush-web/packages/core/src/services/user_document.ts
+- ../crush-web/packages/core/src/services/discovery_rest.ts
+- ../crush-web/apps/web/src/lib/__tests__/discovery-schema.test.ts
+
+Mitigation Plan:
+
+- Keep one canonical backend discovery pipeline (`buildDiscoveryDeckPayload`) for both app and web clients.
+- Keep one centralized eligibility evaluator (`buildDiscoveryUserSnapshot` + `evaluateDiscoveryEligibility`) that accepts both nested and legacy-flat user documents.
+- Keep explicit exclusion-stage diagnostics (`relationship`, `eligibility`, `filter`) via `evaluateDiscoveryCandidateForRequester` and requester-facing `requester_status` / `getMyDiscoveryStatus` outputs.
+- Mirror new web writes into canonical nested `profile.*` fields while preserving read compatibility for existing flat web documents during migration.
+- Preserve root onboarding/profile flags on mobile writes so old readers and analytics continue to observe the expected lifecycle markers.
+- Keep focused backend, Flutter schema, and web helper regression coverage green for flat-web ↔ nested-mobile discovery compatibility.
+
+Rollout Update (2026-03-13):
+
+- `fetchDiscoveryCandidates`, `api`, and `getMyDiscoveryStatus` are deployed in `crush-265f7`.
+- Live synthetic validation against the production discovery deck confirmed an eligible legacy-flat web-shaped profile and an eligible canonical-nested mobile-shaped profile are mutually discoverable, and the temporary Firestore docs/auth accounts were deleted after the check.
+- The remaining rollout gap is the production web deployment: direct local `vercel` deployment is blocked by an invalid local token, and the repo's Firebase hosting config still points at missing `apps/web/out`, so web clients may continue using the old discovery path until the pushed `../crush-web` `main` branch deployment is confirmed.
+
+Status: Partially Mitigated (2026-03-13; backend deployed + live validated, production web deployment confirmation pending)
+
+Owner: AI
+
+Created: 2026-03-13
+Updated: 2026-03-13 (backend rollout validated; web rollout pending confirmation)
+
+---

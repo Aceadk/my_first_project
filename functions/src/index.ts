@@ -918,7 +918,97 @@ const PROFILE_PATCH_ALLOWED_FIELDS = new Set([
   "interests",
 ]);
 
-const ALLOWED_GENDERS = new Set(["men", "women", "everyone"]);
+const CANONICAL_DISCOVERY_GENDERS = [
+  "male",
+  "female",
+  "non_binary",
+  "other",
+] as const;
+const CANONICAL_DISCOVERY_GENDER_SET = new Set(CANONICAL_DISCOVERY_GENDERS);
+const DISCOVERY_GENDER_PREFERENCE_TOKEN_SET = new Set([
+  ...CANONICAL_DISCOVERY_GENDERS,
+  "men",
+  "women",
+  "man",
+  "woman",
+  "non-binary",
+  "nonbinary",
+  "nb",
+  "all",
+  "any",
+  "everyone",
+]);
+
+function normalizeProfileGender(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = stripHtml(value.trim().toLowerCase()).replace(
+    /[\s-]+/g,
+    "_",
+  );
+
+  switch (normalized) {
+    case "male":
+    case "man":
+    case "men":
+      return "male";
+    case "female":
+    case "woman":
+    case "women":
+      return "female";
+    case "non_binary":
+    case "nonbinary":
+    case "nb":
+      return "non_binary";
+    case "other":
+      return "other";
+    default:
+      return null;
+  }
+}
+
+function normalizeDiscoveryPreferenceTokens(value: unknown): string[] {
+  if (typeof value === "string") {
+    return normalizeDiscoveryPreferenceTokens([value]);
+  }
+  if (!Array.isArray(value)) return [];
+
+  const normalized = new Set<string>();
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const token = stripHtml(item.trim().toLowerCase()).replace(/[\s-]+/g, "_");
+    switch (token) {
+      case "male":
+      case "man":
+      case "men":
+        normalized.add("male");
+        break;
+      case "female":
+      case "woman":
+      case "women":
+        normalized.add("female");
+        break;
+      case "non_binary":
+      case "nonbinary":
+      case "nb":
+        normalized.add("non_binary");
+        break;
+      case "other":
+        normalized.add("other");
+        break;
+      case "all":
+      case "any":
+      case "everyone":
+        for (const gender of CANONICAL_DISCOVERY_GENDERS) {
+          normalized.add(gender);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  return Array.from(normalized);
+}
 
 function validateProfilePatchPayload(
   payload: unknown,
@@ -963,15 +1053,11 @@ function validateProfilePatchPayload(
     updates["profile.birthDate"] = normalizedBirthDate;
   }
   if (body.gender !== undefined) {
-    const gender = validateProfileTextField(body.gender, "gender", {
-      maxLength: 32,
-      allowEmpty: false,
-      lowerCase: true,
-    });
-    if (!ALLOWED_GENDERS.has(gender)) {
+    const gender = normalizeProfileGender(body.gender);
+    if (!gender) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        `gender must be one of: ${Array.from(ALLOWED_GENDERS).join(", ")}`,
+        `gender must be one of: ${Array.from(CANONICAL_DISCOVERY_GENDER_SET).join(", ")}`,
       );
     }
     updates["profile.gender"] = gender;
@@ -1083,28 +1169,30 @@ function validateShowMeGenders(value: unknown): string[] {
     );
   }
 
-  return value.map((item) => {
-    if (typeof item !== "string") {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "showMeGenders entries must be strings.",
-      );
-    }
-    const normalized = stripHtml(item.trim().toLowerCase());
-    if (!normalized) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "showMeGenders entries cannot be empty.",
-      );
-    }
-    if (!ALLOWED_GENDERS.has(normalized)) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        `showMeGenders entries must be one of: ${Array.from(ALLOWED_GENDERS).join(", ")}`,
-      );
-    }
-    return normalized;
-  });
+  return value
+    .map((item) => {
+      if (typeof item !== "string") {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "showMeGenders entries must be strings.",
+        );
+      }
+      const normalized = stripHtml(item.trim().toLowerCase());
+      if (!normalized) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "showMeGenders entries cannot be empty.",
+        );
+      }
+      if (!DISCOVERY_GENDER_PREFERENCE_TOKEN_SET.has(normalized)) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "showMeGenders entries must be canonical discovery genders or men/women/everyone aliases.",
+        );
+      }
+      return normalized;
+    })
+    .flatMap((token) => normalizeDiscoveryPreferenceTokens([token]));
 }
 
 function validateProfilePreferencesPayload(
@@ -1201,13 +1289,17 @@ function validateProfilePreferencesPayload(
       "genderPreference",
       { maxLength: 30, allowEmpty: false, lowerCase: true },
     );
-    if (!ALLOWED_GENDERS.has(value)) {
+    if (!DISCOVERY_GENDER_PREFERENCE_TOKEN_SET.has(value)) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        `genderPreference must be one of: ${Array.from(ALLOWED_GENDERS).join(", ")}`,
+        "genderPreference must be a canonical discovery gender or men/women/everyone alias.",
       );
     }
-    normalized.genderPreference = value;
+    const normalizedTokens = normalizeDiscoveryPreferenceTokens([value]);
+    normalized.genderPreference =
+      normalizedTokens.length === CANONICAL_DISCOVERY_GENDERS.length
+        ? "everyone"
+        : normalizedTokens[0] ?? "everyone";
   }
 
   if (Object.keys(normalized).length === 0) {
@@ -1859,6 +1951,726 @@ function profilePromptAnswers(profile: Record<string, unknown>): string[] {
     }
   }
   return toStringArray(profile.prompts);
+}
+
+type DiscoveryDebugStage =
+  | "schema"
+  | "eligibility"
+  | "relationship"
+  | "filter";
+
+interface DiscoveryDebugReason {
+  code: string;
+  stage: DiscoveryDebugStage;
+  message: string;
+}
+
+type DiscoverySourceSchema = "canonical_nested" | "legacy_flat" | "hybrid";
+
+interface DiscoveryPreferenceSnapshot {
+  minAge: number;
+  maxAge: number;
+  maxDistanceKm: number;
+  showMeGenders: string[];
+  hideFromDiscovery: boolean;
+  incognitoMode: boolean;
+}
+
+interface DiscoveryUserSnapshot {
+  id: string;
+  sourceSchema: DiscoverySourceSchema;
+  username: string | null;
+  name: string;
+  bio: string;
+  age: number | null;
+  birthDateIso: string | null;
+  gender: string | null;
+  photoUrls: string[];
+  interests: string[];
+  prompts: string[];
+  isVerified: boolean;
+  city: string;
+  country: string;
+  latitude: number | null;
+  longitude: number | null;
+  preferences: DiscoveryPreferenceSnapshot;
+  onboardingComplete: boolean;
+  profileComplete: boolean;
+  status: string | null;
+  moderationStatus: string | null;
+  updatedAtMs: number | null;
+  lastActiveMs: number | null;
+}
+
+interface DiscoveryEligibilityResult {
+  eligible: boolean;
+  reasons: DiscoveryDebugReason[];
+}
+
+interface DiscoveryCandidateEvaluationResult {
+  included: boolean;
+  reasons: DiscoveryDebugReason[];
+  distanceKm?: number;
+  score?: number;
+}
+
+interface DiscoveryExclusionSets {
+  blockedByMe: Set<string>;
+  blockedMe: Set<string>;
+  swiped: Set<string>;
+  liked: Set<string>;
+  matched: Set<string>;
+  combined: Set<string>;
+}
+
+function normalizeTimestampMillis(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  if (value instanceof Date) {
+    const parsed = value.getTime();
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    const parsed = (value as { toDate: () => Date }).toDate().getTime();
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "_seconds" in value &&
+    typeof (value as { _seconds?: unknown })._seconds === "number"
+  ) {
+    const seconds = (value as { _seconds: number })._seconds;
+    const firestoreTimestamp = value as {
+      _nanoseconds?: unknown;
+    };
+    const nanos =
+      typeof firestoreTimestamp._nanoseconds === "number"
+        ? firestoreTimestamp._nanoseconds
+        : 0;
+    return seconds * 1000 + Math.floor(nanos / 1000000);
+  }
+  return null;
+}
+
+function buildDiscoveryReasons(
+  reasons: Array<DiscoveryDebugReason | null | undefined>,
+): DiscoveryDebugReason[] {
+  return reasons.filter((reason): reason is DiscoveryDebugReason =>
+    Boolean(reason),
+  );
+}
+
+function toNonEmptyString(value: unknown): string {
+  return typeof value === "string" ? stripHtml(value.trim()) : "";
+}
+
+function inferDiscoverySourceSchema(
+  userData: Record<string, unknown>,
+  profile: Record<string, unknown>,
+): DiscoverySourceSchema {
+  const hasNestedProfile = Object.keys(profile).length > 0;
+  const hasLegacyFlatProfileFields =
+    typeof userData.displayName === "string" ||
+    typeof userData.gender === "string" ||
+    Array.isArray(userData.photos) ||
+    userData.location !== undefined;
+  if (hasNestedProfile && hasLegacyFlatProfileFields) {
+    return "hybrid";
+  }
+  if (hasNestedProfile) {
+    return "canonical_nested";
+  }
+  return "legacy_flat";
+}
+
+function buildDiscoveryPreferenceSnapshot(
+  userData: Record<string, unknown>,
+  profile: Record<string, unknown>,
+  options: CanonicalProfilePreferencesOptions = {},
+): DiscoveryPreferenceSnapshot {
+  const canonicalPreferences = getCanonicalProfilePreferences(userData, options);
+  const settings = asRecord(userData.settings);
+  const explicitShowMeGenders = normalizeDiscoveryPreferenceTokens(
+    canonicalPreferences.showMeGenders,
+  );
+  const legacyInterestedIn = normalizeDiscoveryPreferenceTokens(
+    userData.interestedIn,
+  );
+  const showMeGenders =
+    explicitShowMeGenders.length > 0
+      ? explicitShowMeGenders
+      : legacyInterestedIn.length > 0
+        ? legacyInterestedIn
+        : [...CANONICAL_DISCOVERY_GENDERS];
+
+  const minAge = Math.max(
+    18,
+    Math.round(
+      toNumber(canonicalPreferences.minAge) ??
+        toNumber(settings.ageRangeMin) ??
+        18,
+    ),
+  );
+  const maxAge = Math.min(
+    100,
+    Math.round(
+      toNumber(canonicalPreferences.maxAge) ??
+        toNumber(settings.ageRangeMax) ??
+        100,
+    ),
+  );
+  const maxDistanceKm = Math.max(
+    1,
+    Math.round(
+      toNumber(canonicalPreferences.maxDistanceKm) ??
+        toNumber(settings.maxDistance) ??
+        100,
+    ),
+  );
+  const hideFromDiscovery =
+    canonicalPreferences.hideFromDiscovery === true ||
+    settings.showInDiscovery === false;
+  const incognitoMode =
+    canonicalPreferences.incognitoMode === true ||
+    settings.incognitoMode === true;
+
+  return {
+    minAge: Math.min(minAge, maxAge),
+    maxAge: Math.max(minAge, maxAge),
+    maxDistanceKm,
+    showMeGenders,
+    hideFromDiscovery,
+    incognitoMode,
+  };
+}
+
+function buildDiscoveryUserSnapshot(
+  uid: string,
+  userData: Record<string, unknown>,
+  options: CanonicalProfilePreferencesOptions = {},
+): DiscoveryUserSnapshot {
+  const profile = asRecord(userData.profile);
+  const location = asRecord(userData.location);
+  const mergedProfile = { ...profile };
+
+  if (!mergedProfile.name && typeof userData.displayName === "string") {
+    mergedProfile.name = userData.displayName;
+  }
+  if (mergedProfile.birthDate === undefined && userData.birthDate !== undefined) {
+    mergedProfile.birthDate = userData.birthDate;
+  }
+  if (mergedProfile.age === undefined && userData.age !== undefined) {
+    mergedProfile.age = userData.age;
+  }
+  if (mergedProfile.gender === undefined && userData.gender !== undefined) {
+    mergedProfile.gender = userData.gender;
+  }
+  if (mergedProfile.bio === undefined && userData.bio !== undefined) {
+    mergedProfile.bio = userData.bio;
+  }
+  if (mergedProfile.interests === undefined && userData.interests !== undefined) {
+    mergedProfile.interests = userData.interests;
+  }
+  if (mergedProfile.photoUrls === undefined && userData.photos !== undefined) {
+    mergedProfile.photoUrls = userData.photos;
+  }
+  if (mergedProfile.latitude === undefined && location.latitude !== undefined) {
+    mergedProfile.latitude = location.latitude;
+  }
+  if (
+    mergedProfile.longitude === undefined &&
+    location.longitude !== undefined
+  ) {
+    mergedProfile.longitude = location.longitude;
+  }
+  if (mergedProfile.city === undefined && location.city !== undefined) {
+    mergedProfile.city = location.city;
+  }
+  if (mergedProfile.country === undefined && location.country !== undefined) {
+    mergedProfile.country = location.country;
+  }
+
+  const photoUrls = toStringArray(mergedProfile.photoUrls);
+  const fallbackPrimaryPhoto = toNonEmptyString(userData.profilePhotoUrl);
+  if (photoUrls.length === 0 && fallbackPrimaryPhoto) {
+    photoUrls.push(fallbackPrimaryPhoto);
+  }
+
+  const preferences = buildDiscoveryPreferenceSnapshot(
+    userData,
+    mergedProfile,
+    options,
+  );
+  const moderation = asRecord(userData.moderation);
+
+  return {
+    id: uid,
+    sourceSchema: inferDiscoverySourceSchema(userData, profile),
+    username:
+      toNonEmptyString(userData.username) ||
+      toNonEmptyString(userData.usernameLower) ||
+      null,
+    name:
+      toNonEmptyString(mergedProfile.name) ||
+      toNonEmptyString(mergedProfile.displayName) ||
+      "",
+    bio: toNonEmptyString(mergedProfile.bio),
+    age: deriveProfileAge(mergedProfile),
+    birthDateIso: profileBirthDateIso(mergedProfile),
+    gender: normalizeProfileGender(mergedProfile.gender),
+    photoUrls,
+    interests: toStringArray(mergedProfile.interests),
+    prompts: profilePromptAnswers(mergedProfile),
+    isVerified:
+      mergedProfile.isVerified === true ||
+      mergedProfile.verificationBadge === true ||
+      userData.isVerified === true ||
+      userData.idVerified === true,
+    city: toNonEmptyString(mergedProfile.city),
+    country: toNonEmptyString(mergedProfile.country),
+    latitude: toNumber(mergedProfile.latitude) ?? null,
+    longitude: toNumber(mergedProfile.longitude) ?? null,
+    preferences,
+    onboardingComplete: userData.onboardingComplete === true,
+    profileComplete: userData.profileComplete === true,
+    status: toNonEmptyString(userData.status).toLowerCase() || null,
+    moderationStatus:
+      toNonEmptyString(moderation.status || userData.moderationStatus)
+        .toLowerCase() || null,
+    updatedAtMs:
+      normalizeTimestampMillis(userData.updatedAt) ??
+      normalizeTimestampMillis(userData.createdAt),
+    lastActiveMs:
+      normalizeTimestampMillis(userData.lastActive) ??
+      normalizeTimestampMillis(userData.updatedAt) ??
+      normalizeTimestampMillis(userData.createdAt),
+  };
+}
+
+function evaluateDiscoveryEligibility(
+  user: DiscoveryUserSnapshot,
+): DiscoveryEligibilityResult {
+  const reasons = buildDiscoveryReasons([
+    !user.name
+      ? {
+          code: "missing_name",
+          stage: "eligibility",
+          message: "Profile name is missing.",
+        }
+      : null,
+    user.age === null || user.age < MIN_AGE_YEARS
+      ? {
+          code: "missing_or_invalid_age",
+          stage: "eligibility",
+          message: "A valid adult birth date or age is required.",
+        }
+      : null,
+    !user.gender
+      ? {
+          code: "missing_gender",
+          stage: "eligibility",
+          message: "Gender is required for discovery.",
+        }
+      : null,
+    user.photoUrls.length === 0
+      ? {
+          code: "missing_photos",
+          stage: "eligibility",
+          message: "At least one photo is required for discovery.",
+        }
+      : null,
+    user.preferences.showMeGenders.length === 0
+      ? {
+          code: "missing_preferences",
+          stage: "eligibility",
+          message: "Discovery preferences are missing.",
+        }
+      : null,
+    user.preferences.hideFromDiscovery
+      ? {
+          code: "hidden_from_discovery",
+          stage: "eligibility",
+          message: "The profile is hidden from discovery.",
+        }
+      : null,
+    user.preferences.incognitoMode
+      ? {
+          code: "incognito_mode_enabled",
+          stage: "eligibility",
+          message: "The profile is in incognito mode.",
+        }
+      : null,
+    user.status === "deactivated" ||
+    user.status === "pending" ||
+    user.status === "disabled" ||
+    user.status === "deleted" ||
+    user.status === "banned"
+      ? {
+          code: "account_not_active",
+          stage: "eligibility",
+          message: `Account status ${user.status} prevents discovery.`,
+        }
+      : null,
+    user.moderationStatus === "held" ||
+    user.moderationStatus === "needs_review" ||
+    user.moderationStatus === "banned"
+      ? {
+          code: "moderation_hold",
+          stage: "eligibility",
+          message:
+            "Moderation state prevents the profile from appearing in discovery.",
+        }
+      : null,
+  ]);
+
+  return {
+    eligible: reasons.length === 0,
+    reasons,
+  };
+}
+
+function buildDiscoveryDebugSummary(user: DiscoveryUserSnapshot): Record<string, unknown> {
+  return {
+    sourceSchema: user.sourceSchema,
+    username: user.username,
+    name: user.name,
+    age: user.age,
+    birthDateIso: user.birthDateIso,
+    gender: user.gender,
+    photoCount: user.photoUrls.length,
+    interestsCount: user.interests.length,
+    city: user.city,
+    country: user.country,
+    onboardingComplete: user.onboardingComplete,
+    profileComplete: user.profileComplete,
+    status: user.status,
+    moderationStatus: user.moderationStatus,
+    preferences: user.preferences,
+    updatedAtMs: user.updatedAtMs,
+    lastActiveMs: user.lastActiveMs,
+  };
+}
+
+function recentDiscoveryBoost(updatedAtMs: number | null): number {
+  if (updatedAtMs === null) return 0;
+  const hoursOld = Math.max(0, (Date.now() - updatedAtMs) / (1000 * 60 * 60));
+  if (hoursOld <= 1) return 0.4;
+  if (hoursOld <= 24) return 0.25;
+  if (hoursOld <= 72) return 0.1;
+  return 0;
+}
+
+function buildDiscoveryProfileResponse(
+  user: DiscoveryUserSnapshot,
+  score: number,
+  distanceKm: number | undefined,
+): Record<string, unknown> {
+  return {
+    id: user.id,
+    userId: user.id,
+    username: user.username,
+    name: user.name,
+    age: user.age,
+    gender: user.gender,
+    bio: user.bio,
+    photoUrls: user.photoUrls,
+    interests: user.interests,
+    prompts: user.prompts,
+    country: user.country,
+    city: user.city,
+    latitude: user.latitude,
+    longitude: user.longitude,
+    isVerified: user.isVerified,
+    distanceKm,
+    score,
+    sourceSchema: user.sourceSchema,
+  };
+}
+
+function evaluateDiscoveryCandidateForRequester(params: {
+  requester: DiscoveryUserSnapshot;
+  candidate: DiscoveryUserSnapshot;
+  request: DiscoveryRequest;
+  exclusionSets: DiscoveryExclusionSets;
+}): DiscoveryCandidateEvaluationResult {
+  const { requester, candidate, request, exclusionSets } = params;
+
+  if (candidate.id === requester.id) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "self_excluded",
+          stage: "relationship",
+          message: "The current user is excluded from their own discovery deck.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.blockedByMe.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "blocked_by_requester",
+          stage: "relationship",
+          message: "The requester has blocked this profile.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.blockedMe.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "blocked_requester",
+          stage: "relationship",
+          message: "This profile has blocked the requester.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.matched.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "already_matched",
+          stage: "relationship",
+          message: "This profile is already matched with the requester.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.liked.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "already_liked",
+          stage: "relationship",
+          message: "The requester has already liked this profile.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.swiped.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "already_swiped",
+          stage: "relationship",
+          message: "The requester has already swiped on this profile.",
+        },
+      ],
+    };
+  }
+
+  const eligibility = evaluateDiscoveryEligibility(candidate);
+  if (!eligibility.eligible) {
+    return {
+      included: false,
+      reasons: eligibility.reasons,
+    };
+  }
+
+  const requestedShowMeGenders = normalizeDiscoveryPreferenceTokens(
+    request.showMeGenders,
+  );
+  const showMeGenders =
+    requestedShowMeGenders.length > 0
+      ? requestedShowMeGenders
+      : requester.preferences.showMeGenders;
+  if (
+    showMeGenders.length > 0 &&
+    (!candidate.gender || !showMeGenders.includes(candidate.gender))
+  ) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "gender_filtered",
+          stage: "filter",
+          message: "The candidate does not match the requester's gender filter.",
+        },
+      ],
+    };
+  }
+
+  const minAge = Math.max(
+    18,
+    Math.round(toNumber(request.minAge) ?? requester.preferences.minAge),
+  );
+  const maxAge = Math.min(
+    100,
+    Math.round(toNumber(request.maxAge) ?? requester.preferences.maxAge),
+  );
+  if (
+    candidate.age === null ||
+    candidate.age < minAge ||
+    candidate.age > maxAge
+  ) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "age_filtered",
+          stage: "filter",
+          message: "The candidate does not match the requester's age range.",
+        },
+      ],
+    };
+  }
+
+  const requirePhotos = request.requirePhotos === true;
+  if (requirePhotos && candidate.photoUrls.length === 0) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "photos_required",
+          stage: "filter",
+          message: "The candidate is missing photos required by the request.",
+        },
+      ],
+    };
+  }
+
+  const requireVerified = request.requireVerified === true;
+  if (requireVerified && !candidate.isVerified) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "verification_required",
+          stage: "filter",
+          message: "The candidate is not verified.",
+        },
+      ],
+    };
+  }
+
+  const requiredInterests = new Set(
+    toStringArray(request.interests).map((interest) => interest.toLowerCase()),
+  );
+  if (requiredInterests.size > 0) {
+    const candidateInterests = candidate.interests.map((interest) =>
+      interest.toLowerCase(),
+    );
+    const hasSharedInterest = candidateInterests.some((interest) =>
+      requiredInterests.has(interest),
+    );
+    if (!hasSharedInterest) {
+      return {
+        included: false,
+        reasons: [
+          {
+            code: "interest_filtered",
+            stage: "filter",
+            message:
+              "The candidate does not share any interests required by the request.",
+          },
+        ],
+      };
+    }
+  }
+
+  const maxDistanceKm = Math.max(
+    1,
+    Math.round(
+      toNumber(request.maxDistanceKm) ?? requester.preferences.maxDistanceKm,
+    ),
+  );
+  const myLat =
+    toNumber(request.latitude) ??
+    (requester.latitude === null ? undefined : requester.latitude);
+  const myLon =
+    toNumber(request.longitude) ??
+    (requester.longitude === null ? undefined : requester.longitude);
+  const distanceKm = haversineDistanceKm(
+    myLat,
+    myLon,
+    candidate.latitude === null ? undefined : candidate.latitude,
+    candidate.longitude === null ? undefined : candidate.longitude,
+  );
+  let noLocationPenalty = 0;
+
+  if (distanceKm !== undefined && distanceKm > maxDistanceKm + 5) {
+    if (distanceKm > maxDistanceKm * 2) {
+      return {
+        included: false,
+        reasons: [
+          {
+            code: "distance_filtered",
+            stage: "filter",
+            message:
+              "The candidate is outside the requester's discovery distance.",
+          },
+        ],
+      };
+    }
+    noLocationPenalty = 0.3;
+  }
+
+  if (candidate.latitude === null || candidate.longitude === null) {
+    if (
+      myLat !== null &&
+      myLat !== undefined &&
+      myLon !== null &&
+      myLon !== undefined &&
+      requester.country &&
+      candidate.country &&
+      candidate.country !== requester.country
+    ) {
+      noLocationPenalty = 0.4;
+    } else if (!candidate.country && !requester.country) {
+      noLocationPenalty = 0.2;
+    } else {
+      noLocationPenalty = 0.15;
+    }
+  }
+
+  const requesterInterests = new Set(
+    requester.interests.map((interest) => interest.toLowerCase()),
+  );
+  const sharedInterests = candidate.interests.filter((interest) =>
+    requesterInterests.has(interest.toLowerCase()),
+  ).length;
+  const verifiedBoost = candidate.isVerified ? 0.4 : 0;
+  const distanceBoost =
+    distanceKm !== undefined && maxDistanceKm > 0
+      ? Math.max(0, (maxDistanceKm - distanceKm) / maxDistanceKm)
+      : 0.1;
+  const interestBoost = Math.min(sharedInterests * 0.05, 0.25);
+  const recencyBoost = recentDiscoveryBoost(
+    candidate.updatedAtMs ?? candidate.lastActiveMs,
+  );
+
+  return {
+    included: true,
+    reasons: [],
+    distanceKm,
+    score:
+      1 +
+      verifiedBoost +
+      distanceBoost +
+      interestBoost +
+      recencyBoost -
+      noLocationPenalty,
+  };
 }
 // OTP secret is required - never fall back to a predictable value
 const getOtpSecretChecked = () => {
@@ -3820,6 +4632,15 @@ type ProfileData = {
 
 interface DiscoveryRequest {
   limit?: number;
+  minAge?: number;
+  maxAge?: number;
+  maxDistanceKm?: number;
+  showMeGenders?: string[];
+  interests?: string[];
+  requirePhotos?: boolean;
+  requireVerified?: boolean;
+  latitude?: number;
+  longitude?: number;
 }
 
 type ModerationDecision =
@@ -5133,19 +5954,70 @@ async function ensureNotBlocked(uid: string, targetUserId: string) {
   }
 }
 
-async function blockedUserIds(uid: string): Promise<Set<string>> {
-  const snap = await db
-    .collection("blocks")
-    .where("blockerId", "==", uid)
-    .get();
-  const ids = new Set<string>();
-  snap.forEach((doc) => {
+async function getDiscoveryExclusionSets(
+  uid: string,
+): Promise<DiscoveryExclusionSets> {
+  const [blockedByMeSnap, blockedMeSnap, likesSnap, swipesSnap, matchesSnap] =
+    await Promise.all([
+      db.collection("blocks").where("blockerId", "==", uid).get(),
+      db.collection("blocks").where("blockedId", "==", uid).get(),
+      db.collection("likes").where("fromUserId", "==", uid).limit(1000).get(),
+      db.collection("swipes").where("swiperId", "==", uid).limit(1000).get(),
+      db.collection("matches").where("userIds", "array-contains", uid).get(),
+    ]);
+
+  const blockedByMe = new Set<string>();
+  blockedByMeSnap.forEach((doc) => {
+    const blockedId = optionalString(doc.data().blockedId);
+    if (blockedId) blockedByMe.add(blockedId);
+  });
+
+  const blockedMe = new Set<string>();
+  blockedMeSnap.forEach((doc) => {
+    const blockerId = optionalString(doc.data().blockerId);
+    if (blockerId) blockedMe.add(blockerId);
+  });
+
+  const liked = new Set<string>();
+  likesSnap.forEach((doc) => {
+    const targetId = optionalString(doc.data().toUserId);
+    if (targetId) liked.add(targetId);
+  });
+
+  const swiped = new Set<string>();
+  swipesSnap.forEach((doc) => {
     const data = doc.data();
-    if (typeof data.blockedId === "string") {
-      ids.add(data.blockedId);
+    const targetId = optionalString(data.targetId) ?? optionalString(data.swipedUserId);
+    if (targetId) swiped.add(targetId);
+  });
+
+  const matched = new Set<string>();
+  matchesSnap.forEach((doc) => {
+    const userIds = Array.isArray(doc.data().userIds) ? doc.data().userIds : [];
+    for (const otherId of userIds) {
+      if (typeof otherId === "string" && otherId && otherId !== uid) {
+        matched.add(otherId);
+      }
     }
   });
-  return ids;
+
+  const combined = new Set<string>([
+    uid,
+    ...blockedByMe,
+    ...blockedMe,
+    ...liked,
+    ...swiped,
+    ...matched,
+  ]);
+
+  return {
+    blockedByMe,
+    blockedMe,
+    swiped,
+    liked,
+    matched,
+    combined,
+  };
 }
 
 function setCorsHeaders(res: functions.Response, req?: functions.Request) {
@@ -6227,201 +7099,180 @@ export const onSubscriptionUpdated = functions.firestore
     });
   });
 
+async function buildDiscoveryDeckPayload(params: {
+  uid: string;
+  request: DiscoveryRequest;
+  source: string;
+}): Promise<Record<string, unknown>> {
+  const limitRaw =
+    typeof params.request.limit === "number" ? params.request.limit : 30;
+  const limit = Math.min(Math.max(limitRaw, 5), 50);
+
+  const me = await getUser(params.uid);
+  const meSnapshot = buildDiscoveryUserSnapshot(
+    params.uid,
+    me as Record<string, unknown>,
+    {
+      uid: params.uid,
+      source: params.source,
+    },
+  );
+  const requesterStatus = evaluateDiscoveryEligibility(meSnapshot);
+  const exclusionSets = await getDiscoveryExclusionSets(params.uid);
+
+  const requestedShowMeGenders = normalizeDiscoveryPreferenceTokens(
+    params.request.showMeGenders,
+  );
+  const showMeGenders =
+    requestedShowMeGenders.length > 0
+      ? requestedShowMeGenders
+      : meSnapshot.preferences.showMeGenders;
+  const minAge = Math.max(
+    18,
+    Math.round(
+      toNumber(params.request.minAge) ?? meSnapshot.preferences.minAge,
+    ),
+  );
+  const maxAge = Math.min(
+    100,
+    Math.round(
+      toNumber(params.request.maxAge) ?? meSnapshot.preferences.maxAge,
+    ),
+  );
+  const maxDistanceKm = Math.max(
+    1,
+    Math.round(
+      toNumber(params.request.maxDistanceKm) ??
+        meSnapshot.preferences.maxDistanceKm,
+    ),
+  );
+  const requiredInterests = new Set(
+    toStringArray(params.request.interests).map((interest) =>
+      interest.toLowerCase(),
+    ),
+  );
+  const requireVerified = params.request.requireVerified === true;
+
+  const myLat = toNumber(params.request.latitude) ?? meSnapshot.latitude;
+  const myLon = toNumber(params.request.longitude) ?? meSnapshot.longitude;
+
+  const queryLimit = Math.max(DISCOVERY_PAGE_SIZE * 2, limit * 8);
+
+  let snap: FirebaseFirestore.QuerySnapshot;
+  try {
+    snap = await db
+      .collection("users")
+      .orderBy("updatedAt", "desc")
+      .limit(queryLimit)
+      .get();
+  } catch (err) {
+    console.warn("discovery_query_order_fallback", {
+      uid: params.uid,
+      source: params.source,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    try {
+      snap = await db
+        .collection("users")
+        .orderBy("createdAt", "desc")
+        .limit(queryLimit)
+        .get();
+    } catch {
+      snap = await db.collection("users").limit(queryLimit).get();
+    }
+  }
+
+  const candidates: Array<{
+    user: DiscoveryUserSnapshot;
+    score: number;
+    distanceKm?: number;
+  }> = [];
+
+  snap.forEach((doc) => {
+    if (exclusionSets.combined.has(doc.id)) return;
+
+    const candidate = buildDiscoveryUserSnapshot(
+      doc.id,
+      doc.data() as Record<string, unknown>,
+    );
+    const evaluation = evaluateDiscoveryCandidateForRequester({
+      requester: meSnapshot,
+      candidate,
+      request: {
+        ...params.request,
+        minAge,
+        maxAge,
+        maxDistanceKm,
+        showMeGenders,
+        interests: Array.from(requiredInterests),
+        requireVerified,
+      },
+      exclusionSets,
+    });
+    if (!evaluation.included) return;
+
+    candidates.push({
+      user: candidate,
+      score: evaluation.score ?? 0,
+      distanceKm: evaluation.distanceKm,
+    });
+  });
+
+  candidates.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const bTime = b.user.updatedAtMs ?? b.user.lastActiveMs ?? 0;
+    const aTime = a.user.updatedAtMs ?? a.user.lastActiveMs ?? 0;
+    return bTime - aTime;
+  });
+
+  return {
+    candidates: candidates
+      .slice(0, limit)
+      .map((candidate) =>
+        buildDiscoveryProfileResponse(
+          candidate.user,
+          candidate.score,
+          candidate.distanceKm,
+        ),
+      ),
+    total: candidates.length,
+    requesterStatus: {
+      eligible: requesterStatus.eligible,
+      reasons: requesterStatus.reasons,
+      summary: buildDiscoveryDebugSummary(meSnapshot),
+    },
+  };
+}
+
 export const fetchDiscoveryCandidates = callable<DiscoveryRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "fetch discovery candidates");
-    // Email verification is enforced by the Flutter routing layer.
-    // Don't block discovery browsing here — let unverified users browse
-    // to improve engagement and allow testing with new accounts.
-    const limitRaw = typeof data?.limit === "number" ? data.limit : 30;
-    const limit = Math.min(Math.max(limitRaw, 5), 50);
-
-    const me = await getUser(uid);
-    const profile = (me.profile as ProfileData | null) ?? null;
-    // Don't enforce profile quality for browsing - let users discover others
-    // even if their own profile is incomplete. This encourages engagement.
-    // ensureProfileQuality(profile, "browsing");
-
-    const prefs =
-      (profile?.preferences as Record<string, unknown> | undefined) ?? {};
-    const maxDistanceKm =
-      toNumber(prefs.maxDistanceKm) !== undefined
-        ? (toNumber(prefs.maxDistanceKm) as number)
-        : 100; // Increased default from 50 to 100km
-    const minAge = toNumber(prefs.minAge) ?? 18;
-    const maxAge = toNumber(prefs.maxAge) ?? 100;
-    const showMeGenders = toStringArray(prefs.showMeGenders);
-
-    const myLat = toNumber(profile?.latitude);
-    const myLon = toNumber(profile?.longitude);
-    const myCountry =
-      typeof profile?.country === "string" ? profile?.country : "";
-    const myInterests = new Set(toStringArray(profile?.interests));
-
-    const blockedIds = await blockedUserIds(uid);
-
-    // Build query - don't filter by country or other strict criteria
-    // to ensure all users can see each other during early app stages
-    let query: FirebaseFirestore.Query = db
-      .collection("users")
-      .limit(DISCOVERY_PAGE_SIZE);
-
-    // Handle showMeGenders filter - skip filter for 'All', 'everyone', or empty
-    // This allows users to see all genders when they haven't set a preference
-    const skipGenderFilter =
-      showMeGenders.length === 0 ||
-      showMeGenders.some((g) =>
-        ["all", "everyone", "any"].includes(g.toLowerCase()),
-      );
-
-    if (!skipGenderFilter && showMeGenders.length <= 10) {
-      query = query.where("profile.gender", "in", showMeGenders);
-    }
-    // REMOVED: Country filter was too strict and prevented discovery
-    // Users from different countries can still be discovered, just with lower priority
-
-    let snap: FirebaseFirestore.QuerySnapshot;
-    try {
-      snap = await query.get();
-    } catch (err) {
-      // Fallback to broader query if filters fail
-      snap = await db.collection("users").limit(DISCOVERY_PAGE_SIZE).get();
-    }
-
-    const candidates: Array<{
-      id: string;
-      profile: ProfileData;
-      username?: string;
-      score: number;
-      distanceKm?: number;
-      age: number | null;
-    }> = [];
-
-    snap.forEach((doc) => {
-      if (doc.id === uid) return;
-      if (blockedIds.has(doc.id)) return;
-      const data = doc.data() as Record<string, unknown>;
-      // Support both nested profile and flat document structure
-      const candidateProfile =
-        (data.profile as ProfileData | undefined) ??
-        (data.name && data.gender ? (data as unknown as ProfileData) : null);
-      if (!candidateProfile) return;
-      const normalizedProfile = candidateProfile as unknown as Record<
-        string,
-        unknown
-      >;
-
-      // Filter out users who have explicitly opted out of discovery
-      const prefs = candidateProfile.preferences as
-        | Record<string, unknown>
-        | undefined;
-      if (prefs?.hideFromDiscovery === true) return;
-      if (prefs?.incognitoMode === true) return;
-
-      // Get profile completeness info for scoring (but don't exclude incomplete profiles)
-      // Don't filter out incomplete profiles - let all users appear in discovery
-      // Users without photos will just have lower priority in the sorting
-      // This helps new users see that there are people on the app
-
-      const age = deriveProfileAge(normalizedProfile);
-      if (age !== null && (age < minAge || age > maxAge)) return;
-      const lat = toNumber(candidateProfile.latitude);
-      const lon = toNumber(candidateProfile.longitude);
-      const distanceKm = haversineDistanceKm(myLat, myLon, lat, lon);
-
-      // Distance filtering - be lenient for users without location
-      // Users without location should still appear in discovery, just with lower priority
-      let noLocationPenalty = 0;
-      if (distanceKm !== undefined && distanceKm > maxDistanceKm + 5) {
-        // Has location but too far - only exclude if really far (2x distance)
-        if (distanceKm > maxDistanceKm * 2) {
-          return;
-        }
-        // Between maxDistance and 2x maxDistance - keep but penalize score
-        noLocationPenalty = 0.3;
-      }
-
-      // For users without location: use country as soft filter, not hard filter
-      // This ensures new users appear in discovery even without location permission
-      const candCountry =
-        typeof candidateProfile.country === "string"
-          ? candidateProfile.country
-          : "";
-      if (!lat || !lon) {
-        // No location - apply penalty but DON'T exclude
-        // Only exclude if both have different countries AND searching user has location
-        if (
-          myLat &&
-          myLon &&
-          myCountry &&
-          candCountry &&
-          candCountry !== myCountry
-        ) {
-          // Different country and searcher has location - exclude only if really far
-          // For now, include them with penalty to help new users get discovered
-          noLocationPenalty = 0.4;
-        } else if (!candCountry && !myCountry) {
-          // Both have no country info - include with small penalty
-          noLocationPenalty = 0.2;
-        } else {
-          // Same country or missing data - include with small penalty
-          noLocationPenalty = 0.15;
-        }
-      }
-
-      const interests = toStringArray(candidateProfile.interests);
-      const sharedInterests = interests.filter((i) =>
-        myInterests.has(i),
-      ).length;
-      const verifiedBoost =
-        candidateProfile.verificationBadge || candidateProfile.isVerified
-          ? 0.4
-          : 0;
-      const distanceBoost =
-        distanceKm !== undefined && maxDistanceKm > 0
-          ? Math.max(0, (maxDistanceKm - distanceKm) / maxDistanceKm)
-          : 0.1; // Give users without location a small distance boost
-      const interestBoost = Math.min(sharedInterests * 0.05, 0.25);
-      // Apply no-location penalty to score so users with location appear first
-      const baseScore =
-        1 + verifiedBoost + distanceBoost + interestBoost - noLocationPenalty;
-
-      // Get username from user document level (not nested in profile)
-      const username =
-        typeof data.username === "string" ? data.username : undefined;
-
-      candidates.push({
-        id: doc.id,
-        profile: candidateProfile,
-        username,
-        score: baseScore,
-        distanceKm,
-        age,
-      });
+    return buildDiscoveryDeckPayload({
+      uid,
+      request: data ?? {},
+      source: "callable:fetchDiscoveryCandidates",
     });
+  },
+);
 
-    candidates.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+export const getMyDiscoveryStatus = callable<Record<string, never>>(
+  async (_data, context) => {
+    const uid = requireAuth(context, "inspect discovery status");
+    const me = await getUser(uid);
+    const snapshot = buildDiscoveryUserSnapshot(
+      uid,
+      me as Record<string, unknown>,
+      {
+        uid,
+        source: "callable:getMyDiscoveryStatus",
+      },
+    );
+    const eligibility = evaluateDiscoveryEligibility(snapshot);
 
-    const limited = candidates.slice(0, limit);
     return {
-      // Return as 'candidates' with flattened profile data (client expects this format)
-      candidates: limited.map((c) => {
-        const normalizedCandidateProfile = c.profile as unknown as Record<
-          string,
-          unknown
-        >;
-        return {
-          id: c.id,
-          userId: c.id, // Alternative key for compatibility
-          ...c.profile, // Flatten profile fields to top level
-          prompts: profilePromptAnswers(normalizedCandidateProfile),
-          age: c.age,
-          username: c.username, // Username from user document level
-          distanceKm: c.distanceKm,
-          score: c.score,
-        };
-      }),
-      total: candidates.length,
+      eligible: eligibility.eligible,
+      reasons: eligibility.reasons,
+      summary: buildDiscoveryDebugSummary(snapshot),
     };
   },
 );
@@ -7581,6 +8432,13 @@ export const __test__helpers = {
   profileBirthDateIso,
   deriveProfileAge,
   profilePromptAnswers,
+  normalizeProfileGender,
+  normalizeDiscoveryPreferenceTokens,
+  buildDiscoveryUserSnapshot,
+  evaluateDiscoveryEligibility,
+  buildDiscoveryDebugSummary,
+  evaluateDiscoveryCandidateForRequester,
+  buildDiscoveryDeckPayload,
   evaluateProfileCompleteness,
   ensureProfileQuality,
   normalizeGooglePlayPackageName,
@@ -8723,86 +9581,79 @@ app.get(
   rateLimitDiscovery,
   async (req: AuthRequest, res: Response) => {
     try {
-      const userDoc = await db.collection("users").doc(req.uid!).get();
-      const userData = userDoc.data() || {};
-      const preferences = getCanonicalProfilePreferences(userData, {
-        uid: req.uid,
+      const payload = await buildDiscoveryDeckPayload({
+        uid: req.uid!,
         source: "rest:/v1/discovery/deck",
+        request: {
+          limit:
+            typeof req.query.limit === "string"
+              ? Number(req.query.limit)
+              : undefined,
+          minAge:
+            typeof req.query.minAge === "string"
+              ? Number(req.query.minAge)
+              : undefined,
+          maxAge:
+            typeof req.query.maxAge === "string"
+              ? Number(req.query.maxAge)
+              : undefined,
+          maxDistanceKm:
+            typeof req.query.maxDistanceKm === "string"
+              ? Number(req.query.maxDistanceKm)
+              : undefined,
+          showMeGenders:
+            typeof req.query.showMeGenders === "string"
+              ? req.query.showMeGenders.split(",")
+              : undefined,
+          interests:
+            typeof req.query.interests === "string"
+              ? req.query.interests.split(",")
+              : undefined,
+          requirePhotos: req.query.requirePhotos === "true",
+          requireVerified: req.query.requireVerified === "true",
+          latitude:
+            typeof req.query.latitude === "string"
+              ? Number(req.query.latitude)
+              : undefined,
+          longitude:
+            typeof req.query.longitude === "string"
+              ? Number(req.query.longitude)
+              : undefined,
+        },
       });
-
-      // Get users the current user has already swiped on (bounded to last 1000 to prevent memory exhaustion)
-      const swipesSnap = await db
-        .collection("swipes")
-        .where("swiperId", "==", req.uid)
-        .orderBy("createdAt", "desc")
-        .limit(1000)
-        .get();
-      const swipedUserIds = new Set(
-        swipesSnap.docs.map((doc) => doc.data().targetId),
-      );
-      swipedUserIds.add(req.uid!); // Exclude self
-
-      // Query potential matches
-      let query = db
-        .collection("users")
-        .where("profile.isComplete", "==", true)
-        .limit(DISCOVERY_PAGE_SIZE);
-
-      // Apply gender filter if set
-      const explicitGenderPreference =
-        typeof preferences.genderPreference === "string"
-          ? preferences.genderPreference.trim().toLowerCase()
-          : "";
-      const normalizedShowMeGenders = Array.isArray(preferences.showMeGenders)
-        ? (preferences.showMeGenders as unknown[])
-            .filter((value) => typeof value === "string")
-            .map((value) => (value as string).trim().toLowerCase())
-            .filter((value) => value.length > 0 && value !== "all")
+      const candidates = Array.isArray(payload.candidates)
+        ? (payload.candidates as Record<string, unknown>[])
         : [];
-
-      if (explicitGenderPreference && explicitGenderPreference !== "all") {
-        query = query.where("profile.gender", "==", explicitGenderPreference);
-      } else if (normalizedShowMeGenders.length === 1) {
-        query = query.where("profile.gender", "==", normalizedShowMeGenders[0]);
-      } else if (
-        normalizedShowMeGenders.length > 1 &&
-        normalizedShowMeGenders.length <= 10
-      ) {
-        query = query.where("profile.gender", "in", normalizedShowMeGenders);
-      }
-
-      const usersSnap = await query.get();
-
-      const profiles = usersSnap.docs
-        .filter((doc) => !swipedUserIds.has(doc.id))
-        .slice(0, 20) // Limit to 20 for the deck
-        .map((doc) => {
-          const data = doc.data();
-          const profile = data.profile || {};
-          return {
-            id: doc.id,
-            display_name: profile.name || profile.displayName,
-            age: deriveProfileAge(profile as Record<string, unknown>),
-            birth_date: profileBirthDateIso(profile as Record<string, unknown>),
-            bio: profile.bio,
-            city: profile.city,
-            photos: (profile.photoUrls || []).map((url: string, i: number) => ({
-              url,
-              is_primary: i === 0,
-            })),
-            interests: profile.interests || [],
-            prompts: profilePromptAnswers(profile as Record<string, unknown>),
-            is_verified: data.idVerified || false,
-            distance_km: null, // Would calculate based on location
-          };
-        });
+      const profiles = candidates.map((candidate) => ({
+        id: candidate.id,
+        display_name: candidate.name,
+        age: candidate.age,
+        birth_date: null,
+        bio: candidate.bio,
+        city: candidate.city,
+        photos: toStringArray(candidate.photoUrls).map((url, index) => ({
+          url,
+          is_primary: index === 0,
+        })),
+        interests: candidate.interests ?? [],
+        prompts: candidate.prompts ?? [],
+        is_verified: candidate.isVerified === true,
+        distance_km:
+          typeof candidate.distanceKm === "number" ? candidate.distanceKm : null,
+        source_schema: candidate.sourceSchema ?? null,
+      }));
 
       res.json({
         candidates: profiles, // Renamed from 'profiles' to match callable function
         profiles, // Keep for backward compatibility
-        total: profiles.length,
-        total_count: profiles.length, // Keep for backward compatibility
+        total:
+          typeof payload.total === "number" ? payload.total : profiles.length,
+        total_count:
+          typeof payload.total === "number"
+            ? payload.total
+            : profiles.length, // Keep for backward compatibility
         has_more: profiles.length >= 20,
+        requester_status: payload.requesterStatus ?? null,
       });
     } catch (err) {
       console.error("Get deck error:", err);

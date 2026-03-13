@@ -91,5 +91,50 @@ void main() {
       expect(result.shouldPersistMigration, isFalse);
       expect(result.legacyRootKeysToDelete, isEmpty);
     });
+
+    test('canonicalizes flat web profile fields into nested profile data', () {
+      final result = canonicalizeUserDocumentSchema({
+        'displayName': 'Avery Web',
+        'birthDate': '1997-06-15T00:00:00.000Z',
+        'gender': 'female',
+        'photos': ['https://img.example.com/avery.jpg'],
+        'location': {
+          'city': 'Austin',
+          'country': 'US',
+          'latitude': 30.2672,
+          'longitude': -97.7431,
+        },
+        'interestedIn': ['male'],
+        'settings': {
+          'maxDistance': 75,
+          'ageRangeMin': 24,
+          'ageRangeMax': 36,
+          'showDistance': true,
+          'showAge': true,
+          'incognitoMode': false,
+        },
+      });
+
+      final profile =
+          result.canonicalUserData['profile'] as Map<String, dynamic>;
+      final preferences = profile['preferences'] as Map<String, dynamic>;
+
+      expect(profile['name'], 'Avery Web');
+      expect(profile['photoUrls'], ['https://img.example.com/avery.jpg']);
+      expect(profile['city'], 'Austin');
+      expect(profile['country'], 'US');
+      expect(profile['latitude'], 30.2672);
+      expect(profile['longitude'], -97.7431);
+      expect(preferences['showMeGenders'], ['male']);
+      expect(preferences['maxDistanceKm'], 75);
+      expect(preferences['minAge'], 24);
+      expect(preferences['maxAge'], 36);
+      expect(preferences['showMyDistance'], isTrue);
+      expect(preferences['showMyAge'], isTrue);
+      expect(preferences['incognitoMode'], isFalse);
+      expect(result.hasLegacyData, isTrue);
+      expect(result.shouldPersistMigration, isTrue);
+      expect(result.legacyRootKeysToDelete, containsAll(['birthDate', 'gender']));
+    });
   });
 }

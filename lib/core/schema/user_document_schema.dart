@@ -49,6 +49,18 @@ const Map<String, String> kLegacyFlatProfileScalarKeyAliases = {
   'dateOfBirth': 'birthDate',
 };
 
+const Map<String, String> kLegacyWebFlatProfileScalarKeyAliases = {
+  'displayName': 'name',
+  'photos': 'photoUrls',
+};
+
+const Map<String, String> kLegacyWebLocationKeyAliases = {
+  'latitude': 'latitude',
+  'longitude': 'longitude',
+  'city': 'city',
+  'country': 'country',
+};
+
 const List<String> kLegacyFlatProfileObjectKeys = [
   'preferences',
   'privacySettings',
@@ -66,6 +78,8 @@ Map<String, dynamic> _asStringDynamicMap(dynamic value) {
 }
 
 bool _hasMapContent(dynamic value) => _asStringDynamicMap(value).isNotEmpty;
+
+bool _isNonEmptyList(dynamic value) => value is List && value.isNotEmpty;
 
 class UserDocumentCanonicalizationResult {
   const UserDocumentCanonicalizationResult({
@@ -123,6 +137,56 @@ UserDocumentCanonicalizationResult canonicalizeUserDocumentSchema(
     }
   }
 
+  for (final entry in kLegacyWebFlatProfileScalarKeyAliases.entries) {
+    final legacyValue = userData[entry.key];
+    if (legacyValue == null || profile.containsKey(entry.value)) continue;
+    profile[entry.value] = legacyValue;
+    migratedProfileFields = true;
+  }
+
+  final legacyLocation = _asStringDynamicMap(userData['location']);
+  for (final entry in kLegacyWebLocationKeyAliases.entries) {
+    final legacyValue = legacyLocation[entry.key];
+    if (legacyValue == null || profile.containsKey(entry.value)) continue;
+    profile[entry.value] = legacyValue;
+    migratedProfileFields = true;
+  }
+
+  final existingPreferences = _asStringDynamicMap(profile['preferences']);
+  var migratedPreferenceFields = false;
+  final legacyInterestedIn = userData['interestedIn'];
+  if (_isNonEmptyList(legacyInterestedIn) &&
+      !existingPreferences.containsKey('showMeGenders')) {
+    existingPreferences['showMeGenders'] = legacyInterestedIn;
+    migratedPreferenceFields = true;
+  }
+
+  final legacySettings = _asStringDynamicMap(userData['settings']);
+  if (legacySettings.isNotEmpty) {
+    final preferenceAliases = <String, String>{
+      'maxDistance': 'maxDistanceKm',
+      'ageRangeMin': 'minAge',
+      'ageRangeMax': 'maxAge',
+      'showDistance': 'showMyDistance',
+      'showAge': 'showMyAge',
+      'incognitoMode': 'incognitoMode',
+    };
+
+    for (final entry in preferenceAliases.entries) {
+      if (!legacySettings.containsKey(entry.key) ||
+          existingPreferences.containsKey(entry.value)) {
+        continue;
+      }
+      existingPreferences[entry.value] = legacySettings[entry.key];
+      migratedPreferenceFields = true;
+    }
+  }
+
+  if (migratedPreferenceFields) {
+    profile['preferences'] = existingPreferences;
+    migratedProfileFields = true;
+  }
+
   if (profile.containsKey('dateOfBirth')) {
     final legacyNestedDob = profile['dateOfBirth'];
     if (legacyNestedDob != null && !profile.containsKey('birthDate')) {
@@ -139,6 +203,10 @@ UserDocumentCanonicalizationResult canonicalizeUserDocumentSchema(
   final hasLegacyData =
       kLegacyFlatProfileScalarKeys.any(userData.containsKey) ||
       kLegacyFlatProfileObjectKeys.any(userData.containsKey) ||
+      kLegacyWebFlatProfileScalarKeyAliases.keys.any(userData.containsKey) ||
+      userData.containsKey('location') ||
+      userData.containsKey('interestedIn') ||
+      userData.containsKey('settings') ||
       hasLegacyNestedDateOfBirth;
 
   final shouldPersistMigration =

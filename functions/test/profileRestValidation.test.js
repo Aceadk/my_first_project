@@ -170,7 +170,7 @@ describe('profile REST validation helpers', () => {
       incognitoMode: true,
       city: 'Austin',
       country: 'US',
-      genderPreference: 'all',
+      genderPreference: 'everyone',
     });
   });
 

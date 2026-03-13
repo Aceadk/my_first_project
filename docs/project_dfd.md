@@ -1165,3 +1165,5 @@ flowchart TB
 - **2026-03-12 (Store Bootstrap Setup):**
   - App startup now schedules `CrushDI.initializePlatformServices()` after first frame so iOS/Android Firebase and hybrid builds install the shared native billing listeners before paywall/store flows are exercised.
   - The iOS Runner target now records the In-App Purchase capability in the Xcode project; Apple does not generate a dedicated entitlements key for this capability.
+- **2026-03-13 (Discovery Eligibility Centralization):** Web discovery no longer queries Firestore user docs directly for deck candidates; it now calls the same backend discovery deck endpoint used by the app.
+- Backend discovery reads canonical nested profile data with flat-web compatibility fallback, applies centralized relationship/eligibility/filter decisions, and returns requester-side discoverability diagnostics in the response payload.
