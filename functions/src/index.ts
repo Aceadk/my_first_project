@@ -2362,6 +2362,193 @@ function buildDiscoveryDebugSummary(user: DiscoveryUserSnapshot): Record<string,
   };
 }
 
+function sameStringArray(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((value, index) => value === b[index]);
+}
+
+function rootBirthDateIso(userData: Record<string, unknown>): string | null {
+  const millis = normalizeTimestampMillis(userData.birthDate);
+  if (millis === null) return null;
+  return new Date(millis).toISOString();
+}
+
+function normalizedLegacyLocation(
+  value: unknown,
+): {
+  city?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+} | null {
+  const location = asRecord(value);
+  const city = toNonEmptyString(location.city);
+  const country = toNonEmptyString(location.country);
+  const latitude = toNumber(location.latitude) ?? undefined;
+  const longitude = toNumber(location.longitude) ?? undefined;
+  if (!city && !country && latitude === undefined && longitude === undefined) {
+    return null;
+  }
+  return {
+    ...(city ? { city } : {}),
+    ...(country ? { country } : {}),
+    ...(latitude !== undefined ? { latitude } : {}),
+    ...(longitude !== undefined ? { longitude } : {}),
+  };
+}
+
+function sameLegacyLocation(
+  a: ReturnType<typeof normalizedLegacyLocation>,
+  b: ReturnType<typeof normalizedLegacyLocation>,
+): boolean {
+  if (a === null && b === null) return true;
+  if (a === null || b === null) return false;
+  return (
+    a.city === b.city &&
+    a.country === b.country &&
+    a.latitude === b.latitude &&
+    a.longitude === b.longitude
+  );
+}
+
+function buildLegacyDiscoverySettingsPatch(
+  currentValue: unknown,
+  preferences: DiscoveryPreferenceSnapshot,
+): Record<string, unknown> | null {
+  const current = asRecord(currentValue);
+  const desired = {
+    ageRangeMin: preferences.minAge,
+    ageRangeMax: preferences.maxAge,
+    maxDistance: preferences.maxDistanceKm,
+    showInDiscovery: !preferences.hideFromDiscovery,
+    incognitoMode: preferences.incognitoMode,
+  };
+
+  if (
+    toNumber(current.ageRangeMin) === desired.ageRangeMin &&
+    toNumber(current.ageRangeMax) === desired.ageRangeMax &&
+    toNumber(current.maxDistance) === desired.maxDistance &&
+    current.showInDiscovery === desired.showInDiscovery &&
+    current.incognitoMode === desired.incognitoMode
+  ) {
+    return null;
+  }
+
+  return desired;
+}
+
+function buildLegacyDiscoveryMirrorPatch(
+  uid: string,
+  userData: Record<string, unknown>,
+): Record<string, unknown> {
+  const snapshot = buildDiscoveryUserSnapshot(uid, userData);
+  const eligibility = evaluateDiscoveryEligibility(snapshot);
+  const patch: Record<string, unknown> = {};
+
+  if (snapshot.name && snapshot.name !== toNonEmptyString(userData.displayName)) {
+    patch.displayName = snapshot.name;
+  }
+
+  if (snapshot.bio && snapshot.bio !== toNonEmptyString(userData.bio)) {
+    patch.bio = snapshot.bio;
+  }
+
+  if (snapshot.birthDateIso && snapshot.birthDateIso !== rootBirthDateIso(userData)) {
+    patch.birthDate = snapshot.birthDateIso;
+  }
+
+  if (
+    snapshot.age !== null &&
+    Math.round(toNumber(userData.age) ?? Number.NaN) !== snapshot.age
+  ) {
+    patch.age = snapshot.age;
+  }
+
+  if (
+    snapshot.gender &&
+    normalizeProfileGender(userData.gender) !== snapshot.gender
+  ) {
+    patch.gender = snapshot.gender;
+  }
+
+  const currentPhotos = toStringArray(userData.photos);
+  if (
+    snapshot.photoUrls.length > 0 &&
+    !sameStringArray(currentPhotos, snapshot.photoUrls)
+  ) {
+    patch.photos = snapshot.photoUrls;
+  }
+
+  const desiredPrimaryPhoto = snapshot.photoUrls[0];
+  if (
+    desiredPrimaryPhoto &&
+    desiredPrimaryPhoto !== toNonEmptyString(userData.profilePhotoUrl)
+  ) {
+    patch.profilePhotoUrl = desiredPrimaryPhoto;
+  }
+
+  if (
+    snapshot.interests.length > 0 &&
+    !sameStringArray(toStringArray(userData.interests), snapshot.interests)
+  ) {
+    patch.interests = snapshot.interests;
+  }
+
+  if (!sameStringArray(toStringArray(userData.prompts), snapshot.prompts)) {
+    patch.prompts = snapshot.prompts;
+  }
+
+  if (
+    !sameStringArray(
+      normalizeDiscoveryPreferenceTokens(userData.interestedIn),
+      snapshot.preferences.showMeGenders,
+    )
+  ) {
+    patch.interestedIn = snapshot.preferences.showMeGenders;
+  }
+
+  const desiredSettings = buildLegacyDiscoverySettingsPatch(
+    userData.settings,
+    snapshot.preferences,
+  );
+  if (desiredSettings) {
+    patch.settings = desiredSettings;
+  }
+
+  if (userData.isVerified === true !== snapshot.isVerified) {
+    patch.isVerified = snapshot.isVerified;
+  }
+
+  const desiredLocation = normalizedLegacyLocation({
+    city: snapshot.city,
+    country: snapshot.country,
+    latitude: snapshot.latitude,
+    longitude: snapshot.longitude,
+  });
+  const currentLocation = normalizedLegacyLocation(userData.location);
+  if (desiredLocation && !sameLegacyLocation(currentLocation, desiredLocation)) {
+    patch.location = desiredLocation;
+  }
+
+  if (
+    snapshot.lastActiveMs !== null &&
+    normalizeTimestampMillis(userData.lastActive) !== snapshot.lastActiveMs
+  ) {
+    patch.lastActive = admin.firestore.Timestamp.fromMillis(snapshot.lastActiveMs);
+  }
+
+  const legacyDiscoveryReady = eligibility.eligible;
+  if (userData.onboardingComplete !== legacyDiscoveryReady) {
+    patch.onboardingComplete = legacyDiscoveryReady;
+  }
+
+  if (userData.profileComplete !== legacyDiscoveryReady) {
+    patch.profileComplete = legacyDiscoveryReady;
+  }
+
+  return patch;
+}
+
 function recentDiscoveryBoost(updatedAtMs: number | null): number {
   if (updatedAtMs === null) return 0;
   const hoursOld = Math.max(0, (Date.now() - updatedAtMs) / (1000 * 60 * 60));
@@ -7099,6 +7286,26 @@ export const onSubscriptionUpdated = functions.firestore
     });
   });
 
+export const syncLegacyDiscoveryFields = functions.firestore
+  .document("users/{userId}")
+  .onWrite(async (change, context) => {
+    if (!change.after.exists) return;
+
+    const patch = buildLegacyDiscoveryMirrorPatch(
+      context.params.userId,
+      (change.after.data() ?? {}) as Record<string, unknown>,
+    );
+
+    if (Object.keys(patch).length === 0) return;
+
+    console.log("sync_legacy_discovery_fields", {
+      uid: context.params.userId,
+      fields: Object.keys(patch),
+    });
+
+    await change.after.ref.set(patch, { merge: true });
+  });
+
 async function buildDiscoveryDeckPayload(params: {
   uid: string;
   request: DiscoveryRequest;
@@ -8437,6 +8644,7 @@ export const __test__helpers = {
   buildDiscoveryUserSnapshot,
   evaluateDiscoveryEligibility,
   buildDiscoveryDebugSummary,
+  buildLegacyDiscoveryMirrorPatch,
   evaluateDiscoveryCandidateForRequester,
   buildDiscoveryDeckPayload,
   evaluateProfileCompleteness,

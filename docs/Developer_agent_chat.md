@@ -12868,7 +12868,7 @@ Investigate and fix the production issue where newly created eligible accounts f
 ### Task #236 — Discovery Production Rollout and Live Validation
 **Date:** 2026-03-13
 **Agent:** Codex (GPT-5)
-**Status:** In Progress
+**Status:** Completed
 
 **Original Request:**
 Do needed things now one by one until everything performs as it should.
@@ -12886,15 +12886,24 @@ Do needed things now one by one until everything performs as it should.
 - **In Progress:** Ran a live browser validation against `https://crush-web-chi.vercel.app` with temporary production accounts and confirmed the public web app still issues Firestore discovery traffic only, never calls `/api/v1/discovery/deck`, and still hides the mobile-shaped candidate.
 - **In Progress:** Created one temporary flat web-shaped account and one temporary canonical nested mobile-shaped account in production, verified each requester was eligible and saw the other through `/v1/discovery/deck`, then deleted the temporary Firestore docs and auth accounts.
 - **In Progress:** Committed the web discovery changes in `../crush-web` as `7818094` (`fix: unify web discovery with backend deck`) and pushed `main` to GitHub as the best available web rollout path while direct Vercel deployment remains unavailable.
+- **In Progress:** Added a production compatibility trigger (`syncLegacyDiscoveryFields`) so every `users/{uid}` write mirrors canonical nested profile discovery fields back into the legacy flat-root Firestore fields that the stale public web client still queries.
+- **Completed:** Deployed `syncLegacyDiscoveryFields`, live-validated that fresh canonical nested docs become visible in the old Firestore-only web query immediately after the trigger runs, and executed a one-time production backfill that patched the two existing user docs still missing those legacy fields.
 
 **Outcome:**
 - **Files changed:**
+  - `functions/src/index.ts`
+    - Added `buildLegacyDiscoveryMirrorPatch`, the legacy settings/location/value mirror helpers, and the `syncLegacyDiscoveryFields` Firestore trigger that mirrors canonical nested discovery state into legacy flat root fields for stale Firestore-only web clients.
+  - `functions/test/discoveryEligibility.test.js`
+    - Added focused coverage for the legacy mirror patch, idempotent no-op behavior on already-mirrored docs, and flag-clearing for ineligible users.
   - `docs/ai_workboard.md` (this task entry)
   - `docs/Developer_agent_chat.md` (this task entry)
   - `docs/risk_notes.md`
-- **Result:** Partial success. The production backend rollout is complete and live validation proved that an eligible flat web-shaped user and an eligible canonical nested mobile-shaped user are mutually discoverable through the shared discovery deck. A follow-up live browser check then confirmed the public web deployment is still on the old Firestore-only discovery client, so the remaining open item is an actual production web deployment.
-- **Notes:** The matching `my_first_project` source/docs changes are now committed and pushed to `origin/main` as `3fde287`; the temporary production validation users/docs were cleaned up immediately after the checks.
-- **Notes:** No additional source edits were required in `my_first_project` during rollout. The temporary production validation users/docs were cleaned up immediately after the checks.
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+- **Result:** Success. The production backend deck remains live, the stale public web client path is now compatibility-backed by a Firestore trigger that mirrors canonical nested docs into the legacy flat discovery fields it expects, and the two already-missing production user docs were patched so they now appear in the legacy query result set.
+- **Notes:** The Git-linked public web deployment is still stale, but it is no longer a discovery blocker because the compatibility trigger keeps the old Firestore-only query shape in sync with canonical nested user writes.
+- **Notes:** The one-time production backfill was executed through Firestore REST using the same `buildLegacyDiscoveryMirrorPatch` helper logic; `8` user docs were scanned and `2` required patches.
 
 **Verification:**
 - `gcloud functions deploy fetchDiscoveryCandidates ...` (pass)
@@ -12909,5 +12918,12 @@ Do needed things now one by one until everything performs as it should.
 - `vercel whoami --debug` (fails: no existing Vercel credentials on this machine)
 - live Playwright validation against `https://crush-web-chi.vercel.app` (pass for diagnosis; confirms zero `/api/v1/discovery/deck` requests, Firestore-only discovery traffic, and missing mobile-shaped candidate)
 - `firebase deploy --only hosting:crushapp --project crush-265f7` from `../crush-web` (fails: `apps/web/out` missing)
+- `npm --prefix functions run build` (pass)
+- `FIREBASE_CONFIG='{"projectId":"crush-265f7","databaseURL":"https://crush-265f7-default-rtdb.firebaseio.com"}' npx --prefix functions mocha --exit functions/test/discoveryEligibility.test.js` (pass)
+- `gcloud functions deploy syncLegacyDiscoveryFields --no-gen2 --project=crush-265f7 --region=us-central1 --runtime=nodejs22 --source=. --ignore-file=/tmp/functions.gcloudignore --entry-point=syncLegacyDiscoveryFields --trigger-event=providers/cloud.firestore/eventTypes/document.write --trigger-resource='projects/crush-265f7/databases/(default)/documents/users/{userId}' --service-account=crush-265f7@appspot.gserviceaccount.com --env-vars-file=/tmp/crush_functions_env.yaml --quiet` (pass)
+- `gcloud functions describe syncLegacyDiscoveryFields --project=crush-265f7 --region=us-central1 --format='value(entryPoint,status,updateTime,versionId,eventTrigger.eventType)'` (pass)
+- live Firestore REST validation with temporary canonical nested docs against the legacy web query shape (pass; both mirrored and visible, then deleted)
+- one-time production Firestore REST backfill using `buildLegacyDiscoveryMirrorPatch` logic (`8` processed, `2` patched) (pass)
+- post-backfill production legacy query check for `7wvb5ZCWk6gHbJ4dHDmXdOwVF942` and `UJJWsL1Qmtc6HMcuUJbTWkK5CXD2` (pass; both visible)
 
-**Next Step:** Confirm the production web deployment picked up commit `7818094`, or restore valid Vercel CLI access and redeploy the web app directly.
+**Next Step:** Keep the Vercel/web deployment cleanup as a follow-up, but discovery correctness is now restored for both the backend deck path and the stale Firestore-only public web path.

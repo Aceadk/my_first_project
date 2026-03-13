@@ -5,6 +5,7 @@ describe('discovery eligibility helpers', () => {
   const {
     buildDiscoveryUserSnapshot,
     evaluateDiscoveryEligibility,
+    buildLegacyDiscoveryMirrorPatch,
     evaluateDiscoveryCandidateForRequester,
   } = functions.__test__helpers;
 
@@ -99,6 +100,126 @@ describe('discovery eligibility helpers', () => {
       eligible: true,
       reasons: [],
     });
+  });
+
+  it('builds a legacy root-field mirror patch for canonical mobile users', () => {
+    const userData = {
+      profile: {
+        name: 'Ben App',
+        birthDate: '1996-07-22',
+        gender: 'male',
+        bio: 'Hiking and coffee',
+        photoUrls: ['https://img.example.com/ben.jpg'],
+        interests: ['Hiking', 'Coffee'],
+        profilePrompts: [
+          { question: 'Sunday', answer: 'Trail run' },
+        ],
+        city: 'Denver',
+        country: 'US',
+        latitude: 39.7392,
+        longitude: -104.9903,
+        preferences: {
+          minAge: 23,
+          maxAge: 33,
+          maxDistanceKm: 40,
+          showMeGenders: ['female'],
+          hideFromDiscovery: false,
+          incognitoMode: false,
+        },
+      },
+      updatedAt: '2026-03-13T01:05:00.000Z',
+    };
+
+    const snapshot = buildDiscoveryUserSnapshot('mobile-user', userData);
+    const patch = buildLegacyDiscoveryMirrorPatch('mobile-user', userData);
+
+    expect(patch.displayName).to.equal('Ben App');
+    expect(patch.bio).to.equal('Hiking and coffee');
+    expect(patch.birthDate).to.equal('1996-07-22T00:00:00.000Z');
+    expect(patch.age).to.equal(snapshot.age);
+    expect(patch.gender).to.equal('male');
+    expect(patch.photos).to.deep.equal(['https://img.example.com/ben.jpg']);
+    expect(patch.profilePhotoUrl).to.equal('https://img.example.com/ben.jpg');
+    expect(patch.interests).to.deep.equal(['Hiking', 'Coffee']);
+    expect(patch.prompts).to.deep.equal(['Trail run']);
+    expect(patch.interestedIn).to.deep.equal(['female']);
+    expect(patch.location).to.deep.equal({
+      city: 'Denver',
+      country: 'US',
+      latitude: 39.7392,
+      longitude: -104.9903,
+    });
+    expect(patch.settings).to.deep.equal({
+      ageRangeMin: 23,
+      ageRangeMax: 33,
+      maxDistance: 40,
+      showInDiscovery: true,
+      incognitoMode: false,
+    });
+    expect(patch.lastActive.toDate().toISOString()).to.equal(
+      '2026-03-13T01:05:00.000Z'
+    );
+    expect(patch.onboardingComplete).to.equal(true);
+    expect(patch.profileComplete).to.equal(true);
+  });
+
+  it('returns an empty mirror patch once legacy root fields already match', () => {
+    const userData = {
+      profile: {
+        name: 'Ben App',
+        birthDate: '1996-07-22',
+        gender: 'male',
+        photoUrls: ['https://img.example.com/ben.jpg'],
+        interests: ['Hiking', 'Coffee'],
+        city: 'Denver',
+        country: 'US',
+        latitude: 39.7392,
+        longitude: -104.9903,
+        preferences: {
+          minAge: 23,
+          maxAge: 33,
+          maxDistanceKm: 40,
+          showMeGenders: ['female'],
+        },
+      },
+      updatedAt: '2026-03-13T01:05:00.000Z',
+      lastActive: '2026-03-13T01:06:00.000Z',
+    };
+
+    const patch = buildLegacyDiscoveryMirrorPatch('mobile-user', userData);
+    const hybridUserData = { ...userData, ...patch };
+
+    expect(buildLegacyDiscoveryMirrorPatch('mobile-user', hybridUserData)).to.deep.equal({});
+  });
+
+  it('clears legacy discovery flags when a canonical user is no longer eligible', () => {
+    const patch = buildLegacyDiscoveryMirrorPatch('hidden-user', {
+      profile: {
+        name: 'Hidden',
+        birthDate: '1995-08-15',
+        gender: 'female',
+        photoUrls: ['https://img.example.com/hidden.jpg'],
+        preferences: {
+          showMeGenders: ['male'],
+          hideFromDiscovery: true,
+        },
+      },
+      onboardingComplete: true,
+      profileComplete: true,
+      settings: {
+        showInDiscovery: true,
+      },
+    });
+
+    expect(patch.settings).to.deep.equal({
+      ageRangeMin: 18,
+      ageRangeMax: 100,
+      maxDistance: 100,
+      showInDiscovery: false,
+      incognitoMode: false,
+    });
+    expect(patch.onboardingComplete).to.equal(false);
+    expect(patch.profileComplete).to.equal(false);
   });
 
   it('returns explicit discoverability reasons for hidden or incomplete users', () => {

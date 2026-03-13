@@ -1167,3 +1167,6 @@ flowchart TB
   - The iOS Runner target now records the In-App Purchase capability in the Xcode project; Apple does not generate a dedicated entitlements key for this capability.
 - **2026-03-13 (Discovery Eligibility Centralization):** Web discovery no longer queries Firestore user docs directly for deck candidates; it now calls the same backend discovery deck endpoint used by the app.
 - Backend discovery reads canonical nested profile data with flat-web compatibility fallback, applies centralized relationship/eligibility/filter decisions, and returns requester-side discoverability diagnostics in the response payload.
+- **2026-03-13 (Discovery Legacy-Web Compatibility):**
+  - Added Firestore trigger `syncLegacyDiscoveryFields` on `users/{uid}` writes to mirror canonical nested discovery data back into the legacy flat-root fields still read by the stale public web Firestore query path.
+  - This keeps newly eligible canonical nested users visible in the old `onboardingComplete/profileComplete` Firestore query until the public web deployment is fully cut over to the backend deck endpoint.

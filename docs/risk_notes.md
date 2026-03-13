@@ -1555,14 +1555,16 @@ Rollout Update (2026-03-13):
 
 - `fetchDiscoveryCandidates`, `api`, and `getMyDiscoveryStatus` are deployed in `crush-265f7`.
 - Live synthetic validation against the production discovery deck confirmed an eligible legacy-flat web-shaped profile and an eligible canonical-nested mobile-shaped profile are mutually discoverable, and the temporary Firestore docs/auth accounts were deleted after the check.
-- The remaining rollout gap is the production web deployment: direct local `vercel` deployment is blocked because this machine has no valid Vercel credentials, and the repo's Firebase hosting config still points at missing `apps/web/out`.
-- Live browser validation against `https://crush-web-chi.vercel.app` confirmed the public web app is still on the old Firestore-only discovery client path, so mobile-shaped candidates remain hidden there until a real web deployment happens.
+- Live browser validation against `https://crush-web-chi.vercel.app` confirmed the public web app is still on the old Firestore-only discovery client path, so a compatibility layer was required instead of waiting on a Vercel deploy.
+- `syncLegacyDiscoveryFields` is now deployed on `users/{uid}` writes; it mirrors canonical nested discovery fields back into the legacy flat root fields (`displayName`, `photos`, `location`, `interestedIn`, root completion flags, etc.) that the stale web client still reads directly from Firestore.
+- A one-time Firestore REST backfill scanned `8` production user docs and patched `2` existing docs that still lacked the mirrored legacy fields.
+- Live production validation against the old Firestore query shape (`where(onboardingComplete == true, profileComplete == true)`) now includes both freshly created canonical nested docs and the two previously missing production user IDs, so stale web discovery is no longer blocked by the pending Vercel rollout.
 
-Status: Partially Mitigated (2026-03-13; backend deployed + live validated, public web deployment still stale)
+Status: Mitigated (2026-03-13; backend deck + legacy Firestore compatibility live, Vercel rollout now non-blocking)
 
 Owner: AI
 
 Created: 2026-03-13
-Updated: 2026-03-13 (backend rollout validated; web rollout pending confirmation)
+Updated: 2026-03-13 (compatibility trigger deployed, production backfill complete, stale web query validated)
 
 ---

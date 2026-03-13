@@ -5533,23 +5533,26 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 ### T-2026-03-13-DISCOVERY-PROD-ROLLOUT
 - Date: 2026-03-13
 - Owner: Codex
-- Status: In Progress
-- Goal: Roll out the cross-platform discovery fix to production, validate live discoverability behavior, and close the remaining web rollout gap.
-- Scope: Cloud Functions deployment for discovery endpoints, production live validation against the shared discovery deck, `../crush-web` production build/push, risk tracking, and workflow logs.
+- Status: Completed
+- Goal: Roll out the cross-platform discovery fix to production, validate live discoverability behavior, and close the remaining stale-web discovery gap without waiting on a Vercel redeploy.
+- Scope: Discovery-related Cloud Functions deployment, compatibility sync logic for legacy Firestore-only web discovery clients, production live validation against both the shared backend deck and the old Firestore query shape, one-time user-doc backfill, risk tracking, and workflow logs.
 - Key Changes:
   - Deployed `fetchDiscoveryCandidates`, `api`, and `getMyDiscoveryStatus` to `crush-265f7` with the current production environment preserved from the deployed function config.
   - Validated the live backend by creating one temporary flat web-shaped profile and one temporary canonical nested mobile-shaped profile in production, confirming both requesters were eligible and mutually discoverable through `/v1/discovery/deck`, then deleting the temporary docs/accounts.
   - Rebuilt `../crush-web`, committed the web discovery changes on `main` (`7818094`), and pushed them to `origin/main` so the Git-linked web deployment can pick them up.
   - Confirmed the direct local web deploy paths are currently blocked: `firebase deploy --only hosting:crushapp` fails because `../crush-web/firebase.json` targets missing `apps/web/out`, and `vercel whoami` fails because the local Vercel token is invalid.
   - Ran a live browser validation against `https://crush-web-chi.vercel.app` with temporary production accounts; the site made `0` requests to `/api/v1/discovery/deck`, issued only Firestore requests, and still showed `No more profiles` for a mobile-shaped candidate that the live backend had already proven discoverable. This confirms the public web app is still serving the old discovery client path.
-  - Committed and pushed the corresponding `my_first_project` discovery/backend/doc changes to `origin/main` as `3fde287` so the deployed backend source matches GitHub.
+  - Added and deployed `syncLegacyDiscoveryFields` on `users/{userId}` so canonical nested user writes immediately mirror the legacy flat discovery fields (`displayName`, `photos`, `location`, `interestedIn`, root completion flags, etc.) that the stale public web client still reads directly from Firestore.
+  - Ran a one-time production backfill over the current `users` collection using the same mirror helper logic via Firestore REST: `8` user docs scanned, `2` existing docs patched.
+  - Live-validated the compatibility layer twice: first with temporary canonical nested docs, where both synthetic users were mirrored and visible in the old `where(onboardingComplete == true, profileComplete == true)` Firestore query; then against the two patched production user IDs, both of which now appear in that legacy query result set.
 - Decisions/Handoffs:
   - Used `gcloud functions deploy` instead of `firebase deploy --only functions` to avoid re-entering unknown production parameter values.
   - Used temporary production validation accounts because the backend deploy was complete and this was the fastest safe way to prove the live deck path; the temporary auth users and Firestore docs were cleaned up immediately after validation.
-  - Pushed the web repo to GitHub as the best available rollout path while direct Vercel CLI deployment remains unavailable from this machine.
+  - Kept the web repo push in place, but unblocked production discovery correctness with a server-side compatibility mirror instead of waiting on Vercel credentials.
+  - Used a gcloud-authenticated Firestore REST backfill for existing docs because Application Default Credentials and direct web deployment are both unavailable on this machine.
 - Risks/Mitigation:
-  - Backend rollout risk is reduced by the live production validation proving mutual discoverability for both legacy-flat and canonical-nested user shapes.
-  - Remaining risk is operational: until the Git-driven web deployment is confirmed, web clients may still use the old direct Firestore discovery path.
+  - Backend rollout risk is reduced by live validation proving both the shared backend deck and the stale Firestore-only web query now include canonical nested users once the compatibility mirror runs.
+  - The public web deployment is still stale, but that is now operational debt rather than a discovery blocker because legacy root fields are mirrored and the two already-missing production docs were patched immediately.
 - Verification:
   - `gcloud functions deploy fetchDiscoveryCandidates --project=crush-265f7 --region=us-central1 --runtime=nodejs22 --source=. --ignore-file=/tmp/functions.gcloudignore --entry-point=fetchDiscoveryCandidates --trigger-http --allow-unauthenticated --service-account=crush-265f7@appspot.gserviceaccount.com --env-vars-file=/tmp/crush_functions_env.yaml --quiet` (pass)
   - `gcloud functions deploy api --project=crush-265f7 --region=us-central1 --runtime=nodejs22 --source=. --ignore-file=/tmp/functions.gcloudignore --entry-point=api --trigger-http --allow-unauthenticated --service-account=crush-265f7@appspot.gserviceaccount.com --env-vars-file=/tmp/crush_functions_env.yaml --quiet` (pass)
@@ -5564,4 +5567,11 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `vercel whoami --debug` (fails: no existing Vercel credentials on this machine)
   - live Playwright validation against `https://crush-web-chi.vercel.app` (pass for diagnosis; confirms the site still uses Firestore-only discovery and does not hit `/api/v1/discovery/deck`)
   - `firebase deploy --only hosting:crushapp --project crush-265f7` from `../crush-web` (fails: `apps/web/out` missing)
-- Next Step: Confirm the Git-linked web deployment is live or restore valid Vercel CLI auth and deploy the web app directly.
+  - `npm --prefix functions run build` (pass)
+  - `FIREBASE_CONFIG='{"projectId":"crush-265f7","databaseURL":"https://crush-265f7-default-rtdb.firebaseio.com"}' npx --prefix functions mocha --exit functions/test/discoveryEligibility.test.js` (pass)
+  - `gcloud functions deploy syncLegacyDiscoveryFields --no-gen2 --project=crush-265f7 --region=us-central1 --runtime=nodejs22 --source=. --ignore-file=/tmp/functions.gcloudignore --entry-point=syncLegacyDiscoveryFields --trigger-event=providers/cloud.firestore/eventTypes/document.write --trigger-resource='projects/crush-265f7/databases/(default)/documents/users/{userId}' --service-account=crush-265f7@appspot.gserviceaccount.com --env-vars-file=/tmp/crush_functions_env.yaml --quiet` (pass)
+  - `gcloud functions describe syncLegacyDiscoveryFields --project=crush-265f7 --region=us-central1 --format='value(entryPoint,status,updateTime,versionId,eventTrigger.eventType)'` (pass)
+  - live Firestore REST validation with temporary canonical nested requester/candidate docs against the old web query shape (`where(onboardingComplete == true, profileComplete == true)`) (pass; both docs mirrored and visible, then deleted)
+  - one-time production Firestore REST backfill using `buildLegacyDiscoveryMirrorPatch` logic (`8` processed, `2` patched) (pass)
+  - post-backfill production legacy-query check for `7wvb5ZCWk6gHbJ4dHDmXdOwVF942` and `UJJWsL1Qmtc6HMcuUJbTWkK5CXD2` (pass; both visible)
+- Next Step: Keep the Vercel/web deployment cleanup as a non-blocking follow-up, then remove the compatibility mirror only after all public web clients are confirmed on the backend deck path.
