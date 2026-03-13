@@ -12882,7 +12882,8 @@ Do needed things now one by one until everything performs as it should.
 **Status Updates:**
 - **Received:** Reviewed the pending rollout state after the discovery fix landed locally and confirmed the next work was deployment plus live validation rather than more source edits.
 - **In Progress:** Redeployed `fetchDiscoveryCandidates`, `api`, and `getMyDiscoveryStatus` to `crush-265f7` with preserved production environment values using `gcloud functions deploy`.
-- **In Progress:** Rebuilt `../crush-web`, confirmed the repo's Firebase hosting deploy path is stale (`apps/web/out` does not exist), and confirmed direct Vercel CLI deployment is currently blocked because the local token is invalid.
+- **In Progress:** Rebuilt `../crush-web`, confirmed the repo's Firebase hosting deploy path is stale (`apps/web/out` does not exist), and confirmed direct Vercel CLI deployment is currently blocked because this machine has no valid Vercel credentials.
+- **In Progress:** Ran a live browser validation against `https://crush-web-chi.vercel.app` with temporary production accounts and confirmed the public web app still issues Firestore discovery traffic only, never calls `/api/v1/discovery/deck`, and still hides the mobile-shaped candidate.
 - **In Progress:** Created one temporary flat web-shaped account and one temporary canonical nested mobile-shaped account in production, verified each requester was eligible and saw the other through `/v1/discovery/deck`, then deleted the temporary Firestore docs and auth accounts.
 - **In Progress:** Committed the web discovery changes in `../crush-web` as `7818094` (`fix: unify web discovery with backend deck`) and pushed `main` to GitHub as the best available web rollout path while direct Vercel deployment remains unavailable.
 
@@ -12891,7 +12892,7 @@ Do needed things now one by one until everything performs as it should.
   - `docs/ai_workboard.md` (this task entry)
   - `docs/Developer_agent_chat.md` (this task entry)
   - `docs/risk_notes.md`
-- **Result:** Partial success. The production backend rollout is complete and live validation proved that an eligible flat web-shaped user and an eligible canonical nested mobile-shaped user are mutually discoverable through the shared discovery deck. The remaining open item is confirming that the pushed `../crush-web` change set is live in the production web deployment.
+- **Result:** Partial success. The production backend rollout is complete and live validation proved that an eligible flat web-shaped user and an eligible canonical nested mobile-shaped user are mutually discoverable through the shared discovery deck. A follow-up live browser check then confirmed the public web deployment is still on the old Firestore-only discovery client, so the remaining open item is an actual production web deployment.
 - **Notes:** The matching `my_first_project` source/docs changes are now committed and pushed to `origin/main` as `3fde287`; the temporary production validation users/docs were cleaned up immediately after the checks.
 - **Notes:** No additional source edits were required in `my_first_project` during rollout. The temporary production validation users/docs were cleaned up immediately after the checks.
 
@@ -12905,7 +12906,8 @@ Do needed things now one by one until everything performs as it should.
 - `pnpm --dir ../crush-web --filter @crush/web build` (pass)
 - production synthetic discovery validation against `https://us-central1-crush-265f7.cloudfunctions.net/api/v1/discovery/deck` (pass; temporary accounts/docs cleaned up)
 - `git -C ../crush-web push origin main` (pass)
-- `vercel whoami` (fails: invalid local token)
+- `vercel whoami --debug` (fails: no existing Vercel credentials on this machine)
+- live Playwright validation against `https://crush-web-chi.vercel.app` (pass for diagnosis; confirms zero `/api/v1/discovery/deck` requests, Firestore-only discovery traffic, and missing mobile-shaped candidate)
 - `firebase deploy --only hosting:crushapp --project crush-265f7` from `../crush-web` (fails: `apps/web/out` missing)
 
 **Next Step:** Confirm the production web deployment picked up commit `7818094`, or restore valid Vercel CLI access and redeploy the web app directly.

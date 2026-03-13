@@ -1555,9 +1555,10 @@ Rollout Update (2026-03-13):
 
 - `fetchDiscoveryCandidates`, `api`, and `getMyDiscoveryStatus` are deployed in `crush-265f7`.
 - Live synthetic validation against the production discovery deck confirmed an eligible legacy-flat web-shaped profile and an eligible canonical-nested mobile-shaped profile are mutually discoverable, and the temporary Firestore docs/auth accounts were deleted after the check.
-- The remaining rollout gap is the production web deployment: direct local `vercel` deployment is blocked by an invalid local token, and the repo's Firebase hosting config still points at missing `apps/web/out`, so web clients may continue using the old discovery path until the pushed `../crush-web` `main` branch deployment is confirmed.
+- The remaining rollout gap is the production web deployment: direct local `vercel` deployment is blocked because this machine has no valid Vercel credentials, and the repo's Firebase hosting config still points at missing `apps/web/out`.
+- Live browser validation against `https://crush-web-chi.vercel.app` confirmed the public web app is still on the old Firestore-only discovery client path, so mobile-shaped candidates remain hidden there until a real web deployment happens.
 
-Status: Partially Mitigated (2026-03-13; backend deployed + live validated, production web deployment confirmation pending)
+Status: Partially Mitigated (2026-03-13; backend deployed + live validated, public web deployment still stale)
 
 Owner: AI
 

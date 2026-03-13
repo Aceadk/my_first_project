@@ -5541,6 +5541,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - Validated the live backend by creating one temporary flat web-shaped profile and one temporary canonical nested mobile-shaped profile in production, confirming both requesters were eligible and mutually discoverable through `/v1/discovery/deck`, then deleting the temporary docs/accounts.
   - Rebuilt `../crush-web`, committed the web discovery changes on `main` (`7818094`), and pushed them to `origin/main` so the Git-linked web deployment can pick them up.
   - Confirmed the direct local web deploy paths are currently blocked: `firebase deploy --only hosting:crushapp` fails because `../crush-web/firebase.json` targets missing `apps/web/out`, and `vercel whoami` fails because the local Vercel token is invalid.
+  - Ran a live browser validation against `https://crush-web-chi.vercel.app` with temporary production accounts; the site made `0` requests to `/api/v1/discovery/deck`, issued only Firestore requests, and still showed `No more profiles` for a mobile-shaped candidate that the live backend had already proven discoverable. This confirms the public web app is still serving the old discovery client path.
   - Committed and pushed the corresponding `my_first_project` discovery/backend/doc changes to `origin/main` as `3fde287` so the deployed backend source matches GitHub.
 - Decisions/Handoffs:
   - Used `gcloud functions deploy` instead of `firebase deploy --only functions` to avoid re-entering unknown production parameter values.
@@ -5560,6 +5561,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - production synthetic discovery validation script against `https://us-central1-crush-265f7.cloudfunctions.net/api/v1/discovery/deck` (pass; temporary accounts/docs cleaned up)
   - `git -C ../crush-web push origin main` (pass)
   - `git push origin main` in `my_first_project` (pass)
-  - `vercel whoami` (fails: invalid local Vercel token)
+  - `vercel whoami --debug` (fails: no existing Vercel credentials on this machine)
+  - live Playwright validation against `https://crush-web-chi.vercel.app` (pass for diagnosis; confirms the site still uses Firestore-only discovery and does not hit `/api/v1/discovery/deck`)
   - `firebase deploy --only hosting:crushapp --project crush-265f7` from `../crush-web` (fails: `apps/web/out` missing)
 - Next Step: Confirm the Git-linked web deployment is live or restore valid Vercel CLI auth and deploy the web app directly.
