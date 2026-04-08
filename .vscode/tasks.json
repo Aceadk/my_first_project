@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "iOS: Open Simulator",
+      "type": "shell",
+      "command": "open",
+      "args": [
+        "-a",
+        "Simulator"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

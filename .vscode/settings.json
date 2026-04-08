@@ -1,3 +1,6 @@
 {
-  "dart.flutterSdkPath": "/Users/ace/Development/flutter"
+  "dart.flutterSdkPath": "/Users/ace/Development/flutter",
+  "dart.flutterHotReloadOnSave": "allIfDirty",
+  "dart.flutterRememberSelectedDevice": true,
+  "cmake.sourceDirectory": "/Users/ace/my_first_project/linux"
 }

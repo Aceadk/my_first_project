@@ -206,6 +206,15 @@ class AppConfig {
     defaultValue: false,
   );
 
+  /// Enable a development-only fast-start mode that defers non-critical
+  /// startup work until after the first interactive frame.
+  static const bool _fastStartRaw = bool.fromEnvironment(
+    'FAST_START',
+    defaultValue: bool.fromEnvironment('CRUSH_FAST_START', defaultValue: false),
+  );
+
+  static bool get fastStartEnabled => kDebugMode && _fastStartRaw;
+
   // ===========================================================================
   // RATE LIMITS
   // ===========================================================================
@@ -247,6 +256,7 @@ class AppConfig {
       AppLogger.debug('Agora Configured: $isAgoraConfigured');
       AppLogger.debug('E2EE Enabled: $enableChatE2EE');
       AppLogger.debug('App Check Enforced: $enforceAppCheck');
+      AppLogger.debug('Fast Start Enabled: $fastStartEnabled');
       AppLogger.debug('=================');
     }
   }

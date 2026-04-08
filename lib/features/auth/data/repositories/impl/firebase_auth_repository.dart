@@ -24,6 +24,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+import 'apple_sign_in_failure_mapper.dart';
+import 'auth_secure_storage.dart';
+import 'firebase_email_password_failure_mapper.dart';
+import 'google_sign_in_failure_mapper.dart';
 import '../auth_repository.dart';
 
 /// Firebase implementation of AuthRepository with Email Link Authentication.
@@ -33,9 +37,10 @@ class FirebaseAuthRepository
         GoogleSignInAuthRepository,
         LinkedAccountsRepository {
   final fb.FirebaseAuth _firebaseAuth;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
   final _authStateController = StreamController<CrushUser?>.broadcast();
-  final _secureStorage = const FlutterSecureStorage();
+  final AuthSecureStorage _authStorage;
   bool _isGoogleSignInInitialized = false;
 
   static const _pendingEmailKey = 'pending_email_link_email';
@@ -60,8 +65,18 @@ class FirebaseAuthRepository
     iOSBundleId: 'com.ace.crush',
   );
 
-  FirebaseAuthRepository({fb.FirebaseAuth? firebaseAuth})
-    : _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance {
+  FirebaseAuthRepository({
+    fb.FirebaseAuth? firebaseAuth,
+    FirebaseFirestore? firestore,
+    FirebaseFunctions? functions,
+    FlutterSecureStorage? secureStorage,
+  }) : _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance,
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _functions = functions ?? FirebaseFunctions.instance,
+       _authStorage = AuthSecureStorage(
+         secureStorage: secureStorage,
+         logPrefix: 'FirebaseAuthRepo',
+       ) {
     // Listen to Firebase auth state changes
     _firebaseAuthSubscription = _firebaseAuth.authStateChanges().listen(
       _onFirebaseAuthStateChanged,
@@ -270,17 +285,17 @@ class FirebaseAuthRepository
   String _termsAcceptedKey(String userId) => '$_termsAcceptedKeyPrefix$userId';
 
   Future<bool> _readCachedTermsAccepted(String userId) async {
-    final value = await _secureStorage.read(key: _termsAcceptedKey(userId));
+    final value = await _readSecureStorage(_termsAcceptedKey(userId));
     return value == 'true';
   }
 
   Future<void> _cacheTermsAccepted(String userId, bool accepted) async {
     final key = _termsAcceptedKey(userId);
     if (accepted) {
-      await _secureStorage.write(key: key, value: 'true');
-    } else {
-      await _secureStorage.delete(key: key);
+      await _writeSecureStorage(key, 'true');
+      return;
     }
+    await _deleteSecureStorage(key);
   }
 
   /// Ensures a Firestore user document exists for the authenticated user.
@@ -374,7 +389,7 @@ class FirebaseAuthRepository
   Future<void> bootstrapSession() async {
     // Firebase handles session restoration automatically
     // Check for pending email link sign-in
-    final pendingEmail = await _secureStorage.read(key: _pendingEmailKey);
+    final pendingEmail = await _readSecureStorage(_pendingEmailKey);
     if (pendingEmail != null) {
       // There's a pending email link sign-in
       // The app should check for incoming links on startup
@@ -417,7 +432,7 @@ class FirebaseAuthRepository
     );
 
     // Store the email locally to complete sign-in when link is clicked
-    await _secureStorage.write(key: _pendingEmailKey, value: email);
+    await _writeSecureStorage(_pendingEmailKey, email);
   }
 
   @override
@@ -437,7 +452,7 @@ class FirebaseAuthRepository
     );
 
     // Clear the pending email
-    await _secureStorage.delete(key: _pendingEmailKey);
+    await _deleteSecureStorage(_pendingEmailKey);
 
     final firebaseUser = credential.user;
     if (firebaseUser == null) {
@@ -455,7 +470,19 @@ class FirebaseAuthRepository
 
   /// Get the pending email for email link sign-in (if any)
   Future<String?> getPendingEmail() async {
-    return _secureStorage.read(key: _pendingEmailKey);
+    return _readSecureStorage(_pendingEmailKey);
+  }
+
+  Future<String?> _readSecureStorage(String key) async {
+    return _authStorage.read(key);
+  }
+
+  Future<void> _writeSecureStorage(String key, String value) {
+    return _authStorage.write(key: key, value: value);
+  }
+
+  Future<void> _deleteSecureStorage(String key) {
+    return _authStorage.delete(key);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -588,55 +615,24 @@ class FirebaseAuthRepository
     required String email,
     required String password,
   }) async {
-    fb.User? firebaseUser;
-
     try {
-      // Try to sign in with existing account
       final credential = await _firebaseAuth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      firebaseUser = credential.user;
-    } on fb.FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        // User doesn't exist - create account automatically
-        AppLogger.info(
-          '[FirebaseAuthRepo] User not found, creating account for: $email',
+      final firebaseUser = credential.user;
+      if (firebaseUser == null) {
+        throw AuthFailure(
+          AuthFailureType.accountNotFound,
+          message: 'No account found for this sign-in method.',
         );
-        try {
-          final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-            email: email,
-            password: password,
-          );
-          firebaseUser = credential.user;
-
-          // Send email verification for new accounts
-          if (firebaseUser != null && !firebaseUser.emailVerified) {
-            await firebaseUser.sendEmailVerification();
-            AppLogger.info(
-              '[FirebaseAuthRepo] Verification email sent to: $email',
-            );
-          }
-        } catch (createError) {
-          AppLogger.error(
-            '[FirebaseAuthRepo] Failed to create account',
-            error: createError,
-          );
-          rethrow;
-        }
-      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
-        throw Exception('Invalid email or password. Please try again.');
-      } else {
-        rethrow;
       }
-    }
 
-    if (firebaseUser == null) {
-      throw Exception('Sign-in failed');
+      await _ensureUserDocumentExists(firebaseUser);
+      return _mapFirebaseUser(firebaseUser);
+    } on fb.FirebaseAuthException catch (e) {
+      throw mapFirebaseEmailPasswordFailure(e, isSignIn: true);
     }
-
-    await _ensureUserDocumentExists(firebaseUser);
-    return _mapFirebaseUser(firebaseUser);
   }
 
   @override
@@ -679,28 +675,14 @@ class FirebaseAuthRepository
 
       await _ensureUserDocumentExists(firebaseUser);
       return _mapFirebaseUser(firebaseUser);
-    } on fb.FirebaseAuthException catch (e) {
-      if (e.code == 'account-exists-with-different-credential') {
-        throw Exception(
-          'An account already exists with the same email but different sign-in method.',
-        );
-      }
-      if (e.code == 'operation-not-allowed') {
-        throw Exception('Google Sign-In is not enabled for this project yet.');
-      }
-      if (e.code == 'invalid-credential') {
-        throw Exception('Google Sign-In credentials are invalid or expired.');
-      }
-      rethrow;
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) {
-        throw Exception('Google Sign-In was cancelled.');
-      }
-      AppLogger.error('[FirebaseAuthRepo] Google sign-in failed', error: e);
-      throw Exception(e.description ?? 'Google Sign-In failed.');
-    } catch (e) {
-      AppLogger.error('[FirebaseAuthRepo] Google sign-in failed', error: e);
-      rethrow;
+    } catch (error, stackTrace) {
+      final mappedFailure = mapGoogleSignInFailure(error);
+      AppLogger.error(
+        '[FirebaseAuthRepo] Google sign-in failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      throw mappedFailure;
     }
   }
 
@@ -753,9 +735,14 @@ class FirebaseAuthRepository
 
       await _ensureUserDocumentExists(firebaseUser);
       return _mapFirebaseUser(firebaseUser);
-    } catch (e) {
-      AppLogger.error('[FirebaseAuthRepo] Apple sign-in failed', error: e);
-      rethrow;
+    } catch (error, stackTrace) {
+      final mappedFailure = mapAppleSignInFailure(error);
+      AppLogger.error(
+        '[FirebaseAuthRepo] Apple sign-in failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      throw mappedFailure;
     }
   }
 
@@ -783,12 +770,7 @@ class FirebaseAuthRepository
       await _ensureUserDocumentExists(firebaseUser);
       return _mapFirebaseUser(firebaseUser);
     } on fb.FirebaseAuthException catch (e) {
-      if (e.code == 'email-already-in-use') {
-        throw Exception(
-          'An account with this email already exists. Please sign in instead, or use a different email address.',
-        );
-      }
-      rethrow;
+      throw mapFirebaseEmailPasswordFailure(e, isSignIn: false);
     }
   }
 
@@ -806,17 +788,12 @@ class FirebaseAuthRepository
     final normalizedIdentifier = identifier.trim().toLowerCase();
 
     // Store identifier in secure storage for later verification
-    await _secureStorage.write(
-      key: _emailOtpIdentifierKey,
-      value: normalizedIdentifier,
-    );
-    await _secureStorage.write(key: _emailOtpPurposeKey, value: purpose.value);
+    await _writeSecureStorage(_emailOtpIdentifierKey, normalizedIdentifier);
+    await _writeSecureStorage(_emailOtpPurposeKey, purpose.value);
 
     // Call Cloud Function to send OTP
     try {
-      final callable = FirebaseFunctions.instance.httpsCallable(
-        'requestEmailOtp',
-      );
+      final callable = _functions.httpsCallable('requestEmailOtp');
       await callable.call<Map<String, dynamic>>({
         'identifier': normalizedIdentifier,
         'purpose': purpose.value,
@@ -845,9 +822,7 @@ class FirebaseAuthRepository
 
     try {
       // Call Cloud Function to verify OTP
-      final callable = FirebaseFunctions.instance.httpsCallable(
-        'verifyEmailOtp',
-      );
+      final callable = _functions.httpsCallable('verifyEmailOtp');
       final result = await callable.call<Map<String, dynamic>>({
         'identifier': normalizedIdentifier,
         'otp': otp.trim(),
@@ -918,7 +893,7 @@ class FirebaseAuthRepository
   @override
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
-    await _secureStorage.delete(key: _pendingEmailKey);
+    await _deleteSecureStorage(_pendingEmailKey);
     _currentUser = null;
     _authStateController.add(null);
   }

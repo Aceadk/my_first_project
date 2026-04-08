@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
+import 'config/app_config.dart';
 import 'core/di.dart';
 import 'core/app_logger.dart';
 import 'core/services/push_notification_service.dart';
@@ -17,21 +18,22 @@ import 'core/services/app_check_service.dart';
 import 'core/services/tracking_consent_service.dart';
 import 'core/services/consent_service.dart';
 import 'core/performance/performance_monitor.dart';
+import 'core/startup/startup_policy.dart';
 import 'core/widgets/error_boundary.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
-  // Record app start time immediately for cold start tracking
-  PerformanceMonitor.instance.recordAppStartTime();
-
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Replace default red/grey error screen with branded fallback UI
-  installErrorWidgetBuilder();
-
   // Run the app in a guarded zone so uncaught startup/build errors are reported.
   await runZonedGuarded(
     () async {
+      // Record app start time immediately for cold start tracking.
+      PerformanceMonitor.instance.recordAppStartTime();
+
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // Replace default red/grey error screen with branded fallback UI.
+      installErrorWidgetBuilder();
+
       runApp(const _StartupBootstrapApp());
     },
     (error, stackTrace) {
@@ -62,6 +64,7 @@ class _StartupBootstrapApp extends StatefulWidget {
 class _StartupBootstrapAppState extends State<_StartupBootstrapApp> {
   _StartupPhase _phase = _StartupPhase.loading;
   SharedPreferences? _preferences;
+  StartupPolicy? _startupPolicy;
   String? _errorMessage;
   bool _postLaunchTasksScheduled = false;
 
@@ -89,7 +92,11 @@ class _StartupBootstrapAppState extends State<_StartupBootstrapApp> {
       return;
     }
 
-    final startupError = await _initializeCoreServices(preferences);
+    final startupPolicy = _buildStartupPolicy();
+    final startupError = await _initializeCoreServices(
+      startupPolicy,
+      preferences,
+    );
     if (!mounted) return;
     if (startupError != null) {
       setState(() {
@@ -101,6 +108,7 @@ class _StartupBootstrapAppState extends State<_StartupBootstrapApp> {
 
     setState(() {
       _preferences = preferences;
+      _startupPolicy = startupPolicy;
       _phase = _StartupPhase.ready;
       _errorMessage = null;
     });
@@ -110,27 +118,10 @@ class _StartupBootstrapAppState extends State<_StartupBootstrapApp> {
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       PerformanceMonitor.instance.recordFirstFrame();
-      unawaited(
-        _runStartupTask(
-          name: 'CrushDI.initializePlatformServices',
-          action: CrushDI.initializePlatformServices,
-          timeout: const Duration(seconds: 12),
-        ),
-      );
-      unawaited(
-        _runStartupTask(
-          name: 'TrackingConsentService.requestConsent',
-          action: TrackingConsentService.instance.requestConsent,
-          timeout: const Duration(seconds: 12),
-        ),
-      );
-      unawaited(
-        _runStartupTask(
-          name: 'PushNotificationService.initialize',
-          action: PushNotificationService.instance.initialize,
-          timeout: const Duration(seconds: 15),
-        ),
-      );
+      final startupPolicy = _startupPolicy;
+      if (startupPolicy != null) {
+        _schedulePostLaunchTasks(startupPolicy, preferences);
+      }
     });
   }
 
@@ -228,63 +219,137 @@ class _StartupFailureContent extends StatelessWidget {
   }
 }
 
-Future<String?> _initializeCoreServices(SharedPreferences preferences) async {
-  final firebaseReady = await _runStartupTask(
-    name: 'Firebase.initializeApp',
-    action: _initializeFirebase,
-    timeout: const Duration(seconds: 15),
-    critical: true,
-  );
-  if (!firebaseReady) {
-    return 'Unable to connect secure app services. Check your network and try again.';
-  }
+StartupPolicy _buildStartupPolicy() {
+  AppConfig.printConfig();
+  return buildStartupPolicy(fastStartEnabled: AppConfig.fastStartEnabled);
+}
 
-  // Tier 1: Critical services that other services may depend on.
-  // AppCheck and Crashlytics are independent — run in parallel.
-  await Future.wait([
-    _runStartupTask(
-      name: 'AppCheckService.initialize',
-      action: AppCheckService.instance.initialize,
-    ),
-    _runStartupTask(
-      name: 'CrashReportingService.initialize',
-      action: CrashReportingService.instance.initialize,
-    ),
-    _runStartupTask(
-      name: 'PerformanceMonitor.initialize',
-      action: PerformanceMonitor.instance.initialize,
-    ),
-  ]);
+Map<StartupTaskId, StartupAction> _createStartupActions(
+  SharedPreferences preferences,
+) {
+  return {
+    StartupTaskId.firebaseInitializeApp: _initializeFirebase,
+    StartupTaskId.appCheckInitialize: AppCheckService.instance.initialize,
+    StartupTaskId.crashReportingInitialize:
+        CrashReportingService.instance.initialize,
+    StartupTaskId.performanceInitialize: PerformanceMonitor.instance.initialize,
+    StartupTaskId.appUpdateInitialize: AppUpdateService.instance.initialize,
+    StartupTaskId.firebaseMessagingBackgroundHandler: () async {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    },
+    StartupTaskId.consentInitialize: () =>
+        ConsentService.instance.initialize(preferences),
+    StartupTaskId.gradualRolloutInitialize: () =>
+        GradualRolloutService.instance.initialize(preferences),
+    StartupTaskId.platformServicesInitialize: () =>
+        CrushDI.initializePlatformServices(),
+    StartupTaskId.trackingConsentRequest: () =>
+        TrackingConsentService.instance.requestConsent(),
+    StartupTaskId.pushNotificationsInitialize: () =>
+        PushNotificationService.instance.initialize(),
+  };
+}
+
+Future<String?> _initializeCoreServices(
+  StartupPolicy startupPolicy,
+  SharedPreferences preferences,
+) async {
+  final actions = _createStartupActions(preferences);
+  return _runBlockingStartupGroups(startupPolicy, actions);
+}
+
+Future<String?> _runBlockingStartupGroups(
+  StartupPolicy startupPolicy,
+  Map<StartupTaskId, StartupAction> actions,
+) async {
+  for (final group in startupPolicy.blockingTaskGroups) {
+    final results = await Future.wait(
+      group.map((task) {
+        final action = actions[task.id];
+        if (action == null) {
+          throw StateError('No startup action registered for ${task.name}');
+        }
+        return _runStartupTask(
+          name: task.name,
+          action: action,
+          timeout: task.timeout,
+          critical: task.critical,
+        );
+      }),
+    );
+
+    for (var index = 0; index < group.length; index++) {
+      final task = group[index];
+      if (task.critical && !results[index]) {
+        return task.failureMessage ??
+            'Unable to connect secure app services. Check your network and try again.';
+      }
+    }
+  }
 
   if (!kDebugMode) {
     PerformanceMonitor.instance.startMemoryMonitoring();
   }
 
-  // Tier 2: Services that depend on Firebase but not on each other.
-  await Future.wait([
-    _runStartupTask(
-      name: 'AppUpdateService.initialize',
-      action: AppUpdateService.instance.initialize,
-    ),
-    _runStartupTask(
-      name: 'FirebaseMessaging.onBackgroundMessage',
-      action: () async {
-        FirebaseMessaging.onBackgroundMessage(
-          firebaseMessagingBackgroundHandler,
-        );
-      },
-    ),
-    _runStartupTask(
-      name: 'ConsentService.initialize',
-      action: () => ConsentService.instance.initialize(preferences),
-    ),
-    _runStartupTask(
-      name: 'GradualRolloutService.initialize',
-      action: () => GradualRolloutService.instance.initialize(preferences),
-    ),
-  ]);
-
   return null;
+}
+
+void _schedulePostLaunchTasks(
+  StartupPolicy startupPolicy,
+  SharedPreferences preferences,
+) {
+  if (startupPolicy.postLaunchTasks.isEmpty) {
+    return;
+  }
+
+  final actions = _createStartupActions(preferences);
+
+  Future<void> startTasks() async {
+    if (startupPolicy.fastStartEnabled) {
+      AppLogger.debug(
+        'Fast start enabled: running deferred startup tasks after first frame.',
+      );
+    }
+    if (startupPolicy.runPostLaunchTasksSequentially) {
+      for (final task in startupPolicy.postLaunchTasks) {
+        final action = actions[task.id];
+        if (action == null) continue;
+        await _runStartupTask(
+          name: task.name,
+          action: action,
+          timeout: task.timeout,
+          critical: task.critical,
+        );
+      }
+      return;
+    }
+
+    await Future.wait(
+      startupPolicy.postLaunchTasks.map((task) {
+        final action = actions[task.id];
+        if (action == null) {
+          throw StateError('No startup action registered for ${task.name}');
+        }
+        return _runStartupTask(
+          name: task.name,
+          action: action,
+          timeout: task.timeout,
+          critical: task.critical,
+        );
+      }),
+    );
+  }
+
+  if (startupPolicy.postLaunchDelay == Duration.zero) {
+    unawaited(startTasks());
+    return;
+  }
+
+  unawaited(
+    Future<void>.delayed(
+      startupPolicy.postLaunchDelay,
+    ).then((_) => startTasks()),
+  );
 }
 
 Future<void> _initializeFirebase() async {

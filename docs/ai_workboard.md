@@ -49,6 +49,32 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 ## Unified Task Log
 
+### T-2026-04-08-PUBLISH-AUTH-STARTUP
+
+- Date: 2026-04-08
+- Owner: Codex
+- Status: Completed
+- Goal: Save the entire current dirty worktree to GitHub without dropping or silently splitting any of the existing local changes.
+- Scope: Current startup/auth/iOS/docs workspace, plus the required AI task-log updates for this publish step.
+- Key Changes:
+  - Published the current startup fast-start/bootstrap changes, auth failure/storage hardening, iOS pod/entitlement updates, local workflow files, and doc updates together on a dedicated branch.
+  - Added the required publish-task entry in [`Developer_agent_chat.md`](/Users/ace/my_first_project/docs/Developer_agent_chat.md).
+  - Updated this workboard entry so the save/publish action is traceable alongside the implementation work it preserved.
+- Decisions/Handoffs:
+  - Treated the entire current worktree as in-scope because the developer explicitly requested to "save everything".
+  - Used branch `codex/publish-auth-startup-hardening` instead of pushing directly to `main`, then opened a draft PR so the mixed change set stays reviewable.
+- Risks/Mitigation:
+  - This publish keeps a broad mixed worktree together; mitigated by using a dedicated branch and draft PR rather than landing directly on the default branch.
+  - No new product/runtime risk was introduced by the publish step itself, so `risk_notes.md` remains unchanged for this task.
+- Verification:
+  - `flutter test test/core/startup test/features/auth/data`
+  - `flutter analyze`
+  - `flutter build ios --simulator --debug --no-codesign` (started and remained in native Xcode compilation during the verification window; no failure surfaced before publish, but full completion was not observed)
+  - `scripts/check_ai_docs_sync.sh --files .vscode/launch.json .vscode/settings.json .vscode/tasks.json docs/Developer_agent_chat.md docs/ai_workboard.md docs/risk_notes.md ios/Podfile ios/Podfile.lock ios/Runner/Runner.entitlements ios/Runner/RunnerRelease.entitlements lib/config/app_config.dart lib/core/di.dart lib/core/services/app_state_preserver.dart lib/core/startup/startup_policy.dart lib/features/auth/data/repositories/impl/apple_sign_in_failure_mapper.dart lib/features/auth/data/repositories/impl/auth_secure_storage.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/firebase_email_password_failure_mapper.dart lib/features/auth/data/repositories/impl/google_sign_in_failure_mapper.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/main.dart test/core/startup/startup_policy_test.dart test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart test/features/auth/data/repositories/auth_secure_storage_test.dart test/features/auth/data/repositories/firebase_email_password_failure_mapper_test.dart test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart`
+  - `git push -u origin codex/publish-auth-startup-hardening`
+  - `gh pr create --draft --fill --head codex/publish-auth-startup-hardening`
+- Next Step: Review the draft PR and either merge this saved workspace as one unit or split narrower follow-up changes from the branch after the current state is safely backed up.
+
 ### T-2026-02-22-DOCS-UNIFY
 
 - Date: 2026-02-22
@@ -5575,3 +5601,300 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - one-time production Firestore REST backfill using `buildLegacyDiscoveryMirrorPatch` logic (`8` processed, `2` patched) (pass)
   - post-backfill production legacy-query check for `7wvb5ZCWk6gHbJ4dHDmXdOwVF942` and `UJJWsL1Qmtc6HMcuUJbTWkK5CXD2` (pass; both visible)
 - Next Step: Keep the Vercel/web deployment cleanup as a non-blocking follow-up, then remove the compatibility mirror only after all public web clients are confirmed on the backend deck path.
+
+### T-2026-03-29-LOCAL-SERVER-URL
+- Date: 2026-03-29
+- Owner: Codex
+- Status: Completed
+- Goal: Identify the relevant local development server URL for the current workspace without guessing.
+- Scope: Repo docs/config discovery plus current local listener inspection; no app/runtime code changes.
+- Key Changes:
+  - Confirmed [`README.md`](/Users/ace/my_first_project/README.md#L73) documents web runs as `flutter run -d chrome`, which does not establish a fixed localhost app URL inside this repo.
+  - Confirmed [`docs/AUDIT_WEBAPP.md`](/Users/ace/my_first_project/docs/AUDIT_WEBAPP.md#L1049) records `localhost:3000` as the development URL for the adjacent web app documentation context.
+  - Confirmed current local listeners are Dart tooling/devtools endpoints only (`127.0.0.1:9100`, `127.0.0.1:9101`), not the app itself.
+  - Noted historical web audit artifacts in this repo reference `http://localhost:3010`, indicating an earlier local web app run on that port.
+- Decisions/Handoffs:
+  - Report the answer with caveats instead of presenting one fixed localhost URL, because the Flutter app here is launcher-driven and no active app server is running at closeout.
+- Verification:
+  - `sed -n '60,95p' README.md`
+  - `sed -n '1038,1055p' docs/AUDIT_WEBAPP.md`
+  - `lsof -nP -iTCP -sTCP:LISTEN | rg "(dart|flutter|node|next|vite|3010|3000|8080|4200|5000)"`
+  - `ps -fp 1734 1748 22910 22926`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: If a stable localhost URL is required for this Flutter app, launch with `flutter run -d web-server --web-port <port>` and use the chosen port explicitly.
+
+### T-2026-03-30-FLUTTERFRAME-DIAG
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Diagnose why the VS Code `FlutterFrame: Start Emulator` command errors in this Flutter workspace.
+- Scope: Local repo setup, installed `FlutterFrame` extension, and VS Code extension-host logs; no app/runtime code changes.
+- Key Changes:
+  - Confirmed the workspace is a valid Flutter project and that local Flutter tooling is present.
+  - Located the actual failure in [`~/.vscode/extensions/yashpatel-2611.flutterframe-2.0.0/out/statusBar.js`](/Users/ace/.vscode/extensions/yashpatel-2611.flutterframe-2.0.0/out/statusBar.js#L36): `StatusBarManager` calls `setIdle()` before `deviceItem`, `reloadItem`, `networkItem`, and `shareItem` are initialized.
+  - Confirmed the matching VS Code extension-host error in [`~/Library/Application Support/Code/logs/20260329T212322/window1/exthost/exthost.log`](/Users/ace/Library/Application%20Support/Code/logs/20260329T212322/window1/exthost/exthost.log#L473): `TypeError: Cannot read properties of undefined (reading 'hide')`.
+  - Verified the repo/toolchain are not the blocker: `flutter emulators` lists available iOS/Android emulators, and `flutter run -d web-server --web-port 8686 --web-hostname localhost` reaches the web debug-service wait state.
+  - Confirmed via the extension README that `FlutterFrame: Start Emulator` is a Flutter web preview launcher, not a native emulator starter.
+- Decisions/Handoffs:
+  - Did not patch the global VS Code extension without an explicit request.
+  - Recommended using direct Flutter run commands until the extension is updated or locally patched.
+- Verification:
+  - `flutter emulators`
+  - `flutter devices`
+  - `flutter run -d web-server --web-port 8686 --web-hostname localhost`
+  - `sed -n '468,482p' "$HOME/Library/Application Support/Code/logs/20260329T212322/window1/exthost/exthost.log"`
+  - `sed -n '1,140p' ~/.vscode/extensions/yashpatel-2611.flutterframe-2.0.0/out/statusBar.js`
+  - `sed -n '60,150p' ~/.vscode/extensions/yashpatel-2611.flutterframe-2.0.0/out/extension.js`
+  - `sed -n '1,140p' ~/.vscode/extensions/yashpatel-2611.flutterframe-2.0.0/README.md`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: Use `flutter run -d chrome` or `flutter run -d web-server --web-port 8686` directly for local preview, or patch/update the `FlutterFrame` extension if that workflow is still needed.
+
+### T-2026-03-30-IOS-SIMULATOR-WORKFLOW
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Diagnose slow local iOS simulator startup and make the VS Code workflow reliable for this Flutter project.
+- Scope: Local Flutter/Xcode/simulator tooling, workspace `.vscode` config, and the installed `FlutterFrame` extension; no production feature changes.
+- Key Changes:
+  - Confirmed the local toolchain is healthy (`Flutter 3.41.2`, `Xcode 26.0.1`, CocoaPods installed, iOS simulators available).
+  - Confirmed the app bootstrap is non-trivial and does meaningful startup work in `lib/main.dart` before the real app UI becomes ready, but the bigger local pain point is toolchain/simulator prep rather than a single app-code failure.
+  - Found the existing workspace launch bug in [`launch.json`](/Users/ace/my_first_project/.vscode/launch.json): the `Crush App (iOS Simulator)` config used `deviceId: "ios"` instead of a real simulator launcher identifier.
+  - Updated [`launch.json`](/Users/ace/my_first_project/.vscode/launch.json) so the iOS config now uses `emulatorId: "apple_ios_simulator"` with a pre-launch simulator-open task.
+  - Added [`tasks.json`](/Users/ace/my_first_project/.vscode/tasks.json) with `iOS: Open Simulator`.
+  - Updated [`settings.json`](/Users/ace/my_first_project/.vscode/settings.json) to enable `dart.flutterHotReloadOnSave: "allIfDirty"` and explicitly keep device selection sticky.
+  - Patched the local `FlutterFrame` extension in [`statusBar.js`](/Users/ace/.vscode/extensions/yashpatel-2611.flutterframe-2.0.0/out/statusBar.js#L36) so it no longer crashes on activation before the editor preview starts.
+  - Confirmed and documented that `FlutterFrame` is only an in-editor Flutter web preview, not the real native iOS simulator.
+- Decisions/Handoffs:
+  - Used the official Dart/Flutter VS Code extension path for native iOS simulator work instead of relying on `FlutterFrame`.
+  - Patched the installed `FlutterFrame` extension locally because the user explicitly asked to fix the VS Code-side problems, but this still does not embed Apple’s native simulator inside VS Code.
+- Risks/Mitigation:
+  - No product/runtime risk was introduced in shipped app code; changes are limited to workspace ergonomics and a local VS Code extension patch.
+  - The first iOS run may still feel slow after SDK/Xcode or simulator cache changes because Flutter/Xcode prep happens before app compile and launch.
+- Verification:
+  - `flutter doctor -v`
+  - `xcrun simctl list devices available`
+  - `xcrun simctl list devices | rg "Booted|iPhone 17 Pro"`
+  - `sed -n '1,220p' .vscode/launch.json`
+  - `sed -n '1,220p' .vscode/settings.json`
+  - `sed -n '1,140p' ~/.vscode/extensions/yashpatel-2611.flutterframe-2.0.0/out/statusBar.js`
+  - `sed -n '3550,3685p' /Users/ace/.vscode/extensions/dart-code.dart-code-3.130.1/package.json`
+  - `scripts/check_ai_docs_sync.sh --files .vscode/launch.json .vscode/settings.json .vscode/tasks.json docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: Reload VS Code, then use `Run and Debug` -> `Crush App (iOS Simulator)` for native simulator work and reserve `FlutterFrame` for web-only layout preview inside the editor.
+
+### T-2026-03-30-FAST-START
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Reduce local debug startup time with an explicit dev-only fast-start mode while preserving the full startup path.
+- Scope: Flutter app bootstrap (`lib/main.dart`), build-time config (`lib/config/app_config.dart`), startup policy helper/tests, and VS Code iOS simulator launch config.
+- Key Changes:
+  - Added [`startup_policy.dart`](/Users/ace/my_first_project/lib/core/startup/startup_policy.dart) to define the normal vs fast-start startup task policy in one testable place.
+  - Added a debug-only `FAST_START` / `CRUSH_FAST_START` config gate in [`app_config.dart`](/Users/ace/my_first_project/lib/config/app_config.dart).
+  - Refactored [`main.dart`](/Users/ace/my_first_project/lib/main.dart) so startup runs through the policy instead of hard-coded task groups.
+  - Kept the normal startup path intact: Firebase stays critical, tiered blocking initialization remains available, and full post-launch tasks still run in the non-fast-start path.
+  - In fast-start mode, reduced the blocking path to Firebase init plus consent state and deferred App Check, CrashReporting, Performance, AppUpdate, Firebase background-message registration, GradualRollout, and billing warm-up until after the first frame.
+  - In fast-start mode, intentionally skipped ATT and push-notification initialization to avoid permission-prompt overhead during local debug iteration.
+  - Updated [`launch.json`](/Users/ace/my_first_project/.vscode/launch.json) so `Crush App (iOS Simulator)` now uses `--dart-define=FAST_START=true`, while `Crush App (iOS Simulator Full Startup)` preserves the full bootstrap path.
+  - Added [`startup_policy_test.dart`](/Users/ace/my_first_project/test/core/startup/startup_policy_test.dart) to lock the startup task selection behavior.
+- Decisions/Handoffs:
+  - Chose an explicit dev-only mode instead of changing all debug runs globally, so full-start validation remains one click away.
+  - Deferred non-critical work rather than deleting it, keeping the fast path lightweight without silently removing needed services forever.
+- Risks/Mitigation:
+  - Main risk is divergence between fast-start debug behavior and full startup behavior; mitigated by keeping a dedicated full-start launch config and leaving release/profile unchanged.
+  - Consent initialization remains on the blocking path so first-screen consent state stays correct.
+- Verification:
+  - `dart format lib/main.dart lib/config/app_config.dart lib/core/startup/startup_policy.dart test/core/startup/startup_policy_test.dart`
+  - `flutter analyze lib/main.dart lib/config/app_config.dart lib/core/startup/startup_policy.dart test/core/startup/startup_policy_test.dart`
+  - `flutter test test/core/startup/startup_policy_test.dart test/startup_cold_launch_guard_test.dart`
+  - `scripts/check_ai_docs_sync.sh --files .vscode/launch.json lib/main.dart lib/config/app_config.dart lib/core/startup/startup_policy.dart test/core/startup/startup_policy_test.dart docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: Use `Crush App (iOS Simulator)` for fast local iteration and switch to `Crush App (iOS Simulator Full Startup)` when validating push/ATT/full bootstrap behavior.
+
+### T-2026-03-30-IOS-LAUNCH-RECONCILIATION
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Run the app on the already-booted iOS simulator and fix the local iOS launch blockers encountered during that attempt.
+- Scope: Local CocoaPods resolution, Intel simulator build settings in `ios/Podfile`, the generated iOS pod lock/project state, and the live `flutter run` path against the booted simulator.
+- Key Changes:
+  - Confirmed the booted simulator target was `iPhone 16e` (`FD50F3E6-CA48-4E39-914C-503C2B6B130A`) and launched `flutter run` with `FAST_START=true`.
+  - Diagnosed the initial run failure as a CocoaPods lock conflict: `ios/Podfile.lock` pinned `GTMSessionFetcher/Core` to `5.1.0` while the current `google_sign_in_ios` dependency graph required the newer compatible resolution.
+  - Refreshed the iOS pod graph so [`Podfile.lock`](/Users/ace/my_first_project/ios/Podfile.lock) now matches the current Flutter plugin set and resolves the `google_sign_in_ios` / `GTMSessionFetcher` dependency chain cleanly.
+  - Updated [`Podfile`](/Users/ace/my_first_project/ios/Podfile) so Intel (`x86_64`) hosts exclude `arm64` when building simulator pods, avoiding unnecessary dual-arch native pod compilation on this machine.
+  - Regenerated the Pods project and verified the generated [`Pods.xcodeproj`](/Users/ace/my_first_project/ios/Pods/Pods.xcodeproj/project.pbxproj) now contains the Intel simulator `arm64` exclusion.
+  - Reran the launch and confirmed the native build advanced past the earlier pod-resolution failure and now compiles only the `x86_64` simulator slice.
+- Decisions/Handoffs:
+  - Scoped the simulator arch exclusion to Intel hosts only so Apple Silicon simulator builds keep their native behavior.
+  - Kept the fix at the Podfile/pod-lock level rather than modifying app runtime code, because the blocker was local native build configuration.
+- Risks/Mitigation:
+  - Main residual risk is still very slow first clean iOS builds on this Intel machine because Firebase/gRPC native pods compile from source; mitigated by removing the unnecessary `arm64` simulator slice and preserving the fast-start Dart path already added earlier.
+  - No production runtime behavior changed; the new `EXCLUDED_ARCHS[sdk=iphonesimulator*] = arm64` rule applies only to Intel-host simulator builds.
+- Verification:
+  - `xcrun simctl list devices | rg 'Booted|iPhone 16e'`
+  - `flutter run -d FD50F3E6-CA48-4E39-914C-503C2B6B130A --dart-define=FAST_START=true`
+  - `pod install --repo-update`
+  - `pod update GTMSessionFetcher/Core --repo-update`
+  - `pod install`
+  - `uname -m`
+  - `ps -Ao pid,etime,pcpu,pmem,command | grep -E 'xcodebuild -configuration Debug -quiet|swift-frontend|clang -x c\\+\\+|ibtoold' | grep -v grep`
+  - `xcrun simctl get_app_container FD50F3E6-CA48-4E39-914C-503C2B6B130A com.ace.crush app`
+  - `find build/ios -maxdepth 3 -type d -name Runner.app`
+- `rg -n "EXCLUDED_ARCHS\\[sdk=iphonesimulator\\*\\]" ios/Pods/Pods.xcodeproj/project.pbxproj`
+- `git diff -- ios/Podfile ios/Podfile.lock`
+- Next Step: Let the first clean Xcode rebuild finish once, then rerun the same simulator target; subsequent launches should avoid the earlier pod-resolution failure and should no longer spend time compiling the unnecessary `arm64` simulator pod slice.
+
+### T-2026-03-30-IOS-RUNTIME-STABILIZATION
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Move from native build success to an actually usable iOS simulator session by fixing runtime startup blockers.
+- Scope: Flutter bootstrap startup order, dependency injection for startup-time consumers, simulator-safe secure-storage handling, and the live `flutter run` session on the booted `iPhone 16e`.
+- Key Changes:
+  - Moved Flutter binding setup and error-widget installation inside the guarded startup zone in [`main.dart`](/Users/ace/my_first_project/lib/main.dart) so `runApp` no longer trips the zone mismatch assertion during startup.
+  - Registered `CallKitRepository` in [`di.dart`](/Users/ace/my_first_project/lib/core/di.dart) using `CallKitService.instance`, fixing the missing provider crash triggered by `_RouterHost`.
+  - Made [`app_state_preserver.dart`](/Users/ace/my_first_project/lib/core/services/app_state_preserver.dart) treat secure-storage reads/writes/deletes as best-effort so simulator keychain entitlement failures do not abort route restoration.
+  - Wrapped auth-bootstrap secure-storage reads in [`firebase_auth_repository.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/firebase_auth_repository.dart) so the simulator can fall back to an unauthenticated state when keychain access is unavailable.
+  - Relaunched the app on the booted `iPhone 16e`, confirmed the Dart VM attached successfully, and verified the app stayed visible on the unauthenticated landing screen after detaching the tooling.
+- Decisions/Handoffs:
+  - Chose graceful degradation for simulator keychain failures instead of trying to force entitlement-dependent secure storage during local debug startup.
+  - Kept the runtime fix separate from the earlier pod/build reconciliation entry so build-stage and runtime-stage problems remain traceable independently.
+- Risks/Mitigation:
+  - Residual risk: the simulator still logs secure-storage entitlement warnings (`-34018`) during auth bootstrap reads; mitigated by falling back cleanly to an unauthenticated state so manual UI testing is not blocked.
+  - Production behavior is preserved because the changes only soften storage access failures and correct startup ordering/DI wiring.
+- Verification:
+  - `flutter analyze lib/main.dart lib/core/di.dart lib/core/services/app_state_preserver.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart`
+  - `flutter run -d FD50F3E6-CA48-4E39-914C-503C2B6B130A --dart-define=FAST_START=true`
+  - `xcrun simctl io FD50F3E6-CA48-4E39-914C-503C2B6B130A screenshot /tmp/codex_screens/crush_ios_runtime.png`
+- `flutter test test/core/startup/startup_policy_test.dart test/startup_cold_launch_guard_test.dart`
+- `xcrun simctl io FD50F3E6-CA48-4E39-914C-503C2B6B130A screenshot /tmp/codex_screens/crush_ios_post_detach.png`
+- Next Step: Continue manual testing in the current simulator session; revisit the remaining secure-storage entitlement warning only if simulator-side auth/session persistence is required across launches.
+
+### T-2026-03-30-APPLE-SIGN-IN-DIAG
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Diagnose the Apple Sign-In failure in the current iOS simulator session and replace the generic UI failure with actionable recovery guidance.
+- Scope: Apple Sign-In auth handling in the Firebase/HTTP repositories, focused error-mapping tests, and local simulator account-state inspection.
+- Key Changes:
+  - Confirmed the app already declares the Sign in with Apple entitlement in [`Runner.entitlements`](/Users/ace/my_first_project/ios/Runner/Runner.entitlements) and [`RunnerRelease.entitlements`](/Users/ace/my_first_project/ios/Runner/RunnerRelease.entitlements), so the immediate blocker was not a missing Xcode capability.
+  - Verified the current simulator image is not signed into an Apple ID by reading `com.apple.appleaccount.informationcache.plist`, which reports `AAIsAccountSignedIn = 0` and `AAPrimaryAccountSignInState = 0`.
+  - Added [`apple_sign_in_failure_mapper.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/apple_sign_in_failure_mapper.dart) to translate Sign in with Apple plugin failures and Firebase auth errors into specific `AuthFailure` messages.
+  - Updated [`firebase_auth_repository.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/firebase_auth_repository.dart) and [`http_auth_repository.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/http_auth_repository.dart) to use the shared Apple failure mapper instead of rethrowing raw/generic errors.
+  - Added [`apple_sign_in_failure_mapper_test.dart`](/Users/ace/my_first_project/test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart) to lock the new Apple-specific messaging behavior.
+- Decisions/Handoffs:
+  - Did not add simulator-only private-platform detection to shipped app code; the root cause was recorded from the local simulator state, while the app-side change stays within supported public error handling.
+  - Chose to fix the user-facing failure mapping instead of hiding Apple Sign-In globally on simulator, because Apple Sign-In can still work on simulator once an Apple ID is signed in.
+- Risks/Mitigation:
+  - Residual risk: Apple Sign-In still cannot succeed on this simulator until an Apple ID is signed in manually; mitigated by replacing the generic snackbar with explicit recovery guidance.
+  - Auth-flow regression risk is limited by keeping the change in a small shared mapper and adding focused tests.
+- Verification:
+  - `plutil -p "$HOME/Library/Developer/CoreSimulator/Devices/FD50F3E6-CA48-4E39-914C-503C2B6B130A/data/Library/Preferences/com.apple.appleaccount.informationcache.plist"`
+- `flutter analyze lib/features/auth/data/repositories/impl/apple_sign_in_failure_mapper.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart`
+- `flutter test test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart test/core/errors/auth_failures_test.dart`
+- Next Step: Open Settings in the simulator, sign into an Apple ID, then retry Apple Sign-In in the app.
+
+### T-2026-03-30-GOOGLE-SIGN-IN-IOS
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Diagnose why Google Sign-In fails on the iOS simulator and fix both the app-side error handling and the local simulator workflow where possible.
+- Scope: Google auth flows in the Firebase/HTTP repositories, VS Code iOS simulator launch config, and simulator/runtime evidence around callback handling, keychain access, and code signing.
+- Key Changes:
+  - Pulled recent simulator logs and confirmed the concrete app-side Google failure is `GoogleSignInExceptionCode.providerConfigurationError` with `keychain error`.
+  - Confirmed iOS callback wiring is not the blocker: system logs show `com.ace.crush` can handle the `com.googleusercontent.apps.72015170328-er7n0bjh53bj6favk67m3ebduqa2952b` callback URL after the Safari sign-in flow.
+  - Confirmed the installed simulator app is unsigned (`code object is not signed at all`) and that the Flutter/Xcode simulator build settings currently include `CODE_SIGNING_ALLOWED = NO` and `ENTITLEMENTS_ALLOWED = NO`, which explains the keychain-dependent failures seen across Google Sign-In, `flutter_secure_storage`, and Firebase installations.
+  - Added [`google_sign_in_failure_mapper.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/google_sign_in_failure_mapper.dart) so Google Sign-In failures now surface specific messages, including the signed-simulator/keychain case.
+  - Updated [`firebase_auth_repository.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/firebase_auth_repository.dart) and [`http_auth_repository.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/http_auth_repository.dart) to use the shared Google failure mapper.
+  - Updated [`launch.json`](/Users/ace/my_first_project/.vscode/launch.json) so both iOS simulator launch configs pass `FLUTTER_XCODE_CODE_SIGNING_ALLOWED=YES`, `FLUTTER_XCODE_CODE_SIGNING_REQUIRED=YES`, and `FLUTTER_XCODE_ENTITLEMENTS_ALLOWED=YES` into Flutter, which forwards them to `xcodebuild`.
+  - Added [`google_sign_in_failure_mapper_test.dart`](/Users/ace/my_first_project/test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart) to lock the new Google-specific failure messaging.
+- Decisions/Handoffs:
+  - Chose a workspace launch-config fix instead of a repo-wide Xcode project mutation because the unsigned simulator state is created by the Flutter run path, not by missing project entitlements alone.
+  - Kept the app-side change focused on better diagnosis rather than hiding Google Sign-In on simulator, since a signed simulator build may still allow it to work.
+- Risks/Mitigation:
+  - Residual risk: the signed-simulator launch path still needs a fresh rerun from VS Code to confirm end-to-end Google auth; mitigated by logging the exact unsigned-app/keychain root cause and updating the launch config accordingly.
+  - If the simulator continues to reject keychain access even after signed launch settings, the physical iPhone path remains the reliable validation route for Google/Keychain-dependent auth.
+- Verification:
+  - `xcrun simctl spawn FD50F3E6-CA48-4E39-914C-503C2B6B130A log show --last 30m --style compact --predicate 'process == "Runner"' | rg -n 'Google|GoogleSignIn|providerConfigurationError|keychain error' -i`
+  - `codesign -dv --entitlements :- "$(xcrun simctl get_app_container FD50F3E6-CA48-4E39-914C-503C2B6B130A com.ace.crush app | tail -n 1)" 2>&1`
+  - `xcodebuild -showBuildSettings -workspace ios/Runner.xcworkspace -scheme Runner -configuration Debug -sdk iphonesimulator | rg 'CODE_SIGNING_ALLOWED|ENTITLEMENTS_ALLOWED|CODE_SIGN_ENTITLEMENTS|PRODUCT_BUNDLE_IDENTIFIER'`
+  - `flutter analyze lib/features/auth/data/repositories/impl/google_sign_in_failure_mapper.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart`
+- `flutter test test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart test/core/errors/auth_failures_test.dart`
+- `sed -n '1,240p' .vscode/launch.json`
+- Next Step: Relaunch the app from VS Code using the updated iOS simulator config, then retry Google Sign-In; if keychain errors persist, move Google auth validation to a physical iPhone.
+
+### T-2026-03-30-GOOGLE-SIGN-IN-IOS-ENTITLEMENTS
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Apply the concrete iOS project fix for Google Sign-In’s keychain requirement and correct the earlier simulator-workflow assumption that proved ineffective.
+- Scope: iOS entitlements, Google Sign-In failure mapping/tests, VS Code launch config cleanup, and task documentation.
+- Key Changes:
+  - Rechecked the installed `google_sign_in_ios` plugin guidance and confirmed it requires `keychain-access-groups` with `$(AppIdentifierPrefix)com.google.GIDSignIn`.
+  - Added that Google keychain access group to [`Runner.entitlements`](/Users/ace/my_first_project/ios/Runner/Runner.entitlements) and [`RunnerRelease.entitlements`](/Users/ace/my_first_project/ios/Runner/RunnerRelease.entitlements).
+  - Confirmed the earlier simulator env approach did not change the installed app state: after relaunch, `codesign` still reported `code object is not signed at all`, so [`launch.json`](/Users/ace/my_first_project/.vscode/launch.json) was cleaned up to remove the ineffective `FLUTTER_XCODE_*` settings.
+  - Updated [`google_sign_in_failure_mapper.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/google_sign_in_failure_mapper.dart) so keychain failures now point to the entitlement requirement and recommend a physical iPhone if the simulator still fails.
+  - Updated [`google_sign_in_failure_mapper_test.dart`](/Users/ace/my_first_project/test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart) to lock the new guidance.
+- Decisions/Handoffs:
+  - Chose the project entitlement fix over further workspace-only tweaks because Flutter’s simulator path still produced an unsigned install after the launch-env experiment.
+  - Kept the simulator limitation explicit instead of pretending Google auth is guaranteed to work there once the entitlement is added.
+- Risks/Mitigation:
+  - Residual risk: Flutter’s default simulator install remains unsigned, so Google Sign-In can still fail with a keychain error on simulator despite the entitlement fix; mitigated by surfacing that limitation clearly and preserving the physical-iPhone fallback.
+  - Real-device auth risk is reduced because the app target now includes Google’s documented keychain-sharing entitlement.
+- Verification:
+  - `sed -n '80,112p' ~/.pub-cache/hosted/pub.dev/google_sign_in_ios-6.3.0/README.md`
+  - `sed -n '1,220p' ios/Runner/Runner.entitlements`
+  - `sed -n '1,220p' ios/Runner/RunnerRelease.entitlements`
+- `codesign -dv --entitlements :- "$(xcrun simctl get_app_container FD50F3E6-CA48-4E39-914C-503C2B6B130A com.ace.crush app | tail -n 1)" 2>&1`
+- `flutter analyze lib/features/auth/data/repositories/impl/google_sign_in_failure_mapper.dart test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart`
+- `flutter test test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart`
+- Next Step: Rebuild once and retry Google Sign-In; if the simulator still throws a keychain error, switch Google auth validation to a physical iPhone.
+
+### T-2026-03-30-AUTH-LOGIN-STABILIZATION
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Fix the app-side login defects across the current auth surface rather than only provider-specific messaging.
+- Scope: Firebase/HTTP auth repositories, auth-specific storage/failure helpers, and focused auth repository/use-case tests.
+- Key Changes:
+  - Removed the incorrect auto-create-on-login behavior from [`firebase_auth_repository.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/firebase_auth_repository.dart), so email/password sign-in no longer creates a new Firebase account when the email is missing.
+  - Added [`firebase_email_password_failure_mapper.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/firebase_email_password_failure_mapper.dart) so Firebase email/password auth exceptions map to stable `AuthFailure` types/messages.
+  - Added [`auth_secure_storage.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/auth_secure_storage.dart), a best-effort secure-storage wrapper that mirrors auth-critical values in memory when platform keychain/storage calls fail.
+  - Switched Firebase auth pending-email/email-OTP state and HTTP auth token storage over to the new resilient auth storage helper, reducing simulator/session breakage when secure storage is unavailable.
+  - Added focused regression coverage in [`auth_secure_storage_test.dart`](/Users/ace/my_first_project/test/features/auth/data/repositories/auth_secure_storage_test.dart) and [`firebase_email_password_failure_mapper_test.dart`](/Users/ace/my_first_project/test/features/auth/data/repositories/firebase_email_password_failure_mapper_test.dart).
+- Decisions/Handoffs:
+  - Kept the change inside repositories/helpers instead of rewriting login screens, because the concrete defects were repository semantics and storage assumptions.
+  - Preserved earlier Apple/Google failure-mapper work and did not try to hide provider buttons globally for simulator-only constraints that are outside app control.
+- Risks/Mitigation:
+  - Residual risk: Apple Sign-In still depends on an Apple ID session in Simulator, and Google Sign-In on iOS Simulator can still be limited by unsigned/keychain simulator behavior; mitigated by keeping provider-specific messaging explicit and by focusing this task on app-code defects.
+  - Auth persistence on simulator is now more resilient within the current app session because auth-critical secure-storage values fall back to memory if the platform store fails.
+- Verification:
+  - `dart format lib/features/auth/data/repositories/impl/auth_secure_storage.dart lib/features/auth/data/repositories/impl/firebase_email_password_failure_mapper.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart test/features/auth/data/repositories/auth_secure_storage_test.dart test/features/auth/data/repositories/firebase_email_password_failure_mapper_test.dart`
+  - `flutter analyze lib/features/auth/data/repositories/impl/auth_secure_storage.dart lib/features/auth/data/repositories/impl/firebase_email_password_failure_mapper.dart lib/features/auth/data/repositories/impl/firebase_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_repository.dart test/features/auth/data/repositories/auth_secure_storage_test.dart test/features/auth/data/repositories/firebase_email_password_failure_mapper_test.dart`
+  - `flutter test test/features/auth/data/repositories/auth_secure_storage_test.dart test/features/auth/data/repositories/firebase_email_password_failure_mapper_test.dart test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart test/features/auth/domain/usecases/auth_flow_use_cases_test.dart`
+  - `flutter run -d FD50F3E6-CA48-4E39-914C-503C2B6B130A --dart-define=FAST_START=true`
+  - `xcrun simctl io FD50F3E6-CA48-4E39-914C-503C2B6B130A screenshot /tmp/codex_screens/auth_stabilization_runtime.png`
+- Next Step: Re-run the login surface in the current simulator session and move any remaining Apple/Google failures to real-device validation if they are still environment-bound.
+
+### T-2026-03-30-REPO-TODO-AUDIT
+- Date: 2026-03-30
+- Owner: Codex
+- Status: Completed
+- Goal: Produce a repo-grounded list of current TODOs and fix targets instead of relying on stale comments or historical assumptions.
+- Scope: Collaboration docs, current `docs/TODO_*.md` backlog files, skipped tests, targeted unfinished implementation markers, and a full analyzer pass.
+- Key Changes:
+  - Audited the live backlog sources and confirmed the current open checkbox items are concentrated in [`docs/TODO_CALLS.md`](/Users/ace/my_first_project/docs/TODO_CALLS.md), [`docs/TODO_SUBSCRIPTION.md`](/Users/ace/my_first_project/docs/TODO_SUBSCRIPTION.md), [`docs/TODO_TESTING_MATRIX.md`](/Users/ace/my_first_project/docs/TODO_TESTING_MATRIX.md), and [`docs/TODO_WEBAPP.md`](/Users/ace/my_first_project/docs/TODO_WEBAPP.md).
+  - Confirmed the codebase is statically clean with a full `flutter analyze` pass returning `No issues found`.
+  - Identified skipped-test debt in [`functions_integration_test.dart`](/Users/ace/my_first_project/test/functions_integration_test.dart) and [`repository_integration_test.dart`](/Users/ace/my_first_project/test/repository_integration_test.dart) covering emulator-dependent and flaky integration scenarios.
+  - Verified current environment-bound auth/platform follow-ups remain outside app-code fixes: simulator Apple ID requirement for Apple Sign-In and unsigned/keychain limitations for Google Sign-In on iOS simulator.
+  - Found documentation drift: planning docs still reference `28` removed `docs/TODO_*.md` files, so backlog navigation is partially stale.
+- Decisions/Handoffs:
+  - Kept this pass read-only for production code; the request was an audit, not a feature implementation.
+  - Recorded the backlog-reference drift as a risk because it directly affects future task selection and audit accuracy.
+- Risks/Mitigation:
+  - Process risk: backlog/tracker drift now competes with the real TODO docs; mitigated by recording the missing-reference issue in [`risk_notes.md`](/Users/ace/my_first_project/docs/risk_notes.md).
+  - Runtime risk remains concentrated in environment-dependent flows rather than analyzer-visible app breakage.
+- Verification:
+  - `rg -n 'Status:\\s*(in_progress|In Progress|Open|open|pending)|- \\[ \\]' docs/TODO_*.md`
+  - `rg -n 'skip:\\s*' test`
+  - `comm -23 <(rg -o -N --no-filename 'docs/TODO_[A-Z0-9_\\-]+\\.md' docs/ai_workboard.md docs/Developer_agent_chat.md docs/risk_notes.md | sort -u) <(rg --files docs | rg '^docs/TODO_.*\\.md$' | sort -u) | wc -l`
+  - `flutter analyze`
+- Next Step: Choose the next execution target from the real open backlog (`SUB-006`, `TEST-002`, or remaining calls/platform work), and separately clean stale TODO-doc references so future audits reflect the actual repository state.

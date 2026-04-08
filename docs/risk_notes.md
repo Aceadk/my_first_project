@@ -1568,3 +1568,39 @@ Created: 2026-03-13
 Updated: 2026-03-13 (compatibility trigger deployed, production backfill complete, stale web query validated)
 
 ---
+
+### R-062 — Backlog and Workboard References Drifted From Existing TODO Docs (ACTIVE)
+
+Category: Process / Documentation
+
+Description:
+The current planning surface is no longer self-consistent.
+`docs/ai_workboard.md`, `docs/Developer_agent_chat.md`, and `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` still reference a broad set of `docs/TODO_*.md` backlog files that are no longer present in the repository.
+The live repo currently retains only a small set of actionable TODO docs (`TODO_CALLS`, `TODO_SUBSCRIPTION`, `TODO_TESTING_MATRIX`, `TODO_WEBAPP`, plus the master audit index and findings file), but the trackers still point to `28` removed TODO modules.
+This creates audit noise and increases the chance that engineering time is spent on stale or nonexistent backlog items.
+
+Impact: Medium (planning friction, inaccurate backlog audits, harder prioritization)
+
+Likelihood: High (every TODO audit currently encounters the drift)
+
+Affected Areas:
+
+- docs/ai_workboard.md
+- docs/Developer_agent_chat.md
+- docs/TODO_MASTER_AUDIT_V2_2026-02-20.md
+
+Mitigation Plan:
+
+- Consolidate planning references onto the TODO docs that still exist.
+- Remove or rewrite dangling references to deleted TODO files in active tracker docs.
+- Treat any future TODO-module references as invalid unless the target file exists in `docs/`.
+- Prefer linking current open work directly to the surviving backlog docs (`TODO_CALLS`, `TODO_SUBSCRIPTION`, `TODO_TESTING_MATRIX`, `TODO_WEBAPP`) until a new canonical backlog structure is deliberately created.
+
+Status: Active (2026-03-30)
+
+Owner: AI
+
+Created: 2026-03-30
+Updated: 2026-03-30
+
+---

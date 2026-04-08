@@ -1,59 +1,70 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Crush App",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "Crush App (Chrome)",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "chrome"
-        },
-        {
-            "name": "Crush App (Chrome emulator)",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "chrome",
-            "toolArgs": [
-                "--dart-define=USE_FIREBASE_EMULATOR=true"
-            ]
-        },
-        {
-            "name": "Crush App (Chrome release)",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "chrome",
-            "flutterMode": "release"
-        },
-        {
-            "name": "Crush App (iOS Simulator)",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "ios"
-        },
-        {
-            "name": "Crush App (macOS)",
-            "request": "launch",
-            "type": "dart",
-            "deviceId": "macos"
-        },
-        {
-            "name": "Crush App (profile mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "profile"
-        },
-        {
-            "name": "Crush `App (release mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Crush App",
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "Crush App (Chrome)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "Crush App (Chrome emulator)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--dart-define=USE_FIREBASE_EMULATOR=true"
+      ]
+    },
+    {
+      "name": "Crush App (Chrome release)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "flutterMode": "release"
+    },
+    {
+      "name": "Crush App (iOS Simulator)",
+      "request": "launch",
+      "type": "dart",
+      "preLaunchTask": "iOS: Open Simulator",
+      "emulatorId": "apple_ios_simulator",
+      "toolArgs": [
+        "--dart-define=FAST_START=true"
+      ]
+    },
+    {
+      "name": "Crush App (iOS Simulator Full Startup)",
+      "request": "launch",
+      "type": "dart",
+      "preLaunchTask": "iOS: Open Simulator",
+      "emulatorId": "apple_ios_simulator"
+    },
+    {
+      "name": "Crush App (macOS)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "macos"
+    },
+    {
+      "name": "Crush App (profile mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "Crush App (release mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release"
+    }
+  ]
 }

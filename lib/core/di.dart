@@ -22,9 +22,11 @@ import 'package:crushhour/features/auth/presentation/bloc/session_bloc.dart';
 import 'package:crushhour/features/calls/data/repositories/impl/firebase_call_repository.dart';
 import 'package:crushhour/features/calls/data/repositories/impl/http_call_repository.dart';
 import 'package:crushhour/features/calls/data/repositories/impl/stub_call_repository.dart';
+import 'package:crushhour/features/calls/data/services/callkit_service.dart';
 import 'package:crushhour/features/calls/data/services/call_service.dart';
 import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
 import 'package:crushhour/features/calls/domain/repositories/call_repository.dart';
+import 'package:crushhour/features/calls/domain/repositories/callkit_repository.dart';
 import 'package:crushhour/features/calls/presentation/bloc/call_bloc.dart';
 import 'package:crushhour/features/chat/data/repositories/impl/firebase_chat_repository.dart';
 import 'package:crushhour/features/chat/data/repositories/impl/http_chat_repository.dart';
@@ -202,6 +204,7 @@ class CrushDI {
     final DiscoveryRepository discoveryRepo;
     final ChatRepository chatRepo;
     final CallRepository callRepo;
+    final CallKitRepository callKitRepo = CallKitService.instance;
     final CallManagerRepository callManagerRepo = CallService.instance;
     final FeatureFlagRepository featureFlagRepo;
     final BoostRepository boostRepo;
@@ -278,6 +281,7 @@ class CrushDI {
       RepositoryProvider<DiscoveryRepository>.value(value: discoveryRepo),
       RepositoryProvider<ChatRepository>.value(value: chatRepo),
       RepositoryProvider<CallRepository>.value(value: callRepo),
+      RepositoryProvider<CallKitRepository>.value(value: callKitRepo),
       RepositoryProvider<CallManagerRepository>.value(value: callManagerRepo),
       RepositoryProvider<FeatureFlagRepository>.value(value: featureFlagRepo),
       RepositoryProvider<BoostRepository>.value(value: boostRepo),

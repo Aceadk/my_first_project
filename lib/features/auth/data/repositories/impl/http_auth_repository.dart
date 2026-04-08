@@ -16,6 +16,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+import 'apple_sign_in_failure_mapper.dart';
+import 'auth_secure_storage.dart';
+import 'google_sign_in_failure_mapper.dart';
 import '../auth_repository.dart';
 
 /// HTTP-based implementation of AuthRepository.
@@ -31,10 +34,13 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
              config: ApiConfig.production,
              authTokenProvider: null, // Set after initialization
            ),
-       _secureStorage = secureStorage ?? const FlutterSecureStorage();
+       _authStorage = AuthSecureStorage(
+         secureStorage: secureStorage,
+         logPrefix: 'HttpAuthRepo',
+       );
 
   final ApiClient _apiClient;
-  final FlutterSecureStorage _secureStorage;
+  final AuthSecureStorage _authStorage;
 
   // Storage keys
   static const String _accessTokenKey = 'auth_access_token';
@@ -68,7 +74,7 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
   @override
   Future<void> bootstrapSession() async {
     try {
-      final accessToken = await _secureStorage.read(key: _accessTokenKey);
+      final accessToken = await _authStorage.read(_accessTokenKey);
       if (accessToken == null) {
         _emitAuthState(null);
         return;
@@ -308,9 +314,14 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
       _emitAuthState(_currentUser);
       return _currentUser!;
-    } catch (e) {
-      AppLogger.error('[HttpAuthRepo] Apple sign-in failed', error: e);
-      rethrow;
+    } catch (error, stackTrace) {
+      final mappedFailure = mapAppleSignInFailure(error);
+      AppLogger.error(
+        '[HttpAuthRepo] Apple sign-in failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      throw mappedFailure;
     }
   }
 
@@ -378,15 +389,14 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
       _currentUser = AuthMapper.userFromVerifyOtpResponse(response);
       _emitAuthState(_currentUser);
       return _currentUser!;
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) {
-        throw Exception('Google Sign-In was cancelled.');
-      }
-      AppLogger.error('[HttpAuthRepo] Google sign-in failed', error: e);
-      throw Exception(e.description ?? 'Google Sign-In failed.');
-    } catch (e) {
-      AppLogger.error('[HttpAuthRepo] Google sign-in failed', error: e);
-      rethrow;
+    } catch (error, stackTrace) {
+      final mappedFailure = mapGoogleSignInFailure(error);
+      AppLogger.error(
+        '[HttpAuthRepo] Google sign-in failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      throw mappedFailure;
     }
   }
 
@@ -620,27 +630,24 @@ class HttpAuthRepository implements AuthRepository, GoogleSignInAuthRepository {
   // ═══════════════════════════════════════════════════════════════════════════
 
   Future<void> _storeTokens(AuthTokensDto tokens) async {
-    await _secureStorage.write(key: _accessTokenKey, value: tokens.accessToken);
-    await _secureStorage.write(
-      key: _refreshTokenKey,
-      value: tokens.refreshToken,
-    );
+    await _authStorage.write(key: _accessTokenKey, value: tokens.accessToken);
+    await _authStorage.write(key: _refreshTokenKey, value: tokens.refreshToken);
   }
 
   Future<void> _clearTokens() async {
-    await _secureStorage.delete(key: _accessTokenKey);
-    await _secureStorage.delete(key: _refreshTokenKey);
-    await _secureStorage.delete(key: _userIdKey);
+    await _authStorage.delete(_accessTokenKey);
+    await _authStorage.delete(_refreshTokenKey);
+    await _authStorage.delete(_userIdKey);
   }
 
   /// Get current access token (for API client).
   Future<String?> getAccessToken() async {
-    return await _secureStorage.read(key: _accessTokenKey);
+    return _authStorage.read(_accessTokenKey);
   }
 
   /// Refresh the access token.
   Future<bool> refreshToken() async {
-    final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
+    final refreshToken = await _authStorage.read(_refreshTokenKey);
     if (refreshToken == null) return false;
 
     final request = RefreshTokenRequestDto(refreshToken: refreshToken);

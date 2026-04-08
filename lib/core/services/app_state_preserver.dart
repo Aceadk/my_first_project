@@ -32,21 +32,29 @@ class AppStatePreserver {
     if (_shouldNotPreserve(route)) return;
 
     _currentRoute = route;
-    await _secureStorage!.write(key: _lastRouteKey, value: route);
-    await _secureStorage!.write(
-      key: _lastRouteTimestampKey,
-      value: DateTime.now().millisecondsSinceEpoch.toString(),
-    );
+    try {
+      await _secureStorage!.write(key: _lastRouteKey, value: route);
+      await _secureStorage!.write(
+        key: _lastRouteTimestampKey,
+        value: DateTime.now().millisecondsSinceEpoch.toString(),
+      );
+    } catch (_) {
+      // Route preservation is best-effort and should not block app usage.
+    }
   }
 
   /// Get the last saved route if it's still valid
   Future<String?> getPreservedRoute() async {
     if (_secureStorage == null) return null;
 
-    final route = await _secureStorage!.read(key: _lastRouteKey);
-    final timestampStr = await _secureStorage!.read(
-      key: _lastRouteTimestampKey,
-    );
+    String? route;
+    String? timestampStr;
+    try {
+      route = await _secureStorage!.read(key: _lastRouteKey);
+      timestampStr = await _secureStorage!.read(key: _lastRouteTimestampKey);
+    } catch (_) {
+      return null;
+    }
 
     if (route == null || timestampStr == null) return null;
 
@@ -73,8 +81,12 @@ class AppStatePreserver {
   /// Clear the preserved route (call after successful restoration or on logout)
   Future<void> clearPreservedRoute() async {
     if (_secureStorage == null) return;
-    await _secureStorage!.delete(key: _lastRouteKey);
-    await _secureStorage!.delete(key: _lastRouteTimestampKey);
+    try {
+      await _secureStorage!.delete(key: _lastRouteKey);
+      await _secureStorage!.delete(key: _lastRouteTimestampKey);
+    } catch (_) {
+      // Route preservation is best-effort and should not block app usage.
+    }
     _currentRoute = null;
   }
 
