@@ -19,8 +19,13 @@ class StubDiscoveryRepository implements DiscoveryRepository {
   static const _swipedKey = 'mock_swiped';
   static const _likesKey =
       'mock_likes'; // Track who liked whom for mutual matching
+  static const _deckPageSize = 10;
 
   final _random = Random();
+  DiscoveryDeckPageInfo? _lastDeckPageInfo;
+
+  @override
+  DiscoveryDeckPageInfo? get lastDeckPageInfo => _lastDeckPageInfo;
 
   // Sample mock profiles for discovery with location data for distance calculations
   // Note: Some profiles have isActive/createdAt to demonstrate Active/New here badges
@@ -1037,6 +1042,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   }) async {
     await Future.delayed(const Duration(milliseconds: 100));
 
@@ -1049,9 +1055,25 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       excludedProfileIds: swiped,
     );
 
-    // Shuffle and return
-    available.shuffle(_random);
-    return available;
+    final ordered = [...available]
+      ..sort((a, b) {
+        final aDistance = a.distance ?? double.maxFinite;
+        final bDistance = b.distance ?? double.maxFinite;
+        final distanceComparison = aDistance.compareTo(bDistance);
+        if (distanceComparison != 0) return distanceComparison;
+        return a.id.compareTo(b.id);
+      });
+
+    final startIndex = int.tryParse(cursor ?? '0') ?? 0;
+    final page = ordered.skip(startIndex).take(_deckPageSize).toList();
+    final nextIndex = startIndex + page.length;
+    final hasMore = nextIndex < ordered.length;
+    _lastDeckPageInfo = DiscoveryDeckPageInfo(
+      hasMore: hasMore,
+      nextCursor: hasMore ? nextIndex.toString() : null,
+    );
+
+    return page;
   }
 
   @override

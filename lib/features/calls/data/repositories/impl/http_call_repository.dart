@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/network/api_version.dart';
 
 import 'package:crushhour/core/network/api_client.dart';
 import '../call_repository.dart';
+import 'call_contract_support.dart';
 
 /// HTTP-based implementation of CallRepository.
 ///
@@ -23,7 +25,7 @@ class HttpCallRepository implements CallRepository {
     required bool isVideoCall,
   }) async {
     final result = await _apiClient.post<Map<String, dynamic>>(
-      '/calls/start',
+      ApiEndpoints.callStart,
       body: {'match_id': matchId, 'is_video': isVideoCall},
       parser: (data) => data as Map<String, dynamic>,
     );
@@ -38,11 +40,9 @@ class HttpCallRepository implements CallRepository {
       throw Exception(result.error?.message ?? 'Failed to start call');
     }
 
-    final data = result.data!;
-    _currentSession = CallSession(
+    _currentSession = callSessionFromStartResponse(
+      result.data!,
       matchId: matchId,
-      localUid: data['local_uid'] as int? ?? 0,
-      channelName: data['channel_name'] as String? ?? matchId,
       isVideoCall: isVideoCall,
     );
 
@@ -59,8 +59,8 @@ class HttpCallRepository implements CallRepository {
     if (_currentSession == null) return;
 
     final result = await _apiClient.post<void>(
-      '/calls/end',
-      body: {'match_id': _currentSession!.matchId},
+      ApiEndpoints.callEnd,
+      body: {'call_id': _currentSession!.channelName},
     );
 
     if (result.isFailure) {

@@ -47,12 +47,24 @@ class DiscoveryFilter {
       : userLongitude;
 }
 
+/// Pagination metadata for a discovery deck fetch.
+class DiscoveryDeckPageInfo {
+  const DiscoveryDeckPageInfo({required this.hasMore, this.nextCursor});
+
+  final bool hasMore;
+  final String? nextCursor;
+}
+
 abstract class DiscoveryRepository {
+  /// Metadata for the most recent deck fetch.
+  DiscoveryDeckPageInfo? get lastDeckPageInfo;
+
   /// Fetches the discovery deck for a user.
   /// [filter] contains distance and passport mode parameters.
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   });
 
   Future<CrushMatch?> swipeRight({

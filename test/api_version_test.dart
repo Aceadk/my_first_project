@@ -80,6 +80,19 @@ void main() {
       expect(ApiEndpoints.matchById('m1'), '/matches/m1');
       expect(ApiEndpoints.unmatch('m1'), '/matches/m1/unmatch');
     });
+
+    test('remapped live endpoints match the current backend surface', () {
+      expect(ApiEndpoints.subscriptionStatus, '/subscription/current');
+      expect(ApiEndpoints.subscriptionPlans, '/subscription/plans');
+      expect(ApiEndpoints.subscriptionPurchase, '/subscription/checkout');
+      expect(ApiEndpoints.reportUser, '/users/report');
+      expect(ApiEndpoints.blockUser, '/users/block');
+      expect(ApiEndpoints.unblockUser, '/users/unblock');
+      expect(ApiEndpoints.safetyAppeal, '/safety/appeal');
+      expect(ApiEndpoints.callStart, '/calls/start');
+      expect(ApiEndpoints.callEnd, '/calls/end');
+      expect(ApiEndpoints.profilePhotoReorder, '/profile/photos/reorder');
+    });
   });
 
   group('ApiFeatures', () {

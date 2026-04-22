@@ -22,6 +22,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+const Key accountActionsConstraintKey = ValueKey<String>(
+  'account_actions_constraint',
+);
+
 class AccountActionsSettingsScreen extends StatefulWidget {
   const AccountActionsSettingsScreen({super.key});
 
@@ -51,301 +55,339 @@ class _AccountActionsSettingsScreenState
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
+            key: accountActionsConstraintKey,
             constraints: BoxConstraints(
               maxWidth: DsBreakpoints.contentMaxWidth(constraints.maxWidth),
             ),
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView(
-                    children: [
-                      // Header
-                      Container(
-                        padding: DsEdgeInsets.allLg,
-                        margin: DsEdgeInsets.allLg,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              DsColors.secondary.withValues(alpha: 0.1),
-                              DsColors.secondary.withValues(alpha: 0.1),
-                            ],
-                            begin: AlignmentDirectional.topStart,
-                            end: AlignmentDirectional.bottomEnd,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: DsEdgeInsets.allMd,
-                              decoration: BoxDecoration(
-                                color: DsColors.secondary.withValues(
-                                  alpha: 0.2,
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.manage_accounts_outlined,
-                                color: DsColors.secondary,
-                                size: 28,
-                              ),
-                            ),
-                            DsGap.lgH,
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.accountActionsHeaderTitle,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(fontWeight: FontWeight.bold),
-                                  ),
-                                  DsGap.xs,
-                                  Text(
-                                    l10n.accountActionsHeaderSubtitle,
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: isDark
-                                              ? DsColors.textMutedDark
-                                              : DsColors.textMutedLight,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Security section
-                      Padding(
-                        padding: DsEdgeInsets.horizontalLg,
-                        child: Text(
-                          l10n.accountActionsSectionSecurity,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DsGap.md,
-
-                      // Phone verification
-                      _ActionTile(
-                        icon: phoneVerified
-                            ? Icons.verified_outlined
-                            : Icons.phone_android,
-                        iconColor: phoneVerified
-                            ? DsColors.success
-                            : DsColors.info,
-                        title: phoneVerified
-                            ? l10n.accountActionsPhoneVerifiedTitle
-                            : (hasPhone
-                                  ? l10n.accountActionsPhoneVerifyTitle
-                                  : l10n.accountActionsPhoneAddTitle),
-                        subtitle: phoneVerified
-                            ? l10n.accountActionsPhoneVerifiedSubtitle
-                            : l10n.accountActionsPhoneVerifySubtitle,
-                        trailing: phoneVerified
-                            ? const Icon(
-                                Icons.lock_outline,
-                                color: DsColors.success,
-                              )
-                            : const Icon(Icons.chevron_right),
-                        onTap: () => context.push(CrushRoutes.phoneProtection),
-                      ),
-                      const Divider(indent: 72),
-
-                      // Change password
-                      _ActionTile(
-                        icon: Icons.lock_reset_outlined,
-                        iconColor: DsColors.secondary,
-                        title: l10n.changePassword,
-                        subtitle: l10n.accountActionsChangePasswordSubtitle,
-                        onTap: () => _showChangePasswordDialog(context),
-                      ),
-                      const Divider(indent: 72),
-
-                      // Account security settings
-                      _ActionTile(
-                        icon: Icons.shield_outlined,
-                        iconColor: DsColors.accent,
-                        title: l10n.accountSecurity,
-                        subtitle: l10n.settingsAccountSecuritySubtitle,
-                        onTap: () => context.push(CrushRoutes.securitySettings),
-                      ),
-
-                      DsGap.xxl,
-
-                      // Account status section
-                      Padding(
-                        padding: DsEdgeInsets.horizontalLg,
-                        child: Text(
-                          l10n.accountActionsSectionAccountStatus,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DsGap.md,
-
-                      // Snooze profile (Pause from discovery)
-                      SwitchListTile(
-                        secondary: Container(
-                          padding: const EdgeInsets.all(8),
+                : FocusTraversalGroup(
+                    policy: OrderedTraversalPolicy(),
+                    child: ListView(
+                      children: [
+                        // Header
+                        Container(
+                          padding: DsEdgeInsets.allLg,
+                          margin: DsEdgeInsets.allLg,
                           decoration: BoxDecoration(
-                            color: DsColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.bedtime_outlined,
-                            color: DsColors.primary,
-                            size: 22,
-                          ),
-                        ),
-                        title: Text(l10n.accountActionsSnoozeProfileTitle),
-                        subtitle: Text(
-                          l10n.accountActionsSnoozeProfileSubtitle,
-                        ),
-                        value: isSnoozed,
-                        onChanged: (value) async {
-                          final cubit = context.read<DiscoverySettingsCubit>();
-                          await cubit.setVisible(!value);
-
-                          if (!context.mounted) return;
-
-                          // Update profile backend to sync hideFromDiscovery
-                          final authUser = context.read<AuthBloc>().state.user;
-                          if (authUser != null && authUser.profile != null) {
-                            final prefs = authUser.profile!.preferences
-                                .copyWith(hideFromDiscovery: value);
-                            final updatedProfile = authUser.profile!.copyWith(
-                              preferences: prefs,
-                            );
-                            context.read<ProfileBloc>().add(
-                              ProfileSaveRequested(profile: updatedProfile),
-                            );
-                          }
-                        },
-                      ),
-                      const Divider(indent: 72),
-
-                      // Deactivate account
-                      _ActionTile(
-                        icon: Icons.pause_circle_outline,
-                        iconColor: DsColors.warning,
-                        title: l10n.settingsDeactivateAccount,
-                        subtitle: l10n.accountActionsDeactivateSubtitle,
-                        onTap: () => _showDeactivateFlow(context),
-                      ),
-
-                      DsGap.xxl,
-
-                      // Data & Privacy section
-                      Padding(
-                        padding: DsEdgeInsets.horizontalLg,
-                        child: Text(
-                          l10n.accountActionsSectionDataPrivacy,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      DsGap.md,
-
-                      // Export your data (GDPR)
-                      _ActionTile(
-                        icon: Icons.download_outlined,
-                        iconColor: DsColors.info,
-                        title: l10n.accountActionsExportDataTitle,
-                        subtitle: l10n.accountActionsExportDataSubtitle,
-                        onTap: () => _showExportDataDialog(context),
-                      ),
-
-                      DsGap.xxl,
-
-                      // Danger zone
-                      Padding(
-                        padding: DsEdgeInsets.horizontalLg,
-                        child: Text(
-                          l10n.accountActionsSectionDangerZone,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: DsColors.error,
-                              ),
-                        ),
-                      ),
-                      DsGap.md,
-                      Padding(
-                        padding: DsEdgeInsets.horizontalLg,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: DsColors.error.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: DsColors.error.withValues(alpha: 0.2),
+                            gradient: LinearGradient(
+                              colors: [
+                                DsColors.secondary.withValues(alpha: 0.1),
+                                DsColors.secondary.withValues(alpha: 0.1),
+                              ],
+                              begin: AlignmentDirectional.topStart,
+                              end: AlignmentDirectional.bottomEnd,
                             ),
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Column(
+                          child: Row(
                             children: [
-                              ListTile(
-                                leading: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: DsColors.error.withValues(
-                                      alpha: 0.1,
+                              Container(
+                                padding: DsEdgeInsets.allMd,
+                                decoration: BoxDecoration(
+                                  color: DsColors.secondary.withValues(
+                                    alpha: 0.2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.manage_accounts_outlined,
+                                  color: DsColors.secondary,
+                                  size: 28,
+                                ),
+                              ),
+                              DsGap.lgH,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.accountActionsHeaderTitle,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                     ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.delete_forever_outlined,
-                                    color: DsColors.error,
-                                    size: 22,
-                                  ),
+                                    DsGap.xs,
+                                    Text(
+                                      l10n.accountActionsHeaderSubtitle,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: isDark
+                                                ? DsColors.textMutedDark
+                                                : DsColors.textMutedLight,
+                                          ),
+                                    ),
+                                  ],
                                 ),
-                                title: Text(
-                                  l10n.settingsDeleteAccount,
-                                  style: const TextStyle(color: DsColors.error),
-                                ),
-                                subtitle: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  ).permanentlyRemoveYourAccount,
-                                ),
-                                trailing: const Icon(
-                                  Icons.chevron_right,
-                                  color: DsColors.error,
-                                ),
-                                onTap: () => _showDeleteFlow(context),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      DsGap.xxl,
 
-                      // Info boxes
-                      Padding(
-                        padding: DsEdgeInsets.horizontalLg,
-                        child: _InfoBox(
+                        // Security section
+                        Padding(
+                          padding: DsEdgeInsets.horizontalLg,
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              l10n.accountActionsSectionSecurity,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        DsGap.md,
+
+                        // Phone verification
+                        _ActionTile(
+                          icon: phoneVerified
+                              ? Icons.verified_outlined
+                              : Icons.phone_android,
+                          iconColor: phoneVerified
+                              ? DsColors.success
+                              : DsColors.info,
+                          title: phoneVerified
+                              ? l10n.accountActionsPhoneVerifiedTitle
+                              : (hasPhone
+                                    ? l10n.accountActionsPhoneVerifyTitle
+                                    : l10n.accountActionsPhoneAddTitle),
+                          subtitle: phoneVerified
+                              ? l10n.accountActionsPhoneVerifiedSubtitle
+                              : l10n.accountActionsPhoneVerifySubtitle,
+                          trailing: phoneVerified
+                              ? const Icon(
+                                  Icons.lock_outline,
+                                  color: DsColors.success,
+                                )
+                              : const Icon(Icons.chevron_right),
+                          onTap: () =>
+                              context.push(CrushRoutes.phoneProtection),
+                        ),
+                        const Divider(indent: 72),
+
+                        // Change password
+                        _ActionTile(
+                          icon: Icons.lock_reset_outlined,
+                          iconColor: DsColors.secondary,
+                          title: l10n.changePassword,
+                          subtitle: l10n.accountActionsChangePasswordSubtitle,
+                          onTap: () => _showChangePasswordDialog(context),
+                        ),
+                        const Divider(indent: 72),
+
+                        // Account security settings
+                        _ActionTile(
+                          icon: Icons.shield_outlined,
+                          iconColor: DsColors.accent,
+                          title: l10n.accountSecurity,
+                          subtitle: l10n.settingsAccountSecuritySubtitle,
+                          onTap: () =>
+                              context.push(CrushRoutes.securitySettings),
+                        ),
+
+                        DsGap.xxl,
+
+                        // Account status section
+                        Padding(
+                          padding: DsEdgeInsets.horizontalLg,
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              l10n.accountActionsSectionAccountStatus,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        DsGap.md,
+
+                        // Snooze profile (Pause from discovery)
+                        SwitchListTile(
+                          secondary: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: DsColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.bedtime_outlined,
+                              color: DsColors.primary,
+                              size: 22,
+                            ),
+                          ),
+                          title: Text(l10n.accountActionsSnoozeProfileTitle),
+                          subtitle: Text(
+                            l10n.accountActionsSnoozeProfileSubtitle,
+                          ),
+                          value: isSnoozed,
+                          onChanged: (value) async {
+                            final cubit = context
+                                .read<DiscoverySettingsCubit>();
+                            await cubit.setVisible(!value);
+
+                            if (!context.mounted) return;
+
+                            // Update profile backend to sync hideFromDiscovery
+                            final authUser = context
+                                .read<AuthBloc>()
+                                .state
+                                .user;
+                            if (authUser != null && authUser.profile != null) {
+                              final prefs = authUser.profile!.preferences
+                                  .copyWith(hideFromDiscovery: value);
+                              final updatedProfile = authUser.profile!.copyWith(
+                                preferences: prefs,
+                              );
+                              context.read<ProfileBloc>().add(
+                                ProfileSaveRequested(profile: updatedProfile),
+                              );
+                            }
+                          },
+                        ),
+                        const Divider(indent: 72),
+
+                        // Deactivate account
+                        _ActionTile(
                           icon: Icons.pause_circle_outline,
                           iconColor: DsColors.warning,
-                          title: l10n.accountActionsAboutDeactivationTitle,
-                          description: l10n.accountActionsAboutDeactivationBody,
-                          isDark: isDark,
+                          title: l10n.settingsDeactivateAccount,
+                          subtitle: l10n.accountActionsDeactivateSubtitle,
+                          onTap: () => _showDeactivateFlow(context),
                         ),
-                      ),
-                      DsGap.md,
-                      Padding(
-                        padding: DsEdgeInsets.horizontalLg,
-                        child: _InfoBox(
-                          icon: Icons.delete_forever_outlined,
-                          iconColor: DsColors.error,
-                          title: l10n.accountActionsAboutDeletionTitle,
-                          description: l10n.accountActionsAboutDeletionBody,
-                          isDark: isDark,
+
+                        DsGap.xxl,
+
+                        // Data & Privacy section
+                        Padding(
+                          padding: DsEdgeInsets.horizontalLg,
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              l10n.accountActionsSectionDataPrivacy,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
                         ),
-                      ),
-                      DsGap.xl,
-                    ],
+                        DsGap.md,
+
+                        // Export your data (GDPR)
+                        _ActionTile(
+                          icon: Icons.download_outlined,
+                          iconColor: DsColors.info,
+                          title: l10n.accountActionsExportDataTitle,
+                          subtitle: l10n.accountActionsExportDataSubtitle,
+                          onTap: () => _showExportDataDialog(context),
+                        ),
+
+                        DsGap.xxl,
+
+                        // Danger zone
+                        Padding(
+                          padding: DsEdgeInsets.horizontalLg,
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              l10n.accountActionsSectionDangerZone,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: DsColors.error,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        DsGap.md,
+                        Padding(
+                          padding: DsEdgeInsets.horizontalLg,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: DsColors.error.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: DsColors.error.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                MergeSemantics(
+                                  child: Semantics(
+                                    button: true,
+                                    label:
+                                        '${l10n.settingsDeleteAccount}. ${AppLocalizations.of(context).permanentlyRemoveYourAccount}',
+                                    child: ListTile(
+                                      leading: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: DsColors.error.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.delete_forever_outlined,
+                                          color: DsColors.error,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        l10n.settingsDeleteAccount,
+                                        style: const TextStyle(
+                                          color: DsColors.error,
+                                        ),
+                                      ),
+                                      subtitle: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).permanentlyRemoveYourAccount,
+                                      ),
+                                      trailing: const Icon(
+                                        Icons.chevron_right,
+                                        color: DsColors.error,
+                                      ),
+                                      onTap: () => _showDeleteFlow(context),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        DsGap.xxl,
+
+                        // Info boxes
+                        Padding(
+                          padding: DsEdgeInsets.horizontalLg,
+                          child: _InfoBox(
+                            icon: Icons.pause_circle_outline,
+                            iconColor: DsColors.warning,
+                            title: l10n.accountActionsAboutDeactivationTitle,
+                            description:
+                                l10n.accountActionsAboutDeactivationBody,
+                            isDark: isDark,
+                          ),
+                        ),
+                        DsGap.md,
+                        Padding(
+                          padding: DsEdgeInsets.horizontalLg,
+                          child: _InfoBox(
+                            icon: Icons.delete_forever_outlined,
+                            iconColor: DsColors.error,
+                            title: l10n.accountActionsAboutDeletionTitle,
+                            description: l10n.accountActionsAboutDeletionBody,
+                            isDark: isDark,
+                          ),
+                        ),
+                        DsGap.xl,
+                      ],
+                    ),
                   ),
           ),
         ),
@@ -1368,19 +1410,25 @@ class _ActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
+    return MergeSemantics(
+      child: Semantics(
+        button: true,
+        label: '$title. $subtitle',
+        child: ListTile(
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: iconColor, size: 22),
+          ),
+          title: Text(title),
+          subtitle: Text(subtitle),
+          trailing: trailing ?? const Icon(Icons.chevron_right),
+          onTap: onTap,
         ),
-        child: Icon(icon, color: iconColor, size: 22),
       ),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: trailing ?? const Icon(Icons.chevron_right),
-      onTap: onTap,
     );
   }
 }
@@ -1398,7 +1446,7 @@ class _DeleteWarningItem extends StatelessWidget {
         children: [
           const Icon(Icons.close, size: 16, color: DsColors.error),
           DsGap.smH,
-          Text(text),
+          Expanded(child: Text(text)),
         ],
       ),
     );

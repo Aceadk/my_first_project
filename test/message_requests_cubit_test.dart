@@ -225,6 +225,10 @@ class MockDiscoveryRepository implements DiscoveryRepository {
   String? lastSwipeTargetUserId;
 
   @override
+  DiscoveryDeckPageInfo? get lastDeckPageInfo =>
+      const DiscoveryDeckPageInfo(hasMore: false);
+
+  @override
   Future<CrushMatch?> swipeRight({
     required String userId,
     required String targetUserId,
@@ -240,6 +244,7 @@ class MockDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   }) async => [];
   @override
   Future<void> swipeLeft({

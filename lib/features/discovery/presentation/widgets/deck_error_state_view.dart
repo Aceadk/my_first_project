@@ -80,7 +80,7 @@ class DeckErrorStateView extends StatelessWidget {
                       'Unlock offline likes, queue retries, and Passport so you never miss a match.',
                   bullets: [
                     'Intro offer: 50% off your first month',
-                    'Unlimited likes & rewinds',
+                    'Unlimited likes & Passport',
                     'Passport to swipe anywhere',
                   ],
                 ),

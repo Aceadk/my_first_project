@@ -161,331 +161,387 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                   return Center(
                     child: ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: maxWidth),
-                      child: Stack(
-                        children: [
-                          AbsorbPointer(
-                            absorbing: isBusy,
-                            child: Column(
-                              children: [
-                                // Custom App Bar
-                                Padding(
-                                  padding: DsEdgeInsets.horizontalXxl.copyWith(
-                                    top: DsSpacing.md,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      GlassIconButton(
-                                        icon: Icons.arrow_back_ios_new_rounded,
-                                        onPressed: isBusy ? null : _goBack,
-                                        size: 40,
-                                      ),
-                                      const Spacer(),
-                                      Text(
-                                        l10n.onboardingBasicInfoTitle,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleLarge
-                                            ?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: isDark
-                                                  ? DsColors.textPrimaryDark
-                                                  : DsColors.textPrimaryLight,
-                                            ),
-                                      ),
-                                      const Spacer(),
-                                      // Spacer for layout balance
-                                      const SizedBox(width: 40),
-                                    ],
-                                  ),
-                                ),
-                                DsGap.lg,
-                                // Progress Indicator
-                                Padding(
-                                  padding: DsEdgeInsets.horizontalXxl,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            l10n.onboardingStep(3, 6),
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  color: DsColors.primary,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                          ),
-                                          Text(
-                                            l10n.onboardingBasicInfoSubtitle,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  color: isDark
-                                                      ? DsColors.textMutedDark
-                                                      : DsColors.textMutedLight,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                      DsGap.sm,
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child: LinearProgressIndicator(
-                                          value: 0.6,
-                                          minHeight: 6,
-                                          backgroundColor: isDark
-                                              ? DsColors.surfaceDark
-                                              : DsColors.skeletonLight,
-                                          valueColor:
-                                              const AlwaysStoppedAnimation<
-                                                Color
-                                              >(DsColors.primary),
+                      child: FocusTraversalGroup(
+                        policy: OrderedTraversalPolicy(),
+                        child: Stack(
+                          children: [
+                            AbsorbPointer(
+                              absorbing: isBusy,
+                              child: Column(
+                                children: [
+                                  // Custom App Bar
+                                  Padding(
+                                    padding: DsEdgeInsets.horizontalXxl
+                                        .copyWith(top: DsSpacing.md),
+                                    child: Row(
+                                      children: [
+                                        GlassIconButton(
+                                          icon:
+                                              Icons.arrow_back_ios_new_rounded,
+                                          onPressed: isBusy ? null : _goBack,
+                                          size: 40,
                                         ),
-                                      ),
-                                    ],
+                                        DsGap.mdH,
+                                        Expanded(
+                                          child: Text(
+                                            l10n.onboardingBasicInfoTitle,
+                                            textAlign: TextAlign.center,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleLarge
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: isDark
+                                                      ? DsColors.textPrimaryDark
+                                                      : DsColors
+                                                            .textPrimaryLight,
+                                                ),
+                                          ),
+                                        ),
+                                        // Spacer for layout balance
+                                        const SizedBox(width: 40),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                DsGap.xl,
-                                // Form Content
-                                Expanded(
-                                  child: SingleChildScrollView(
+                                  DsGap.lg,
+                                  // Progress Indicator
+                                  Padding(
                                     padding: DsEdgeInsets.horizontalXxl,
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        // Username Field
-                                        _buildSectionLabel(
-                                          context,
-                                          l10n.onboardingBasicInfoUsernameLabel,
-                                          isDark,
-                                          true,
-                                        ),
-                                        DsGap.sm,
-                                        GlassTextField(
-                                          controller: _usernameController,
-                                          hintText: l10n
-                                              .onboardingBasicInfoUsernameHint,
-                                          prefixIcon:
-                                              Icons.alternate_email_rounded,
-                                          errorText: _usernameErrorText(),
-                                          helperText: _usernameHelperText(),
-                                          onChanged: _onUsernameChanged,
-                                        ),
-                                        DsGap.lg,
-                                        // First Name Field
-                                        _buildSectionLabel(
-                                          context,
-                                          l10n.onboardingBasicInfoFirstNameLabel,
-                                          isDark,
-                                          false,
-                                        ),
-                                        DsGap.sm,
-                                        GlassTextField(
-                                          controller: _firstNameController,
-                                          hintText: l10n
-                                              .onboardingBasicInfoFirstNameHint,
-                                          prefixIcon:
-                                              Icons.person_outline_rounded,
-                                          onChanged: (_) => setState(() {}),
-                                        ),
-                                        DsGap.lg,
-                                        // Last Name Field
-                                        _buildSectionLabel(
-                                          context,
-                                          l10n.onboardingBasicInfoLastNameLabel,
-                                          isDark,
-                                          false,
-                                        ),
-                                        DsGap.sm,
-                                        GlassTextField(
-                                          controller: _lastNameController,
-                                          hintText: l10n
-                                              .onboardingBasicInfoLastNameHint,
-                                          prefixIcon: Icons.badge_outlined,
-                                          onChanged: (_) => setState(() {}),
-                                        ),
-                                        DsGap.lg,
-                                        // Birthdate Field
-                                        _buildSectionLabel(
-                                          context,
-                                          l10n.onboardingBasicInfoBirthdateLabel,
-                                          isDark,
-                                          true,
-                                        ),
-                                        DsGap.sm,
-                                        _buildBirthdatePicker(context, isDark),
-                                        DsGap.xl,
-                                        // Gender Selection
-                                        _buildSectionLabel(
-                                          context,
-                                          l10n.onboardingSelectGender,
-                                          isDark,
-                                          true,
-                                        ),
-                                        DsGap.sm,
                                         Row(
-                                          children: ProfileFieldOptions
-                                              .onboardingGenderValues
-                                              .map(
-                                                (genderValue) => Expanded(
-                                                  child: Padding(
-                                                    padding: EdgeInsetsDirectional.only(
-                                                      end:
-                                                          genderValue !=
-                                                              ProfileFieldOptions
-                                                                  .onboardingGenderValues
-                                                                  .last
-                                                          ? 10
-                                                          : 0,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                l10n.onboardingStep(3, 6),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                      color: DsColors.primary,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
-                                                    child: _buildGenderTile(
-                                                      context,
-                                                      genderValue,
-                                                      _localizedGenderLabel(
-                                                        l10n,
-                                                        genderValue,
-                                                      ),
-                                                      _genderIcon(genderValue),
-                                                      isDark,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Flexible(
+                                              child: Text(
+                                                l10n.onboardingBasicInfoSubtitle,
+                                                textAlign: TextAlign.end,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                      color: isDark
+                                                          ? DsColors
+                                                                .textMutedDark
+                                                          : DsColors
+                                                                .textMutedLight,
                                                     ),
-                                                  ),
-                                                ),
-                                              )
-                                              .toList(),
-                                        ),
-                                        DsGap.xl,
-                                        // Sexual Orientation
-                                        _buildSectionLabel(
-                                          context,
-                                          l10n.profileSexualOrientation,
-                                          isDark,
-                                          false,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                         DsGap.sm,
-                                        _buildOrientationSelector(
-                                          context,
-                                          isDark,
-                                        ),
-                                        DsGap.xs,
-                                        Semantics(
-                                          label: l10n
-                                              .onboardingBasicInfoOrientationOptionalSemantics,
-                                          child: Padding(
-                                            padding:
-                                                const EdgeInsetsDirectional.only(
-                                                  start: 4,
-                                                ),
-                                            child: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.info_outline_rounded,
-                                                  size: 14,
-                                                  color: isDark
-                                                      ? DsColors.textMutedDark
-                                                      : DsColors.textMutedLight,
-                                                ),
-                                                const SizedBox(width: 6),
-                                                Flexible(
-                                                  child: Text(
-                                                    l10n.onboardingBasicInfoOrientationOptionalHelper,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.copyWith(
-                                                          color: isDark
-                                                              ? DsColors
-                                                                    .textMutedDark
-                                                              : DsColors
-                                                                    .textMutedLight,
-                                                          fontSize: 12,
-                                                        ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                          child: LinearProgressIndicator(
+                                            value: 0.6,
+                                            minHeight: 6,
+                                            backgroundColor: isDark
+                                                ? DsColors.surfaceDark
+                                                : DsColors.skeletonLight,
+                                            valueColor:
+                                                const AlwaysStoppedAnimation<
+                                                  Color
+                                                >(DsColors.primary),
                                           ),
                                         ),
-                                        DsGap.xxl,
                                       ],
                                     ),
                                   ),
-                                ),
-                                // Bottom Button Area
-                                Container(
-                                  padding: DsEdgeInsets.allXxl.copyWith(
-                                    bottom: DsSpacing.xl,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        (isDark
-                                                ? DsColors.backgroundDark
-                                                : DsColors.backgroundLight)
-                                            .withValues(alpha: 0),
-                                        isDark
-                                            ? DsColors.backgroundDark
-                                            : DsColors.backgroundLight,
-                                      ],
-                                    ),
-                                  ),
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: GlassPrimaryButton(
-                                      onPressed: isBusy ? null : _handleNext,
-                                      child: isBusy
-                                          ? const SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: DsColors.surfaceLight,
-                                              ),
-                                            )
-                                          : Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Text(
-                                                  l10n.commonContinue,
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                const Icon(
-                                                  Icons.arrow_forward_rounded,
-                                                  size: 20,
-                                                ),
-                                              ],
+                                  DsGap.xl,
+                                  // Form Content
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      padding: DsEdgeInsets.horizontalXxl,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Username Field
+                                          _buildSectionLabel(
+                                            context,
+                                            l10n.onboardingBasicInfoUsernameLabel,
+                                            isDark,
+                                            true,
+                                          ),
+                                          DsGap.sm,
+                                          Semantics(
+                                            textField: true,
+                                            label: l10n
+                                                .onboardingBasicInfoUsernameLabel,
+                                            hint: l10n
+                                                .onboardingBasicInfoUsernameHint,
+                                            child: GlassTextField(
+                                              controller: _usernameController,
+                                              hintText: l10n
+                                                  .onboardingBasicInfoUsernameHint,
+                                              prefixIcon:
+                                                  Icons.alternate_email_rounded,
+                                              errorText: _usernameErrorText(),
+                                              helperText: _usernameHelperText(),
+                                              onChanged: _onUsernameChanged,
                                             ),
+                                          ),
+                                          DsGap.lg,
+                                          // First Name Field
+                                          _buildSectionLabel(
+                                            context,
+                                            l10n.onboardingBasicInfoFirstNameLabel,
+                                            isDark,
+                                            false,
+                                          ),
+                                          DsGap.sm,
+                                          Semantics(
+                                            textField: true,
+                                            label: l10n
+                                                .onboardingBasicInfoFirstNameLabel,
+                                            hint: l10n
+                                                .onboardingBasicInfoFirstNameHint,
+                                            child: GlassTextField(
+                                              controller: _firstNameController,
+                                              hintText: l10n
+                                                  .onboardingBasicInfoFirstNameHint,
+                                              prefixIcon:
+                                                  Icons.person_outline_rounded,
+                                              onChanged: (_) => setState(() {}),
+                                            ),
+                                          ),
+                                          DsGap.lg,
+                                          // Last Name Field
+                                          _buildSectionLabel(
+                                            context,
+                                            l10n.onboardingBasicInfoLastNameLabel,
+                                            isDark,
+                                            false,
+                                          ),
+                                          DsGap.sm,
+                                          Semantics(
+                                            textField: true,
+                                            label: l10n
+                                                .onboardingBasicInfoLastNameLabel,
+                                            hint: l10n
+                                                .onboardingBasicInfoLastNameHint,
+                                            child: GlassTextField(
+                                              controller: _lastNameController,
+                                              hintText: l10n
+                                                  .onboardingBasicInfoLastNameHint,
+                                              prefixIcon: Icons.badge_outlined,
+                                              onChanged: (_) => setState(() {}),
+                                            ),
+                                          ),
+                                          DsGap.lg,
+                                          // Birthdate Field
+                                          _buildSectionLabel(
+                                            context,
+                                            l10n.onboardingBasicInfoBirthdateLabel,
+                                            isDark,
+                                            true,
+                                          ),
+                                          DsGap.sm,
+                                          _buildBirthdatePicker(
+                                            context,
+                                            isDark,
+                                          ),
+                                          DsGap.xl,
+                                          // Gender Selection
+                                          _buildSectionLabel(
+                                            context,
+                                            l10n.onboardingSelectGender,
+                                            isDark,
+                                            true,
+                                          ),
+                                          DsGap.sm,
+                                          Row(
+                                            children: ProfileFieldOptions
+                                                .onboardingGenderValues
+                                                .map(
+                                                  (genderValue) => Expanded(
+                                                    child: Padding(
+                                                      padding: EdgeInsetsDirectional.only(
+                                                        end:
+                                                            genderValue !=
+                                                                ProfileFieldOptions
+                                                                    .onboardingGenderValues
+                                                                    .last
+                                                            ? 10
+                                                            : 0,
+                                                      ),
+                                                      child: _buildGenderTile(
+                                                        context,
+                                                        genderValue,
+                                                        _localizedGenderLabel(
+                                                          l10n,
+                                                          genderValue,
+                                                        ),
+                                                        _genderIcon(
+                                                          genderValue,
+                                                        ),
+                                                        isDark,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                                .toList(),
+                                          ),
+                                          DsGap.xl,
+                                          // Sexual Orientation
+                                          _buildSectionLabel(
+                                            context,
+                                            l10n.profileSexualOrientation,
+                                            isDark,
+                                            false,
+                                          ),
+                                          DsGap.sm,
+                                          _buildOrientationSelector(
+                                            context,
+                                            isDark,
+                                          ),
+                                          DsGap.xs,
+                                          Semantics(
+                                            label: l10n
+                                                .onboardingBasicInfoOrientationOptionalSemantics,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsetsDirectional.only(
+                                                    start: 4,
+                                                  ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.info_outline_rounded,
+                                                    size: 14,
+                                                    color: isDark
+                                                        ? DsColors.textMutedDark
+                                                        : DsColors
+                                                              .textMutedLight,
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Flexible(
+                                                    child: Text(
+                                                      l10n.onboardingBasicInfoOrientationOptionalHelper,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                            color: isDark
+                                                                ? DsColors
+                                                                      .textMutedDark
+                                                                : DsColors
+                                                                      .textMutedLight,
+                                                            fontSize: 12,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          DsGap.xxl,
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                  // Bottom Button Area
+                                  Container(
+                                    padding: DsEdgeInsets.allXxl.copyWith(
+                                      bottom: DsSpacing.xl,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          (isDark
+                                                  ? DsColors.backgroundDark
+                                                  : DsColors.backgroundLight)
+                                              .withValues(alpha: 0),
+                                          isDark
+                                              ? DsColors.backgroundDark
+                                              : DsColors.backgroundLight,
+                                        ],
+                                      ),
+                                    ),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: Semantics(
+                                        button: true,
+                                        label: l10n.commonContinue,
+                                        child: GlassPrimaryButton(
+                                          onPressed: isBusy
+                                              ? null
+                                              : _handleNext,
+                                          child: isBusy
+                                              ? const SizedBox(
+                                                  width: 24,
+                                                  height: 24,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color: DsColors
+                                                            .surfaceLight,
+                                                      ),
+                                                )
+                                              : Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      l10n.commonContinue,
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    const Icon(
+                                                      Icons
+                                                          .arrow_forward_rounded,
+                                                      size: 20,
+                                                    ),
+                                                  ],
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          if (isBusy)
-                            Positioned.fill(
-                              child: Container(
-                                color: DsColors.ink900.withValues(alpha: 0.3),
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    color: DsColors.primary,
+                            if (isBusy)
+                              Positioned.fill(
+                                child: Container(
+                                  color: DsColors.ink900.withValues(alpha: 0.3),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      color: DsColors.primary,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -504,26 +560,21 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     bool isDark,
     bool isRequired,
   ) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: isDark
-                ? DsColors.textPrimaryDark
-                : DsColors.textPrimaryLight,
-          ),
-        ),
-        if (isRequired)
-          Text(
-            ' *',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: DsColors.error,
-              fontWeight: FontWeight.w600,
+    final labelStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
+      fontWeight: FontWeight.w600,
+      color: isDark ? DsColors.textPrimaryDark : DsColors.textPrimaryLight,
+    );
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: label, style: labelStyle),
+          if (isRequired)
+            TextSpan(
+              text: ' *',
+              style: labelStyle?.copyWith(color: DsColors.error),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -600,6 +651,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
 
     return Semantics(
       button: true,
+      label: label,
+      selected: isSelected,
       child: GestureDetector(
         onTap: () => setState(() => _gender = value),
         child: AnimatedContainer(
@@ -673,6 +726,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
       children: [
         Semantics(
           button: true,
+          label: l10n.onboardingBasicInfoBirthdateLabel,
+          value: displayText,
           child: GestureDetector(
             onTap: () => _showBirthdatePicker(context, isDark),
             child: Container(
@@ -802,6 +857,10 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     final l10n = AppLocalizations.of(context);
     return Semantics(
       button: true,
+      label: l10n.profileSexualOrientation,
+      value: _orientation != null
+          ? _localizedOrientationLabel(l10n, _orientation!)
+          : l10n.onboardingOrientationOptionalPrompt,
       child: GestureDetector(
         onTap: () => _showOrientationBottomSheet(context, isDark),
         child: Container(

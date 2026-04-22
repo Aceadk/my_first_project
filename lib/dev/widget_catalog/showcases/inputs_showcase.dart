@@ -136,8 +136,7 @@ GlassTextField(
           codeExample: '''
 OtpInput(
   onCompleted: (code) {
-    // Verify the code
-    print('Code entered: \$code');
+    // Trigger verification or update local state here.
   },
 )''',
           child: Column(

@@ -48,6 +48,8 @@ jobs:
         run: flutter pub get
       - name: Static analysis
         run: flutter analyze
+      - name: Run accessibility regression lane
+        run: flutter test test/accessibility_regression_lane_test.dart -r compact
       - name: Run unit tests
         run: flutter test --coverage
       - name: Generate coverage hotspot artifact

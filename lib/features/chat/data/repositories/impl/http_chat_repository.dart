@@ -142,7 +142,7 @@ class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
     return PaginatedResult(
       items: messages,
       total: -1,
-      hasMore: messages.length >= limit,
+      hasMore: response.hasMore ?? (messages.length >= limit),
     );
   }
 
@@ -494,9 +494,8 @@ class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
     }
 
     final result = await _transportAdapter.post<void>(
-      '/safety/appeal',
+      ApiEndpoints.safetyAppeal,
       body: {
-        'user_id': userId,
         'reason': reason,
         'target_type': ?targetType,
         'target_id': ?targetId,
@@ -822,7 +821,7 @@ class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
     return PaginatedResult(
       items: matches,
       total: response.totalCount ?? matches.length,
-      hasMore: matches.length >= limit,
+      hasMore: response.hasMore ?? (matches.length >= limit),
     );
   }
 

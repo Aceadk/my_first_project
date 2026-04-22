@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -57,6 +58,24 @@ void main() {
       expect(result.error?.isNetworkError, true);
     });
 
+    test('get retries on timeout', () async {
+      var calls = 0;
+      final mockClient = MockClient((request) async {
+        calls++;
+        if (calls == 1) {
+          throw TimeoutException('slow');
+        }
+        return http.Response(jsonEncode(<String, dynamic>{'ok': true}), 200);
+      });
+
+      final client = ApiClient(config: config, httpClient: mockClient);
+      final result = await client.get<Map<String, dynamic>>('/timeout-read');
+
+      expect(result.isSuccess, isTrue);
+      expect(result.data?['ok'], isTrue);
+      expect(calls, 2);
+    });
+
     test('post sends body correctly', () async {
       final mockClient = MockClient((request) async {
         expect(request.method, 'POST');
@@ -66,6 +85,42 @@ void main() {
 
       final client = ApiClient(config: config, httpClient: mockClient);
       await client.post('/test', body: {'key': 'value'});
+    });
+
+    test('post does not retry on network error', () async {
+      var calls = 0;
+      final mockClient = MockClient((request) async {
+        calls++;
+        throw const SocketException('fail');
+      });
+
+      final client = ApiClient(config: config, httpClient: mockClient);
+      final result = await client.post<Map<String, dynamic>>(
+        '/unsafe-write',
+        body: <String, dynamic>{'key': 'value'},
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(result.error?.isNetworkError, isTrue);
+      expect(calls, 1);
+    });
+
+    test('post does not retry on timeout', () async {
+      var calls = 0;
+      final mockClient = MockClient((request) async {
+        calls++;
+        throw TimeoutException('slow');
+      });
+
+      final client = ApiClient(config: config, httpClient: mockClient);
+      final result = await client.post<Map<String, dynamic>>(
+        '/unsafe-timeout',
+        body: <String, dynamic>{'key': 'value'},
+      );
+
+      expect(result.isFailure, isTrue);
+      expect(result.error?.type, ApiErrorType.timeout);
+      expect(calls, 1);
     });
 
     test('handles 401 unauthorized', () async {

@@ -15,6 +15,7 @@ import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
 import 'package:crushhour/features/chat/presentation/widgets/voice_note_recorder.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/shared/dto/message.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:flutter/material.dart';
@@ -342,36 +343,41 @@ class ChatInputBarState extends State<ChatInputBar> {
 
   Widget _buildMediaButton({
     required IconData icon,
-    required String tooltip,
+    required String semanticsLabel,
     required VoidCallback? onPressed,
     required bool isDark,
     bool isActive = false,
   }) {
     final isEnabled = onPressed != null;
-    return Tooltip(
-      message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(DsRadius.lg),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: DsSpacing.xs,
-              vertical: DsSpacing.xs,
-            ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: isEnabled
-                  ? (isActive
-                        ? DsColors.primary
-                        : isDark
-                        ? DsColors.surfaceLight.withValues(alpha: 0.7)
-                        : DsColors.ink900.withValues(alpha: 0.54))
-                  : isDark
-                  ? DsColors.surfaceLight.withValues(alpha: 0.2)
-                  : DsColors.ink900.withValues(alpha: 0.2),
+    return Semantics(
+      button: true,
+      enabled: isEnabled,
+      label: semanticsLabel,
+      child: Tooltip(
+        message: semanticsLabel,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: BorderRadius.circular(DsRadius.lg),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DsSpacing.xs,
+                vertical: DsSpacing.xs,
+              ),
+              child: Icon(
+                icon,
+                size: 24,
+                color: isEnabled
+                    ? (isActive
+                          ? DsColors.primary
+                          : isDark
+                          ? DsColors.surfaceLight.withValues(alpha: 0.7)
+                          : DsColors.ink900.withValues(alpha: 0.54))
+                    : isDark
+                    ? DsColors.surfaceLight.withValues(alpha: 0.2)
+                    : DsColors.ink900.withValues(alpha: 0.2),
+              ),
             ),
           ),
         ),
@@ -381,6 +387,7 @@ class ChatInputBarState extends State<ChatInputBar> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isSendingText = widget.state.sendStatus == SendStatus.sendingText;
     final isUploading =
         widget.state.sendStatus == SendStatus.uploadingAttachment;
@@ -444,195 +451,210 @@ class ChatInputBarState extends State<ChatInputBar> {
                 horizontal: DsSpacing.sm,
                 vertical: DsSpacing.sm,
               ),
-              child: Row(
-                children: [
-                  AnimatedSize(
-                    duration: Duration(
-                      milliseconds: (200 * motionScale).round(),
-                    ),
-                    curve: Curves.easeInOut,
-                    child: _hasInputText
-                        ? const SizedBox.shrink()
-                        : Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: DsSpacing.xs,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: AlignmentDirectional.topStart,
-                                end: AlignmentDirectional.bottomEnd,
-                                colors: isDark
-                                    ? [
-                                        DsColors.surfaceLight.withValues(
-                                          alpha: 0.08,
-                                        ),
-                                        DsColors.surfaceLight.withValues(
-                                          alpha: 0.04,
-                                        ),
-                                      ]
-                                    : [
-                                        DsColors.ink900.withValues(alpha: 0.04),
-                                        DsColors.ink900.withValues(alpha: 0.02),
-                                      ],
+              child: FocusTraversalGroup(
+                policy: OrderedTraversalPolicy(),
+                child: Row(
+                  children: [
+                    AnimatedSize(
+                      duration: Duration(
+                        milliseconds: (200 * motionScale).round(),
+                      ),
+                      curve: Curves.easeInOut,
+                      child: _hasInputText
+                          ? const SizedBox.shrink()
+                          : Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: DsSpacing.xs,
                               ),
-                              borderRadius: BorderRadius.circular(DsRadius.xl),
-                              border: Border.all(
-                                color: borderBase.withValues(alpha: 0.5),
-                                width: 0.5,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: AlignmentDirectional.topStart,
+                                  end: AlignmentDirectional.bottomEnd,
+                                  colors: isDark
+                                      ? [
+                                          DsColors.surfaceLight.withValues(
+                                            alpha: 0.08,
+                                          ),
+                                          DsColors.surfaceLight.withValues(
+                                            alpha: 0.04,
+                                          ),
+                                        ]
+                                      : [
+                                          DsColors.ink900.withValues(
+                                            alpha: 0.04,
+                                          ),
+                                          DsColors.ink900.withValues(
+                                            alpha: 0.02,
+                                          ),
+                                        ],
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  DsRadius.xl,
+                                ),
+                                border: Border.all(
+                                  color: borderBase.withValues(alpha: 0.5),
+                                  width: 0.5,
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _buildMediaButton(
-                                  icon: Icons.photo_library_rounded,
-                                  tooltip: 'Send photo or video',
-                                  onPressed: canSendMedia
-                                      ? () => _showMediaPickerOptions(
-                                          widget.canMessage,
-                                          widget.completeness,
-                                          isDark,
-                                        )
-                                      : null,
-                                  isDark: isDark,
-                                ),
-                                _buildMediaButton(
-                                  icon: Icons.mic_rounded,
-                                  tooltip: 'Voice note',
-                                  onPressed: canSendMedia
-                                      ? () => _startVoiceRecording(
-                                          widget.canMessage,
-                                          widget.completeness,
-                                        )
-                                      : null,
-                                  isDark: isDark,
-                                ),
-                              ],
-                            ),
-                          ),
-                  ),
-                  AnimatedSize(
-                    duration: Duration(
-                      milliseconds: (200 * motionScale).round(),
-                    ),
-                    curve: Curves.easeInOut,
-                    child: _hasInputText
-                        ? const SizedBox.shrink()
-                        : const SizedBox(width: DsSpacing.sm),
-                  ),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: DsSpacing.lg,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: AlignmentDirectional.topStart,
-                          end: AlignmentDirectional.bottomEnd,
-                          colors: isDark
-                              ? [
-                                  DsColors.surfaceLight.withValues(alpha: 0.1),
-                                  DsColors.surfaceLight.withValues(alpha: 0.05),
-                                ]
-                              : [
-                                  DsColors.ink900.withValues(alpha: 0.05),
-                                  DsColors.ink900.withValues(alpha: 0.02),
-                                ],
-                        ),
-                        borderRadius: BorderRadius.circular(DsRadius.xl),
-                        border: Border.all(color: borderBase, width: 0.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: DsColors.ink900.withValues(alpha: 0.05),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: Semantics(
-                        textField: true,
-                        label: 'Type a message to ${widget.otherName}',
-                        child: TextField(
-                          controller: _controller,
-                          focusNode: _inputFocusNode,
-                          enabled: canSendText,
-                          minLines: 1,
-                          maxLines: 2,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          style: TextStyle(
-                            color: isDark
-                                ? DsColors.surfaceLight
-                                : DsColors.ink900.withValues(alpha: 0.87),
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            hintStyle: TextStyle(
-                              color: isDark
-                                  ? DsColors.surfaceLight.withValues(
-                                      alpha: 0.38,
-                                    )
-                                  : DsColors.ink900.withValues(alpha: 0.38),
-                            ),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                            ),
-                            isDense: true,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: DsSpacing.sm),
-                  Semantics(
-                    button: true,
-                    label: 'Send message',
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: AlignmentDirectional.topStart,
-                          end: AlignmentDirectional.bottomEnd,
-                          colors: [DsColors.primary, DsColors.secondary],
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: DsColors.primary.withValues(alpha: 0.4),
-                            blurRadius: 12,
-                            spreadRadius: 1,
-                            offset: const Offset(0, 2),
-                          ),
-                          BoxShadow(
-                            color: DsColors.secondary.withValues(alpha: 0.2),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: isSendingText
-                            ? const SizedBox(
-                                width: DsSizes.iconMd,
-                                height: DsSizes.iconMd,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation(
-                                    DsColors.surfaceLight,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _buildMediaButton(
+                                    icon: Icons.photo_library_rounded,
+                                    semanticsLabel: l10n.a11yAttachPhoto,
+                                    onPressed: canSendMedia
+                                        ? () => _showMediaPickerOptions(
+                                            widget.canMessage,
+                                            widget.completeness,
+                                            isDark,
+                                          )
+                                        : null,
+                                    isDark: isDark,
                                   ),
-                                ),
-                              )
-                            : const Icon(
-                                Icons.send_rounded,
-                                color: DsColors.surfaceLight,
+                                  _buildMediaButton(
+                                    icon: Icons.mic_rounded,
+                                    semanticsLabel: l10n.wordVoice,
+                                    onPressed: canSendMedia
+                                        ? () => _startVoiceRecording(
+                                            widget.canMessage,
+                                            widget.completeness,
+                                          )
+                                        : null,
+                                    isDark: isDark,
+                                  ),
+                                ],
                               ),
-                        onPressed: isSendingText ? null : () => _sendMessage(),
+                            ),
+                    ),
+                    AnimatedSize(
+                      duration: Duration(
+                        milliseconds: (200 * motionScale).round(),
+                      ),
+                      curve: Curves.easeInOut,
+                      child: _hasInputText
+                          ? const SizedBox.shrink()
+                          : const SizedBox(width: DsSpacing.sm),
+                    ),
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: DsSpacing.lg,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: AlignmentDirectional.topStart,
+                            end: AlignmentDirectional.bottomEnd,
+                            colors: isDark
+                                ? [
+                                    DsColors.surfaceLight.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    DsColors.surfaceLight.withValues(
+                                      alpha: 0.05,
+                                    ),
+                                  ]
+                                : [
+                                    DsColors.ink900.withValues(alpha: 0.05),
+                                    DsColors.ink900.withValues(alpha: 0.02),
+                                  ],
+                          ),
+                          borderRadius: BorderRadius.circular(DsRadius.xl),
+                          border: Border.all(color: borderBase, width: 0.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: DsColors.ink900.withValues(alpha: 0.05),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Semantics(
+                          textField: true,
+                          label: '${l10n.chatTypeMessage} ${widget.otherName}',
+                          child: TextField(
+                            controller: _controller,
+                            focusNode: _inputFocusNode,
+                            enabled: canSendText,
+                            minLines: 1,
+                            maxLines: 2,
+                            keyboardType: TextInputType.multiline,
+                            textInputAction: TextInputAction.newline,
+                            style: TextStyle(
+                              color: isDark
+                                  ? DsColors.surfaceLight
+                                  : DsColors.ink900.withValues(alpha: 0.87),
+                            ),
+                            decoration: InputDecoration(
+                              hintText: l10n.chatTypeMessage,
+                              hintStyle: TextStyle(
+                                color: isDark
+                                    ? DsColors.surfaceLight.withValues(
+                                        alpha: 0.38,
+                                      )
+                                    : DsColors.ink900.withValues(alpha: 0.38),
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                              ),
+                              isDense: true,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  DsGap.xsH,
-                ],
+                    const SizedBox(width: DsSpacing.sm),
+                    Semantics(
+                      button: true,
+                      label: l10n.sendMessage,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: AlignmentDirectional.topStart,
+                            end: AlignmentDirectional.bottomEnd,
+                            colors: [DsColors.primary, DsColors.secondary],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: DsColors.primary.withValues(alpha: 0.4),
+                              blurRadius: 12,
+                              spreadRadius: 1,
+                              offset: const Offset(0, 2),
+                            ),
+                            BoxShadow(
+                              color: DsColors.secondary.withValues(alpha: 0.2),
+                              blurRadius: 20,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: isSendingText
+                              ? const SizedBox(
+                                  width: DsSizes.iconMd,
+                                  height: DsSizes.iconMd,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      DsColors.surfaceLight,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.send_rounded,
+                                  color: DsColors.surfaceLight,
+                                ),
+                          onPressed: isSendingText
+                              ? null
+                              : () => _sendMessage(),
+                        ),
+                      ),
+                    ),
+                    DsGap.xsH,
+                  ],
+                ),
               ),
             ),
           ),

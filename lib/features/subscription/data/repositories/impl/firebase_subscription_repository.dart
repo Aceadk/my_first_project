@@ -600,22 +600,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
   @override
   Future<PromoCode?> validatePromoCode(String code) async {
     final normalizedCode = code.trim().toUpperCase();
-
-    // Try Cloud Function first
-    try {
-      final callable = _functions.httpsCallable('validatePromoCode');
-      final result = await callable.call<Map<String, dynamic>>({
-        'code': normalizedCode,
-      });
-
-      final data = result.data;
-      if (data['valid'] != true) return null;
-
-      return PromoCode.fromJson(data['promoCode'] as Map<String, dynamic>);
-    } catch (e) {
-      // Fallback to local demo codes
-      return _validateLocalPromoCode(normalizedCode);
-    }
+    return _validateLocalPromoCode(normalizedCode);
   }
 
   Future<PromoCode?> _validateLocalPromoCode(String normalizedCode) async {
@@ -640,37 +625,7 @@ class FirebaseSubscriptionRepository implements SubscriptionRepository {
 
     final normalizedCode = code.trim().toUpperCase();
 
-    // Try Cloud Function first
-    try {
-      final callable = _functions.httpsCallable('redeemPromoCode');
-      final result = await callable.call<Map<String, dynamic>>({
-        'code': normalizedCode,
-      });
-
-      final data = result.data;
-      if (data['success'] != true) {
-        return PromoCodeRedemptionResult.failure(
-          data['error'] as String? ?? 'Failed to redeem promo code.',
-        );
-      }
-
-      final promoCode = PromoCode.fromJson(
-        data['promoCode'] as Map<String, dynamic>,
-      );
-      final benefits =
-          (data['appliedBenefits'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [];
-
-      return PromoCodeRedemptionResult.success(
-        promoCode: promoCode,
-        appliedBenefits: benefits,
-      );
-    } catch (e) {
-      // Fallback to local demo codes
-      return _redeemLocalPromoCode(normalizedCode, userId);
-    }
+    return _redeemLocalPromoCode(normalizedCode, userId);
   }
 
   Future<PromoCodeRedemptionResult> _redeemLocalPromoCode(

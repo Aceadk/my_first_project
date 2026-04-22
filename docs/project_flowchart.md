@@ -1,6 +1,6 @@
 # Project Flowchart — CrushHour Dating App
 
-*Last updated: 2026-03-08*
+*Last updated: 2026-04-21*
 
 ---
 
@@ -60,6 +60,10 @@ flowchart TD
 
   AUTH --> ONBOARD[Onboarding Flow]
 ```
+
+Password and email-OTP authentication now complete through backend callables
+that mint Firebase custom tokens. The client establishes a Firebase session and
+uses Firebase ID tokens for protected REST requests in HTTP mode.
 
 ---
 
@@ -143,6 +147,10 @@ flowchart LR
   ADAPTER --> RT[Realtime Transport<br/>WebSocket]
 ```
 
+Call-signaling callable exports now pass through the same shared backend
+callable App Check and error-normalization helper used by the rest of the
+Firebase callable surface.
+
 ---
 
 ## 5) Discovery Feature Flow
@@ -166,6 +174,10 @@ flowchart LR
   PASS --> D
   CONTINUE --> D
 ```
+
+Rewind is intentionally retired from the active discovery contract until the
+backend supports a reversible swipe ledger. Discovery runtime/UI now treats the
+action as unavailable rather than simulating a local undo.
 
 ---
 

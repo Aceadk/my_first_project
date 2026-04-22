@@ -429,9 +429,14 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   final List<Profile> deck;
 
   @override
+  DiscoveryDeckPageInfo? get lastDeckPageInfo =>
+      const DiscoveryDeckPageInfo(hasMore: false);
+
+  @override
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   }) async => deck;
 
   @override

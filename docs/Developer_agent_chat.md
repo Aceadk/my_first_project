@@ -13474,3 +13474,1178 @@ save everything and also save to github
 - `gh pr create --draft --fill --head codex/publish-auth-startup-hardening`
 
 **Next Step:** Review the draft PR, then decide whether to merge this publish snapshot as one unit or follow up with narrower cleanup PRs from the same branch.
+
+### Task #249 — TODO Reconciliation and Backlog Cleanup
+**Date:** 2026-04-16
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+look for all the TODOs and fix
+
+**Developer Intent Analysis:**
+- Primary goal: Find the current TODOs that still matter in this repo and clear the ones that are already implemented or trivially closable.
+- Secondary goal: Avoid a fake “all TODOs fixed” claim by separating real open product work from stale backlog drift and generated-platform comments.
+- Implicit requirements: Read the required collaboration docs first, update the required workflow files, verify any TODOs marked complete, and do not touch unrelated local changes.
+- Quality expectations: Repo-grounded reconciliation with defensible evidence, not a blind grep-and-edit sweep.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Audit the repo-wide TODO surface, close stale TODO items that the current code already satisfies, and clean the active backlog entrypoints so future TODO audits are accurate.
+- **Scope:** `docs/TODO_SUBSCRIPTION.md`, `docs/TODO_CALLS.md`, `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md`, the required workflow/risk docs, and focused verification of restore/calls coverage already present in the repo.
+- **Constraints:** Do not edit unrelated app code; do not treat generated Flutter Linux/Windows CMake TODO comments as app backlog; leave genuinely open platform work open.
+- **Expected Outcome:** The repo’s active TODO docs match the shipped implementation, the stale master-audit references are removed, required workflow docs are updated, and targeted verification proves the completed items are real.
+
+**Status Updates:**
+- **Received:** Re-read the required collaboration docs, scanned the repo for `TODO` markers, and confirmed the app/source tree no longer contains actionable TODO comments outside generated Flutter CMake stubs.
+- **In Progress:** Audited the live backlog docs against the current subscription restore and calls implementations to separate stale unchecked items from genuinely open platform work.
+- **Completed:** Closed the stale restore/calls TODO items, rewrote the master audit index to point only at the current backlog docs, updated the risk/workflow trackers, and ran focused Flutter + Functions verification.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_SUBSCRIPTION.md` — marked `SUB-006` completed and replaced stale unchecked restore criteria with the verified current implementation status.
+  - `docs/TODO_CALLS.md` — marked `CALL-004`, `CALL-005`, `CALL-006`, `CALL-007`, and `CALL-010` completed and added explicit acceptance criteria aligned to the shipped code/tests.
+  - `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` — replaced the dead modular TODO index with the four current backlog docs and a consolidation note.
+  - `docs/risk_notes.md` — updated `R-062` from active backlog-drift risk to mitigated after reconciling the active planning surface.
+  - `docs/ai_workboard.md` — added the corresponding task entry and updated the active priority/backlog guidance.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** The repo’s live TODO surface is now materially cleaner. There are no actionable app-source TODO comments left to fix in this repo; the remaining TODOs are the real open backlog items in `TODO_CALLS`, `TODO_TESTING_MATRIX`, and `TODO_WEBAPP`, plus the still-open call platform items within `TODO_CALLS`.
+- **Notes:** I intentionally did not edit `linux/flutter/CMakeLists.txt` or `windows/flutter/CMakeLists.txt`; those TODO comments are generated Flutter scaffold text, not CRUSH application backlog.
+
+**Verification:**
+- `rg -n --hidden --glob '!build/**' --glob '!.dart_tool/**' --glob '!ios/Pods/**' --glob '!android/.gradle/**' --glob '!node_modules/**' 'TODO' .`
+- `flutter test test/subscription_bloc_test.dart test/subscription_settings_screen_test.dart test/paywall_screen_test.dart test/subscription_restore_feedback_test.dart test/router_redirect_test.dart test/incoming_call_screen_test.dart test/call_history_screen_test.dart test/call_quality_service_test.dart test/call_safety_controls_test.dart`
+- `npm test -- test/call-signaling.test.js` (run from `functions/`)
+- `scripts/check_ai_docs_sync.sh --files docs/TODO_SUBSCRIPTION.md docs/TODO_CALLS.md docs/TODO_MASTER_AUDIT_V2_2026-02-20.md docs/risk_notes.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+
+**Next Step:** Pick from the real remaining backlog only: `TEST-002`, the open calls platform items (`CALL-001/002/003/008/009`), or the remaining `TODO_WEBAPP` polish tasks.
+
+### Task #250 — Remove Completed TODO Entries
+**Date:** 2026-04-16
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+if any todos are completed , remove them
+
+**Developer Intent Analysis:**
+- Primary goal: Keep the TODO docs lean by removing completed entries instead of leaving them mixed with active backlog items.
+- Secondary goal: Preserve useful historical traceability elsewhere so removing completed TODOs does not erase what shipped.
+- Implicit requirements: Update the required AI workflow docs again, keep historical task/workboard evidence intact, and avoid changing unrelated code.
+- Quality expectations: The TODO docs should show open work only after this pass.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Prune completed items from the current TODO docs so each file reflects only open backlog work.
+- **Scope:** `docs/TODO_CALLS.md`, `docs/TODO_SUBSCRIPTION.md`, `docs/TODO_TESTING_MATRIX.md`, `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md`, and the required workflow logs.
+- **Constraints:** Do not delete historical execution evidence from `docs/ai_workboard.md` or `docs/Developer_agent_chat.md`; keep `docs/TODO_SUBSCRIPTION.md` resolvable for historical links even if no open items remain.
+- **Expected Outcome:** Completed TODO entries are removed from the backlog files, the master index points only at active backlog docs, and the docs-sync guard passes.
+
+**Status Updates:**
+- **Received:** Re-opened the current TODO docs after the previous reconciliation pass to identify which entries were now explicitly completed and should be pruned.
+- **In Progress:** Removed completed entries from the calls, subscription, and testing backlog docs while preserving file-level history where older task logs still link to those paths.
+- **Completed:** Trimmed the completed TODOs, updated the master backlog index, synced the required workflow docs, and re-ran the docs guard.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_CALLS.md` — removed completed entries `CALL-004`, `CALL-005`, `CALL-006`, `CALL-007`, and `CALL-010`; only open calls backlog items remain.
+  - `docs/TODO_SUBSCRIPTION.md` — removed all completed subscription entries and replaced them with a short “no open TODO items remain” note.
+  - `docs/TODO_TESTING_MATRIX.md` — removed completed entries `TEST-001`, `TEST-003`, `TEST-004`, and `TEST-005`; only `TEST-002` remains.
+  - `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` — moved subscription out of the active backlog list and into a cleared-backlog note.
+  - `docs/ai_workboard.md` — added the corresponding task entry and updated the active backlog guidance.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** The TODO docs now show open work only. Historical implementation detail remains in the workboard/task log, not in the live backlog files.
+- **Notes:** `docs/TODO_WEBAPP.md` was left intact because its active checklist items are already open-only; the completed content there is context/changelog rather than completed TODO entries.
+
+**Verification:**
+- `rg -n 'Status:\\s*(completed|Completed)|- \\[x\\]' docs/TODO_CALLS.md docs/TODO_SUBSCRIPTION.md docs/TODO_TESTING_MATRIX.md`
+- `rg -n 'Status:\\s*(In Progress|in_progress)|- \\[ \\]' docs/TODO_*.md`
+- `scripts/check_ai_docs_sync.sh --files docs/TODO_CALLS.md docs/TODO_SUBSCRIPTION.md docs/TODO_TESTING_MATRIX.md docs/TODO_MASTER_AUDIT_V2_2026-02-20.md docs/ai_workboard.md docs/Developer_agent_chat.md`
+
+**Next Step:** Continue only from the remaining open backlog docs and items: `TODO_CALLS`, `TODO_TESTING_MATRIX`, and `TODO_WEBAPP`.
+
+### Task #251 — Adopt CEO Audit Directive as Working Rubric
+**Date:** 2026-04-16
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+[Developer pasted the February 2026 CEO comprehensive audit directive covering audit philosophy, module breakdown, iPad/store compliance, TODO protocol, and deliverables.]
+
+**Developer Intent Analysis:**
+- Primary goal: Set the pasted CEO directive as the governing audit standard for future work on CRUSH.
+- Secondary goal: Ensure the AI agent internalizes the requested level of rigor across Flutter, web, and UI/UX tasks.
+- Implicit requirements: Align with the directive without breaking the repo’s current documented workflow rules or reintroducing removed docs by accident.
+- Quality expectations: Clear adoption of the directive plus an explicit note about any mismatch with current repo structure.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Adopt the CEO audit directive as the active reasoning and execution rubric for future tasks in this repo.
+- **Scope:** Workflow/task-log alignment only; no product code changes.
+- **Constraints:** Preserve the repo’s current AGENTS/process rules, especially the retired TODO-doc policy, unless the developer explicitly asks for a backlog restructuring.
+- **Expected Outcome:** The directive is acknowledged in the project workflow history, and the structural mismatch between the directive’s ideal TODO topology and the current repo is documented.
+
+**Status Updates:**
+- **Received:** Read the pasted directive as a project-level operating instruction rather than an immediate coding ticket.
+- **In Progress:** Mapped the directive against the repo’s current documentation model and identified the main mismatch: the directive expects many module-specific TODO docs that this repo intentionally retired earlier.
+- **Completed:** Logged the directive as the working rubric and recorded that backlog-structure changes require an explicit follow-up request instead of being recreated implicitly.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/ai_workboard.md` — added the corresponding workboard entry documenting directive adoption and the TODO-structure mismatch.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** The directive is now captured as the standard for future audit work, while the repo’s existing documentation contract remains intact.
+- **Notes:** I did not recreate `TODO_AUTH_SECURITY.md`, `TODO_PROFILE_FRONTEND.md`, and the other retired modular backlog files because the repo’s current rules explicitly removed that structure. If you want that topology restored, I’ll treat it as a separate documentation migration task.
+
+**Verification:**
+- `tail -n 120 docs/ai_workboard.md`
+- `tail -n 120 docs/Developer_agent_chat.md`
+- `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+
+**Next Step:** Apply this directive’s audit standard to subsequent implementation/review tasks, or explicitly migrate the backlog back to module-specific TODO files if that is now the desired process.
+
+### Task #252 — Fresh-Start Audit Backlog Reset
+**Date:** 2026-04-16
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+do. a fresh start ,
+
+**Developer Intent Analysis:**
+- Primary goal: Stop iterating on the interim reduced backlog and rebuild the audit structure from scratch in the CEO directive’s module-based format.
+- Secondary goal: Make the backlog usable again as a comprehensive audit program entrypoint across mobile, web, design, infrastructure, and store compliance.
+- Implicit requirements: Preserve historical traceability, update the required workflow docs, and avoid touching unrelated runtime code.
+- Quality expectations: A real documentation reset, not a small patch on top of the reduced TODO set.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Perform a fresh-start reset of the audit backlog by restoring the directive-aligned module TODO structure and remapping the remaining open work into it.
+- **Scope:** `docs/TODO_*.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`, and `docs/risk_notes.md`.
+- **Constraints:** Preserve historical references in the workboard/task log, do not revert unrelated local code changes, and keep the docs sync guard green.
+- **Expected Outcome:** The repo has a fresh module-based backlog set, the master audit index points to it, web open work is routed into the right module files, and the previous backlog-structure mismatch is resolved.
+
+**Status Updates:**
+- **Received:** Interpreted "fresh start" as a backlog reset rather than a code rollback and checked the current docs state before editing.
+- **In Progress:** Rebuilt the master audit index, created the missing module TODO files, and decomposed the remaining web open work into module-specific docs.
+- **Completed:** Landed the fresh-start TODO set, converted `TODO_WEBAPP.md` into a routing board, closed the backlog-structure risk, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` — rewritten as the fresh-start audit index grouped by product modules, cross-cutting quality, backend/security, cleanup/refactor, and store/strategy.
+  - New module TODO docs created:
+    - `docs/TODO_AUTH_SECURITY.md`
+    - `docs/TODO_PROFILE_FRONTEND.md`
+    - `docs/TODO_PROFILE_BACKEND.md`
+    - `docs/TODO_DISCOVERY_UI.md`
+    - `docs/TODO_MATCHING_LOGIC.md`
+    - `docs/TODO_DISCOVERY_BACKEND.md`
+    - `docs/TODO_CHAT_UI.md`
+    - `docs/TODO_CHAT_REALTIME.md`
+    - `docs/TODO_CHAT_BACKEND.md`
+    - `docs/TODO_NOTIFICATIONS.md`
+    - `docs/TODO_SETTINGS_UI.md`
+    - `docs/TODO_ACCOUNT_MGMT.md`
+    - `docs/TODO_ONBOARDING_FLOW.md`
+    - `docs/TODO_ONBOARDING_UI.md`
+    - `docs/TODO_IPAD_COMPLIANCE.md`
+    - `docs/TODO_RESPONSIVE_DESIGN.md`
+    - `docs/TODO_ACCESSIBILITY.md`
+    - `docs/TODO_STATE_MANAGEMENT.md`
+    - `docs/TODO_ERROR_HANDLING.md`
+    - `docs/TODO_PERFORMANCE.md`
+    - `docs/TODO_I18N_L10N.md`
+    - `docs/TODO_API_ARCHITECTURE.md`
+    - `docs/TODO_DATABASE.md`
+    - `docs/TODO_REALTIME.md`
+    - `docs/TODO_SECURITY_BACKEND.md`
+    - `docs/TODO_SECURITY_FRONTEND.md`
+    - `docs/TODO_CLEANUP_COMMENTS.md`
+    - `docs/TODO_CLEANUP_DEAD_CODE.md`
+    - `docs/TODO_CLEANUP_DEPENDENCIES.md`
+    - `docs/TODO_STORE_APPLE.md`
+    - `docs/TODO_STORE_GOOGLE.md`
+    - `docs/TODO_INNOVATIONS.md`
+    - `docs/TODO_REFACTOR_AUTH.md`
+    - `docs/TODO_REFACTOR_PROFILE.md`
+    - `docs/TODO_REFACTOR_DISCOVERY.md`
+    - `docs/TODO_REFACTOR_CHAT.md`
+    - `docs/TODO_REFACTOR_SETTINGS.md`
+  - `docs/TODO_CALLS.md` — retained as an active extension module and expanded with `CALL-011` for web WebRTC parity.
+  - `docs/TODO_WEBAPP.md` — converted from a duplicate checklist into a routing board that maps web open work into module docs.
+  - `docs/TODO_TESTING_MATRIX.md` — reset to open testing items only (`TEST-002`, `TEST-006`, `TEST-007`).
+  - `docs/TODO_SUBSCRIPTION.md` — retained as a clear/no-open-items module file for historical traceability and future reopen use.
+  - `docs/risk_notes.md` — closed the backlog-structure drift risk after the fresh-start reset.
+  - `docs/ai_workboard.md` — added the corresponding task entry and updated the active backlog guidance.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** Fresh-start backlog reset complete. The repo now has a comprehensive directive-aligned TODO topology again, with the master audit file acting as the canonical entrypoint.
+- **Notes:** No app/runtime code was changed for this task. Existing unrelated local changes such as `lib/main.dart` and `lib/Crush.code-workspace` were left untouched.
+
+**Verification:**
+- `rg -n '^# TODO:|^### ' docs/TODO_*.md`
+- `rg -n 'Status:\\s*(open|Open|in_progress|In Progress)|- \\[ \\]' docs/TODO_*.md`
+- `scripts/check_ai_docs_sync.sh --files docs/TODO_MASTER_AUDIT_V2_2026-02-20.md docs/TODO_WEBAPP.md docs/TODO_SUBSCRIPTION.md docs/TODO_TESTING_MATRIX.md docs/TODO_CALLS.md docs/TODO_AUTH_SECURITY.md docs/TODO_PROFILE_FRONTEND.md docs/TODO_PROFILE_BACKEND.md docs/TODO_DISCOVERY_UI.md docs/TODO_MATCHING_LOGIC.md docs/TODO_DISCOVERY_BACKEND.md docs/TODO_CHAT_UI.md docs/TODO_CHAT_REALTIME.md docs/TODO_CHAT_BACKEND.md docs/TODO_NOTIFICATIONS.md docs/TODO_SETTINGS_UI.md docs/TODO_ACCOUNT_MGMT.md docs/TODO_ONBOARDING_FLOW.md docs/TODO_ONBOARDING_UI.md docs/TODO_IPAD_COMPLIANCE.md docs/TODO_RESPONSIVE_DESIGN.md docs/TODO_ACCESSIBILITY.md docs/TODO_STATE_MANAGEMENT.md docs/TODO_ERROR_HANDLING.md docs/TODO_PERFORMANCE.md docs/TODO_I18N_L10N.md docs/TODO_API_ARCHITECTURE.md docs/TODO_DATABASE.md docs/TODO_REALTIME.md docs/TODO_SECURITY_BACKEND.md docs/TODO_SECURITY_FRONTEND.md docs/TODO_CLEANUP_COMMENTS.md docs/TODO_CLEANUP_DEAD_CODE.md docs/TODO_CLEANUP_DEPENDENCIES.md docs/TODO_STORE_APPLE.md docs/TODO_STORE_GOOGLE.md docs/TODO_INNOVATIONS.md docs/TODO_REFACTOR_AUTH.md docs/TODO_REFACTOR_PROFILE.md docs/TODO_REFACTOR_DISCOVERY.md docs/TODO_REFACTOR_CHAT.md docs/TODO_REFACTOR_SETTINGS.md docs/ai_workboard.md docs/Developer_agent_chat.md docs/risk_notes.md`
+
+**Next Step:** Start executing from the fresh-start P0 backlog docs (`TODO_AUTH_SECURITY`, `TODO_DISCOVERY_BACKEND`, `TODO_CHAT_BACKEND`, `TODO_IPAD_COMPLIANCE`, `TODO_STORE_APPLE`, `TODO_STORE_GOOGLE`) instead of the old reduced backlog surface.
+
+### Task #253 — Accessibility Regression Lane + TODO Cleanup
+**Date:** 2026-04-16
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue what you were doing
+
+**Developer Intent Analysis:**
+- Primary goal: Continue autonomous TODO execution without waiting on the developer, focusing on work that can be completed and verified locally.
+- Secondary goal: Keep the new fresh-start backlog honest by removing completed TODO items once they are truly done.
+- Implicit requirements: Follow the repo collaboration-doc workflow, avoid touching unrelated local work, prefer robust fixes over shallow patches, and verify changes with targeted tests.
+- Quality expectations: Production-safe UI fixes, durable regression coverage, CI integration, and no false completion claims on broader backlog items that still need manual/device validation.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Finish the in-flight accessibility/regression slice by hardening the affected Flutter screens, getting the new accessibility test lane green, wiring it into CI, and removing any TODOs that this work fully closes.
+- **Scope:** `login_screen.dart`, `basic_info_screen.dart`, `chat_input_bar.dart`, `account_actions_settings_screen.dart`, `test/accessibility_regression_lane_test.dart`, `.github/workflows/ci.yml`, `docs/TODO_TESTING_MATRIX.md`, `docs/TODO_CLEANUP_COMMENTS.md`, and the required workflow logs.
+- **Constraints:** Do not revert unrelated workspace changes; keep broader accessibility/manual device backlog items open unless they are fully verified; use focused verification instead of broad unbounded suite runs.
+- **Expected Outcome:** Critical auth/onboarding/discovery/chat/settings accessibility smoke coverage is automated and green, CI runs that lane explicitly, and completed TODO items are removed from the live backlog docs.
+
+**Status Updates:**
+- **Received:** Reloaded the workboard/risk/chat context, reviewed the in-progress code/test slice, and reran the new accessibility regression file to capture the exact failures.
+- **In Progress:** Fixed the test harness semantics lifecycle, replaced the incomplete analytics stub with the shared repo stub, tightened the chat composer coverage to include the `Shift+Enter` branch, and reran the lane plus adjacent screen tests.
+- **Completed:** Added the CI lane, verified the maintained source tree has no remaining inline TODO/FIXME/HACK markers, removed the completed TODO entries, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/login_screen.dart` — added ordered focus traversal around the login content.
+  - `lib/features/auth/presentation/screens/basic_info_screen.dart` — added focus traversal, onboarding semantics labels, and large-text overflow fixes for the app bar, progress row, and section labels.
+  - `lib/features/chat/presentation/widgets/chat_input_bar.dart` — added semantics labels for composer actions and text field context plus ordered focus traversal.
+  - `lib/features/settings/presentation/screens/account_actions_settings_screen.dart` — added semantics headers/button labels, a stable constraint key for testing, focus traversal, and large-text safety in destructive warning rows.
+  - `test/accessibility_regression_lane_test.dart` — added the accessibility regression lane, fixed semantics disposal, switched to the shared analytics stub, and covered Enter vs `Shift+Enter`.
+  - `.github/workflows/ci.yml` — added an explicit accessibility regression test step.
+  - `docs/TODO_TESTING_MATRIX.md` — removed completed item `TEST-007`.
+  - `docs/TODO_CLEANUP_COMMENTS.md` — removed completed item `CLEAN-COM-001`.
+  - `docs/ai_workboard.md` — added the corresponding execution entry.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** Accessibility smoke coverage for the targeted critical flows is now automated, passing, and enforced in CI. The two TODO items that this work fully satisfied were removed from the live backlog.
+- **Notes:** I intentionally did not mark the broader accessibility module items complete because manual VoiceOver/TalkBack passes and wider tablet/device evidence are still pending.
+
+**Verification:**
+- `flutter analyze lib/features/auth/presentation/screens/login_screen.dart lib/features/auth/presentation/screens/basic_info_screen.dart lib/features/chat/presentation/widgets/chat_input_bar.dart lib/features/settings/presentation/screens/account_actions_settings_screen.dart test/accessibility_regression_lane_test.dart`
+- `flutter test test/accessibility_regression_lane_test.dart test/swipe_card_test.dart test/onboarding_google_button_layout_test.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart`
+- `rg -n --glob '!scripts/archive/**' --glob '!**/*.g.dart' --glob '!**/*.freezed.dart' 'TODO|FIXME|HACK' lib test functions/src .github scripts`
+
+**Next Step:** Continue with backlog items that still need deeper flow/device work, especially `TEST-002`, `TEST-006`, and the remaining open accessibility module tasks.
+
+### Task #254 — TODO_ACCESSIBILITY Execution Slice
+**Date:** 2026-04-16
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+start working on TODO_ACCESSIBILITY.md
+
+**Developer Intent Analysis:**
+- Primary goal: make real progress on `docs/TODO_ACCESSIBILITY.md` without waiting on the developer, starting with work that can be completed and verified locally.
+- Secondary goal: keep the accessibility backlog honest by only removing TODO items that are fully complete, not partially advanced.
+- Implicit requirements: follow the doc-sync workflow in `AGENTS.md`, avoid unrelated workspace changes, and prefer robust large-text/semantics fixes over shallow UI tweaks.
+- Quality expectations: production-safe semantics actions, reduced-motion handling, large-text resilience, focused regression coverage, and an honest record of any device-validation blocker.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute the highest-value local slice of `TODO_ACCESSIBILITY` across auth and profile flows, then verify it with targeted widget tests and an Android device launch attempt.
+- **Scope:** `auth_gateway_screen.dart`, `permission_rationale_screen.dart`, `profile_setup_screen.dart`, `test/accessibility_regression_lane_test.dart`, and the required workflow docs.
+- **Constraints:** Do not close `A11Y-001`/`A11Y-002`/`A11Y-003` unless the full manual VoiceOver/TalkBack/contrast work is done; do not touch unrelated files; keep verification focused.
+- **Expected Outcome:** improved semantics/focus/large-text behavior on the targeted screens, green regression coverage for those flows, and documented evidence of what remains open.
+
+**Status Updates:**
+- **Received:** Reloaded the current accessibility TODO doc and collaboration docs, inspected the auth/profile screens, and replayed the in-flight accessibility regression lane to capture concrete failures.
+- **In Progress:** Reworked the auth gateway and permission rationale layouts for large text, hardened profile setup semantics and tap actions, expanded the regression checks, and iterated until the screen/test behavior matched.
+- **Completed:** Targeted accessibility tests are green, the auth/profile accessibility slice is documented, and the requested Samsung device run was attempted but blocked by an ADB disconnect after initial detection.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/auth_gateway_screen.dart` — added reduced-motion-safe fade behavior, large-text scroll handling, and stronger semantics on auth CTAs and the age gate.
+  - `lib/features/auth/presentation/screens/permission_rationale_screen.dart` — changed the rationale sheet to a pinned-action layout so the primary actions remain reachable at 200% text.
+  - `lib/features/profile/presentation/screens/profile_setup_screen.dart` — added large-text whole-page scroll fallback, semantic tap handlers for custom pickers/selectors, and safer text/layout handling across summary rows and action areas.
+  - `test/accessibility_regression_lane_test.dart` — expanded and corrected the accessibility regression coverage for the auth gateway and profile setup flows, including scroll-to-visible expectations for large-text layouts.
+  - `docs/ai_workboard.md` — added the corresponding execution entry.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+  - `docs/risk_notes.md` — recorded the unstable Samsung ADB connection that blocked manual hardware validation.
+- **Result:** The local accessibility slice for auth gateway, permission rationale, and profile setup is now materially stronger and covered by passing regression tests. The module TODO items were intentionally left open because the full manual screen-reader, keyboard, and contrast sweeps are still outstanding.
+- **Notes:** `docs/TODO_ACCESSIBILITY.md` was not trimmed because `A11Y-001`, `A11Y-002`, and `A11Y-003` are only partially advanced, not complete.
+
+**Verification:**
+- `flutter analyze lib/features/auth/presentation/screens/auth_gateway_screen.dart lib/features/auth/presentation/screens/permission_rationale_screen.dart lib/features/profile/presentation/screens/profile_setup_screen.dart test/accessibility_regression_lane_test.dart`
+- `flutter test test/accessibility_regression_lane_test.dart`
+- `flutter test test/onboarding_google_button_layout_test.dart test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`
+- `flutter devices`
+- `adb devices -l`
+- `flutter run -d R9PT70YAHJE` — failed after device discovery because `adb` lost the Samsung connection (`adb: device 'R9PT70YAHJE' not found`)
+
+**Next Step:** Resume manual TalkBack/large-text verification on `SM A037F` once the device connection is stable, then continue the broader `TODO_ACCESSIBILITY` sweep instead of closing the module early.
+
+### Task #255 — TODO_DISCOVERY_BACKEND Exclusion Hardening
+**Date:** 2026-04-17
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue and after the task is completed start workin on TODO_CLEANUP_DEAD__CODE
+
+**Developer Intent Analysis:**
+- Primary goal: continue the in-flight `TODO_DISCOVERY_BACKEND` work and finish the highest-value backend issue without waiting for developer input.
+- Secondary goal: if a discovery TODO is fully completed, remove it from the live backlog before moving on to dead-code cleanup.
+- Implicit requirements: follow the docs-first workflow in `AGENTS.md`, avoid unrelated workspace changes, and verify the backend change with targeted tests/build/lint instead of claiming the fix from code inspection alone.
+- Quality expectations: one canonical exclusion path for REST and callable discovery, deterministic precedence across block/report states, compatibility with legacy data shapes, and no lint regressions left behind.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `DISC-BE-002` by fixing the discovery backend so reported or safety-reviewed users cannot reappear in discovery, while preserving compatibility with canonical and legacy relationship documents.
+- **Scope:** `functions/src/index.ts`, `functions/test/discoveryEligibility.test.js`, `docs/TODO_DISCOVERY_BACKEND.md`, and the required workflow docs.
+- **Constraints:** Keep the fix incremental and shared across callable/REST discovery paths, do not revert unrelated local changes, and remove the TODO item only if the acceptance criteria are actually covered by verification.
+- **Expected Outcome:** backend discovery exclusions are deterministic for block/report/moderation states, regression tests cover canonical and legacy records, and the completed backlog item is removed.
+
+**Status Updates:**
+- **Received:** Reloaded the discovery backend TODO plus the latest workboard/risk/chat context, then re-read the shared discovery helper, exclusion fetcher, report flow, and helper tests.
+- **In Progress:** Extended the exclusion model for report relations, resolved moderation from both moderation and safety-flag sources, removed the duplicate deck short-circuit, and added regression tests for legacy normalization plus exclusion precedence.
+- **Completed:** Verified the functions build, targeted discovery helper lane, and functions lint; removed completed item `DISC-BE-002` from the backlog; and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — added report-based discovery exclusions, legacy relation-record normalization, safety-flag moderation resolution, legacy match-participant support, and centralized exclusion precedence in the shared evaluator.
+  - `functions/test/discoveryEligibility.test.js` — added Firebase test bootstrap config plus regression coverage for canonical/legacy exclusion normalization, safety-review holds, and report-vs-block precedence.
+  - `docs/TODO_DISCOVERY_BACKEND.md` — removed completed item `DISC-BE-002`.
+  - `docs/ai_workboard.md` — added the corresponding execution entry.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** `DISC-BE-002` is complete. Discovery candidates now exclude report relationships and safety-review states through the same shared backend path used by both callable and REST deck responses, and the behavior is covered by targeted helper tests.
+- **Notes:** A direct Mocha run initially failed because this test file did not set `FIREBASE_CONFIG` before importing the compiled functions module; that harness gap was fixed so the test is now self-contained.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/discoveryEligibility.test.js` (in `functions/`)
+- `npm run lint` (in `functions/`)
+
+**Next Step:** Start `docs/TODO_CLEANUP_DEAD_CODE.md` and remove safe dead-code/debug leftovers that can be verified locally without developer decisions.
+
+### Task #256 — TODO_CLEANUP_DEAD_CODE Safe Slice
+**Date:** 2026-04-17
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue and after the task is completed start workin on TODO_CLEANUP_DEAD__CODE
+
+**Developer Intent Analysis:**
+- Primary goal: begin executing `docs/TODO_CLEANUP_DEAD_CODE.md` immediately after the discovery backend task closes, without waiting for additional developer input.
+- Secondary goal: remove only dead-code/debug leftovers that are safe and verifiable, rather than overreaching into intentional stubs, placeholder services, or active backend logging.
+- Implicit requirements: keep the docs-sync workflow intact, avoid touching unrelated local work, and be explicit when the broader cleanup module remains open.
+- Quality expectations: conservative cleanup, no behavior regressions, clean analyzer/lint output, and honest scope boundaries.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Land a first safe cleanup slice for `CLEAN-DEAD-001` by removing concrete commented/debug leftovers in maintained source and example code.
+- **Scope:** `functions/src/index.ts`, `lib/dev/widget_catalog/showcases/inputs_showcase.dart`, `lib/core/media/image_optimizer.dart`, and the required workflow docs.
+- **Constraints:** Do not delete intentional stub repositories, backend operational logging, or placeholder services that still represent active product behavior; keep the module TODO open unless the full acceptance criteria are met.
+- **Expected Outcome:** obvious dead/commented/example leftovers are removed, the touched files remain lint/analyze clean, and the cleanup module is advanced without false completion claims.
+
+**Status Updates:**
+- **Received:** Read the cleanup TODO plus the latest collaboration docs, then scanned maintained source for commented-out code, `print()` leftovers, and other low-risk dead-code candidates.
+- **In Progress:** Filtered the scan results down to the genuinely safe edits, excluding intentional stubs, active backend logging, and doc/example hits that did not represent dead runtime code.
+- **Completed:** Removed the stale commented-out backend constant, rewrote example snippets away from `print()`, verified the targeted scans/analyzer/lint, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — removed the dead commented-out deactivated-account auto-delete constant.
+  - `lib/dev/widget_catalog/showcases/inputs_showcase.dart` — rewrote the OTP showcase code example so it no longer demonstrates `print()` usage.
+  - `lib/core/media/image_optimizer.dart` — updated the usage snippet to consume `savedBytes` without printing.
+  - `docs/ai_workboard.md` — added the corresponding execution entry.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** The first dead-code cleanup slice is complete and verified. `docs/TODO_CLEANUP_DEAD_CODE.md` remains open because the broader repo-wide dead-branch and unused-asset audit still needs a larger pass.
+- **Notes:** The scan surfaced many intentional stubs, sample repositories, and backend logs. I left those alone because removing them safely requires architectural/product review, not mechanical cleanup.
+
+**Verification:**
+- `npm run lint` (in `functions/`)
+- `flutter analyze lib/dev/widget_catalog/showcases/inputs_showcase.dart lib/core/media/image_optimizer.dart`
+- `rg -n --glob '!**/*.g.dart' --glob '!**/*.freezed.dart' --glob '!build/**' --glob '!functions/lib/**' '^\\s*//\\s*const\\s|\\bprint\\s*\\(' functions/src lib/dev lib/core` — returned no matches
+
+**Next Step:** Continue `TODO_CLEANUP_DEAD_CODE.md` with a deeper maintained-source/stub audit and then an unused-asset inventory for `CLEAN-DEAD-002`.
+
+### Task #257 — TODO_CLEANUP_DEAD_CODE Asset Inventory
+**Date:** 2026-04-17
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the active cleanup module immediately with the next safe, verifiable slice rather than pausing after the initial dead-code pass.
+- Secondary goal: remove a backlog item if the current slice fully satisfies it, keeping the live TODO docs honest.
+- Implicit requirements: follow the docs-sync workflow, avoid deleting source assets that are still used by tooling/native generation, and verify runtime behavior after any asset-manifest change.
+- Quality expectations: conservative asset cleanup, explicit retained-vs-runtime classification, and no broken auth UI assets.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete `CLEAN-DEAD-002` by auditing the current asset surface, documenting retained assets, and removing non-runtime icon/tooling files from the Flutter runtime bundle.
+- **Scope:** `pubspec.yaml`, `docs/reports/asset_inventory_2026-04-17.md`, `docs/TODO_CLEANUP_DEAD_CODE.md`, and the required workflow docs.
+- **Constraints:** Do not delete icon source files still consumed by launcher/native tooling; prefer narrowing the runtime asset bundle over destructive file removal; only remove the TODO item if the audit/inventory/verification fully support completion.
+- **Expected Outcome:** a concrete asset inventory exists, bundle-only baggage is removed from Flutter assets, runtime icon usage still works, and completed item `CLEAN-DEAD-002` is removed from the backlog.
+
+**Status Updates:**
+- **Received:** Reloaded the cleanup/workflow docs, inspected the current `assets/**` surface and `pubspec.yaml`, and compared literal runtime references against the declared asset bundle.
+- **In Progress:** Verified that only `assets/icons/google_logo.png` is consumed at runtime while the other icon files are tooling/native inputs, then prepared a manifest narrowing plus inventory report instead of deleting source art.
+- **Completed:** Narrowed the bundled icon assets to the runtime file, added the asset inventory report, verified the Google-logo widget path still passes, removed completed TODO item `CLEAN-DEAD-002`, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `pubspec.yaml` — narrowed Flutter icon asset bundling to `assets/icons/google_logo.png`.
+  - `docs/reports/asset_inventory_2026-04-17.md` — added a full current asset inventory with runtime/tooling/native classifications and the bundle-cleanup decision.
+  - `docs/TODO_CLEANUP_DEAD_CODE.md` — removed completed item `CLEAN-DEAD-002`.
+  - `docs/ai_workboard.md` — added the corresponding execution entry.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** `CLEAN-DEAD-002` is complete. The Flutter asset bundle no longer ships non-runtime icon source files or the icon README, while the required runtime icon asset and native/tooling assets remain intact and documented.
+- **Notes:** I intentionally retained `assets/icons/app_icon.png`, `assets/icons/app_icon_foreground.png`, and `assets/icons/launch_wordmark.png` because they are still consumed by `flutter_launcher_icons` or `tool/generate_app_icons.dart`; this was bundle cleanup, not blind file deletion.
+
+**Verification:**
+- `flutter analyze lib/features/auth/presentation/widgets/google_logo_icon.dart test/onboarding_google_button_layout_test.dart`
+- `flutter test test/onboarding_google_button_layout_test.dart`
+- `rg -n --glob '!build/**' --glob '!functions/lib/**' --glob '!**/*.g.dart' --glob '!**/*.freezed.dart' "assets/icons/" lib test pubspec.yaml docs/reports/asset_inventory_2026-04-17.md`
+
+**Next Step:** Continue `TODO_CLEANUP_DEAD_CODE.md` with the still-open `CLEAN-DEAD-001` maintained-source/stub cleanup.
+
+### Task #258 — TODO_CLEANUP_DEAD_CODE Maintained-Source Audit
+**Date:** 2026-04-17
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the cleanup module immediately and finish the remaining open item if the maintained runtime surface already supports closure.
+- Secondary goal: keep the live TODO docs honest by removing `CLEAN-DEAD-001` only if the post-cleanup scans show no real commented-out code or stray debug-print leftovers in maintained source.
+- Implicit requirements: keep archived tooling and intentional logging out of the runtime cleanup scope, avoid pointless broad rewrites, and verify the result with direct scans plus analyzer.
+- Quality expectations: conservative source cleanup, explicit classification of intentional comments/logger usage, and a documented audit trail rather than hand-wavy completion claims.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `CLEAN-DEAD-001` by auditing the maintained runtime surface for commented-out code and debug-print leftovers, removing the last false-positive source pattern, and documenting why the remaining scan hits are intentional.
+- **Scope:** `lib/core/constants/constants.dart`, `docs/reports/maintained_source_cleanup_audit_2026-04-17.md`, `docs/TODO_CLEANUP_DEAD_CODE.md`, and the required workflow docs.
+- **Constraints:** Do not remove intentional explanatory comments, do not change the `AppLogger` logging backend, and only remove the TODO item if the maintained-source scans support completion.
+- **Expected Outcome:** maintained runtime source is clean of obsolete commented-out code and stray `print()` leftovers, the intentional `debugPrint()` sink is documented, and `CLEAN-DEAD-001` is removed from the backlog.
+
+**Status Updates:**
+- **Received:** Reloaded the cleanup/workflow docs and reran strict maintained-source scans for `print()`, `debugPrint()`, and disabled-code comment patterns across runtime paths.
+- **In Progress:** Confirmed there were no maintained-source `print()` calls, identified `AppLogger` as the only intentional `debugPrint()` sink, and converted the last false-positive `// import` doc example into a non-code-looking block comment.
+- **Completed:** Added the maintained-source cleanup audit report, verified the post-edit scans/analyzer, removed completed item `CLEAN-DEAD-001`, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/constants/constants.dart` — converted the barrel import example into a block comment to avoid false-positive dead-code detection.
+  - `docs/reports/maintained_source_cleanup_audit_2026-04-17.md` — added the maintained-source cleanup audit and intent classification for logger/comments/archive scope.
+  - `docs/TODO_CLEANUP_DEAD_CODE.md` — removed completed item `CLEAN-DEAD-001` and noted there are no open items currently.
+  - `docs/ai_workboard.md` — added the corresponding execution entry.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** `CLEAN-DEAD-001` is complete. `docs/TODO_CLEANUP_DEAD_CODE.md` now has no open items because the maintained runtime surface is clean of obsolete commented-out code patterns and stray `print()` leftovers, with intentional `debugPrint()` usage remaining only inside `AppLogger`.
+- **Notes:** The remaining comment-pattern scan hits are descriptive comments in maintained source, not disabled code. Archived fixer scripts still contain `print()` usage, but they remain intentionally outside runtime cleanup scope.
+
+**Verification:**
+- `flutter analyze lib/core/constants/constants.dart`
+- `rg -n --glob '!**/*.g.dart' --glob '!**/*.freezed.dart' --glob '!build/**' --glob '!functions/lib/**' '^\\s*//\\s*(import|return|await|if\\s*\\(|for\\s*\\(|while\\s*\\(|const\\s|final\\s|var\\s|class\\s|void\\s|Widget\\s|SizedBox\\s|Container\\s|Padding\\s|Text\\s|Row\\s|Column\\s|Scaffold\\s|Navigator\\.|setState\\(|context\\.|children:|onPressed:|child:)' lib functions/src .github tool`
+- `rg -n --glob '!**/*.g.dart' --glob '!**/*.freezed.dart' --glob '!build/**' --glob '!functions/lib/**' '\\bprint\\s*\\(' lib functions/src .github tool`
+- `rg -n --glob '!**/*.g.dart' --glob '!**/*.freezed.dart' --glob '!build/**' --glob '!functions/lib/**' '\\bdebugPrint\\s*\\(' lib functions/src .github tool`
+
+**Next Step:** Move to the next open module TODO outside cleanup, since `TODO_CLEANUP_DEAD_CODE.md` is now closed.
+
+### Task #259 — Discovery Backend Cursor And Retry Hardening
+**Date:** 2026-04-17
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the next actionable module TODO after cleanup with a slice that can be completed locally without waiting on external product decisions.
+- Secondary goal: remove the TODO item if the server/client pagination contract is actually hardened and verified end to end.
+- Implicit requirements: keep the repo’s docs-sync workflow intact, avoid broad discovery API rewrites, and preserve existing app behavior while fixing retry/cursor correctness.
+- Quality expectations: deterministic pagination semantics, explicit cursor documentation, targeted backend + Flutter tests, and no fake `has_more` metadata left in the discovery path.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `DISC-BE-003` by implementing deterministic discovery deck cursors, real pagination metadata, and retry-safe client pagination state.
+- **Scope:** `functions/src/index.ts`, `functions/test/discoveryEligibility.test.js`, discovery repository/bloc pagination files, `docs/TODO_DISCOVERY_BACKEND.md`, `docs/reports/discovery_pagination_cursor_contract_2026-04-17.md`, and the required workflow docs.
+- **Constraints:** Keep the repository fetch surface incremental instead of replacing it with a new paginated model type, do not reset or rewrite unrelated discovery logic, and only remove `DISC-BE-003` if backend tests and bloc verification both pass.
+- **Expected Outcome:** the backend emits scoped opaque cursors and real `hasMore`/`nextCursor` metadata, retries do not corrupt the deck state, the cursor contract is documented, and completed item `DISC-BE-003` is removed from the backlog.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, inspected the open discovery-backend TODO, and confirmed the existing repo changes only partially threaded cursor fields on the client while the backend still sliced page one and faked `has_more`.
+- **In Progress:** Implemented keyset-style cursor helpers in the functions layer, wired page metadata through the discovery repositories and bloc state, and added focused backend/bloc tests for cursor scope validation and retry behavior.
+- **Completed:** Verified the functions build/test/lint lane plus the discovery bloc analyze/test lane, documented the cursor contract, removed `DISC-BE-003` from `docs/TODO_DISCOVERY_BACKEND.md`, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — added stable discovery cursor helpers, request-scope locking, real page metadata, and REST invalid-cursor handling.
+  - `functions/test/discoveryEligibility.test.js` — added deterministic pagination and cursor-scope tests.
+  - `lib/features/discovery/domain/repositories/discovery_repository.dart` — added `DiscoveryDeckPageInfo` and optional `cursor` support.
+  - `lib/core/network/dto/discovery_dto.dart` — added `hasMore`, `nextCursor`, and `totalCount` parsing for REST responses.
+  - `lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart`
+  - `lib/features/discovery/data/repositories/impl/http_discovery_repository.dart`
+  - `lib/features/discovery/data/repositories/impl/hybrid_discovery_repository.dart`
+  - `lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart`
+  - `lib/features/discovery/presentation/bloc/discovery_state.dart`
+  - `lib/features/discovery/presentation/bloc/discovery_bloc.dart`
+  - `test/discovery_bloc_test.dart`
+  - `test/deck_gating_test.dart`
+  - `test/message_requests_cubit_test.dart`
+  - `test/router_create_router_test.dart`
+  - `test/safety_cubit_test.dart`
+  - `lib/data/repositories/fake_repositories.dart`
+  - `docs/reports/discovery_pagination_cursor_contract_2026-04-17.md`
+  - `docs/TODO_DISCOVERY_BACKEND.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** `DISC-BE-003` is complete. Discovery deck pagination is now driven by real keyset-style cursors instead of repeated first-page slicing, and the bloc preserves forward progress even when a retry response contains only profiles already present in the deck.
+- **Notes:** I intentionally left the broader discovery query/index optimization work open in `DISC-BE-001`. This slice hardens correctness and retry semantics; it does not claim a full performance/index audit.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/discoveryEligibility.test.js` (in `functions/`)
+- `npm run lint` (in `functions/`)
+- `flutter analyze lib/features/discovery/domain/repositories/discovery_repository.dart lib/features/discovery/presentation/bloc/discovery_state.dart lib/features/discovery/presentation/bloc/discovery_bloc.dart lib/core/network/dto/discovery_dto.dart lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart lib/features/discovery/data/repositories/impl/http_discovery_repository.dart lib/features/discovery/data/repositories/impl/hybrid_discovery_repository.dart lib/features/discovery/data/repositories/impl/stub_discovery_repository.dart test/discovery_bloc_test.dart test/deck_gating_test.dart test/message_requests_cubit_test.dart test/router_create_router_test.dart test/safety_cubit_test.dart lib/data/repositories/fake_repositories.dart`
+- `flutter test test/discovery_bloc_test.dart`
+
+**Next Step:** Continue `DISC-BE-001` or the next open backend/infrastructure TODO that can be completed safely without external environment dependencies.
+
+### Task #260 — Discovery Query And Index Audit
+**Date:** 2026-04-19
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the remaining discovery-backend work with a concrete, locally verifiable fix rather than stopping at an audit note.
+- Secondary goal: close the module TODO if the discovery query path becomes indexed, explainable, and covered by targeted backend tests.
+- Implicit requirements: follow the docs-sync workflow, avoid broad discovery rewrites, and improve performance without introducing a new backfill requirement.
+- Quality expectations: explicit query-plan reasoning, index definitions that match real query shapes, preserved fallback safety, and documentation of residual limits.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `DISC-BE-001` by auditing the discovery eligibility/query path, replacing the generic recent-user scan with an index-backed prefilter query, and documenting the resulting query/index contract.
+- **Scope:** `functions/src/index.ts`, `functions/test/discoveryEligibility.test.js`, `firestore.indexes.json`, `docs/reports/discovery_query_index_audit_2026-04-19.md`, `docs/TODO_DISCOVERY_BACKEND.md`, and the required workflow docs.
+- **Constraints:** Reuse the existing mirrored root discovery fields rather than creating a new backfill-dependent model, keep requester-specific filtering logic intact, and preserve a fallback path if the indexed query is unavailable.
+- **Expected Outcome:** discovery deck fetching becomes prefiltered and index-backed for common queries, the eligibility pipeline and residual limits are documented, targeted backend tests pass, and completed item `DISC-BE-001` is removed from the backlog.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, inspected the remaining discovery-backend TODO, and traced the current deck fetch path plus Firestore index configuration.
+- **In Progress:** Added a discovery query-plan helper, wired the deck builder to use an indexed prefilter query with fallback, aligned `firestore.indexes.json` with the new query shapes, and added helper tests for the query plan.
+- **Completed:** Verified the functions build/test/lint lane, documented the discovery query/index audit, removed `DISC-BE-001` from `docs/TODO_DISCOVERY_BACKEND.md`, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — added discovery query-plan building plus indexed query fallback behavior for deck fetches.
+  - `functions/test/discoveryEligibility.test.js` — added query-plan coverage for single-gender, all-gender, and multi-gender discovery requests.
+  - `firestore.indexes.json` — added discovery-specific composite indexes for ready-only, verified-only, and gender-targeted deck queries.
+  - `docs/reports/discovery_query_index_audit_2026-04-19.md` — documented the eligibility pipeline, query shapes, added indexes, and residual limits.
+  - `docs/TODO_DISCOVERY_BACKEND.md` — removed completed item `DISC-BE-001` and marked the module with no open items.
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** `DISC-BE-001` is complete. Discovery deck queries now prefilter on index-backed mirrored readiness fields before in-memory requester-specific filtering runs, which materially reduces the generic scan overhead while preserving a safe fallback path.
+- **Notes:** Age/distance/relationship-specific filtering intentionally remains in memory because those filters are requester-specific or incompatible with the current recency-prefilter ordering strategy. That boundary is documented in the new report.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/discoveryEligibility.test.js` (in `functions/`)
+- `npm run lint` (in `functions/`)
+
+**Next Step:** Move to the next open module TODO outside discovery backend, since `TODO_DISCOVERY_BACKEND.md` now has no open items.
+
+### Task #261 — Upload Validation Hardening
+**Date:** 2026-04-19
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue with the next high-value backend/API slice that can be completed locally and verified without external environment dependencies.
+- Secondary goal: close the upload-validation TODO only if server-side policy is actually enforced and documented across the exposed upload ingress points.
+- Implicit requirements: follow docs-sync rules, avoid broad architecture rewrites, and tighten authz plus content validation rather than only producing audit notes.
+- Quality expectations: real server-side enforcement, malicious-upload coverage, boundary-value tests, and no public/raw filename leakage from storage ingress.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `API-003` by hardening file-upload validation for profile photos and chat media, documenting the policy, and adding targeted REST regression coverage.
+- **Scope:** `functions/src/index.ts`, `functions/test/profileRestEndpoints.test.js`, `docs/reports/upload_validation_policy_2026-04-19.md`, `docs/TODO_API_ARCHITECTURE.md`, and the required workflow docs.
+- **Constraints:** Keep the changes backend-focused, preserve existing moderation behavior for profile photos, avoid unrelated route rewrites, and note any unrelated test-suite failures outside the upload path rather than silently ignoring them.
+- **Expected Outcome:** both upload endpoints enforce allowlists, magic-byte checks, size limits, authz, and randomized private storage paths; the upload policy is documented; completed item `API-003` is removed from the backlog.
+
+**Status Updates:**
+- **Received:** Reloaded the workflow docs, inspected the API architecture backlog, and traced the current upload handlers for profile photos and chat media.
+- **In Progress:** Added shared upload-validation helpers, added test override hooks for file-type/vision detection, hardened chat media authz and storage behavior, and extended REST endpoint coverage for malicious/boundary uploads.
+- **Completed:** Verified the functions build/lint lane plus the targeted upload endpoint REST lane, documented the upload policy, removed `API-003` from `docs/TODO_API_ARCHITECTURE.md`, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — added shared binary upload validation, chat media authz/allowlist handling, randomized private storage paths, and upload test override hooks.
+  - `functions/test/profileRestEndpoints.test.js` — added targeted upload regression coverage for spoofed payloads, per-type size limits, unauthorized chat uploads, and private storage paths.
+  - `docs/reports/upload_validation_policy_2026-04-19.md` — documented the enforced upload policy for profile and chat ingress.
+  - `docs/TODO_API_ARCHITECTURE.md` — removed completed item `API-003`.
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** `API-003` is complete. Upload ingress is now server-validated for both profile photos and chat media, with conversation-membership authz on chat uploads and tokenized private storage URLs instead of public object exposure.
+- **Notes:** The broader `functions/test/profileRestEndpoints.test.js` file still contains two unrelated preference-route assertion failures outside this upload slice. The upload-specific endpoint lane used for this task is green and documented.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npm run lint` (in `functions/`)
+- `npx mocha --exit test/profileRestEndpoints.test.js --grep "POST /v1/profile/photos|POST /v1/chat/:conversationId/media"` (in `functions/`)
+
+**Next Step:** Continue `API-001` or `API-002`, since `API-003` is now closed.
+
+### Task #262 — API Contract Inventory And Drift Audit
+**Date:** 2026-04-19
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the next actionable API-architecture backlog slice with something that can be completed locally and verified without waiting on external environment changes.
+- Secondary goal: make the API documentation truthful enough that future work targets the real backend surface instead of stale assumptions spread across client wrappers.
+- Implicit requirements: keep the docs-sync workflow intact, remove the completed backlog item if the inventory is genuinely current, and surface any critical drift honestly instead of hiding it in a stale catalog.
+- Quality expectations: source-grounded contract inventory, explicit client/backend drift findings, and targeted verification rather than a hand-wavy documentation refresh.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `API-001` by replacing the stale API catalog with a current inventory of exported callables, REST routes, webhooks, triggers, and scheduled jobs, and explicitly document any client/backend contract drift discovered during the audit.
+- **Scope:** `docs/API_CATALOG.md`, `docs/TODO_API_ARCHITECTURE.md`, `docs/risk_notes.md`, and the required workflow docs.
+- **Constraints:** Build the catalog from live source (`functions/src/index.ts`, `functions/src/calls/signaling.ts`, `lib/core/network/api_version.dart`, and active runtime wrappers in `lib/features/**/data/repositories/impl/`); do not silently "fix" incompatible client paths during the inventory pass; add a new tracked TODO if the audit reveals concrete follow-up contract reconciliation work.
+- **Expected Outcome:** the repo has a truthful canonical API catalog, `API-001` is removed from the backlog, newly surfaced client/backend drift is tracked explicitly, and representative contract spot checks pass.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, inspected the remaining API-architecture backlog, and compared the existing API catalog against the live callable exports, REST route list, and runtime client wrappers.
+- **In Progress:** Replaced the stale catalog with a new source-grounded inventory, traced mismatched callable names and REST endpoint constants in the discovery/chat/calls/subscription clients, and converted those findings into tracked follow-up work instead of pretending the contracts already align.
+- **Completed:** Closed `API-001`, added `API-004` for the discovered contract drift, recorded the new integration risk, ran contract spot-check verification, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/API_CATALOG.md` — replaced with a current API inventory covering exported callables, REST routes, standalone HTTP webhooks, Firestore triggers, scheduled jobs, and a dedicated client/backend drift section.
+  - `docs/TODO_API_ARCHITECTURE.md` — removed completed item `API-001` and added follow-up item `API-004` for wrapper/endpoint reconciliation.
+  - `docs/risk_notes.md` — added `R-064` for the newly surfaced client/backend API contract drift risk.
+  - `docs/ai_workboard.md` — added the corresponding execution entry.
+  - `docs/Developer_agent_chat.md` — added this task log entry.
+- **Result:** `API-001` is complete. The repo now has a truthful canonical API catalog, and the major contract-drift problems it surfaced are explicitly tracked instead of being left as stale hidden assumptions in the client layer.
+- **Notes:** The audit found real drift, not just doc staleness: stale callable names (`submitSafetyAppeal`, `superLike`, `rewindSwipe`, `startCall`, missing promo-code callables), stale REST endpoint constants, and signaling callables that are outside the main App Check wrapper path. Those findings were deliberately pushed into `API-004` instead of being papered over in the catalog.
+
+**Verification:**
+- `rg -n "^export const [A-Za-z0-9_]+ =" functions/src/index.ts`
+- `rg -n "app\\.(get|post|patch|put|delete)\\(" functions/src/index.ts`
+- `rg -n "httpsCallable\\(" lib`
+- `npx mocha --exit test/callables.test.js` (in `functions/`)
+- `npx mocha --exit test/profileRestEndpoints.test.js --grep "GET /v1/profile/me|POST /v1/profile/photos|POST /v1/chat/:conversationId/media"` (in `functions/`)
+
+**Next Step:** Execute `API-004` to reconcile stale client callable names and REST endpoint constants with the backend surface documented in `docs/API_CATALOG.md`.
+
+### Task #263 — API Contract Reconciliation Slice
+**Date:** 2026-04-19
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the API-architecture backlog with the highest-value remediation slice that can be completed and verified locally without waiting on external systems.
+- Secondary goal: remove real runtime dead paths instead of only documenting them, but avoid inventing backend semantics where the current product contract is still unclear.
+- Implicit requirements: follow the docs-sync workflow, do not revert unrelated worktree changes, and only close the documented backlog item if the corrected wrappers and contract tests actually go green.
+- Quality expectations: live route/callable alignment, HTTP-mode parity where the app is wired to depend on it, and explicit documentation of what remains unresolved after the slice.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute the first remediation slice of `API-004` by aligning the active client wrappers and backend routes for discovery auxiliary reads, safety appeal, subscription status/checkout, calls, and profile photo ordering.
+- **Scope:** `functions/src/index.ts`, `functions/src/calls/signaling.ts`, `lib/core/network/api_version.dart`, the affected repositories under `lib/features/**/data/repositories/impl/`, `docs/API_CATALOG.md`, `docs/TODO_API_ARCHITECTURE.md`, `docs/risk_notes.md`, and the required workflow docs.
+- **Constraints:** Prefer real backend parity routes for HTTP mode instead of making HTTP wrappers depend on Firebase callable auth; use safe fallbacks instead of speculative server behavior for unsupported discovery rewind semantics; narrow any newly discovered remaining drift into an explicit follow-up item rather than hiding it.
+- **Expected Outcome:** the documented dead-path contract drift is removed from the active discovery/chat/subscription/calls/profile utility wrappers, the catalog and backlog reflect the corrected live surface, and targeted backend/client verification passes.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, finished the contract-drift inventory, and audited the affected client wrappers plus the live `functions/src/index.ts` / `functions/src/calls/signaling.ts` surface.
+- **In Progress:** Patched endpoint constants and wrappers, added shared call-signaling helpers plus HTTP parity routes, replaced nonexistent promo-code network dependencies with explicit local fallbacks, and wrote focused wrapper regression tests.
+- **Completed:** Verified the functions build/smoke-test lane, ran focused Dart analysis plus Flutter repository tests, updated the API catalog and risk note, removed completed backlog item `API-004`, added follow-up `API-005`, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — added `/v1/profile/photos/reorder`, `/v1/discovery/likes-you`, `/v1/calls/start`, `/v1/calls/end`, and `/v1/safety/appeal`; wired the new REST call routes to the shared signaling backend.
+  - `functions/src/calls/signaling.ts` — exported shared `initiateCallForUser` / `endCallForUser` helpers and reused them from the callable layer.
+  - `lib/core/network/api_version.dart` — remapped the stale endpoint constants to the live backend surface and added call/photo-reorder/safety-appeal constants.
+  - `lib/core/network/dto/discovery_dto.dart` — taught `MatchDto` to parse the flat REST match payload shape used by `/v1/matches`.
+  - `lib/features/discovery/data/repositories/impl/http_discovery_repository.dart` — fixed top-picks/profile lookup/super-like/likes-you contract mapping and removed the dead rewind route dependency.
+  - `lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart` — removed dead callable references for super-like/rewind and aligned the match fallback with the exported callable surface.
+  - `lib/features/chat/data/repositories/impl/firebase_chat_repository.dart` and `lib/features/chat/data/repositories/impl/http_chat_repository.dart` — aligned safety appeal with the real callable/REST routes.
+  - `lib/features/subscription/data/repositories/impl/http_subscription_repository.dart` and `firebase_subscription_repository.dart` — aligned subscription status/checkout paths and removed missing promo-code callable/REST dependencies in favor of explicit local fallback behavior.
+  - `lib/features/profile/data/repositories/impl/http_profile_repository.dart` — replaced the dead multi-upload/reorder assumptions with sequential single-photo uploads plus the live reorder route.
+  - `lib/features/calls/data/repositories/impl/http_call_repository.dart`, `firebase_call_repository.dart`, and new helper `lib/features/calls/data/repositories/impl/call_contract_support.dart` — aligned both call repositories with the real signaling contract.
+  - `docs/API_CATALOG.md`, `docs/TODO_API_ARCHITECTURE.md`, `docs/risk_notes.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+  - New focused tests under `test/features/discovery/...`, `test/features/chat/...`, `test/features/subscription/...`, `test/features/calls/...`, plus `test/api_version_test.dart`
+- **Result:** The API-004 dead-path backlog slice is complete. The active wrapper drift for discovery auxiliary reads, safety appeal, subscription current/checkout, call start/end, and profile photo reordering is now reconciled against live backend contracts, and the repo has explicit verification coverage for the corrected mappings.
+- **Notes:** The work uncovered narrower remaining drift outside the original documented slice: `HttpAuthRepository` still targets nonexistent `/auth/...` REST routes, and discovery rewind now fails safe rather than relying on missing backend functions. Those are tracked explicitly as `API-005` rather than being hidden behind a misleading "everything is done" closeout.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/callables.test.js test/call-signaling.test.js` (in `functions/`)
+- `dart analyze lib/core/network/api_version.dart lib/core/network/dto/discovery_dto.dart lib/features/discovery/data/repositories/impl/http_discovery_repository.dart lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart lib/features/chat/data/repositories/impl/firebase_chat_repository.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/profile/data/repositories/impl/http_profile_repository.dart lib/features/calls/data/repositories/impl/http_call_repository.dart lib/features/calls/data/repositories/impl/firebase_call_repository.dart lib/features/calls/data/repositories/impl/call_contract_support.dart test/api_version_test.dart test/features/discovery/data/repositories/impl/http_discovery_repository_test.dart test/features/chat/data/repositories/impl/http_chat_repository_contract_test.dart test/features/subscription/data/repositories/impl/http_subscription_repository_test.dart test/features/calls/data/repositories/impl/call_contract_support_test.dart test/features/calls/data/repositories/impl/http_call_repository_test.dart`
+- `flutter test test/api_version_test.dart test/features/discovery/data/repositories/impl/http_discovery_repository_test.dart test/features/chat/data/repositories/impl/http_chat_repository_contract_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart test/features/subscription/data/repositories/impl/http_subscription_repository_test.dart test/features/calls/data/repositories/impl/call_contract_support_test.dart test/features/calls/data/repositories/impl/http_call_repository_test.dart test/features/profile/data/repositories/impl/http_profile_repository_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart`
+
+**Next Step:** Execute `API-005` to align `HttpAuthRepository` with the real backend surface and decide the permanent backend/UI contract for discovery rewind.
+
+### Task #264 — API-005 Auth Bridge And Discovery Rewind Retirement
+**Date:** 2026-04-21
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the next open API-architecture item and finish the remaining contract drift that still affects production HTTP mode.
+- Secondary goal: resolve the discovery rewind gap with an explicit product/runtime decision instead of leaving a misleading local fallback in place.
+- Implicit requirements: preserve docs-sync workflow, avoid speculative backend surface area, and verify the changed paths with focused tests.
+- Quality expectations: valid authenticated HTTP sessions, no dead `/auth/...` dependencies in `HttpAuthRepository`, and a discovery rewind behavior that matches the real backend contract.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `API-005` by replacing `HttpAuthRepository`'s nonexistent auth-route assumptions with the real backend/Firebase auth contracts and by retiring unsupported discovery rewind behavior so UI/runtime expectations match the current backend surface.
+- **Scope:** `lib/features/auth/data/repositories/impl/http_auth_repository.dart`, supporting auth helpers/tests, discovery bloc/UI files involved in rewind behavior, `docs/API_CATALOG.md`, `docs/TODO_API_ARCHITECTURE.md`, `docs/risk_notes.md`, and the required workflow docs.
+- **Constraints:** fix the HTTP auth token contract instead of papering over it, prefer existing Firebase/callable primitives over inventing new backend auth surfaces unless strictly necessary, and treat discovery rewind as either explicitly supported or explicitly retired with matching UI behavior.
+- **Expected Outcome:** HTTP mode authenticates with valid Firebase ID tokens instead of unusable custom-token placeholders, dead auth route assumptions are removed, discovery no longer advertises a rewind action the backend cannot honor, and targeted verification plus docs sync pass.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, inspected `API-005`, traced `HttpAuthRepository`, and verified the live backend auth/discovery routes.
+- **In Progress:** Reworking HTTP auth around a Firebase-backed session bridge so bearer tokens are valid for protected REST endpoints, and updating discovery so rewind is retired instead of faking a successful undo without backend support.
+- **Completed:** Added the HTTP auth session bridge plus contract tests, retired rewind in the discovery runtime/UI, updated the API/risk/flow docs, removed completed backlog item `API-005`, added follow-up `API-006`, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/data/repositories/impl/http_auth_session_bridge.dart` — new Firebase-backed bridge that exposes auth-state changes, Firebase ID tokens, and delegated Firebase-native auth/account operations for HTTP mode.
+  - `lib/features/auth/data/repositories/impl/http_auth_repository.dart` — replaced nonexistent auth-route assumptions with callable-backed password/email OTP/reset/delete flows plus Firebase custom-token sign-in and session-backed bearer token refresh.
+  - `lib/core/utils/error_messages.dart` — added explicit `rewindUnavailable` copy for the retired discovery action.
+  - `lib/features/discovery/presentation/bloc/discovery_bloc.dart` — stopped advertising rewind availability after swipes and made rewind requests resolve to the explicit unavailable state instead of a fake local undo.
+  - `lib/features/discovery/presentation/screens/deck_screen.dart`, `lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart`, and `lib/features/discovery/presentation/widgets/deck_error_state_view.dart` — removed touched discovery copy that still advertised rewinds.
+  - `test/features/auth/data/repositories/http_auth_repository_contract_test.dart` — new contract tests covering callable-backed password login/signup, email OTP, password reset, and account deletion flows in HTTP mode.
+  - `test/discovery_bloc_test.dart` — updated expectations so discovery no longer behaves as if rewind is a live backend feature.
+  - `docs/API_CATALOG.md`, `docs/TODO_API_ARCHITECTURE.md`, `docs/risk_notes.md`, `docs/project_flowchart.md`, `docs/project_dfd.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** `API-005` is complete. HTTP auth now establishes real Firebase-backed sessions and supplies valid Firebase ID tokens for protected REST requests, while discovery rewind is explicitly retired so runtime/UI behavior matches the current backend contract.
+- **Notes:** The remaining contract follow-up is now narrower and tracked separately as `API-006`: signaling callables still bypass the shared App Check wrapper. Discovery rewind should stay retired until the backend owns a reversible swipe ledger instead of a client-only fallback.
+
+**Verification:**
+- `flutter analyze lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_session_bridge.dart lib/core/utils/error_messages.dart lib/features/discovery/presentation/bloc/discovery_bloc.dart lib/features/discovery/presentation/screens/deck_screen.dart lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart lib/features/discovery/presentation/widgets/deck_error_state_view.dart test/features/auth/data/repositories/http_auth_repository_contract_test.dart test/discovery_bloc_test.dart`
+- `flutter test test/features/auth/data/repositories/http_auth_repository_contract_test.dart test/discovery_bloc_test.dart`
+- `scripts/check_ai_docs_sync.sh --files docs/API_CATALOG.md docs/TODO_API_ARCHITECTURE.md docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/ai_workboard.md docs/Developer_agent_chat.md lib/features/auth/data/repositories/impl/http_auth_repository.dart lib/features/auth/data/repositories/impl/http_auth_session_bridge.dart lib/core/utils/error_messages.dart lib/features/discovery/presentation/bloc/discovery_bloc.dart lib/features/discovery/presentation/screens/deck_screen.dart lib/features/discovery/presentation/widgets/deck_out_of_people_view.dart lib/features/discovery/presentation/widgets/deck_error_state_view.dart test/features/auth/data/repositories/http_auth_repository_contract_test.dart test/discovery_bloc_test.dart`
+
+**Next Step:** Execute `API-006` to bring the signaling callable exports under shared App Check parity.
+
+### Task #265 — API-006 Signaling App Check Parity
+**Date:** 2026-04-21
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the next open API-architecture backlog item and remove the last documented signaling callable contract gap.
+- Secondary goal: keep the signaling behavior unchanged while unifying its App Check enforcement with the shared callable surface used elsewhere in the backend.
+- Implicit requirements: avoid broad backend rewrites, preserve the existing call lifecycle logic, add explicit verification for the shared App Check path, and keep the docs/workflow synced.
+- Quality expectations: signaling callables should use the same App Check/error-normalization wrapper as the rest of the callable surface, tests should cover that shared enforcement path, and the contract/risk docs should no longer list signaling as separate drift.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `API-006` by moving call-signaling callables onto the shared callable App Check wrapper so the exported signaling surface has the same enforcement and error handling posture as the rest of `functions/src/index.ts`.
+- **Scope:** `functions/src/calls/signaling.ts`, the shared callable wrapper implementation, `functions/src/index.ts`, signaling/App Check tests, `docs/API_CATALOG.md`, `docs/TODO_API_ARCHITECTURE.md`, `docs/risk_notes.md`, and the required workflow docs.
+- **Constraints:** keep the signaling business logic unchanged, prefer extracting shared callable infrastructure over duplicating it again, and verify the resulting enforcement path with focused build/test coverage rather than a broad full-suite run.
+- **Expected Outcome:** signaling exports use the shared callable App Check wrapper, the remaining drift entry is removed from the API catalog/risk register, `API-006` is removed from the backlog, and focused functions verification plus docs sync pass.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, inspected `API-006`, and traced the separate `makeCallable(...)` implementation in `functions/src/calls/signaling.ts` against the shared callable wrapper in `functions/src/index.ts`.
+- **In Progress:** Extracting the callable App Check/error-normalization helper into a shared functions module, switching signaling exports to it, and adding focused tests so the shared enforcement path is explicit.
+- **Completed:** Added the shared callable helper, moved signaling exports and the manual account-deletion callables onto the same App Check verifier, verified the focused functions build/test lane, removed completed backlog item `API-006`, closed `R-064`, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/shared/callable.ts` — new shared callable App Check/error-normalization helper used by callable exports.
+  - `functions/src/calls/signaling.ts` — removed the signaling-specific `makeCallable(...)` path and routed signaling exports through the shared helper with explicit action labels.
+  - `functions/src/index.ts` — imported the shared callable utilities, exposed `evaluateCallableAppCheck` for tests, and moved the manual account-deletion callables onto the same verifier.
+  - `functions/test/call-signaling.test.js` — added explicit callable App Check coverage and confirmed the signaling surface still validates auth/input after the shared wrapper runs.
+  - `docs/API_CATALOG.md`, `docs/TODO_API_ARCHITECTURE.md`, `docs/risk_notes.md`, `docs/project_flowchart.md`, `docs/project_dfd.md`, `docs/project_er_diagram.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** `API-006` is complete. Call-signaling callable exports now share the same App Check/error-normalization path as the rest of the callable backend surface, so the final documented signaling contract-enforcement drift is closed.
+- **Notes:** The next API backlog item is now `API-002`; the remaining work in this area is general API quality/audit work rather than dead-path or enforcement reconciliation.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/call-signaling.test.js test/appCheckRest.test.js` (in `functions/`)
+- `scripts/check_ai_docs_sync.sh --files docs/API_CATALOG.md docs/TODO_API_ARCHITECTURE.md docs/risk_notes.md docs/project_flowchart.md docs/project_dfd.md docs/project_er_diagram.md docs/ai_workboard.md docs/Developer_agent_chat.md functions/src/shared/callable.ts functions/src/index.ts functions/src/calls/signaling.ts functions/test/call-signaling.test.js functions/test/appCheckRest.test.js`
+
+**Next Step:** Execute `API-002` to audit pagination, rate limiting, and retry semantics.
+
+### Task #266 — API-002 Chat Pagination Contract Slice
+**Date:** 2026-04-21
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the open `API-002` backlog with a real pagination/rate-limit remediation slice instead of a docs-only audit.
+- Secondary goal: fix the highest-value live contract mismatch in the current list/message endpoints while keeping the public app behavior stable.
+- Implicit requirements: preserve the workflow docs guard, avoid broad API redesign, and verify the backend/client contract with focused tests.
+- Quality expectations: backend and HTTP wrappers should agree on cursor semantics, `has_more` should be derived reliably instead of guessed from page length, and rate limiting should be explicit on the touched endpoints.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute a focused `API-002` slice by aligning the chat message pagination contract with the client’s timestamp-based cursor semantics, hardening `has_more` calculation for message/match list routes, and wiring explicit rate limiting on the touched GET endpoints.
+- **Scope:** `functions/src/index.ts`, the HTTP chat/discovery DTO or repository code needed for the corrected contract, focused functions tests, focused Flutter repository tests, `docs/API_CATALOG.md`, and the required workflow docs.
+- **Constraints:** keep the existing domain interfaces stable where possible, prefer backward-compatible request parsing over breaking contract changes, and leave the rest of `API-002` open for follow-up rather than pretending the full audit is complete.
+- **Expected Outcome:** `/v1/chat/:conversationId/messages` accepts the timestamp cursor the client already sends, the touched endpoints return reliable `has_more` semantics, the HTTP chat repository honors backend pagination metadata, targeted backend/client verification passes, and `API-002` remains open with this slice documented.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, reviewed the open `API-002` backlog item, and traced the current pagination/rate-limit behavior across the backend routes and HTTP chat/discovery wrappers.
+- **In Progress:** Fixing the chat message timestamp-cursor mismatch, tightening `has_more` handling on the touched routes/wrappers, and adding focused backend/client tests before updating the API docs.
+- **Completed:** Updated the touched message/match endpoints and HTTP wrappers, verified the focused functions + Flutter lanes, refreshed the API catalog, and synced the required workflow docs while leaving the broader `API-002` audit open.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — aligned `/v1/chat/:conversationId/messages` with timestamp-based cursors, reliable `has_more`, `next_cursor`, participant checks, and `rateLimitDefault`; also hardened `/v1/matches` with bounded query parsing, `rateLimitDefault`, reliable `has_more`, and actual `total_count`.
+  - `functions/test/chatRestPagination.test.js` — new focused REST contract coverage for first-page metadata, ISO timestamp cursors, and participant authorization on the messages endpoint.
+  - `lib/core/network/dto/discovery_dto.dart` — extended `MatchesResponseDto` to parse/serialize `has_more`.
+  - `lib/features/chat/data/repositories/impl/http_chat_repository.dart` — made HTTP message and match pagination honor backend `has_more` metadata instead of guessing from page length.
+  - `test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart` and `test/core/network/dto/discovery_dto_test.dart` — added transport/DTO assertions for the corrected pagination metadata.
+  - `docs/API_CATALOG.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** This `API-002` slice is complete. HTTP chat pagination now matches the client’s timestamp cursor semantics, the touched list endpoints return reliable `has_more` metadata, and the message history route is explicitly rate-limited and participant-gated.
+- **Notes:** `API-002` stays open because the broader pagination, rate-limiting, and retry audit still covers additional list endpoints and transport behaviors beyond this chat-focused slice.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/chatRestPagination.test.js` (in `functions/`)
+- `flutter analyze lib/core/network/dto/discovery_dto.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart test/core/network/dto/discovery_dto_test.dart`
+- `flutter test test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart test/core/network/dto/discovery_dto_test.dart`
+- `scripts/check_ai_docs_sync.sh --files docs/API_CATALOG.md docs/ai_workboard.md docs/Developer_agent_chat.md functions/src/index.ts functions/test/chatRestPagination.test.js lib/core/network/dto/discovery_dto.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart test/core/network/dto/discovery_dto_test.dart`
+
+**Next Step:** Continue `API-002` on the remaining list endpoints, especially the still-offset-based `/v1/matches` contract and the broader retry/rate-limit audit.
+
+### Task #267 — API-002 Transport Retry Safety Slice
+**Date:** 2026-04-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+continue
+
+**Developer Intent Analysis:**
+- Primary goal: continue the still-open `API-002` audit with another real remediation slice, not just documentation churn.
+- Secondary goal: remove transport-level behavior that can create duplicate writes or non-deterministic retries under flaky network conditions.
+- Implicit requirements: preserve the existing auth-refresh flow, keep the retry behavior explicit and testable, avoid broad repository rewrites, and keep the required workflow docs synced.
+- Quality expectations: read/list requests should stay resilient, unsafe write operations should not be silently replayed after transport failures, and the retry contract should be documented clearly.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute a focused `API-002` slice by tightening HTTP transport retry semantics so automatic retries on socket/timeout failures are limited to safe request classes while preserving the existing 401 token-refresh replay path.
+- **Scope:** `lib/core/network/api_client.dart`, focused `ApiClient` tests, `docs/API_CATALOG.md`, `docs/ai_workboard.md`, and the required workflow docs.
+- **Constraints:** keep the public repository interfaces stable, avoid changing endpoint payload contracts, preserve successful GET retry behavior, and prefer a conservative retry posture over hidden duplicate-write risk.
+- **Expected Outcome:** `ApiClient` still retries safe read requests after transient transport failures, no longer silently replays unsafe write operations on those failures, focused tests prove the behavior, and the retry policy is documented as part of the open `API-002` audit trail.
+
+**Status Updates:**
+- **Received:** Reloaded the workflow docs, reviewed the still-open `API-002` backlog, and traced the shared `ApiClient` retry loop plus the existing transport tests.
+- **In Progress:** Hardening the shared retry gate in `ApiClient`, adding focused tests for GET-vs-POST transport failure behavior, and preparing the required doc updates for this slice.
+- **Completed:** Restricted automatic transport retries to safe read requests, verified the focused `ApiClient` test/analyze lane, documented the retry baseline in the API catalog, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/network/api_client.dart` — limited socket/timeout auto-retries to `GET` requests while preserving the existing one-time 401 token-refresh replay path.
+  - `test/core/network/api_client_test.dart` — added focused coverage for GET timeout retries and non-retry behavior on POST network/timeout failures.
+  - `docs/API_CATALOG.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** This `API-002` slice is complete. The shared HTTP client now has a conservative retry posture that still protects read reliability without silently replaying unsafe write requests after transport failures.
+- **Notes:** `API-002` remains open because endpoint-specific pagination/rate-limit consistency work is still outstanding beyond this shared transport baseline.
+
+**Verification:**
+- `dart format lib/core/network/api_client.dart test/core/network/api_client_test.dart`
+- `flutter test test/core/network/api_client_test.dart`
+- `flutter analyze lib/core/network/api_client.dart test/core/network/api_client_test.dart`
+- `scripts/check_ai_docs_sync.sh --files docs/API_CATALOG.md docs/ai_workboard.md docs/Developer_agent_chat.md lib/core/network/api_client.dart test/core/network/api_client_test.dart`
+
+**Next Step:** Continue `API-002` on the remaining endpoint-level pagination and rate-limit audit work.
+
+### Task #268 — API-002 Conversations Pagination Slice
+**Date:** 2026-04-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the still-open `API-002` audit with another concrete list-endpoint remediation slice.
+- Secondary goal: stop the conversations REST contract from being a blind capped list by adding explicit pagination metadata and reducing DTO/backend drift on that route.
+- Implicit requirements: preserve backward compatibility for any existing consumers of the current payload shape, keep rate limiting unchanged unless a mismatch is discovered, and verify the route end to end with focused backend tests.
+- Quality expectations: the conversations endpoint should expose a documented cursor contract, return reliable `has_more` and `next_cursor` metadata, and align better with the existing chat DTO expectations without breaking current callers.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute a focused `API-002` slice by hardening `/v1/chat/conversations` with bounded pagination semantics and richer backward-compatible response metadata.
+- **Scope:** `functions/src/index.ts`, focused functions REST pagination coverage, any chat DTO compatibility adjustment needed for the enriched payload shape, `docs/API_CATALOG.md`, `docs/ai_workboard.md`, and the required workflow docs.
+- **Constraints:** keep the route backward compatible, avoid broad chat repository/UI rewrites, preserve the current `rateLimitDefault` posture unless evidence shows it is wrong, and prefer additive response fields over breaking renames.
+- **Expected Outcome:** `/v1/chat/conversations` accepts bounded pagination inputs, returns `{ conversations, total_count, has_more, next_cursor }`, keeps legacy fields for existing consumers, and the focused verification lane plus docs sync pass.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, reviewed the still-open `API-002` backlog, and traced the current `/v1/chat/conversations` implementation plus the existing chat REST pagination test harness.
+- **In Progress:** Adding cursor-based metadata to the conversations route, extending the focused REST test harness for conversations pagination, and documenting the corrected contract.
+- **Completed:** Added bounded cursor metadata to the conversations route, verified the focused functions build + REST pagination lane, documented the updated contract, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — hardened `/v1/chat/conversations` with bounded `limit`, ISO `before` cursor parsing, `total_count`, `has_more`, `next_cursor`, and richer backward-compatible conversation payload fields.
+  - `functions/test/chatRestPagination.test.js` — extended the focused REST harness to cover conversations first-page metadata, ISO timestamp cursors, and invalid cursor rejection.
+  - `docs/API_CATALOG.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** This `API-002` slice is complete. The conversations REST endpoint is no longer just a capped list; it now exposes a documented cursor contract and page metadata while preserving the legacy payload fields already in use.
+- **Notes:** `API-002` remains open because other list endpoints still need the same pagination/rate-limit consistency audit.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/chatRestPagination.test.js` (in `functions/`)
+- `scripts/check_ai_docs_sync.sh --files docs/API_CATALOG.md docs/ai_workboard.md docs/Developer_agent_chat.md functions/src/index.ts functions/test/chatRestPagination.test.js`
+
+**Next Step:** Continue `API-002` on the next remaining list surface that still lacks explicit pagination semantics.
+
+### Task #269 — API-002 Matches Cursor Compatibility Slice
+**Date:** 2026-04-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the open `API-002` audit with another real list-contract improvement rather than stopping at the previous conversations slice.
+- Secondary goal: make the matches REST route capable of keyset-style pagination without breaking the current offset-based app callers that already depend on it.
+- Implicit requirements: keep the existing offset contract working, prefer additive metadata over a breaking repository-interface rewrite, and verify the backend plus DTO surface together.
+- Quality expectations: `/v1/matches` should expose a documented cursor path, return reliable `next_cursor` metadata, reject malformed cursor input, and remain backward compatible for current consumers.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute a focused `API-002` slice by adding backward-compatible cursor support to `/v1/matches` while retaining the existing offset semantics used by the app today.
+- **Scope:** `functions/src/index.ts`, focused REST pagination tests, the touched discovery DTO surface, `docs/API_CATALOG.md`, `docs/ai_workboard.md`, and the required workflow docs.
+- **Constraints:** do not break the existing `offset` + `limit` client path, prefer additive response fields over interface rewrites, and keep the route’s current `rateLimitDefault` posture unless a mismatch is found.
+- **Expected Outcome:** `/v1/matches` accepts an optional ISO `before` cursor, emits `next_cursor` alongside `total_count` and `has_more`, preserves the old offset-based path, and the focused verification/docs-sync lane passes.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, reviewed the remaining `API-002` backlog surface, and inspected the current `/v1/matches` route plus its DTO/test coverage.
+- **In Progress:** Adding dual cursor/offset support to the matches route, extending the focused REST pagination coverage, and updating the DTO/docs to reflect the richer response shape.
+- **Completed:** Added optional cursor support plus `next_cursor` metadata to `/v1/matches`, verified the focused functions + DTO lanes, documented the updated contract, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — hardened `/v1/matches` with optional ISO `before` cursor parsing, `next_cursor` metadata, and 400 handling for malformed cursors while preserving the existing offset path.
+  - `functions/test/chatRestPagination.test.js` — added focused REST assertions for matches first-page metadata, cursor pagination, and invalid cursor rejection.
+  - `lib/core/network/dto/discovery_dto.dart` and `test/core/network/dto/discovery_dto_test.dart` — extended `MatchesResponseDto` to parse/serialize `next_cursor`.
+  - `docs/API_CATALOG.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** This `API-002` slice is complete. `/v1/matches` now supports a backward-compatible keyset cursor path and exposes `next_cursor` without breaking the current offset-based app callers.
+- **Notes:** `API-002` remains open because additional list surfaces still need the same pagination/rate-limit consistency treatment.
+
+**Verification:**
+- `dart format lib/core/network/dto/discovery_dto.dart test/core/network/dto/discovery_dto_test.dart`
+- `flutter test test/core/network/dto/discovery_dto_test.dart`
+- `flutter analyze lib/core/network/dto/discovery_dto.dart test/core/network/dto/discovery_dto_test.dart`
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/chatRestPagination.test.js` (in `functions/`)
+- `scripts/check_ai_docs_sync.sh --files docs/API_CATALOG.md docs/ai_workboard.md docs/Developer_agent_chat.md functions/src/index.ts functions/test/chatRestPagination.test.js lib/core/network/dto/discovery_dto.dart test/core/network/dto/discovery_dto_test.dart`
+
+**Next Step:** Continue `API-002` on the next remaining list surface that still lacks explicit pagination semantics.
+
+### Task #270 — API-002 Likes-You Pagination Contract Slice
+**Date:** 2026-04-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the open `API-002` audit with another concrete backend contract remediation, not just documentation cleanup.
+- Secondary goal: stop `/v1/discovery/likes-you` from remaining an undocumented fixed aggregation by giving it explicit paging behavior while preserving the current app callers.
+- Implicit requirements: avoid breaking the Flutter repository method that still expects a plain list, keep the route’s merged likes/swipes behavior intact, and verify the backend contract with focused REST tests.
+- Quality expectations: the route should expose deterministic ordering, deduplicate repeated likers, return page metadata for explicit paging, and remain backward compatible when older callers omit pagination parameters.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute a focused `API-002` slice by hardening `/v1/discovery/likes-you` with explicit additive pagination semantics that fit its merged-source behavior.
+- **Scope:** `functions/src/index.ts`, focused REST contract coverage in `functions/test/chatRestPagination.test.js`, `docs/API_CATALOG.md`, `docs/ai_workboard.md`, and the required workflow docs.
+- **Constraints:** preserve current callers that do not send pagination parameters, avoid introducing a fragile multi-source cursor contract, keep the route’s rate limit unchanged unless evidence shows otherwise, and keep the slice tightly scoped to backend contract consistency.
+- **Expected Outcome:** `/v1/discovery/likes-you` supports `offset`/`limit` plus `has_more` and `next_offset`, keeps returning the full merged list for legacy callers without an explicit `limit`, and the focused verification lane plus docs sync pass.
+
+**Status Updates:**
+- **Received:** Reloaded the workflow docs, reviewed the remaining `API-002` backlog, and traced `/v1/discovery/likes-you` plus the existing pagination REST harness.
+- **In Progress:** Reworking the route into an explicit merged-order pagination contract, extending the harness for likes-you behavior, and preparing the required doc updates.
+- **Completed:** Added additive likes-you paging metadata, verified merged ordering/deduplication coverage in the functions REST harness, documented the updated contract, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts` — hardened `/v1/discovery/likes-you` with additive `offset`/`limit` handling, deterministic merged ordering, repeated-liker deduplication, and `has_more` / `next_offset` metadata while keeping no-limit requests backward compatible.
+  - `functions/test/chatRestPagination.test.js` — added focused REST assertions for likes-you page metadata, deduplicated offset paging, and the backward-compatible no-limit path.
+  - `docs/API_CATALOG.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** This `API-002` slice is complete. The likes-you REST endpoint now has an explicit pagination strategy without breaking the current list-based app callers.
+- **Notes:** `API-002` remains open because broader route-by-route rate-limit consistency work is still outstanding after the list-contract cleanup.
+
+**Verification:**
+- `npm run build` (in `functions/`)
+- `npx mocha --exit test/chatRestPagination.test.js` (in `functions/`)
+- `scripts/check_ai_docs_sync.sh --files docs/API_CATALOG.md docs/ai_workboard.md docs/Developer_agent_chat.md functions/src/index.ts functions/test/chatRestPagination.test.js`
+
+**Next Step:** Continue `API-002` on the remaining rate-limit and endpoint-contract consistency gaps that still lack focused coverage.
+
+### Task #271 — API-002 REST Call-Start Throttle Coverage Slice
+**Date:** 2026-04-22
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+next
+
+**Developer Intent Analysis:**
+- Primary goal: continue the open `API-002` audit with another concrete backend contract/rate-limit slice rather than stopping after list pagination work.
+- Secondary goal: close a remaining REST abuse-lane documentation gap on call initiation without inventing a duplicate policy when the shared signaling helper already owns the throttle.
+- Implicit requirements: prefer verifying and documenting existing backend behavior over layering a second limiter, keep the slice tightly scoped, and prove the REST lane maps the shared `resource-exhausted` call throttle correctly.
+- Quality expectations: `/v1/calls/start` should have explicit API documentation for its throttle, focused REST coverage should prove the first call succeeds and a repeated rapid initiation returns 429, and the workflow docs should stay in sync.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Execute a focused `API-002` slice by documenting and testing the existing shared 10-second call-initiation throttle on the REST `/v1/calls/start` lane.
+- **Scope:** focused REST test coverage, `docs/API_CATALOG.md`, `docs/ai_workboard.md`, and the required workflow docs.
+- **Constraints:** do not add a second Express-only limiter if the shared signaling backend already enforces the policy transactionally, keep the slice targeted to contract consistency, and verify the actual REST response shape under rate limiting.
+- **Expected Outcome:** `/v1/calls/start` explicitly documents its inherited throttle, focused mocha coverage proves repeated rapid initiation returns HTTP 429 / `resource-exhausted`, and the docs sync guard passes.
+
+**Status Updates:**
+- **Received:** Reloaded the workflow docs, reviewed the remaining `API-002` rate-limit gaps, and traced the REST calls-start route into the shared signaling helper.
+- **In Progress:** Adding a focused REST harness for `/v1/calls/start`, verifying the route surfaces the shared 10-second initiation throttle correctly, and updating the API catalog entry.
+- **Completed:** Added focused REST coverage for the calls-start throttle, updated the catalog to document the inherited rate limit, and synced the required workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/test/callRestRateLimit.test.js` — added focused REST coverage proving `/v1/calls/start` allows the first initiation, rejects the immediate second attempt with `429` / `resource-exhausted`, and does not create a second call record.
+  - `docs/API_CATALOG.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** This `API-002` slice is complete. The REST call-start lane’s abuse policy is now explicit and covered, without adding redundant limiter logic on top of the shared signaling backend.
+- **Notes:** `API-002` remains open because other REST endpoints still need the same rate-limit and contract-coverage pass.
+
+**Verification:**
+- `npx mocha --exit test/callRestRateLimit.test.js` (in `functions/`)
+- `scripts/check_ai_docs_sync.sh --files docs/API_CATALOG.md docs/ai_workboard.md docs/Developer_agent_chat.md functions/test/callRestRateLimit.test.js`
+
+**Next Step:** Continue `API-002` on the next REST route whose rate-limit behavior is still implicit or lacks focused abuse-lane coverage.
+
+### Task #272 — Deploy App To Connected iPhone (`Bis iPhone`)
+**Date:** 2026-04-22
+**Agent:** Codex (GPT-5)
+**Status:** Blocked
+
+**Original Request:**
+deploy the app to connected device bis iphone
+
+**Developer Intent Analysis:**
+- Primary goal: install and launch the current Flutter app on the connected physical iPhone named `Bis iPhone`.
+- Secondary goal: validate the local iOS target and signing context enough to distinguish a repo-side problem from a device-side deployment prerequisite.
+- Implicit requirements: target the actual connected phone instead of a simulator, reuse the project’s existing iOS signing setup, and avoid speculative iOS changes if the blocker is external to the codebase.
+- Quality expectations: detect the correct device, attempt a real physical-device deployment, and report the exact blocking condition if the install cannot proceed.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Deploy the current app to the connected physical iPhone `Bis iPhone`.
+- **Scope:** device discovery, iOS Runner signing/target validation, attempted `flutter run` to the physical device, and the required workflow docs.
+- **Constraints:** do not change iOS signing or app code unless deployment proves a repo-side issue; prefer a direct physical-device run over simulator fallback; stop once the blocking condition is concretely identified.
+- **Expected Outcome:** the app is installed on `Bis iPhone`, or the exact physical-device blocker is identified with enough detail to unblock the next run attempt quickly.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, probed Flutter/Xcode device visibility, and checked the Runner signing configuration.
+- **In Progress:** Targeted the connected physical iPhone directly with `flutter run` using its UDID and validated the iOS project settings in parallel.
+- **Blocked:** Deployment cannot proceed because the phone itself has Developer Mode disabled, so iOS rejects local development installs before the app can be signed, copied, or launched.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** The connected device was identified successfully as `Bis iPhone` (`00008140-0006214E0E40801C`), and the project side looks deployable enough to attempt a normal run (`com.ace.crush`, automatic signing, team `6792W23U3C`, deployment target `iOS 15.0`). The actual install was blocked by the device requirement below, not by an app-code failure.
+- **Blocking condition:** `flutter run -d 00008140-0006214E0E40801C` failed with:
+  - `To use 'Bis iPhone' for development, enable Developer Mode in Settings → Privacy & Security on the device.`
+- **Notes:** A fallback `flutter build ios --debug --no-codesign` lane was started only to separate app-build issues from the physical-device blocker, then stopped because it cannot bypass the missing Developer Mode prerequisite.
+
+**Verification:**
+- `xcrun xctrace list devices`
+- `flutter run -d 00008140-0006214E0E40801C`
+- `rg -n "PRODUCT_BUNDLE_IDENTIFIER|DEVELOPMENT_TEAM|CODE_SIGN_STYLE|IPHONEOS_DEPLOYMENT_TARGET" ios/Runner.xcodeproj/project.pbxproj`
+
+**Next Step:** Enable Developer Mode on `Bis iPhone` under `Settings > Privacy & Security > Developer Mode`, reconnect/trust the Mac if prompted, then rerun `flutter run -d 00008140-0006214E0E40801C`.
+
+### Task #273 — Recheck `Bis iPhone` Deployment After Developer Mode Enable
+**Date:** 2026-04-22
+**Agent:** Codex (GPT-5)
+**Status:** In Progress
+
+**Original Request:**
+developer mode is on in the iphone , can you check any other problems that has stopped from deploying the aPP
+
+**Developer Intent Analysis:**
+- Primary goal: verify that the previous deployment blocker is actually gone and identify any remaining issue preventing installation to the physical iPhone.
+- Secondary goal: distinguish between a Flutter/Xcode project issue and an Apple device-prep/session issue so the next user action is precise.
+- Implicit requirements: rerun real device discovery and a real deployment attempt, prefer current live diagnostics over the previous cached conclusion, and avoid changing app code if the failure remains external.
+- Quality expectations: capture the next real blocker after Developer Mode, not just restate the previous one.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Recheck deployment to `Bis iPhone` after Developer Mode was enabled and isolate the current blocker preventing install.
+- **Scope:** Flutter/Xcode/CoreDevice detection, a second direct `flutter run` attempt, focused Apple device-prep diagnostics, and the required workflow docs.
+- **Constraints:** do not mutate iOS project settings or app code unless the new evidence points to a repo-side issue; keep the investigation focused on physical-device deployment.
+- **Expected Outcome:** either the app installs successfully, or the next concrete blocker is identified with enough detail to guide the next corrective step.
+
+**Status Updates:**
+- **Received:** Reloaded the workflow docs, rechecked Flutter/Xcode/CoreDevice visibility for `Bis iPhone`, and reran the deployment path from scratch.
+- **In Progress:** Captured a fresh verbose `flutter run` trace, confirmed Developer Mode is enabled, and followed the failure into Apple’s CoreDevice / developer-services layer.
+- **In Progress:** Unpaired the stale offline `iPhoneeeee` record, reran CoreDevice preparation, and brought `Bis iPhone` to `tunnelState: connected` with `ddiServicesAvailable: true`.
+- **In Progress:** Re-ran `flutter run`; Xcode now accepts `Bis iPhone` as a valid destination and is actively compiling the native iOS dependency graph instead of failing in device discovery or device preparation.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** The external Apple-side blockers that were preventing deployment are now cleared:
+  - the stale paired device `iPhoneeeee` was unpaired successfully;
+  - `Bis iPhone` now reports `pairingState: paired`, `developerModeStatus: enabled`, `tunnelState: connected`, and `ddiServicesAvailable: true`;
+  - `flutter devices` and `xcodebuild -showdestinations` both list `Bis iPhone` cleanly.
+- **Interpretation:** deployment is no longer blocked by device pairing or developer-services preparation. The active `flutter run` is now in a real native iOS build, mainly compiling CocoaPods / `gRPC-Core`, and no new Runner signing or install failure has been emitted yet.
+- **Notes:** No app-code or signing edits were made because the live evidence now points to a long-running native build rather than a Flutter project configuration defect.
+
+**Verification:**
+- `xcrun devicectl manage unpair --device 1B4353DE-FDC2-515A-BACB-327E87824C8F --timeout 30`
+- `xcrun devicectl device info lockState --device 00008140-0006214E0E40801C --timeout 60`
+- `xcrun devicectl device info ddiServices --device 00008140-0006214E0E40801C --timeout 60`
+- `xcrun devicectl device info details --device 00008140-0006214E0E40801C --timeout 60 --json-output /tmp/bis_device_details_60.json`
+- `xcrun devicectl list devices`
+- `flutter devices`
+- `cd ios && xcodebuild -workspace Runner.xcworkspace -scheme Runner -showdestinations`
+- `flutter run -d 00008140-0006214E0E40801C`
+
+**Next Step:** Let the active native iOS build finish and capture the first real compile, signing, install, or launch result if any issue remains after the device-state fixes.
+
+### Task #274 — Save Current Worktree And Publish To GitHub
+**Date:** 2026-04-22
+**Agent:** Codex (GPT-5)
+**Status:** In Progress
+
+**Original Request:**
+save everything and also save to github
+
+**Developer Intent Analysis:**
+- Primary goal: persist the current repository state locally in git and publish it to the GitHub remote.
+- Secondary goal: avoid losing any of the broad in-progress audit/remediation work currently sitting in the worktree.
+- Implicit requirements: validate GitHub access first, treat the current branch as the publication lane unless there is a branch/remote blocker, and avoid silently excluding files when the user explicitly asked to save everything.
+- Quality expectations: the full intended worktree is committed intentionally, pushed successfully, and the resulting branch/publication details are reported clearly.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Save the full current repo state and publish it to GitHub.
+- **Scope:** repo-state inspection, GitHub auth/remote checks, staging/commit/push of the full confirmed worktree, PR publication if appropriate, and the required workflow docs.
+- **Constraints:** do not drop files from the commit after the user explicitly said "save everything"; keep the current non-default collaboration branch unless repo state requires a different branch strategy; update the required docs before closeout.
+- **Expected Outcome:** the current full worktree is committed on the active branch, pushed to `origin`, and the GitHub publication result is captured with the relevant verification commands.
+
+**Status Updates:**
+- **Received:** Reloaded the required workflow docs, inspected the current worktree, and confirmed the repo is on `codex/publish-auth-startup-hardening` with a large mixed tracked/untracked change set.
+- **In Progress:** Verified `gh` availability/auth and the `origin` remote, then logged this save/publish request before staging the full confirmed worktree.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** GitHub access is ready (`gh` authenticated as `Aceadk` against `Aceadk/my_first_project`), and the current branch is positioned for a full-worktree save/publish.
+- **Notes:** The actual commit hash, push result, and PR status will be appended after staging and publication complete.
+
+**Verification:**
+- `git status --short --branch`
+- `git diff --stat`
+- `gh --version`
+- `gh auth status`
+- `git remote -v`
+- `gh repo view --json nameWithOwner,defaultBranchRef`
+
+**Next Step:** Stage the full confirmed worktree, create an intentional commit, push the branch to `origin`, and publish the GitHub branch/PR state.

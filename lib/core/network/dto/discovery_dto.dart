@@ -9,6 +9,9 @@ import 'profile_dto.dart';
 class DiscoveryDeckDto extends BaseDto {
   const DiscoveryDeckDto({
     required this.profiles,
+    this.hasMore = false,
+    this.nextCursor,
+    this.totalCount,
     this.remainingSwipes,
     this.nextRefreshAt,
     this.boostActive,
@@ -16,6 +19,9 @@ class DiscoveryDeckDto extends BaseDto {
   });
 
   final List<DiscoveryProfileDto> profiles;
+  final bool hasMore;
+  final String? nextCursor;
+  final int? totalCount;
   final int? remainingSwipes;
   final DateTime? nextRefreshAt;
   final bool? boostActive;
@@ -36,6 +42,9 @@ class DiscoveryDeckDto extends BaseDto {
 
     return DiscoveryDeckDto(
       profiles: profilesList,
+      hasMore: json.getBool('has_more') ?? json.getBool('hasMore') ?? false,
+      nextCursor: json.getString('next_cursor') ?? json.getString('nextCursor'),
+      totalCount: json.getInt('total_count') ?? json.getInt('total'),
       remainingSwipes: json.getInt('remaining_swipes'),
       nextRefreshAt: json.getDateTime('next_refresh_at'),
       boostActive: json.getBool('boost_active'),
@@ -46,6 +55,9 @@ class DiscoveryDeckDto extends BaseDto {
   @override
   Map<String, dynamic> toJson() => {
     'profiles': profiles.map((p) => p.toJson()).toList(),
+    'has_more': hasMore,
+    if (nextCursor != null) 'next_cursor': nextCursor,
+    if (totalCount != null) 'total_count': totalCount,
     if (remainingSwipes != null) 'remaining_swipes': remainingSwipes,
     if (nextRefreshAt != null)
       'next_refresh_at': nextRefreshAt!.toIso8601String(),
@@ -290,12 +302,30 @@ class MatchDto extends BaseDto with DtoMetadata {
   String? get serverId => id;
 
   factory MatchDto.fromJson(Map<String, dynamic> json) {
+    final matchedUserId = json.getString('matched_user_id') ?? '';
+    final flatMatchedUserName = json.getString('matched_user_name');
+    final flatMatchedUserPhoto = json.getString('matched_user_photo');
+
     return MatchDto(
       id: json.getString('id') ?? '',
       userId: json.getString('user_id') ?? '',
-      matchedUserId: json.getString('matched_user_id') ?? '',
+      matchedUserId: matchedUserId,
       matchedUser: json.getMap('matched_user') != null
           ? DiscoveryProfileDto.fromJson(json.getMap('matched_user')!)
+          : (flatMatchedUserName != null || flatMatchedUserPhoto != null)
+          ? DiscoveryProfileDto(
+              id: matchedUserId,
+              displayName: flatMatchedUserName ?? '',
+              photos: flatMatchedUserPhoto != null
+                  ? [
+                      ProfilePhotoDto(
+                        id: 'photo_0',
+                        url: flatMatchedUserPhoto,
+                        isPrimary: true,
+                      ),
+                    ]
+                  : null,
+            )
           : null,
       conversationId: json.getString('conversation_id'),
       isSuperLike: json.getBool('is_super_like'),
@@ -325,11 +355,15 @@ class MatchesResponseDto extends BaseDto {
     required this.matches,
     this.totalCount,
     this.newMatchCount,
+    this.hasMore,
+    this.nextCursor,
   });
 
   final List<MatchDto> matches;
   final int? totalCount;
   final int? newMatchCount;
+  final bool? hasMore;
+  final String? nextCursor;
 
   factory MatchesResponseDto.fromJson(Map<String, dynamic> json) {
     return MatchesResponseDto(
@@ -341,6 +375,8 @@ class MatchesResponseDto extends BaseDto {
           [],
       totalCount: json.getInt('total_count'),
       newMatchCount: json.getInt('new_match_count'),
+      hasMore: json.getBool('has_more'),
+      nextCursor: json.getString('next_cursor'),
     );
   }
 
@@ -349,5 +385,7 @@ class MatchesResponseDto extends BaseDto {
     'matches': matches.map((m) => m.toJson()).toList(),
     if (totalCount != null) 'total_count': totalCount,
     if (newMatchCount != null) 'new_match_count': newMatchCount,
+    if (hasMore != null) 'has_more': hasMore,
+    if (nextCursor != null) 'next_cursor': nextCursor,
   };
 }

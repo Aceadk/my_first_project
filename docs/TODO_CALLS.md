@@ -46,46 +46,6 @@
       **Testing:** Manual test on physical Android device.
 
 
-## CALL-004: Build Incoming Call Screen
-
-**Files:** `lib/features/calls/presentation/screens/incoming_call_screen.dart` (new)
-**Description:** Added a dedicated Flutter incoming-call screen with caller identity, countdown, decline/audio/video quick actions, slide-to-answer affordance, and router/app wiring so `CallService.handleIncomingCall()` presents real UI instead of only updating state.
-**Acceptance Criteria:**
-
-**Testing:** Widget tests cover layout/actions, decline + accept flows, slide-to-answer behavior, and timeout handling in `test/incoming_call_screen_test.dart`; router coverage confirms the incoming-call route branch renders correctly in `test/router_create_router_test.dart`.
-
----
-
-## CALL-005: Implement Call Signaling via Cloud Functions
-
-**Files:** `functions/src/calls/signaling.ts` (new), `functions/src/index.ts`
-**Description:** Added production signaling callables: `initiateCall`, `answerCall`, `endCall`, `addIceCandidate`, and `getIceServers`. Calls persist to Firestore `calls/{callId}` with participant validation, ring-timeout metadata, ICE candidate exchange via `calls/{callId}/iceCandidates`, and the exported trigger `enforceCallRingTimeout` moves unanswered ringing calls to `missed/timeout` after 30 seconds.
-**Acceptance Criteria:**
-
-**Testing:** Focused Cloud Function tests cover auth/validation helpers, ICE config, and signaling callable guards in `functions/test/call-signaling.test.js`; targeted build + test verification passes locally. Emulator integration coverage for full device-to-device signaling flow remains recommended.
-
----
-
-## CALL-006: Implement Call History and Missed Call Tracking
-
-**Files:** `lib/features/calls/data/services/call_service.dart`, `lib/features/calls/presentation/screens/call_history_screen.dart` (new)
-**Description:** Call history now includes a dedicated paginated UI with pull-to-refresh and grouping. `CallService` performs best-effort Firestore persistence to per-user `users/{uid}/call_history` records with in-memory fallback, emits missed-call events, and app-host wiring presents local missed-call notifications that deep-link to `CrushRoutes.callHistory`.
-**Acceptance Criteria:**
-
-**Testing:** Widget tests cover grouped rendering, missed-call status display, pagination, and refresh behavior in `test/call_history_screen_test.dart`; service tests cover missed-call event emission/non-emission plus history persistence in `test/call_service_test.dart`; router coverage confirms the call-history branch in `test/router_create_router_test.dart`.
-
----
-
-## CALL-007: Add Call Quality Monitoring and Adaptive Bitrate
-
-**Files:** `lib/features/calls/data/services/call_quality_service.dart` (new), `lib/features/calls/presentation/screens/call_screen.dart`
-**Description:** Replaced the static quality badge with sampled connection telemetry. `CallQualityService` now tracks latency, packet loss, bitrate, and frame rate, emits adaptive quality state, degrades video tier (`HD → SD → Audio`) on sustained poor quality, and flags reconnect attempts on severe degradation; `CallScreen` consumes that state for the connection indicator, automatic video fallback, and reconnect UI handling.
-**Acceptance Criteria:**
-
-**Testing:** Unit tests cover classification thresholds, adaptive degradation/recovery, reconnect triggers, and audio-call badge behavior in `test/call_quality_service_test.dart`; `test/features/calls/presentation/screens/call_screen_responsive_test.dart` keeps the call-screen compile path covered; manual throttling remains recommended on devices.
-
----
-
 ## CALL-008: Implement Picture-in-Picture for Video Calls
 
 **Files:** `lib/features/calls/presentation/widgets/pip_video_overlay.dart` (new)
@@ -110,10 +70,16 @@
 
 ---
 
-## CALL-010: Implement Call Safety Features
+## CALL-011: WebRTC Calling Parity for Web
 
-**Files:** `lib/features/calls/presentation/widgets/call_safety_controls.dart` (new), `lib/core/services/screen_capture_service.dart` (new), `lib/features/calls/presentation/screens/call_screen.dart`, `ios/Runner/AppDelegate.swift`, `functions/src/calls/signaling.ts`
-**Description:** Added dedicated in-call safety controls with first-call safety tip persistence (per match), quick report/block actions during calls, post-call safety check prompt, and iOS screen capture event handling (screenshot + recording start/stop). Capture events now trigger `notifyCallSafetyEvent` backend callable to notify the other user.
+**Files:** `/Users/ace/crush-web/apps/web/**`, shared RTC services, web call UI routes
+**Description:** The CEO directive targets web as a first-class platform. The current web backlog still lacks audio/video calling. Define and implement the minimum viable WebRTC parity path for browser calling, device permission UX, and responsive call surfaces.
 **Acceptance Criteria:**
 
-**Testing:** Widget tests added for safety controls (`test/call_safety_controls_test.dart`), unit tests added for capture event parsing (`test/screen_capture_service_test.dart`), and signaling callable tests added for safety event path (`functions/test/call-signaling.test.js`).
+- [ ] Web app supports browser-based audio/video call setup with permission prompts and failure recovery
+- [ ] Call UI works on desktop and tablet browser widths with intentional responsive layout
+- [ ] Call signaling/auth rules stay aligned with the existing backend call model
+
+**Testing:** Browser smoke tests in Chrome/Safari/Firefox, manual device permission verification, and backend signaling regression coverage.
+
+---

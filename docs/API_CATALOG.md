@@ -1,835 +1,249 @@
 # API Contract Catalog -- CRUSH Dating App
 
-> **Source:** `functions/src/index.ts`
-> **Generated:** 2026-02-18
-> **Runtime:** Firebase Functions v1 (Node.js 22)
-
----
-
-## Table of Contents
-
-1. [Callable Functions (onCall)](#1-callable-functions-oncall)
-2. [HTTP Endpoints (onRequest -- Express REST API)](#2-http-endpoints-onrequest--express-rest-api)
-3. [Standalone HTTP Endpoints (onRequest)](#3-standalone-http-endpoints-onrequest)
-4. [Firestore Triggers](#4-firestore-triggers)
-5. [Scheduled Functions (Pub/Sub)](#5-scheduled-functions-pubsub)
-6. [Constants and Rate Limit Reference](#6-constants-and-rate-limit-reference)
-
----
-
-## 1. Callable Functions (onCall)
-
-All callable functions listed below go through the `callable<T>()` wrapper which:
-- Automatically calls `verifyAppCheck(context, ...)` on **every** invocation (enforced in production, warning-only in emulator)
-- Catches non-HttpsError exceptions and returns a generic "Unexpected error" response
-- Logs errors with UID context
-
-### 1.1 Authentication & Identity
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 1 | `requestEmailOtp` | No (but auth required for `add_email`/`change_email` purposes) | Yes (via wrapper) | No | **IP:** 5 req / 10 min (20 min block); **Identifier:** 5 req / 10 min (20 min block) | Request a 6-digit OTP sent to email. Supports purposes: `login`, `add_email`, `change_email`, `reset_password`, `new_device`, `sensitive_action`. Silent success on invalid identifier (no user enumeration). |
-| 2 | `verifyEmailOtp` | No (but auth required for `add_email`/`change_email` purposes) | Yes (via wrapper) | No | **IP:** 10 req / 10 min (20 min block); **Identifier:** 10 req / 10 min (20 min block); **Per-OTP:** 5 failed attempts = 15 min lock | Verify a 6-digit OTP. For `login`: returns `customToken`. For `add_email`/`change_email`: updates email in Auth+Firestore. For `reset_password`: resets password directly if `newPassword` provided. |
-| 3 | `claimUsername` | **Yes** | Yes (via wrapper) | No | None | Claim a unique username. Validates against regex `^[a-zA-Z0-9_]{3,20}$`. Transactional uniqueness check. |
-| 4 | `signUpWithPassword` | No | Yes (via wrapper) | No | **IP:** 5 req / 10 min (20 min block); **Email:** 5 req / 10 min (20 min block); **Username:** 5 req / 10 min (20 min block) | Create account with username+email+password. Password min 8 chars. Creates Auth user, user doc, username reservation. Sends verification OTP. Returns `customToken`. |
-| 5 | `loginWithPassword` | No | Yes (via wrapper) | No | **IP:** 8 req / 10 min (20 min block); **Identifier:** 8 req / 10 min (20 min block) | Login with email/username + password. Constant-time comparison (dummy hash on miss). Returns `customToken`. |
-| 6 | `requestPasswordReset` | No | Yes (via wrapper) | No | **IP:** 5 req / 10 min (20 min block); **Identifier:** 5 req / 10 min (20 min block); **Cooldown:** 60s between requests | Send forgot-password OTP. Silent success even if email not found. Only sends if user has a password set and email is verified. |
-| 7 | `verifyPasswordResetOtp` | No | Yes (via wrapper) | No | **IP:** 10 req / 10 min (20 min block); **Identifier:** 10 req / 10 min (20 min block) | Verify forgot-password OTP. Returns a one-time `resetToken` (64-char hex). Token expires in 15 min. |
-| 8 | `resetPasswordWithToken` | No | Yes (via wrapper) | No | **IP:** 5 req / 10 min (20 min block); **Identifier:** 5 req / 10 min (20 min block) | Finalize password reset using the reset token + new password (min 8 chars). Revokes all sessions. Sends password-changed email. |
-| 9 | `changePassword` | **Yes** | Yes (via wrapper) | No | **IP:** 8 req / 10 min (20 min block); **UID:** 8 req / 10 min (20 min block) | Change password while logged in. Requires current password. New password min 8 chars. Revokes all sessions. Sends password-changed email. |
-
-**Input/Output Schemas -- Auth Functions:**
-
-<details>
-<summary>requestEmailOtp</summary>
-
-**Input:**
-```typescript
-{
-  identifier: string;  // Required. Email or username.
-  purpose: "login" | "add_email" | "change_email" | "reset_password" | "new_device" | "sensitive_action";
-  email?: string;      // Optional. Used for add_email/change_email.
-}
-```
-**Output:** `{ status: "ok" }`
-</details>
-
-<details>
-<summary>verifyEmailOtp</summary>
-
-**Input:**
-```typescript
-{
-  identifier: string;  // Required.
-  purpose: "login" | "add_email" | "change_email" | "reset_password" | "new_device" | "sensitive_action";
-  otp: string;         // Required. 6-digit code.
-  newEmail?: string;   // For change_email purpose.
-  newPassword?: string;// For reset_password purpose (min 8 chars).
-}
-```
-**Output (login):** `{ status: "ok", customToken: string }`
-**Output (other):** `{ status: "ok" }`
-</details>
-
-<details>
-<summary>claimUsername</summary>
-
-**Input:** `{ username: string }` -- 3-20 chars, alphanumeric + underscore
-**Output:** `{ status: "ok", username: string }`
-</details>
-
-<details>
-<summary>signUpWithPassword</summary>
-
-**Input:**
-```typescript
-{
-  username: string;  // 3-20 chars, ^[a-zA-Z0-9_]{3,20}$
-  email: string;     // Valid email
-  password: string;  // Min 8 chars
-}
-```
-**Output:** `{ status: "ok", customToken: string }`
-</details>
-
-<details>
-<summary>loginWithPassword</summary>
-
-**Input:** `{ identifier: string, password: string }`
-**Output:** `{ status: "ok", customToken: string }`
-</details>
-
-<details>
-<summary>requestPasswordReset</summary>
-
-**Input:** `{ email: string }`
-**Output:** `{ status: "ok", message: "If the email is registered, a verification code will be sent." }`
-</details>
-
-<details>
-<summary>verifyPasswordResetOtp</summary>
-
-**Input:** `{ email: string, otp: string }`
-**Output:** `{ status: "ok", resetToken: string }`
-</details>
-
-<details>
-<summary>resetPasswordWithToken</summary>
-
-**Input:**
-```typescript
-{
-  email: string;
-  resetToken: string;   // or reset_token
-  newPassword: string;   // or new_password (min 8 chars)
-}
-```
-**Output:** `{ status: "ok" }`
-</details>
-
-<details>
-<summary>changePassword</summary>
-
-**Input:**
-```typescript
-{
-  currentPassword: string;  // or current_password
-  newPassword: string;      // or new_password (min 8 chars)
-}
-```
-**Output:** `{ status: "ok" }`
-</details>
-
----
-
-### 1.2 Discovery & Matching
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 10 | `fetchDiscoveryCandidates` | **Yes** | Yes (via wrapper) | **Yes** | None (query-level: max 120 docs) | Fetch discovery candidates. Filters by gender preference, age range, distance, blocked users. Scores by verification, distance, shared interests. Returns max 50 candidates. |
-| 11 | `swipeRight` | **Yes** | Yes (via wrapper) | **Yes** | **Daily:** 30 (free) / 300 (plus); **Hourly:** 10 (free) / 50 (plus) | Like a user. Profile quality required. Creates like record. If mutual, creates match + RTDB notifications. Logs to BigQuery. |
-| 12 | `swipeLeft` | **Yes** | Yes (via wrapper) | **Yes** | None | Pass on a user. Profile quality required. Logs to BigQuery. |
-| 13 | `sendPreMatchMessageRequest` | **Yes** | Yes (via wrapper) | **Yes** | Max 3 requests per sender per pair | Send a pre-match message request. Profile quality required. Max 3 unreplied messages per pair. |
-
-**Input/Output Schemas -- Discovery Functions:**
-
-<details>
-<summary>fetchDiscoveryCandidates</summary>
-
-**Input:** `{ limit?: number }` -- Default 30, clamped to 5-50.
-**Output:**
-```typescript
-{
-  candidates: Array<{
-    id: string;
-    userId: string;
-    name?: string;
-    bio?: string;
-    photoUrls?: string[];
-    interests?: string[];
-    // ...all profile fields flattened
-    username?: string;
-    distanceKm?: number;
-    score: number;
-  }>;
-  total: number;
-}
-```
-</details>
-
-<details>
-<summary>swipeRight</summary>
-
-**Input:** `{ targetUserId: string, attachedMessage?: string }`
-**Output:** `{ matched: boolean, matchId?: string }`
-</details>
-
-<details>
-<summary>swipeLeft</summary>
-
-**Input:** `{ targetUserId: string }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>sendPreMatchMessageRequest</summary>
-
-**Input:** `{ targetUserId: string, content: string }`
-**Output:** `{ ok: true }`
-</details>
-
----
-
-### 1.3 Chat & Messaging
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 14 | `sendMessage` | **Yes** | Yes (via wrapper) | **Yes** | None | Send message in a match. Must be match participant. Content or mediaUrl required. Content max 5000 chars. Creates message doc and updates match metadata. |
-| 15 | `editMessage` | **Yes** | Yes (via wrapper) | **Yes** | None | Edit own message. Sender-only ownership check. Updates content and marks as edited. |
-| 16 | `unsendMessage` | **Yes** | Yes (via wrapper) | **Yes** | None | Soft-delete own message (sender-only). **Plus plan required.** Sets `isDeletedForSender=true`. |
-| 17 | `markMessagesRead` | **Yes** | Yes (via wrapper) | No | None | Batch-mark all unread messages in a match as read. Must be match participant. |
-| 18 | `setTyping` | **Yes** | Yes (via wrapper) | No | None | Update typing indicator for a match. |
-| 19 | `setMediaSendingEnabled` | **Yes** | Yes (via wrapper) | No | None | Toggle media sending for a match conversation. |
-| 20 | `addReaction` | **Yes** | Yes (via wrapper) | No | None | Add emoji reaction to a message. |
-| 21 | `removeReaction` | **Yes** | Yes (via wrapper) | No | None | Remove own reaction from a message. |
-| 22 | `unmatch` | **Yes** | Yes (via wrapper) | **Yes** | None | End a match. Sends FCM notification to other user. |
-
-**Input/Output Schemas -- Chat Functions:**
-
-<details>
-<summary>sendMessage</summary>
-
-**Input:**
-```typescript
-{
-  matchId: string;
-  toUserId: string;
-  content?: string;    // Max 5000 chars (default requireString limit)
-  type?: string;       // Default "text"
-  mediaUrl?: string;
-}
-```
-**Output:** `{ ok: true, messageId: string }`
-</details>
-
-<details>
-<summary>editMessage</summary>
-
-**Input:** `{ matchId: string, messageId: string, content: string }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>unsendMessage</summary>
-
-**Input:** `{ matchId: string, messageId: string }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>markMessagesRead</summary>
-
-**Input:** `{ matchId: string }`
-**Output:** `{ ok: true, markedCount: number }`
-</details>
-
-<details>
-<summary>setTyping</summary>
-
-**Input:** `{ matchId: string, isTyping: boolean }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>setMediaSendingEnabled</summary>
-
-**Input:** `{ matchId: string, enabled: boolean }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>addReaction</summary>
-
-**Input:** `{ matchId: string, messageId: string, emoji: string }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>removeReaction</summary>
-
-**Input:** `{ matchId: string, messageId: string }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>unmatch</summary>
-
-**Input:** `{ matchId: string }`
-**Output:** `{ ok: true }`
-</details>
-
----
-
-### 1.4 Chat Settings & Retention
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 23 | `updateChatSettings` | **Yes** | Yes (via wrapper) | No | None | Update global chat retention settings. Free users: 1h (default) or 24h (extended). Plus users: always 7 days. Syncs to RTDB. |
-| 24 | `updateMatchChatSettings` | **Yes** | Yes (via wrapper) | No | None | Update per-match chat retention settings. Must be match participant. Syncs to RTDB. |
-
-**Input/Output Schemas -- Chat Settings:**
-
-<details>
-<summary>updateChatSettings</summary>
-
-**Input:** `{ extendedRetention: boolean }`
-**Output:** `{ success: true, extendedRetention: boolean, retentionHours: number, message: string }`
-</details>
-
-<details>
-<summary>updateMatchChatSettings</summary>
-
-**Input:** `{ matchId: string, extendedRetention: boolean }`
-**Output:** `{ success: true, matchId: string, extendedRetention: boolean, retentionHours: number, message: string }`
-</details>
-
----
-
-### 1.5 Safety & Moderation
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 25 | `reportUser` | **Yes** | Yes (via wrapper) | **Yes** | **UID:** 10 reports / 1 hr (2 hr block) | Report a user. Cannot report self. Creates report doc. Auto-flags if 3+ reports in 7 days. Creates automated flag if 5+ reports. |
-| 26 | `blockUser` | **Yes** | Yes (via wrapper) | **Yes** | **UID:** 20 blocks / 1 hr (1 hr block) | Block a user. Cannot block self. Creates block doc with deterministic ID. |
-| 27 | `unblockUser` | **Yes** | Yes (via wrapper) | No | **UID:** 30 unblocks / 1 hr (30 min block) | Unblock a user. Deletes block doc. |
-| 28 | `appealSafetyAction` | **Yes** | Yes (via wrapper) | No | None | Submit an appeal against a safety action. Creates appeal doc and updates user's safety flags. |
-| 29 | `moderateTextContent` | No | Yes (via wrapper) | No | None | Check text content against banned terms list. Returns moderation decision: `clean`/`held`. |
-| 30 | `moderateImageContent` | No | Yes (via wrapper) | No | None | Placeholder image moderation. Currently always returns `clean`. |
-
-**Input/Output Schemas -- Safety Functions:**
-
-<details>
-<summary>reportUser</summary>
-
-**Input:**
-```typescript
-{
-  reportedId: string;    // Required
-  reason: string;        // Required
-  matchId?: string;
-  messageId?: string;
-  source?: string;
-  description?: string;
-}
-```
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>blockUser</summary>
-
-**Input:** `{ blockedId: string, blockerId?: string }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>unblockUser</summary>
-
-**Input:** `{ blockedId: string, blockerId?: string }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>appealSafetyAction</summary>
-
-**Input:** `{ reason: string, targetType?: string, targetId?: string }`
-**Output:** `{ ok: true }`
-</details>
-
-<details>
-<summary>moderateTextContent</summary>
-
-**Input:** `{ content: string }`
-**Output:** `{ status: "clean"|"held", action: "allow"|"hold", reason: string|null, severity: "low"|"high" }`
-</details>
-
-<details>
-<summary>moderateImageContent</summary>
-
-**Input:** `{ imageUrl: string }`
-**Output:** `{ status: "clean", action: "allow", reason: null, severity: "low" }` (placeholder)
-</details>
-
----
-
-### 1.6 Subscription & Payments
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 31 | `createCheckoutSession` | **Yes** | Yes (via wrapper) | **Yes** | None | Create a Stripe Checkout session for Plus subscription. Creates/reuses Stripe customer. Returns checkout URL. |
-| 32 | `syncSubscriptionStatus` | **Yes** | Yes (via wrapper) | No | None | Sync subscription status from Stripe to Firestore. Returns current plan, status, period end, cancel status. |
-
-**Input/Output Schemas -- Subscription Functions:**
-
-<details>
-<summary>createCheckoutSession</summary>
-
-**Input:** `{ priceId: string, successUrl: string, cancelUrl: string }`
-**Output:** `{ url: string }`
-</details>
-
-<details>
-<summary>syncSubscriptionStatus</summary>
-
-**Input:** None
-**Output:** `{ plan: "free"|"plus", status: string, currentPeriodEnd?: number, cancelAtPeriodEnd?: boolean }`
-</details>
-
----
-
-### 1.7 Calls (Agora)
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 33 | `generateAgoraToken` | **Yes** | Yes (via wrapper) | No | None | Generate Agora RTC token for a channel. Uses provided numeric UID. Expires in 1 hour. |
-| 34 | `getAgoraToken` | **Yes** | Yes (via wrapper) | No | None | Generate Agora RTC token using auth UID hash. Supports video/audio flag. Expires in 1 hour. |
-
-**Input/Output Schemas -- Agora Functions:**
-
-<details>
-<summary>generateAgoraToken</summary>
-
-**Input:** `{ channelName: string, uid?: number, isVideoCall?: boolean }`
-**Output:** `{ token: string, appId: string, channelName: string, uid: number, expireTime: number }`
-</details>
-
-<details>
-<summary>getAgoraToken</summary>
-
-**Input:** `{ channelName: string, isVideoCall?: boolean }`
-**Output:** `{ token: string, uid: number, appId: string, isVideoCall: boolean }`
-</details>
-
----
-
-### 1.8 Profile
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 35 | `checkProfileCompleteness` | **Yes** | Yes (via wrapper) | No | None | Evaluate profile completeness. Returns score (0-1), breakdown per category, missing items, and whether minimum thresholds are met. |
-| 36 | `setPresenceStatus` | **Yes** | Yes (via wrapper) | No | None | Update user online/offline status and lastSeenAt timestamp. |
-
-**Input/Output Schemas -- Profile Functions:**
-
-<details>
-<summary>checkProfileCompleteness</summary>
-
-**Input:** `{ minimum?: "swipe" | "messaging" }`
-**Output:**
-```typescript
-{
-  score: number;              // 0.0-1.0
-  breakdown: Record<string, number>;  // photos, bio, interests, location, prompts
-  missing: string[];
-  requiredMissing: string[];
-  meetsSwipeMinimum: boolean;
-  meetsMessagingMinimum: boolean;
-  meetsRequiredFields: boolean;
-  meetsMinimum: boolean;
-  minimum: string;
-  threshold: number;
-}
-```
-</details>
-
-<details>
-<summary>setPresenceStatus</summary>
-
-**Input:** `{ isOnline: boolean }`
-**Output:** `{ ok: true }`
-</details>
-
----
-
-### 1.9 Email & Notifications
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 37 | `notifyDatePlanContact` | **Yes** | Yes (via wrapper) | No | **UID+contact:** 3 / 1 hr (2 hr block) | Send date plan safety email to emergency contact. Validates email, truncates strings. Uses Resend API. |
-
-**Input/Output Schemas:**
-
-<details>
-<summary>notifyDatePlanContact</summary>
-
-**Input:**
-```typescript
-{
-  contactName: string;     // Max 80 chars
-  contactEmail: string;    // Valid email
-  matchName: string;       // Max 80 chars
-  dateTimeMs: number;      // Timestamp in ms
-  timeZoneOffsetMinutes?: number;
-  location: string;        // Max 200 chars
-  notes?: string;          // Max 500 chars
-}
-```
-**Output:** `{ success: true }`
-</details>
-
----
-
-### 1.10 Account Deletion & Media
-
-| # | Export Name | Auth Required? | App Check? | Email Verified? | Rate Limit | Description |
-|---|-------------|---------------|------------|-----------------|------------|-------------|
-| 38 | `requestAccountDeletion` | **Yes** | **Yes** (explicit call) | No | None | Request account deletion with 14-day grace period. Marks account pending, creates tracking record. Does NOT use `callable<T>()` wrapper -- calls `verifyAppCheck()` directly. |
-| 39 | `cancelAccountDeletion` | **Yes** | **Yes** (explicit call) | No | None | Cancel a pending account deletion within grace period. Clears deletion flags. Does NOT use `callable<T>()` wrapper -- calls `verifyAppCheck()` directly. |
-| 40 | `getChatMediaSignedUrl` | **Yes** | Yes (via wrapper) | **Yes** | None | Get a time-limited signed URL for chat media. Verifies match participation. Validates file path prefix. URL expires in 1 hour. |
-
-**Input/Output Schemas:**
-
-<details>
-<summary>requestAccountDeletion</summary>
-
-**Input:** `{ reason?: string }` -- Max 500 chars.
-**Output:**
-```typescript
-{
-  success: true;
-  scheduledAt: string;       // ISO date
-  gracePeriodDays: 14;
-  message: string;
-}
-```
-</details>
-
-<details>
-<summary>cancelAccountDeletion</summary>
-
-**Input:** None
-**Output:** `{ success: true, message: string }`
-</details>
-
-<details>
-<summary>getChatMediaSignedUrl</summary>
-
-**Input:** `{ matchId: string, filePath: string }` -- filePath max 500 chars, must start with `chat_media/{matchId}/` or `chats/{matchId}/`
-**Output:** `{ url: string }`
-</details>
-
----
-
-## 2. HTTP Endpoints (onRequest -- Express REST API)
-
-Exported as `api` via `functions.https.onRequest(app)`. All endpoints are prefixed with the function URL base path.
-
-**Global middleware:**
-- CORS: Whitelist-based via `corsOriginValidator` (env `CORS_ALLOWED_ORIGINS`)
-- Body parser: `express.json()`
-- Auth middleware (`authMiddleware`): Validates `Authorization: Bearer <idToken>` header via `admin.auth().verifyIdToken()`
-
-### 2.1 Auth Endpoints
-
-| # | Method | Path | Auth? | Rate Limit | Description |
-|---|--------|------|-------|------------|-------------|
-| 1 | POST | `/v1/auth/otp/send` | No | None (server-side) | Send phone OTP. Generates 6-digit code, stores bcrypt hash in `phone_verifications`. **Note: Currently logs OTP to console (dev mode).** |
-| 2 | POST | `/v1/auth/otp/verify` | No | None (server-side) | Verify phone OTP. Creates user if new. Returns `customToken` + user data + tokens. |
-| 3 | POST | `/v1/auth/token/refresh` | No | None | Refresh auth token. Verifies existing token, creates new custom token. |
-| 4 | POST | `/v1/auth/logout` | **Yes** | None | Logout. Revokes all refresh tokens. |
-| 5 | POST | `/v1/auth/password/change` | **Yes** | **IP:** 8 / 10 min (20 min block); **UID:** 8 / 10 min (20 min block) | Change password (REST version). Same logic as callable `changePassword`. |
-
-**Input/Output Schemas -- Auth REST:**
-
-<details>
-<summary>POST /v1/auth/otp/send</summary>
-
-**Input:** `{ phone_number: string }`
-**Output:** `{ success: true, verification_id: string, message: "OTP sent successfully" }`
-</details>
-
-<details>
-<summary>POST /v1/auth/otp/verify</summary>
-
-**Input:** `{ phone_number: string, otp: string, verification_id?: string }`
-**Output:**
-```json
-{
-  "success": true,
-  "message": "Phone verified successfully",
-  "user": {
-    "id": "string",
-    "phone_number": "string",
-    "email": "string|null",
-    "username": "string|null",
-    "is_email_verified": false,
-    "is_phone_verified": true,
-    "is_id_verified": false,
-    "is_premium": false
-  },
-  "tokens": {
-    "access_token": "string",
-    "refresh_token": "string",
-    "expires_in": 3600
-  }
-}
-```
-</details>
-
-<details>
-<summary>POST /v1/auth/token/refresh</summary>
-
-**Input:** `{ refresh_token: string }`
-**Output:** `{ access_token: string, refresh_token: string, expires_in: 3600 }`
-</details>
-
-<details>
-<summary>POST /v1/auth/password/change</summary>
-
-**Input:** `{ current_password: string, new_password: string }` (also accepts camelCase variants)
-**Output:** `{ success: true, message: "Password changed successfully." }`
-</details>
-
-### 2.2 Profile Endpoints
-
-| # | Method | Path | Auth? | Rate Limit | Description |
-|---|--------|------|-------|------------|-------------|
-| 6 | GET | `/v1/profile/me` | **Yes** | None | Get current user's full profile (formatted for API clients). |
-| 7 | PATCH | `/v1/profile/me` | **Yes** | None | Update profile fields (display_name, bio, birth_date, gender, job_title, company, education, city, country, interests). |
-| 8 | POST | `/v1/profile/photos` | **Yes** | None | Upload a profile photo (multipart/form-data, field: `photo`). Stored in Cloud Storage. Optional `is_primary` flag. |
-| 9 | DELETE | `/v1/profile/photos/:photoId` | **Yes** | None | Delete a profile photo by index (photoId format: `photo_INDEX`). |
-| 10 | PATCH | `/v1/profile/preferences` | **Yes** | None | Update user preferences (arbitrary JSON body). |
-| 11 | GET | `/v1/profile/:userId` | **Yes** | None | Get another user's public profile. |
-
-### 2.3 Discovery Endpoints
-
-| # | Method | Path | Auth? | Rate Limit | Description |
-|---|--------|------|-------|------------|-------------|
-| 12 | GET | `/v1/discovery/deck` | **Yes** | None | Get discovery deck (up to 20 profiles). Filters by gender preference, excludes already-swiped users. |
-| 13 | POST | `/v1/discovery/swipe` | **Yes** | None | Record a swipe (like/super_like/pass). Checks for mutual match. |
-| 14 | POST | `/v1/discovery/boost` | **Yes** | None | Activate a 30-minute profile boost. |
-
-**Input/Output Schemas -- Discovery REST:**
-
-<details>
-<summary>POST /v1/discovery/swipe</summary>
-
-**Input:** `{ target_user_id: string, action: "like"|"super_like"|"pass", message?: string }`
-**Output:** `{ success: true, is_match: boolean, match_id: string|null }`
-</details>
-
-### 2.4 Match Endpoints
-
-| # | Method | Path | Auth? | Rate Limit | Description |
-|---|--------|------|-------|------------|-------------|
-| 15 | GET | `/v1/matches` | **Yes** | None | Get paginated matches. Query params: `offset` (default 0), `limit` (default 20). |
-| 16 | POST | `/v1/matches/:matchId/unmatch` | **Yes** | None | Delete a match. Verifies user is participant. |
-
-### 2.5 Chat Endpoints
-
-| # | Method | Path | Auth? | Rate Limit | Description |
-|---|--------|------|-------|------------|-------------|
-| 17 | GET | `/v1/chat/conversations` | **Yes** | None | Get conversations (max 50) with participant info and last message. |
-| 18 | GET | `/v1/chat/:conversationId/messages` | **Yes** | None | Get paginated messages. Query params: `limit` (default 50), `before` (cursor). |
-| 19 | POST | `/v1/chat/:conversationId/send` | **Yes** | None | Send a message in a conversation. |
-| 20 | POST | `/v1/chat/:conversationId/media` | **Yes** | None | Upload chat media (multipart/form-data, field: `media`). Returns public URL. |
-| 21 | POST | `/v1/chat/:conversationId/read` | **Yes** | None | Mark conversation as read. |
-| 22 | PUT | `/v1/chat/settings` | **Yes** | None | Update chat retention settings (`extended_retention: boolean`). |
-| 23 | GET | `/v1/chat/settings` | **Yes** | None | Get chat retention settings (extended_retention, is_premium, retention_hours, retention_description). |
-
-**Input/Output Schemas -- Chat REST:**
-
-<details>
-<summary>POST /v1/chat/:conversationId/send</summary>
-
-**Input:** `{ type?: string, content?: string, media_url?: string }`
-**Output:** `{ id: string, success: true }`
-</details>
-
-### 2.6 Subscription Endpoints
-
-| # | Method | Path | Auth? | Rate Limit | Description |
-|---|--------|------|-------|------------|-------------|
-| 24 | GET | `/v1/subscription/plans` | No | None | Get available subscription plans. Returns defaults if none in DB (Free + CrushHour+). |
-| 25 | POST | `/v1/subscription/checkout` | **Yes** | None | Create Stripe Checkout session for subscription. |
-| 26 | GET | `/v1/subscription/current` | **Yes** | None | Get current subscription status (plan, expires_at, is_active). |
-
-### 2.7 Safety Endpoints
-
-| # | Method | Path | Auth? | Rate Limit | Description |
-|---|--------|------|-------|------------|-------------|
-| 27 | POST | `/v1/users/block` | **Yes** | **UID:** 20 blocks / 1 hr (1 hr block) | Block a user. |
-| 28 | POST | `/v1/users/unblock` | **Yes** | **UID:** 30 unblocks / 1 hr (30 min block) | Unblock a user. |
-| 29 | POST | `/v1/users/report` | **Yes** | **UID:** 10 reports / 1 hr (2 hr block) | Report a user. |
-
-**Input/Output Schemas -- Safety REST:**
-
-<details>
-<summary>POST /v1/users/block</summary>
-
-**Input:** `{ blocked_id: string }`
-**Output:** `{ success: true }`
-</details>
-
-<details>
-<summary>POST /v1/users/report</summary>
-
-**Input:** `{ reported_id: string, reason: string, description?: string, match_id?: string, message_id?: string }`
-**Output:** `{ success: true }`
-</details>
-
----
-
-## 3. Standalone HTTP Endpoints (onRequest)
-
-| # | Export Name | Method | Auth? | Rate Limit | Description |
-|---|------------|--------|-------|------------|-------------|
-| 1 | `stripeWebhook` | POST | Stripe signature verification | None | Handles Stripe webhook events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`. Updates user plan in Firestore + RTDB. CORS headers set manually. |
-
-**Stripe Webhook Events Handled:**
-
-| Event | Action |
-|-------|--------|
-| `checkout.session.completed` | Set user plan to `plus` with Stripe IDs |
-| `customer.subscription.updated` | Set plan based on status (active/trialing/past_due = plus, else free) |
-| `customer.subscription.deleted` | Set plan based on status |
-
----
-
-## 4. Firestore Triggers
-
-| # | Export Name | Trigger Type | Collection Path | Description |
-|---|------------|-------------|-----------------|-------------|
-| 1 | `onMessageCreated` | `onCreate` | `matches/{matchId}/messages/{messageId}` | Content moderation on new messages. Runs banned-term check on text messages, flags non-text for scan. If held, flags sender for review. Otherwise sends FCM push notification to recipient (respects notification prefs). |
-| 2 | `onMatchCreated` | `onCreate` | `matches/{matchId}` | Auto-migrates pending message requests to match as first message. Sends FCM "new match" push to both users (respects notification prefs). |
-| 3 | `onSubscriptionUpdated` | `onUpdate` | `users/{userId}` | Detects plan changes and sends FCM notification (upgrade/downgrade). Respects "subscriptions" notification preference. |
-| 4 | `onMessageRead` | `onUpdate` | `matches/{matchId}/messages/{messageId}` | When a message transitions to `isRead=true`, schedules message deletion for both sender and reader based on their retention settings (1h/24h/7d). Writes to RTDB `message_deletion_queue`. |
-| 5 | `onPlanChangeUpdateChatSettings` | `onUpdate` | `users/{userId}` | When user's plan changes, syncs chat settings to RTDB (retention hours, premium status). |
-
----
-
-## 5. Scheduled Functions (Pub/Sub)
-
-| # | Export Name | Schedule | Description |
-|---|------------|----------|-------------|
-| 1 | `processMessageDeletionQueue` | Every 15 minutes | Processes RTDB `message_deletion_queue`. Removes expired messages from users' `visibleTo` arrays. Deletes messages entirely when no users can see them. Cleans up queue entries. |
-| 2 | `cleanupExpiredMessageRequests` | Every 1 hour | Deletes expired message requests (`expiresAt < now`). Processes up to 500 per run. |
-| 3 | `processScheduledAccountDeletions` | Every 6 hours | Processes pending account deletions (14-day grace expired) and deactivated account auto-deletions (6-month). Cascade deletes: matches, messages, blocks, reports, likes, message_requests, auth_credentials, Storage files, RTDB data, user doc, Auth user. Max 50 per category per run. |
-
----
-
-## 6. Constants and Rate Limit Reference
-
-### 6.1 Profile Quality Thresholds
-
-| Constant | Value | Usage |
-|----------|-------|-------|
-| `PROFILE_MIN_PHOTOS` | 1 | Minimum photos to swipe/send messages |
-| `PROFILE_MIN_PROMPTS` | 0 | Prompts are optional |
-| `PROFILE_MIN_BIO_LENGTH` | 10 | Minimum bio characters |
-| `PROFILE_MIN_INTERESTS` | 3 | Minimum interests selected |
-| `SWIPE_MIN_COMPLETENESS` | 0.8 | 80% completeness for swipe (used in `evaluateProfileCompleteness`) |
-| `MESSAGING_MIN_COMPLETENESS` | 0.8 | 80% completeness for messaging (used in `evaluateProfileCompleteness`) |
-| `DISCOVERY_PAGE_SIZE` | 120 | Max Firestore query results for discovery |
-
-### 6.2 Like Limits
-
-| Plan | Daily Limit | Hourly Limit |
-|------|-------------|--------------|
-| Free | 30 | 10 |
-| Plus | 300 | 50 |
-
-### 6.3 Auth Rate Limits
-
-| Action | Limit | Window | Block Duration |
-|--------|-------|--------|----------------|
-| OTP Request (per IP) | 5 | 10 min | 20 min |
-| OTP Request (per identifier) | 5 | 10 min | 20 min |
-| OTP Verify (per IP) | 10 | 10 min | 20 min |
-| OTP Verify (per identifier) | 10 | 10 min | 20 min |
-| OTP Verify (per code) | 5 failed attempts | -- | 15 min lock |
-| OTP Resend Cooldown | 1 per 60s | -- | -- |
-| Signup (per IP) | 5 | 10 min | 20 min |
-| Signup (per email) | 5 | 10 min | 20 min |
-| Signup (per username) | 5 | 10 min | 20 min |
-| Login (per IP) | 8 | 10 min | 20 min |
-| Login (per identifier) | 8 | 10 min | 20 min |
-| Change Password (per IP) | 8 | 10 min | 20 min |
-| Change Password (per UID) | 8 | 10 min | 20 min |
-| Password Reset (per IP) | 5 | 10 min | 20 min |
-| Password Reset (per identifier) | 5 | 10 min | 20 min |
-| Reset Finalize (per IP) | 5 | 10 min | 20 min |
-| Reset Finalize (per identifier) | 5 | 10 min | 20 min |
-
-### 6.4 Safety Rate Limits
-
-| Action | Limit | Window | Block Duration |
-|--------|-------|--------|----------------|
-| Report (per UID) | 10 | 1 hr | 2 hr |
-| Block (per UID) | 20 | 1 hr | 1 hr |
-| Unblock (per UID) | 30 | 1 hr | 30 min |
-| Date Plan Email (per UID+contact) | 3 | 1 hr | 2 hr |
-
-### 6.5 Security Constants
-
-| Constant | Value |
-|----------|-------|
-| `PASSWORD_MIN_LENGTH` | 8 |
-| `PASSWORD_SALT_ROUNDS` | 12 |
-| `OTP_DIGITS` | 6 |
-| `OTP_TTL_MS` | 10 min |
-| `RESET_TOKEN_TTL_MS` | 15 min |
-| `DELETION_GRACE_PERIOD_DAYS` | 14 |
-
-### 6.6 Message Retention
-
-| Plan | Retention After Read |
-|------|---------------------|
-| Free (default) | 1 hour |
-| Free (extended) | 24 hours |
-| Plus | 7 days (168 hours) |
-
-### 6.7 Input Validation Rules
-
-| Field | Rule |
-|-------|------|
-| `requireString(value, field)` | Trimmed, non-empty, max 5000 chars (default) |
-| `requireString(value, field, N)` | Trimmed, non-empty, max N chars |
-| Username | `^[a-zA-Z0-9_]{3,20}$` |
-| Email | `^[^@\s]+@[^@\s]+\.[^@\s]+$` |
-| Password | Min 8 characters |
-| OTP | Exactly 6 digits |
-| Discovery limit | Clamped to 5-50 |
-
----
-
-## Summary Statistics
-
-| Category | Count |
-|----------|-------|
-| **Callable Functions (onCall)** | 40 |
-| **HTTP Endpoints (Express REST)** | 29 |
-| **Standalone HTTP (onRequest)** | 1 (stripeWebhook) |
-| **Firestore Triggers** | 5 |
-| **Scheduled Functions** | 3 |
-| **Total Exported Functions** | 49 (+ `api` Express app + `__test__helpers`) |
+Date: 2026-04-22
+Owner: Codex
+Primary Sources:
+- `functions/src/index.ts`
+- `functions/src/calls/signaling.ts`
+- `lib/core/network/api_version.dart`
+- current runtime client wrappers under `lib/features/**/data/repositories/impl/`
+
+## Purpose
+
+This document is the canonical inventory of the currently exported backend
+surface for CRUSH. It records:
+
+- callable Cloud Functions currently exported
+- versioned REST endpoints currently exposed by the Express `api` function
+- standalone HTTP webhooks, Firestore triggers, and scheduled jobs
+- the direct client wrappers that target those contracts today
+- currently known contract drift between the client and backend
+
+## Conventions
+
+- REST routes below are shown with their real backend paths, for example
+  `/v1/profile/me`.
+- Flutter `ApiEndpoints` constants intentionally omit the `/v1` prefix because
+  `ApiConfig.getUrl()` prepends `/v1` at request time.
+- `callable<T>()` in `functions/src/index.ts` enforces App Check and normalizes
+  unexpected failures to generic `HttpsError("internal", ...)`.
+- `functions.https.onCall(...)` exports outside that wrapper do not inherit the
+  same behavior unless they call `verifyAppCheck(...)` themselves.
+- The shared Flutter [`ApiClient`](/Users/ace/my_first_project/lib/core/network/api_client.dart)
+  only auto-retries transport failures for `GET` requests. Write verbs
+  (`POST`, `PUT`, `PATCH`, `DELETE`) return the first socket/timeout failure
+  unless the retry is part of the one-time 401 token-refresh replay path.
+- "Client" references below list direct runtime call sites in `lib/`. Test-only
+  usage is intentionally excluded.
+
+## Callable Functions
+
+### Auth And Account
+
+| Export | Auth | App Check | Client | Request | Response | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `requestEmailOtp` | Anonymous for login/reset; signed-in context required for add/change email purpose | Yes via `callable<T>()` | `lib/features/auth/data/repositories/impl/firebase_auth_repository.dart`, `lib/features/auth/data/repositories/impl/http_auth_repository.dart` | `identifier`, `purpose`, `email?` | `{ status }` | Rate-limited by IP and identifier; silent success on unknown identifiers to avoid enumeration. |
+| `verifyEmailOtp` | Same as above | Yes | `firebase_auth_repository.dart`, `http_auth_repository.dart` | `identifier`, `purpose`, `otp`, `newEmail?`, `newPassword?` | `{ status, customToken? }` | Per-OTP failed-attempt lock; purpose-specific side effects for login, email change, and password reset. |
+| `claimUsername` | Required | Yes | no direct runtime wrapper found | `username` | `{ status, username }` | Transactional uniqueness check; invalid usernames fail with `invalid-argument`. |
+| `signUpWithPassword` | Anonymous | Yes | `firebase_auth_repository.dart`, `http_auth_repository.dart` | `username`, `email`, `password` | `{ status, customToken }` | Rate-limited by IP, email, and username. |
+| `loginWithPassword` | Anonymous | Yes | `firebase_auth_repository.dart`, `http_auth_repository.dart` | `identifier`, `password` | `{ status, customToken }` | Constant-time miss path; rate-limited by IP and identifier. |
+| `requestPasswordReset` | Anonymous | Yes | `firebase_auth_repository.dart`, `http_auth_repository.dart` | `email` | `{ status, message }` | Silent success when email is unknown or unsupported. |
+| `verifyPasswordResetOtp` | Anonymous | Yes | `firebase_auth_repository.dart`, `http_auth_repository.dart` | `email`, `otp` | `{ status, resetToken }` | Rate-limited; returns one-time reset token. |
+| `resetPasswordWithToken` | Anonymous | Yes | `firebase_auth_repository.dart`, `http_auth_repository.dart` | `email`, `resetToken`, `newPassword` | `{ status }` | Invalid or expired tokens fail with `failed-precondition` / `permission-denied`. |
+| `changePassword` | Required | Yes | `firebase_auth_repository.dart` | `currentPassword`, `newPassword` | `{ status }` | Revokes sessions on success; rate-limited by IP and UID. |
+| `requestAccountDeletion` | Required | Manual `verifyAppCheck(...)` | `http_auth_repository.dart` | `reason?` | `{ success, scheduledAt, gracePeriodDays, message }` | Not wrapped by `callable<T>()`; schedules 14-day deletion grace period. |
+| `cancelAccountDeletion` | Required | Manual `verifyAppCheck(...)` | no direct runtime wrapper found | none | `{ success, message }` | Not wrapped by `callable<T>()`; returns success even when nothing is pending. |
+| `requestDataExport` | Required | Yes | `lib/core/services/data_export_request_service.dart` | none | `{ requestId, status }` | Email verification required; cooldown enforced at 7 days. |
+
+### Discovery And Matching
+
+| Export | Auth | App Check | Client | Request | Response | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `fetchDiscoveryCandidates` | Required | Yes | `lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart` | discovery filters such as `cursor`, `limit`, age range, distance, gender filters, interest filters, coordinates | `{ candidates, total, hasMore, nextCursor, requesterStatus? }` | Current callable path no longer requires verified email; eligibility and exclusion logic still run server-side. |
+| `getMyDiscoveryStatus` | Required | Yes | no direct runtime wrapper found | none | `{ eligible, reasons, summary }` | Debug/status endpoint for why a requester is or is not discoverable. |
+| `swipeRight` | Required | Yes | `firebase_discovery_repository.dart` | `targetUserId`, `attachedMessage?` | `{ matched, matchId? }` | Email verification and profile-quality gate required; like limit enforcement can return `resource-exhausted`. |
+| `swipeLeft` | Required | Yes | `firebase_discovery_repository.dart` | `targetUserId` | `{ ok }` | Email verification and profile-quality gate required. |
+| `sendPreMatchMessageRequest` | Required | Yes | no direct runtime wrapper found | `targetUserId`, `content` | `{ ok }` | Max three unreplied requests per sender/pair. |
+
+### Chat, Safety, And Moderation
+
+| Export | Auth | App Check | Client | Request | Response | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `sendMessage` | Required | Yes | `lib/features/chat/data/repositories/impl/firebase_chat_repository.dart` | `matchId`, `toUserId`, `content?`, `type?`, `mediaUrl?` | `{ ok, messageId }` | Email verification required; participant enforcement and moderation checks happen server-side. |
+| `editMessage` | Required | Yes | `firebase_chat_repository.dart` | `matchId`, `messageId`, `content` | `{ ok }` | Sender-only edit. |
+| `unsendMessage` | Required | Yes | `firebase_chat_repository.dart` | `matchId`, `messageId` | `{ ok }` | Plus-only feature; sender-only. |
+| `markMessagesRead` | Required | Yes | `firebase_chat_repository.dart` | `matchId` | `{ ok, markedCount }` | Participant-only; updates read receipts. |
+| `setTyping` | Required | Yes | indirect realtime/chat usage | `matchId`, `isTyping` | `{ ok }` | Match participant required. |
+| `setPresenceStatus` | Required | Yes | no direct runtime wrapper found | `isOnline?` | `{ ok }` | Presence/last-seen update helper. |
+| `setMediaSendingEnabled` | Required | Yes | `firebase_chat_repository.dart` | `matchId`, `enabled` | `{ ok }` | Match participant required. |
+| `addReaction` | Required | Yes | no direct runtime wrapper found | `matchId`, `messageId`, `emoji` | `{ ok }` | Match participant required. |
+| `removeReaction` | Required | Yes | no direct runtime wrapper found | `matchId`, `messageId` | `{ ok }` | Removes the caller's own reaction. |
+| `unmatch` | Required | Yes | `firebase_chat_repository.dart` | `matchId` | `{ ok }` | Email verification required; participant-only. |
+| `reportUser` | Required | Yes | `firebase_chat_repository.dart` | `reportedId`, `reason`, `matchId?`, `messageId?`, `source?`, `description?` | `{ ok }` | Email verification required; report rate limit enforced. |
+| `blockUser` | Required | Yes | `firebase_chat_repository.dart` | `blockedId` | `{ ok }` | Email verification required; block rate limit enforced. |
+| `unblockUser` | Required | Yes | `firebase_chat_repository.dart` | `blockedId` | `{ ok }` | Unblock rate limit enforced. |
+| `appealSafetyAction` | Required | Yes | `lib/features/chat/data/repositories/impl/firebase_chat_repository.dart` | `reason`, `targetType?`, `targetId?` | `{ ok }` | Creates appeal document and reopens user appeal flag. |
+| `moderateTextContent` | Anonymous | Yes | `lib/core/services/content_moderation_service.dart` | `content` | `{ status, action, reason, severity }` | Text moderation helper for client-side preflight and server parity. |
+| `moderateImageContent` | Anonymous | Yes | `content_moderation_service.dart` | `imageUrl` | `{ status, action, reason, severity }` | Placeholder implementation currently returns a clean result. |
+| `notifyDatePlanContact` | Required | Yes | `lib/features/safety/data/services/date_plan_service.dart` | contact, match, date/time, location, notes fields | `{ success }` | Per-contact rate limit; Resend-backed safety email. |
+| `getChatMediaSignedUrl` | Required | Yes | no direct runtime wrapper found | `matchId`, `filePath` | `{ url }` | Email verification required; validates match membership and file-path prefix. |
+
+### Subscription, Purchases, And Chat Retention
+
+| Export | Auth | App Check | Client | Request | Response | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `createCheckoutSession` | Required | Yes | `lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart` | `priceId`, `successUrl`, `cancelUrl` | `{ url }` | Email verification required; Stripe must be configured. |
+| `verifyGooglePurchaseToken` | Required | Yes | no matching runtime client wrapper; see drift section | `productId`, `purchaseToken`, `packageName?` | synced entitlement payload | Email verification required; validates and persists Google Play subscription state. |
+| `verifyAppleTransaction` | Required | Yes | no direct runtime wrapper found | `transactionId`, `productId?` | synced entitlement payload | Email verification required; validates App Store authoritative transaction data. |
+| `verifyPurchaseReceipt` | Required | Yes | `firebase_subscription_repository.dart` | `platform`, `receiptData`, `productId?`, `packageName?` | synced entitlement payload | Unified mobile purchase validation entrypoint. |
+| `syncSubscriptionStatus` | Required | Yes | `firebase_subscription_repository.dart` | none | `{ plan, status, currentPeriodEnd?, cancelAtPeriodEnd? }` | Stripe-backed entitlement refresh. |
+| `updateChatSettings` | Required | Yes | `lib/features/settings/presentation/bloc/chat_settings_cubit.dart` | `extendedRetention` | `{ success, extendedRetention, retentionHours, message }` | Free users: 1h or 24h; Plus users still get 7-day retention in RTDB sync. |
+| `updateMatchChatSettings` | Required | Yes | `lib/features/chat/presentation/bloc/match_chat_settings_cubit.dart` | `matchId`, `extendedRetention` | `{ success, matchId, extendedRetention, retentionHours, message }` | Match participant required. |
+
+### Calls And Real-Time Signaling
+
+| Export | Auth | App Check | Client | Request | Response | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `initiateCall` | Required | Yes via shared `callable<T>()` wrapper | `lib/features/calls/data/services/call_service.dart`, `lib/features/calls/data/repositories/impl/firebase_call_repository.dart` | `receiverId`, `type`, `offer?` | `{ callId, status, expiresAtMs }` | Per-caller 10-second initiation rate limit. |
+| `answerCall` | Required | Yes via shared `callable<T>()` wrapper | `call_service.dart` | `callId`, `answer?` | `{ callId, status }` | Receiver-only answer path. |
+| `endCall` | Required | Yes via shared `callable<T>()` wrapper | `call_service.dart` | `callId`, `reason?` | `{ callId, status, endReason }` | Participant-only end path. |
+| `addIceCandidate` | Required | Yes via shared `callable<T>()` wrapper | `call_service.dart` | `callId`, `target`, `candidate` | `{ callId, candidateId }` | Valid targets are `caller`, `receiver`, or `all`. |
+| `getIceServers` | Required | Yes via shared `callable<T>()` wrapper | `call_service.dart` | none | `{ iceServers, ttlSeconds }` | Returns TURN config plus default STUN servers. |
+| `notifyCallSafetyEvent` | Required | Yes via shared `callable<T>()` wrapper | `call_service.dart`, `lib/features/calls/presentation/screens/call_screen.dart` | `targetUserId`, `eventType`, `callId?`, `isVideoCall?` | `{ eventType, deliveredTo }` | Valid event types: screenshot / recording_started / recording_stopped. |
+| `generateAgoraToken` | Required | Yes | no direct runtime wrapper found | `channelName`, `uid?`, `isVideoCall?` | `{ token, appId, channelName, uid, expireTime }` | Raw Agora token minting helper. |
+| `getAgoraToken` | Required | Yes | no direct runtime wrapper found | `channelName`, `isVideoCall?` | `{ token, uid, appId, isVideoCall }` | Uses auth UID hash as Agora UID. |
+
+### Profile Utility
+
+| Export | Auth | App Check | Client | Request | Response | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `checkProfileCompleteness` | Required | Yes | `lib/features/profile/data/services/profile_validation_service.dart` | `minimum?` (`swipe` or `messaging`) | completeness scoring payload | Returns normalized completeness score, breakdown, missing items, threshold info, and minimum checks. |
+
+## Versioned REST Endpoints (`api`)
+
+### Auth
+
+| Method | Path | Auth | App Check | Client | Contract Summary | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `POST` | `/v1/auth/otp/send` | No | Yes via `appCheckRestMiddleware` | no direct runtime wrapper found | request `phone_number`; response `{ success, verification_id, message }` | Export remains for legacy/compatibility clients; current repositories use Firebase phone auth instead. |
+| `POST` | `/v1/auth/otp/verify` | No | Yes | no direct runtime wrapper found | request `phone_number`, `otp`, `verification_id?`; response `{ success, message, user, tokens }` | Export remains for legacy/compatibility clients; current repositories use Firebase phone auth instead. |
+| `POST` | `/v1/auth/token/refresh` | No | Yes | no direct runtime wrapper found | request `refresh_token`; response `{ access_token, refresh_token, expires_in }` | Current HTTP auth mode now refreshes Firebase ID tokens through the session bridge instead of this legacy contract. |
+| `POST` | `/v1/auth/logout` | Required | Yes | `ApiEndpoints.authLogout`, `HttpAuthRepository.signOut()` | empty request; response `{ success }` | Revokes refresh tokens. |
+| `POST` | `/v1/auth/password/change` | Required | Yes | `HttpAuthRepository.changePassword(...)` | request `current_password` or `currentPassword`, `new_password` or `newPassword`; response `{ success, message }` | Verified password required; rate-limited by IP and UID. |
+| `POST` | `/v1/auth/apple/revocation` | No client auth; Apple server-to-server webhook | No | external Apple server callback | form payload JWT; response `{ success }` or structured error | Used for Apple credential revocation handling. |
+
+### Profile
+
+| Method | Path | Auth | App Check | Client | Contract Summary | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/v1/profile/me` | Required | No dedicated REST App Check middleware | `ApiEndpoints.profileMe`, `Http profile wrappers` | response includes account fields plus normalized `photos`, `prompts`, and canonical nested `preferences` | 404 when user doc is missing. |
+| `PATCH` | `/v1/profile/me` | Required | No dedicated REST App Check middleware | `ApiEndpoints.profileUpdate` | validated patch payload; response `{ success, message }` | Verified email/password required through `requireVerifiedEmail`. |
+| `POST` | `/v1/profile/photos` | Required | No dedicated REST App Check middleware | `ApiEndpoints.profilePhotos`, `ApiClient.uploadFile(...)` consumers | multipart `photo`, optional `is_primary`; response `{ id, url, is_primary }` | Verified email required; server-side MIME allowlist, magic-byte validation, moderation, private tokenized URLs. |
+| `DELETE` | `/v1/profile/photos/:photoId` | Required | No dedicated REST App Check middleware | `ApiEndpoints.profilePhotoById(...)` | path `photo_INDEX`; response `{ success }` | 400 on malformed photo id; 404 when user or photo is missing. |
+| `POST` | `/v1/profile/photos/reorder` | Required | No dedicated REST App Check middleware | `ApiEndpoints.profilePhotoReorder`, `HttpProfileRepository.reorderPhotos(...)` | request `photo_ids[]`; response `{ success, photos }` | Requires the full ordered photo id list; rejects duplicates or missing ids. |
+| `PATCH` | `/v1/profile/preferences` | Required | No dedicated REST App Check middleware | `ApiEndpoints.profilePreferences` | preference patch; response `{ success, preferences }` | Merges over canonical nested preferences; 400 on invalid age range. |
+| `GET` | `/v1/profile/:userId` | Required | No dedicated REST App Check middleware | `ApiEndpoints.profileById(...)`, `ApiEndpoints.profiles(...)` consumers | response includes public profile view with normalized `photos`, `prompts`, and verification flag | 404 when user is missing. |
+
+### Discovery
+
+| Method | Path | Auth | App Check | Client | Contract Summary | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/v1/discovery/deck` | Required | No dedicated REST App Check middleware | `ApiEndpoints.discoveryDeck`, `HttpDiscoveryRepository` | query filters and `cursor`; response includes `candidates`, legacy `profiles`, `total`, `hasMore`, `nextCursor`, `requester_status` | `rateLimitDiscovery`; response intentionally duplicates camelCase and snake_case cursor fields. |
+| `GET` | `/v1/discovery/likes-you` | Required | No dedicated REST App Check middleware | `ApiEndpoints.discoveryLikesYou`, `HttpDiscoveryRepository.fetchLikesYou(...)` | optional query `offset`, `limit`; response `{ candidates, profiles, total_count, has_more, next_offset }` | `rateLimitDiscovery`; merges inbound `likes` and `swipes`, deduplicates by liker using newest activity first, and keeps backward compatibility by returning the full merged list when no explicit `limit` is supplied. |
+| `POST` | `/v1/discovery/swipe` | Required | No dedicated REST App Check middleware | `ApiEndpoints.discoverySwipe`, `HttpDiscoveryRepository` | request `target_user_id`, `action`, `message?`; response `{ success, is_match, match_id }` | Verified email required; supports `like`, `super_like`, and `pass`. |
+| `POST` | `/v1/discovery/boost` | Required | No dedicated REST App Check middleware | `ApiEndpoints.discoveryBoost` | empty request; response `{ success, expires_at }` | Verified email required. |
+
+Rewind is intentionally absent from the current exported discovery contract.
+Discovery runtime/UI now treats rewind as unavailable instead of simulating a
+local undo without a reversible backend ledger.
+
+### Matches And Chat
+
+| Method | Path | Auth | App Check | Client | Contract Summary | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/v1/matches` | Required | No dedicated REST App Check middleware | `ApiEndpoints.matches`, `HttpDiscoveryRepository`, `HttpChatRepository.fetchUserMatchesPaginated(...)` | query `offset`, `limit`, optional `before`; response `{ matches, total_count, has_more, next_cursor }` | Existing offset pagination remains supported for current clients; optional `before` adds a backward-compatible keyset path using the oldest page `lastMessageAt` ISO timestamp, malformed cursors fail with 400, and `rateLimitDefault` applies. |
+| `POST` | `/v1/matches/:matchId/unmatch` | Required | No dedicated REST App Check middleware | `ApiEndpoints.unmatch(...)` | empty request; response `{ success }` | Participant-only. |
+| `GET` | `/v1/chat/conversations` | Required | No dedicated REST App Check middleware | `ApiEndpoints.chatConversations`, `HttpChatRepository` | query `limit`, `before`; response `{ conversations, total_count, has_more, next_cursor }` | `rateLimitDefault`; cursor is the oldest page `lastMessageAt` ISO timestamp, responses keep legacy `participant` while also emitting `match_id` and `participants[]`, and invalid `before` cursors fail with 400. |
+| `GET` | `/v1/chat/:conversationId/messages` | Required | No dedicated REST App Check middleware | `ApiEndpoints.chatMessages(...)`, `HttpChatRepository` | query `limit`, `before`; response `{ messages, has_more, next_cursor }` | `before` now accepts the ISO timestamp cursor already used by the client, with legacy message-id fallback; participant check and `rateLimitDefault` apply. |
+| `POST` | `/v1/chat/:conversationId/send` | Required | No dedicated REST App Check middleware | `ApiEndpoints.chatSend(...)`, `HttpChatRepository` | request `type`, `content`, `media_url`; response `{ id, success }` | `rateLimitMessage`; content sanitized before write. |
+| `POST` | `/v1/chat/:conversationId/media` | Required | No dedicated REST App Check middleware | `ApiClient.uploadFile(...)` chat upload consumers | multipart `media`, required `type`; response `{ url }` | Verified email required; match membership enforced; private tokenized storage URLs. |
+| `POST` | `/v1/chat/:conversationId/read` | Required | No dedicated REST App Check middleware | `ApiEndpoints.chatRead(...)`, `HttpChatRepository` | empty request; response `{ success }` | Updates `readBy.<uid>` on match document. |
+| `PUT` | `/v1/chat/settings` | Required | No dedicated REST App Check middleware | no direct HTTP runtime wrapper found | request `extended_retention`; response `{ success, extended_retention, retention_hours, message }` | Updates chat retention settings and RTDB mirror. |
+| `GET` | `/v1/chat/settings` | Required | No dedicated REST App Check middleware | no direct HTTP runtime wrapper found | response `{ extended_retention, is_premium, retention_hours, retention_description }` | Mirrors per-user retention status. |
+| `POST` | `/v1/calls/start` | Required | No dedicated REST App Check middleware | `ApiEndpoints.callStart`, `HttpCallRepository.startCall(...)` | request `match_id`, `is_video`; response `{ call_id, channel_name, local_uid, status, expires_at_ms }` | Verified email required; resolves the remote participant from the match before reusing the signaling backend, and inherits the shared 10-second per-caller initiation throttle from `initiateCallForUser` so repeated rapid attempts return 429 / `resource-exhausted`. |
+| `POST` | `/v1/calls/end` | Required | No dedicated REST App Check middleware | `ApiEndpoints.callEnd`, `HttpCallRepository.endCall(...)` | request `call_id`, `reason?`; response `{ success, call_id, status, end_reason }` | Participant-only call termination path backed by the shared signaling logic. |
+
+### Subscription And Safety
+
+| Method | Path | Auth | App Check | Client | Contract Summary | Key Errors / Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `GET` | `/v1/subscription/plans` | No | No dedicated REST App Check middleware | `ApiEndpoints.subscriptionPlans`, `HttpSubscriptionRepository` | response `{ plans }` | Returns DB-backed plans or default Free/Plus fallback. |
+| `POST` | `/v1/subscription/checkout` | Required | No dedicated REST App Check middleware | `ApiEndpoints.subscriptionPurchase`, `HttpSubscriptionRepository.startCheckout(...)` | request `price_id`, `success_url?`, `cancel_url?`; response `{ session_id, url }` | Stripe must be configured. |
+| `GET` | `/v1/subscription/current` | Required | No dedicated REST App Check middleware | `ApiEndpoints.subscriptionStatus`, `HttpSubscriptionRepository` | response `{ plan, expires_at, is_active }` | Minimal subscription status endpoint. |
+| `POST` | `/v1/safety/appeal` | Required | No dedicated REST App Check middleware | `ApiEndpoints.safetyAppeal`, `HttpChatRepository.submitSafetyAppeal(...)` | request `reason`, `target_type?`, `target_id?`; response `{ success }` | REST parity for the callable appeal flow used by HTTP mode. |
+| `POST` | `/v1/users/block` | Required | No dedicated REST App Check middleware | `ApiEndpoints.blockUser`, `HttpChatRepository.blockUser(...)` | request `blocked_id`; response `{ success }` | Verified email required; structured audit logging and rate limiting. |
+| `POST` | `/v1/users/unblock` | Required | No dedicated REST App Check middleware | `ApiEndpoints.unblockUser`, `HttpChatRepository.unblockUser(...)` | request `blocked_id`; response `{ success }` | Verified email required; structured audit logging and rate limiting. |
+| `POST` | `/v1/users/report` | Required | No dedicated REST App Check middleware | `ApiEndpoints.reportUser`, `HttpChatRepository.reportUser(...)` | request `reported_id`, `reason`, `description?`, `match_id?`, `message_id?`; response `{ success }` | Verified email required; structured audit logging and rate limiting. |
+
+## Standalone HTTP, Triggers, And Scheduled Jobs
+
+### Standalone HTTP Functions
+
+| Export | Type | Contract Summary |
+| --- | --- | --- |
+| `appleSubscriptionWebhook` | `functions.https.onRequest` | Apple App Store Server Notifications v2 ingestion. Accepts signed payload; updates entitlement lifecycle and user subscription fields. |
+| `googleRtdnWebhook` | `functions.https.onRequest` | Google Play RTDN ingestion. Verifies token if configured; updates entitlement lifecycle and user purchase metadata. |
+| `stripeWebhook` | `functions.https.onRequest` | Stripe webhook ingestion. Handles checkout completion and subscription lifecycle events. |
+
+### Firestore Triggers
+
+| Export | Trigger | Contract Summary |
+| --- | --- | --- |
+| `onMessageCreated` | `matches/{matchId}/messages/{messageId}` on create | Moderation and notification side effects for new messages. |
+| `onMatchCreated` | `matches/{matchId}` on create | Migrates pre-match requests and sends new-match notifications. |
+| `onSubscriptionUpdated` | `users/{userId}` on update | Emits subscription change notifications. |
+| `syncLegacyDiscoveryFields` | `users/{userId}` on write/update path | Maintains mirrored root discovery fields used by indexed deck queries. |
+| `onMessageRead` | `matches/{matchId}/messages/{messageId}` on update | Schedules retention-based deletion for both sender and reader. |
+| `onPlanChangeUpdateChatSettings` | `users/{userId}` on update | Syncs chat retention mirrors after plan changes. |
+| `processDataExportRequest` | `users/{userId}/dataExportRequests/{requestId}` on create | Builds async GDPR export bundle and posts download notification. |
+| `enforceCallRingTimeout` | `calls/{callId}` on create | Marks unanswered calls missed after the configured ring timeout. |
+
+### Scheduled / Queue Jobs
+
+| Export | Schedule | Contract Summary |
+| --- | --- | --- |
+| `flushNotificationQueue` | Pub/Sub schedule | Flushes queued notification work. |
+| `processMessageDeletionQueue` | every 15 minutes | Applies chat-retention deletions and clears RTDB queue items. |
+| `cleanupExpiredMessageRequests` | every 1 hour | Deletes expired message-request documents. |
+| `processScheduledAccountDeletions` | every 6 hours | Executes pending account-deletion cascade jobs. |
+| `scheduledFirestoreBackup` | every 24 hours | Starts Firestore export to Cloud Storage backup bucket. |
+
+## Remaining Contract Drift
+
+The 2026-04-19 API-004, 2026-04-21 API-005, and 2026-04-21 API-006
+remediation slices removed the documented dead client paths for discovery/chat/
+subscription/calls/profile utilities, aligned HTTP auth with real backend
+contracts, retired discovery rewind explicitly at the runtime/product layer,
+and brought call signaling under the shared callable App Check wrapper.
+
+There is no separately documented client/backend contract drift remaining in
+this catalog at this time. The next API backlog slice returns to broader API
+quality work such as pagination, rate limiting, and retry semantics.
+
+## Verification
+
+Inventory verification for this document was done against live source and
+representative endpoint tests:
+
+- `rg -n "^export const [A-Za-z0-9_]+ =" functions/src/index.ts`
+- `rg -n "app\\.(get|post|patch|put|delete)\\(" functions/src/index.ts`
+- `rg -n "httpsCallable\\(" lib`
+- `npx mocha --exit test/callables.test.js` in `functions/`
+- `npx mocha --exit test/call-signaling.test.js test/appCheckRest.test.js` in `functions/`
+- `npx mocha --exit test/profileRestEndpoints.test.js --grep "GET /v1/profile/me|POST /v1/profile/photos|POST /v1/chat/:conversationId/media"` in `functions/`
+
+## Actionable Outcome
+
+`API-001`, `API-005`, and `API-006` are complete. The next execution step
+should be `API-002` for pagination, rate limiting, and retry semantics, not
+another inventory pass.

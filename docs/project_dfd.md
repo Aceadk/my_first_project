@@ -1,6 +1,6 @@
 # Data Flow Diagram (DFD) — CrushHour Dating App
 
-*Last updated: 2026-03-08*
+*Last updated: 2026-04-21*
 
 ---
 
@@ -47,6 +47,19 @@ flowchart TB
 ### Messaging Transport Note (2026-03-08)
 
 `4.0 Messaging & Chat` now routes network/realtime operations through a domain-level `ChatTransportAdapter` abstraction, enabling fake transport injection for repository-level tests.
+
+### Authentication Transport Note (2026-04-21)
+
+HTTP-mode password and email-OTP auth now run through callable functions that
+mint Firebase custom tokens. The client signs into Firebase, then derives
+Firebase ID tokens for protected REST requests instead of depending on
+nonexistent direct `/auth/...` routes for those flows.
+
+### Call Signaling Enforcement Note (2026-04-21)
+
+Call-signaling callable exports now route through the same shared callable App
+Check/error-normalization helper as the rest of the backend callable surface,
+instead of maintaining a separate signaling-specific wrapper.
 
 ### External Entity Descriptions
 
@@ -392,6 +405,10 @@ flowchart TB
 | DF3.9 | 3.7 | Notifications | Match event trigger |
 | DF3.10 | User | 3.8 Fetch Likes You | userId |
 | DF3.11 | 3.8 | User | liked profiles (blurred for free users) |
+
+Rewind is intentionally absent from the current exported discovery contract.
+Until the backend supports a reversible swipe ledger, discovery actions remain
+one-way like/pass/super-like writes.
 
 ---
 
@@ -1170,3 +1187,8 @@ flowchart TB
 - **2026-03-13 (Discovery Legacy-Web Compatibility):**
   - Added Firestore trigger `syncLegacyDiscoveryFields` on `users/{uid}` writes to mirror canonical nested discovery data back into the legacy flat-root fields still read by the stale public web Firestore query path.
   - This keeps newly eligible canonical nested users visible in the old `onboardingComplete/profileComplete` Firestore query until the public web deployment is fully cut over to the backend deck endpoint.
+- **2026-04-21 (HTTP Auth Bridge + Discovery Rewind Retirement):**
+  - HTTP auth mode now completes password/email-OTP flows through callable-backed Firebase session bridging and uses Firebase ID tokens for protected REST traffic.
+  - Discovery rewind is intentionally retired at the runtime/product layer until a reversible backend swipe ledger exists; active discovery writes remain one-way actions.
+- **2026-04-21 (Signaling App Check Parity):**
+  - Call-signaling callable exports now use the same shared callable App Check and error-normalization helper as the rest of the callable backend surface.

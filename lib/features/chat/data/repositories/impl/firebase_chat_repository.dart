@@ -359,7 +359,7 @@ class FirebaseChatRepository implements ChatRepository {
     String? targetType,
     String? targetId,
   }) async {
-    final callable = _functions.httpsCallable('submitSafetyAppeal');
+    final callable = _functions.httpsCallable('appealSafetyAction');
     await callable.call<Map<String, dynamic>>({
       'reason': reason,
       'targetType': ?targetType,

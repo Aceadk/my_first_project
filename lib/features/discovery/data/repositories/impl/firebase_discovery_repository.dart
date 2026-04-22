@@ -10,21 +10,36 @@ import 'package:crushhour/features/discovery/domain/repositories/discovery_repos
 class FirebaseDiscoveryRepository implements DiscoveryRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
+  DiscoveryDeckPageInfo? _lastDeckPageInfo;
+
+  @override
+  DiscoveryDeckPageInfo? get lastDeckPageInfo => _lastDeckPageInfo;
 
   @override
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   }) async {
     final callable = _functions.httpsCallable('fetchDiscoveryCandidates');
-    final result = await callable.call<Map<String, dynamic>>({
+    final payload = <String, dynamic>{
       if (filter.maxDistanceKm != null) 'maxDistanceKm': filter.maxDistanceKm,
       'passportModeEnabled': filter.passportModeEnabled,
       if (filter.effectiveLatitude != null)
         'latitude': filter.effectiveLatitude,
       if (filter.effectiveLongitude != null)
         'longitude': filter.effectiveLongitude,
-    });
+    };
+    if (cursor != null) {
+      payload['cursor'] = cursor;
+    }
+
+    final result = await callable.call<Map<String, dynamic>>(payload);
+
+    _lastDeckPageInfo = DiscoveryDeckPageInfo(
+      hasMore: result.data['hasMore'] as bool? ?? false,
+      nextCursor: result.data['nextCursor'] as String?,
+    );
 
     final candidates = result.data['candidates'] as List<dynamic>? ?? [];
     return candidates
@@ -179,13 +194,14 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
     required String userId,
     required String targetUserId,
   }) async {
-    // Call cloud function for super like
-    final result = await _functions.httpsCallable('superLike').call({
+    final result = await _functions.httpsCallable('swipeRight').call({
       'targetUserId': targetUserId,
     });
 
     final data = result.data as Map<String, dynamic>?;
-    if (data != null && data['isMatch'] == true) {
+    final isMatch =
+        data != null && (data['isMatch'] == true || data['matched'] == true);
+    if (isMatch) {
       return CrushMatch(
         id: data['matchId'] ?? 'match_${DateTime.now().millisecondsSinceEpoch}',
         userId: userId,
@@ -201,14 +217,8 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<Profile?> rewindLastSwipe(String userId) async {
-    // Call cloud function for rewind
-    final result = await _functions.httpsCallable('rewindSwipe').call({});
-
-    final data = result.data as Map<String, dynamic>?;
-    if (data != null && data['profile'] != null) {
-      return _profileFromFirestore(data['profile'] as Map<String, dynamic>);
-    }
-
+    // The callable backend does not currently expose reversible swipe state.
+    // Return null instead of depending on a missing function name.
     return null;
   }
   // PRIVATE HELPERS

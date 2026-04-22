@@ -88,6 +88,97 @@ void main() {
         await transport.dispose();
       },
     );
+
+    test(
+      'fetchMessagesPaginated forwards timestamp cursor and honors backend has_more',
+      () async {
+        final beforeTimestamp = DateTime.parse('2026-03-08T00:00:00.000Z');
+        final transport = _FakeChatTransportAdapter(
+          isRealtimeConnected: false,
+          messagesPayload: {
+            'messages': [
+              {
+                'id': 'm-older',
+                'from_user_id': 'user-a',
+                'to_user_id': 'user-b',
+                'content': 'older',
+                'type': 'text',
+                'sent_at': '2026-03-07T23:00:00.000Z',
+                'is_read': false,
+                'is_deleted_for_sender': false,
+                'reactions': <String, dynamic>{},
+              },
+            ],
+            'has_more': false,
+            'next_cursor': null,
+          },
+        );
+        final repo = HttpChatRepository(
+          transportAdapter: transport,
+          currentUserId: 'user-b',
+        );
+
+        final result = await repo.fetchMessagesPaginated(
+          'match-4',
+          limit: 1,
+          beforeTimestamp: beforeTimestamp,
+        );
+
+        expect(transport.getEndpoints, contains('/chat/match-4/messages'));
+        expect(transport.getQueryParams['/chat/match-4/messages'], {
+          'limit': '1',
+          'before': beforeTimestamp.toIso8601String(),
+        });
+        expect(result.hasMore, isFalse);
+
+        repo.dispose();
+        await transport.dispose();
+      },
+    );
+
+    test(
+      'fetchUserMatchesPaginated uses backend has_more instead of page length guess',
+      () async {
+        final transport = _FakeChatTransportAdapter(
+          isRealtimeConnected: false,
+          matchesPayload: {
+            'matches': [
+              {
+                'id': 'match-1',
+                'matched_user_id': 'user-a',
+                'matched_user_name': 'Ava',
+                'matched_user_photo': 'https://example.com/a.jpg',
+                'created_at': '2026-03-08T00:00:00.000Z',
+                'last_message_at': '2026-03-08T01:00:00.000Z',
+              },
+            ],
+            'total_count': 1,
+            'has_more': false,
+          },
+        );
+        final repo = HttpChatRepository(
+          transportAdapter: transport,
+          currentUserId: 'user-b',
+        );
+
+        final result = await repo.fetchUserMatchesPaginated(
+          'user-b',
+          offset: 0,
+          limit: 1,
+        );
+
+        expect(transport.getQueryParams['/matches'], {
+          'offset': '0',
+          'limit': '1',
+        });
+        expect(result.items, hasLength(1));
+        expect(result.total, 1);
+        expect(result.hasMore, isFalse);
+
+        repo.dispose();
+        await transport.dispose();
+      },
+    );
   });
 }
 
@@ -95,16 +186,22 @@ class _FakeChatTransportAdapter implements ChatTransportAdapter {
   _FakeChatTransportAdapter({
     required bool isRealtimeConnected,
     Map<String, dynamic>? messagesPayload,
+    Map<String, dynamic>? matchesPayload,
   }) : _isRealtimeConnected = isRealtimeConnected,
        _messagesPayload =
-           messagesPayload ?? {'messages': <Map<String, dynamic>>[]};
+           messagesPayload ?? {'messages': <Map<String, dynamic>>[]},
+       _matchesPayload =
+           matchesPayload ?? {'matches': <Map<String, dynamic>>[]};
 
   final bool _isRealtimeConnected;
   final Map<String, dynamic> _messagesPayload;
+  final Map<String, dynamic> _matchesPayload;
 
   final List<RealtimeEvent> sentRealtimeEvents = <RealtimeEvent>[];
   final List<String> getEndpoints = <String>[];
   final List<String> postEndpoints = <String>[];
+  final Map<String, Map<String, String>> getQueryParams =
+      <String, Map<String, String>>{};
 
   final StreamController<Map<String, dynamic>> _messageController =
       StreamController<Map<String, dynamic>>.broadcast();
@@ -129,10 +226,15 @@ class _FakeChatTransportAdapter implements ChatTransportAdapter {
     bool requiresAuth = true,
   }) async {
     getEndpoints.add(endpoint);
+    getQueryParams[endpoint] = Map<String, String>.from(
+      queryParams ?? const <String, String>{},
+    );
 
     dynamic payload = <String, dynamic>{};
     if (endpoint.contains('/messages')) {
       payload = _messagesPayload;
+    } else if (endpoint == '/matches') {
+      payload = _matchesPayload;
     } else if (endpoint.endsWith('/presence')) {
       payload = <String, dynamic>{'is_online': false};
     }

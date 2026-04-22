@@ -55,11 +55,53 @@ describe("call signaling", () => {
     if (previous !== undefined) process.env.TURN_SERVERS_JSON = previous;
   });
 
+  it("callable App Check helper allows missing token when enforcement is disabled", () => {
+    const { evaluateCallableAppCheck } = functions.__test__helpers;
+
+    const result = evaluateCallableAppCheck(
+      { auth: { uid: "user-1" } },
+      "initiateCall",
+      { enforce: false }
+    );
+
+    expect(result).to.deep.equal({ allowed: true, outcome: "missing" });
+  });
+
+  it("callable App Check helper accepts a valid token", () => {
+    const { evaluateCallableAppCheck } = functions.__test__helpers;
+
+    const result = evaluateCallableAppCheck(
+      {
+        auth: { uid: "user-1" },
+        app: { appId: "demo-app" },
+      },
+      "initiateCall",
+      { enforce: true }
+    );
+
+    expect(result).to.deep.equal({ allowed: true, outcome: "valid" });
+  });
+
+  it("callable App Check helper rejects missing token when enforcement is enabled", () => {
+    const { evaluateCallableAppCheck } = functions.__test__helpers;
+
+    const result = evaluateCallableAppCheck(
+      { auth: { uid: "user-1" } },
+      "initiateCall",
+      { enforce: true }
+    );
+
+    expect(result).to.deep.equal({ allowed: false, outcome: "missing" });
+  });
+
   it("initiateCall rejects unauthenticated requests", async () => {
     const wrapped = functionsTest.wrap(functions.initiateCall);
 
     try {
-      await wrapped({ receiverId: "user-2", type: "audio" }, { auth: null });
+      await wrapped(
+        { receiverId: "user-2", type: "audio" },
+        { auth: null, app: { appId: "demo-app" } }
+      );
       throw new Error("expected unauthenticated");
     } catch (err) {
       expect(err).to.be.instanceOf(httpsFns.HttpsError);

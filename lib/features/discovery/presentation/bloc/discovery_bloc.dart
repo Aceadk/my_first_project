@@ -7,7 +7,6 @@ import 'package:crushhour/core/utils/constants.dart';
 import 'package:crushhour/core/utils/error_messages.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/preferences.dart';
-import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
@@ -128,6 +127,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     emit(
       state.copyWith(
         isLoading: true,
+        hasMoreProfiles: true,
+        nextCursor: null,
         status: DeckStatus.loading,
         errorMessage: null,
         nextRetrySeconds: null,
@@ -200,6 +201,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     }
 
     var deck = deckResult.data ?? const [];
+    var pageInfo =
+        discoveryRepository.lastDeckPageInfo ??
+        const DiscoveryDeckPageInfo(hasMore: false);
     await PerformanceMonitor.instance.stopTrace(
       'deck_fetch',
       metrics: {'success': 1, 'card_count': deck.length},
@@ -227,6 +231,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
       if (extendedResult.isSuccess) {
         deck = extendedResult.data ?? const [];
+        pageInfo =
+            discoveryRepository.lastDeckPageInfo ??
+            const DiscoveryDeckPageInfo(hasMore: false);
         distanceLimit = CrushConstants.extendedMaxDistanceKm;
       }
     }
@@ -250,6 +257,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         status: deck.isEmpty ? DeckStatus.empty : DeckStatus.ready,
         errorMessage: null,
         nextRetrySeconds: null,
+        hasMoreProfiles: pageInfo.hasMore,
+        nextCursor: pageInfo.nextCursor,
         localDeckExhausted: localDeckExhausted,
         passportModeActive: passportModeEnabled,
         currentDistanceLimitKm: distanceLimit.isFinite ? distanceLimit : 0,
@@ -346,7 +355,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         status: DeckStatus.ready,
         lastSwipedProfile: swipedProfile,
         lastSwipeDirection: 'right',
-        canRewind: true,
+        canRewind: false,
         errorMessage: null,
         premiumGateSource: null,
       ),
@@ -436,7 +445,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         status: DeckStatus.ready,
         lastSwipedProfile: swipedProfile,
         lastSwipeDirection: 'left',
-        canRewind: true,
+        canRewind: false,
         errorMessage: null,
         premiumGateSource: null,
       ),
@@ -531,7 +540,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         superLikesResetDate: resetDate,
         lastSwipedProfile: swipedProfile,
         lastSwipeDirection: 'superlike',
-        canRewind: true,
+        canRewind: false,
         errorMessage: null,
       ),
     );
@@ -585,99 +594,14 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     DiscoveryRewindRequested event,
     Emitter<DiscoveryState> emit,
   ) async {
-    // Check if rewind is available
-    if (!state.canRewind || state.lastSwipedProfile == null) {
-      emit(
-        state.copyWith(
-          status: DeckStatus.ready,
-          errorMessage: ErrorMessages.noSwipeToUndo,
-        ),
-      );
-      return;
-    }
-
-    final entitlementResult = await checkEntitlementUseCase(
-      const CheckEntitlementParams(
-        feature: SubscriptionEntitlementFeature.rewind,
+    emit(
+      state.copyWith(
+        status: DeckStatus.ready,
+        canRewind: false,
+        premiumGateSource: null,
+        errorMessage: ErrorMessages.rewindUnavailable,
       ),
     );
-
-    if (!entitlementResult.isSuccess || entitlementResult.data == null) {
-      emit(
-        state.copyWith(
-          status: DeckStatus.ready,
-          errorMessage: entitlementResult.errorMessage,
-        ),
-      );
-      return;
-    }
-
-    final entitlement = entitlementResult.data!;
-    if (!entitlement.isAllowed) {
-      emit(
-        state.copyWith(
-          status: DeckStatus.ready,
-          errorMessage: entitlement.blockedMessage,
-          premiumGateSource: entitlement.paywallSource,
-        ),
-      );
-      return;
-    }
-
-    // Call repository to rewind
-    final rewindResult = await Result.guard(
-      () => discoveryRepository.rewindLastSwipe(event.userId),
-      logLabel: 'DiscoveryRepository.rewindLastSwipe',
-      fallbackError: ErrorMessages.rewindFailed,
-    );
-
-    if (rewindResult.isSuccess) {
-      // Restore the profile to the deck
-      final restoredProfile = state.lastSwipedProfile!;
-      final newIndex = (state.currentIndex - 1).clamp(0, state.deck.length);
-
-      // If profile was removed from deck, re-insert it (using immutable pattern)
-      List<Profile> updatedDeck = state.deck;
-      if (newIndex >= state.deck.length ||
-          state.deck[newIndex].id != restoredProfile.id) {
-        updatedDeck = [
-          ...state.deck.sublist(0, newIndex),
-          restoredProfile,
-          ...state.deck.sublist(newIndex),
-        ];
-      }
-
-      // Restore super like if that was the last action
-      var superLikesRemaining = state.superLikesRemaining;
-      if (state.lastSwipeDirection == 'superlike') {
-        superLikesRemaining = state.superLikesRemaining + 1;
-      }
-
-      emit(
-        state.copyWith(
-          deck: updatedDeck,
-          currentIndex: newIndex,
-          status: DeckStatus.ready,
-          lastSwipedProfile: null,
-          lastSwipeDirection: null,
-          canRewind: false,
-          superLikesRemaining: superLikesRemaining,
-          errorMessage: null,
-          premiumGateSource: null,
-        ),
-      );
-
-      // Track rewind
-      AnalyticsService.instance.logRewind();
-    } else {
-      emit(
-        state.copyWith(
-          status: DeckStatus.ready,
-          errorMessage: rewindResult.errorMessage,
-          premiumGateSource: null,
-        ),
-      );
-    }
   }
 
   /// Load more profiles when approaching end of deck.
@@ -686,7 +610,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     // Don't load if already loading or no more profiles
-    if (state.isLoadingMore || !state.hasMoreProfiles) return;
+    if (state.isLoadingMore ||
+        !state.hasMoreProfiles ||
+        state.nextCursor == null) {
+      return;
+    }
 
     emit(state.copyWith(isLoadingMore: true));
 
@@ -704,7 +632,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     );
 
     final deckResult = await Result.guard(
-      () => discoveryRepository.fetchDeck(event.userId, filter: filter),
+      () => discoveryRepository.fetchDeck(
+        event.userId,
+        filter: filter,
+        cursor: state.nextCursor,
+      ),
       logLabel: 'DiscoveryRepository.fetchDeck (pagination)',
       fallbackError: 'Could not load more people.',
     );
@@ -715,6 +647,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     }
 
     final newProfiles = deckResult.data ?? const [];
+    final pageInfo =
+        discoveryRepository.lastDeckPageInfo ??
+        const DiscoveryDeckPageInfo(hasMore: false);
 
     // Filter out profiles already in the deck
     final existingIds = state.deck.map((p) => p.id).toSet();
@@ -726,7 +661,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       state.copyWith(
         isLoadingMore: false,
         deck: [...state.deck, ...uniqueNewProfiles],
-        hasMoreProfiles: uniqueNewProfiles.isNotEmpty,
+        hasMoreProfiles: pageInfo.hasMore,
+        nextCursor: pageInfo.hasMore ? pageInfo.nextCursor : null,
       ),
     );
   }

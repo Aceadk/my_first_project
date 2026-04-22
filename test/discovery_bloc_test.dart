@@ -191,7 +191,7 @@ void main() {
             isA<DiscoveryState>()
                 .having((s) => s.currentIndex, 'currentIndex', 1)
                 .having((s) => s.lastSwipeDirection, 'direction', 'right')
-                .having((s) => s.canRewind, 'canRewind', true),
+                .having((s) => s.canRewind, 'canRewind', false),
           ),
         );
 
@@ -337,7 +337,7 @@ void main() {
             isA<DiscoveryState>()
                 .having((s) => s.currentIndex, 'currentIndex', 1)
                 .having((s) => s.lastSwipeDirection, 'direction', 'left')
-                .having((s) => s.canRewind, 'canRewind', true),
+                .having((s) => s.canRewind, 'canRewind', false),
           ),
         );
 
@@ -421,91 +421,93 @@ void main() {
     });
 
     group('DiscoveryRewindRequested', () {
-      test('free users trigger a paywall instead of rewinding', () async {
-        final profiles = [_testProfile('p1'), _testProfile('p2')];
-        final bloc = DiscoveryBloc(
-          discoveryRepository: _StubDiscoveryRepository(
-            deck: profiles,
-            rewindProfile: profiles[0],
-          ),
-          subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionTier.free,
-          ),
-          authRepository: _StubAuthRepository(),
-          swipeRightUseCase: SwipeRightUseCase(
-            _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionTier.free),
-          ),
-        );
-
-        // Load deck
-        bloc.add(DiscoveryDeckRequested('user-1'));
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Swipe left
-        bloc.add(DiscoverySwipedLeft(userId: 'user-1', targetUserId: 'p1'));
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Rewind
-        bloc.add(DiscoveryRewindRequested('user-1'));
-
-        await expectLater(
-          bloc.stream,
-          emits(
-            isA<DiscoveryState>()
-                .having((s) => s.currentIndex, 'currentIndex', 1)
-                .having(
-                  (s) => s.premiumGateSource,
-                  'premiumGateSource',
-                  'rewind',
-                )
-                .having(
-                  (s) => s.errorMessage,
-                  'error',
-                  ErrorMessages.rewindPremiumOnly,
-                ),
-          ),
-        );
-
-        await bloc.close();
-      });
-
-      test('shows error when no swipe to undo', () async {
-        final profiles = [_testProfile('p1')];
-        final bloc = DiscoveryBloc(
-          discoveryRepository: _StubDiscoveryRepository(deck: profiles),
-          subscriptionRepository: _StubSubscriptionRepository(
-            SubscriptionTier.free,
-          ),
-          authRepository: _StubAuthRepository(),
-          swipeRightUseCase: SwipeRightUseCase(
-            _StubDiscoveryRepository(deck: const []),
-            _StubSubscriptionRepository(SubscriptionTier.free),
-          ),
-        );
-
-        // Load deck but don't swipe
-        bloc.add(DiscoveryDeckRequested('user-1'));
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Try to rewind without swiping
-        bloc.add(DiscoveryRewindRequested('user-1'));
-
-        await expectLater(
-          bloc.stream,
-          emits(
-            isA<DiscoveryState>().having(
-              (s) => s.errorMessage,
-              'error',
-              contains('undo'),
+      test(
+        'rewind is retired and surfaces an explicit unavailable message',
+        () async {
+          final profiles = [_testProfile('p1'), _testProfile('p2')];
+          final bloc = DiscoveryBloc(
+            discoveryRepository: _StubDiscoveryRepository(
+              deck: profiles,
+              rewindProfile: profiles[0],
             ),
-          ),
-        );
+            subscriptionRepository: _StubSubscriptionRepository(
+              SubscriptionTier.free,
+            ),
+            authRepository: _StubAuthRepository(),
+            swipeRightUseCase: SwipeRightUseCase(
+              _StubDiscoveryRepository(deck: const []),
+              _StubSubscriptionRepository(SubscriptionTier.free),
+            ),
+          );
 
-        await bloc.close();
-      });
+          // Load deck
+          bloc.add(DiscoveryDeckRequested('user-1'));
+          await Future.delayed(const Duration(milliseconds: 100));
 
-      test('plus users can rewind without limit', () async {
+          // Swipe left
+          bloc.add(DiscoverySwipedLeft(userId: 'user-1', targetUserId: 'p1'));
+          await Future.delayed(const Duration(milliseconds: 100));
+
+          // Rewind
+          bloc.add(DiscoveryRewindRequested('user-1'));
+
+          await expectLater(
+            bloc.stream,
+            emits(
+              isA<DiscoveryState>()
+                  .having((s) => s.currentIndex, 'currentIndex', 1)
+                  .having((s) => s.premiumGateSource, 'premiumGateSource', null)
+                  .having(
+                    (s) => s.errorMessage,
+                    'error',
+                    ErrorMessages.rewindUnavailable,
+                  ),
+            ),
+          );
+
+          await bloc.close();
+        },
+      );
+
+      test(
+        'shows the same unavailable message when rewind is requested directly',
+        () async {
+          final profiles = [_testProfile('p1')];
+          final bloc = DiscoveryBloc(
+            discoveryRepository: _StubDiscoveryRepository(deck: profiles),
+            subscriptionRepository: _StubSubscriptionRepository(
+              SubscriptionTier.free,
+            ),
+            authRepository: _StubAuthRepository(),
+            swipeRightUseCase: SwipeRightUseCase(
+              _StubDiscoveryRepository(deck: const []),
+              _StubSubscriptionRepository(SubscriptionTier.free),
+            ),
+          );
+
+          // Load deck but don't swipe
+          bloc.add(DiscoveryDeckRequested('user-1'));
+          await Future.delayed(const Duration(milliseconds: 100));
+
+          // Try to rewind without swiping
+          bloc.add(DiscoveryRewindRequested('user-1'));
+
+          await expectLater(
+            bloc.stream,
+            emits(
+              isA<DiscoveryState>().having(
+                (s) => s.errorMessage,
+                'error',
+                ErrorMessages.rewindUnavailable,
+              ),
+            ),
+          );
+
+          await bloc.close();
+        },
+      );
+
+      test('swiping keeps rewind disabled even for plus users', () async {
         final profiles = [_testProfile('p1'), _testProfile('p2')];
         final bloc = DiscoveryBloc(
           discoveryRepository: _StubDiscoveryRepository(
@@ -530,32 +532,32 @@ void main() {
         bloc.add(DiscoverySwipedLeft(userId: 'user-1', targetUserId: 'p1'));
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // Rewind
-        bloc.add(DiscoveryRewindRequested('user-1'));
-
-        await expectLater(
-          bloc.stream,
-          emits(
-            isA<DiscoveryState>()
-                .having((s) => s.currentIndex, 'currentIndex', 0)
-                .having((s) => s.canRewind, 'canRewind', false)
-                .having((s) => s.freeUndoUsedToday, 'freeUndoUsed', false),
-          ),
-        );
+        expect(bloc.state.currentIndex, 1);
+        expect(bloc.state.canRewind, isFalse);
+        expect(bloc.state.freeUndoUsedToday, isFalse);
 
         await bloc.close();
       });
     });
 
     group('DiscoveryLoadMoreRequested', () {
-      test('appends new profiles to deck', () async {
+      test('uses the saved cursor and appends the next page', () async {
         final initialDeck = [_testProfile('p1')];
         final moreDeck = [_testProfile('p2'), _testProfile('p3')];
-        final bloc = DiscoveryBloc(
-          discoveryRepository: _StubDiscoveryRepository(
-            deck: initialDeck,
-            moreDeck: moreDeck,
+        final discoveryRepository = _StubDiscoveryRepository(
+          deck: initialDeck,
+          moreDeck: moreDeck,
+          initialPageInfo: const DiscoveryDeckPageInfo(
+            hasMore: true,
+            nextCursor: 'cursor-1',
           ),
+          loadMorePageInfo: const DiscoveryDeckPageInfo(
+            hasMore: true,
+            nextCursor: 'cursor-2',
+          ),
+        );
+        final bloc = DiscoveryBloc(
+          discoveryRepository: discoveryRepository,
           subscriptionRepository: _StubSubscriptionRepository(
             SubscriptionTier.free,
           ),
@@ -583,9 +585,13 @@ void main() {
             ),
             isA<DiscoveryState>()
                 .having((s) => s.isLoadingMore, 'loading', false)
-                .having((s) => s.deck.length, 'length', 3),
+                .having((s) => s.deck.length, 'length', 3)
+                .having((s) => s.nextCursor, 'nextCursor', 'cursor-2')
+                .having((s) => s.hasMoreProfiles, 'hasMoreProfiles', true),
           ]),
         );
+
+        expect(discoveryRepository.requestedCursors, [null, 'cursor-1']);
 
         await bloc.close();
       });
@@ -612,6 +618,51 @@ void main() {
 
         await bloc.close();
       });
+
+      test(
+        'keeps pagination state when a retry returns only duplicate profiles',
+        () async {
+          final discoveryRepository = _StubDiscoveryRepository(
+            deck: [_testProfile('p1'), _testProfile('p2')],
+            moreDeck: [_testProfile('p2')],
+            initialPageInfo: const DiscoveryDeckPageInfo(
+              hasMore: true,
+              nextCursor: 'cursor-1',
+            ),
+            loadMorePageInfo: const DiscoveryDeckPageInfo(
+              hasMore: true,
+              nextCursor: 'cursor-2',
+            ),
+          );
+          final bloc = DiscoveryBloc(
+            discoveryRepository: discoveryRepository,
+            subscriptionRepository: _StubSubscriptionRepository(
+              SubscriptionTier.free,
+            ),
+            authRepository: _StubAuthRepository(),
+            swipeRightUseCase: SwipeRightUseCase(
+              _StubDiscoveryRepository(deck: const []),
+              _StubSubscriptionRepository(SubscriptionTier.free),
+            ),
+          );
+
+          bloc.add(DiscoveryDeckRequested('user-1'));
+          await Future.delayed(const Duration(milliseconds: 100));
+
+          bloc.add(DiscoveryLoadMoreRequested('user-1'));
+          await Future.delayed(const Duration(milliseconds: 100));
+
+          expect(bloc.state.deck.map((profile) => profile.id).toList(), [
+            'p1',
+            'p2',
+          ]);
+          expect(bloc.state.hasMoreProfiles, isTrue);
+          expect(bloc.state.nextCursor, 'cursor-2');
+          expect(discoveryRepository.requestedCursors, [null, 'cursor-1']);
+
+          await bloc.close();
+        },
+      );
     });
 
     group('DiscoveryMatchCelebrationShown', () {
@@ -791,6 +842,8 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
     this.shouldFailFetch = false,
     this.matchOnSwipeRight,
     this.rewindProfile,
+    this.initialPageInfo,
+    this.loadMorePageInfo,
   });
 
   final List<Profile> deck;
@@ -798,20 +851,37 @@ class _StubDiscoveryRepository implements DiscoveryRepository {
   final bool shouldFailFetch;
   final CrushMatch? matchOnSwipeRight;
   final Profile? rewindProfile;
+  final DiscoveryDeckPageInfo? initialPageInfo;
+  final DiscoveryDeckPageInfo? loadMorePageInfo;
+  final List<String?> requestedCursors = [];
   bool _firstFetch = true;
+  DiscoveryDeckPageInfo? _lastDeckPageInfo;
+
+  @override
+  DiscoveryDeckPageInfo? get lastDeckPageInfo => _lastDeckPageInfo;
 
   @override
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   }) async {
+    requestedCursors.add(cursor);
     if (shouldFailFetch) {
       throw Exception('Failed to fetch deck');
     }
-    if (_firstFetch) {
+    if (_firstFetch && cursor == null) {
       _firstFetch = false;
+      _lastDeckPageInfo =
+          initialPageInfo ??
+          DiscoveryDeckPageInfo(
+            hasMore: moreDeck.isNotEmpty,
+            nextCursor: moreDeck.isNotEmpty ? 'cursor-1' : null,
+          );
       return deck;
     }
+    _lastDeckPageInfo =
+        loadMorePageInfo ?? const DiscoveryDeckPageInfo(hasMore: false);
     return moreDeck;
   }
 

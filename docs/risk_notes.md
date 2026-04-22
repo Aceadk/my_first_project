@@ -1569,19 +1569,20 @@ Updated: 2026-03-13 (compatibility trigger deployed, production backfill complet
 
 ---
 
-### R-062 — Backlog and Workboard References Drifted From Existing TODO Docs (ACTIVE)
+### R-062 — Backlog and Workboard References Drifted From Existing TODO Docs (CLOSED)
 
 Category: Process / Documentation
 
 Description:
-The current planning surface is no longer self-consistent.
-`docs/ai_workboard.md`, `docs/Developer_agent_chat.md`, and `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` still reference a broad set of `docs/TODO_*.md` backlog files that are no longer present in the repository.
-The live repo currently retains only a small set of actionable TODO docs (`TODO_CALLS`, `TODO_SUBSCRIPTION`, `TODO_TESTING_MATRIX`, `TODO_WEBAPP`, plus the master audit index and findings file), but the trackers still point to `28` removed TODO modules.
-This creates audit noise and increases the chance that engineering time is spent on stale or nonexistent backlog items.
+Backlog discovery had drifted away from the real repository state.
+Earlier planning docs referenced a broad set of removed `docs/TODO_*.md` backlog files, which created audit noise and made it harder to tell which TODOs were still actionable.
+On 2026-04-16 the repo first reconciled the surviving backlog docs, then performed a deliberate fresh-start reset back to a module-specific audit structure aligned with the CEO directive.
+The active backlog surface is now explicit again through `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` plus the restored module TODO files.
+Historical references inside older task-log entries remain as history, but they no longer define current planning.
 
-Impact: Medium (planning friction, inaccurate backlog audits, harder prioritization)
+Impact: Low (historical references remain, but active task selection is now grounded)
 
-Likelihood: High (every TODO audit currently encounters the drift)
+Likelihood: Very Low
 
 Affected Areas:
 
@@ -1591,16 +1592,100 @@ Affected Areas:
 
 Mitigation Plan:
 
-- Consolidate planning references onto the TODO docs that still exist.
-- Remove or rewrite dangling references to deleted TODO files in active tracker docs.
-- Treat any future TODO-module references as invalid unless the target file exists in `docs/`.
-- Prefer linking current open work directly to the surviving backlog docs (`TODO_CALLS`, `TODO_SUBSCRIPTION`, `TODO_TESTING_MATRIX`, `TODO_WEBAPP`) until a new canonical backlog structure is deliberately created.
+- Keep `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` as the canonical audit entrypoint.
+- Keep active work in module-specific `docs/TODO_*.md` files rather than rebuilding duplicate consolidated lists.
+- Treat historical references in old task logs as archival context only, not as active backlog sources.
+- Treat any future TODO-module reference as invalid unless the target file exists in `docs/`.
 
-Status: Active (2026-03-30)
+Status: Closed (2026-04-16)
 
 Owner: AI
 
 Created: 2026-03-30
-Updated: 2026-03-30
+Updated: 2026-04-21
+
+---
+
+### R-063 — Samsung ADB Instability Is Blocking Manual Accessibility Verification
+
+Category: Environment / Verification
+
+Description:
+On 2026-04-16 the accessibility auth/profile slice passed targeted analyzer and widget coverage, and the requested Samsung device (`SM A037F`, serial `R9PT70YAHJE`) was initially discoverable via `flutter devices`.
+However, the subsequent `flutter run -d R9PT70YAHJE` attempt failed during startup because `adb` lost the device before log capture (`adb: device 'R9PT70YAHJE' not found`).
+That means the automated accessibility work is verified locally, but the requested manual Android hardware validation on the small-screen target is still blocked by an unstable device connection rather than app-code failure.
+
+Impact: Medium (manual Android validation for the current accessibility slice is delayed)
+
+Likelihood: Medium
+
+Affected Areas:
+
+- `docs/TODO_ACCESSIBILITY.md`
+- `lib/features/auth/presentation/screens/auth_gateway_screen.dart`
+- `lib/features/auth/presentation/screens/permission_rationale_screen.dart`
+- `lib/features/profile/presentation/screens/profile_setup_screen.dart`
+
+Mitigation Plan:
+
+- Keep the targeted accessibility widget lane green so semantics/large-text regressions are still caught without hardware.
+- Retry `adb devices -l` and `flutter run -d R9PT70YAHJE` once the handset connection is stable.
+- Do not close `A11Y-001` or `A11Y-002` until the manual Samsung/TalkBack checks actually run on hardware.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-04-16
+Updated: 2026-04-21
+
+---
+
+### R-064 — Client / Backend API Contract Drift Is Leaving Dead Runtime Paths
+
+Category: Architecture / Client-Backend Integration
+
+Description:
+The 2026-04-19 inventory audit originally found live dead-path risk across
+discovery, chat safety appeal, calls, subscription, profile utility wrappers,
+and HTTP auth.
+The 2026-04-19 API-004 remediation slice plus the 2026-04-21 API-005 follow-up
+removed the production dead paths in the active client wrappers, replaced HTTP
+auth's nonexistent-route assumptions with callable-backed Firebase session
+bridging, and retired discovery rewind explicitly at the runtime/product layer.
+The 2026-04-21 API-006 remediation slice moved the call-signaling callable
+exports onto the same shared callable App Check/error-normalization wrapper
+used elsewhere in the backend, closing the last documented contract-enforcement
+gap from that audit thread.
+
+Impact: Low
+
+Likelihood: Low
+
+Affected Areas:
+
+- `docs/API_CATALOG.md`
+- `functions/src/index.ts`
+- `functions/src/calls/signaling.ts`
+- `functions/src/shared/callable.ts`
+
+Mitigation Plan:
+
+- Keep `docs/API_CATALOG.md` as the canonical current surface and update it
+  before changing client wrappers or routes.
+- Treat `API-004`, `API-005`, and `API-006` as completed
+  contract-reconciliation slices.
+- Keep the shared callable wrapper in `functions/src/shared/callable.ts` as the
+  single enforcement path for callable App Check unless there is a documented,
+  explicitly tested reason to diverge.
+- Keep the corrected contract smoke tests in place so discovery, auth, safety
+  appeal, calls, and subscription paths do not regress back to dead endpoints.
+
+Status: Closed
+
+Owner: AI
+
+Created: 2026-04-19
+Updated: 2026-04-21
 
 ---

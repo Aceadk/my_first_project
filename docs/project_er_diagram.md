@@ -1,6 +1,6 @@
 # Project ER Diagram — CrushHour Dating App
 
-*Last updated: 2026-03-08*
+*Last updated: 2026-04-21*
 
 ---
 
@@ -53,6 +53,7 @@ Total Entities: 26
 Note: Date plan email notifications are sent via Resend and are not persisted as a separate entity.
 Note: Likes You previews are derived from Like records and do not introduce new entities.
 Note: `ChatTransportAdapter` is an application-layer abstraction for chat transport swapability; it does not add new persisted entities.
+Note: Shared callable App Check parity for call signaling is an infrastructure-only change and does not add or alter persisted entities.
 
 ---
 

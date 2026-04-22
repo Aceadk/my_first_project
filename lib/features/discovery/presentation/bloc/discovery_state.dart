@@ -17,6 +17,7 @@ class DiscoveryState extends Equatable {
   final bool isLoading;
   final bool isLoadingMore;
   final bool hasMoreProfiles;
+  final String? nextCursor;
   final DeckStatus status;
   final String? errorMessage;
   final int? nextRetrySeconds;
@@ -63,6 +64,7 @@ class DiscoveryState extends Equatable {
     this.isLoading = false,
     this.isLoadingMore = false,
     this.hasMoreProfiles = true,
+    this.nextCursor,
     this.status = DeckStatus.initial,
     this.errorMessage,
     this.nextRetrySeconds,
@@ -106,6 +108,7 @@ class DiscoveryState extends Equatable {
     bool? isLoading,
     bool? isLoadingMore,
     bool? hasMoreProfiles,
+    Object? nextCursor = _unset,
     DeckStatus? status,
     String? errorMessage, // pass null explicitly to clear
     int? nextRetrySeconds,
@@ -128,6 +131,9 @@ class DiscoveryState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       hasMoreProfiles: hasMoreProfiles ?? this.hasMoreProfiles,
+      nextCursor: identical(nextCursor, _unset)
+          ? this.nextCursor
+          : nextCursor as String?,
       status: status ?? this.status,
       errorMessage: errorMessage,
       nextRetrySeconds: nextRetrySeconds,
@@ -166,6 +172,7 @@ class DiscoveryState extends Equatable {
     isLoading,
     isLoadingMore,
     hasMoreProfiles,
+    nextCursor,
     status,
     errorMessage,
     nextRetrySeconds,

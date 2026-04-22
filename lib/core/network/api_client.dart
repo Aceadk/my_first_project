@@ -17,7 +17,7 @@ enum HttpMethod { get, post, put, patch, delete }
 ///
 /// Features:
 /// - API version negotiation
-/// - Automatic retry with exponential backoff
+/// - Conservative automatic retry for safe read requests
 /// - Request/response interceptors
 /// - Offline detection
 /// - Comprehensive error handling
@@ -480,16 +480,18 @@ class ApiClient {
         // Handle response
         return _handleResponse<T>(apiResponse, parser);
       } on SocketException {
-        // Network error - retry if allowed
-        if (attempt < config.retryCount) {
+        // Transport retries are intentionally conservative. GET requests are
+        // safe to replay after connection failures; write operations are not,
+        // because the server may have processed the request before the client
+        // lost the response.
+        if (_shouldRetryTransportFailure(method, attempt)) {
           attempt++;
           await _delay(attempt);
           continue;
         }
         return ApiResult.failure(ApiError.network('No internet connection'));
       } on TimeoutException {
-        // Timeout - retry if allowed
-        if (attempt < config.retryCount) {
+        if (_shouldRetryTransportFailure(method, attempt)) {
           attempt++;
           await _delay(attempt);
           continue;
@@ -657,6 +659,22 @@ class ApiClient {
   Future<void> _delay(int attempt) {
     final delay = config.retryDelay * (1 << (attempt - 1));
     return Future.delayed(delay);
+  }
+
+  bool _shouldRetryTransportFailure(HttpMethod method, int attempt) {
+    if (attempt >= config.retryCount) {
+      return false;
+    }
+
+    switch (method) {
+      case HttpMethod.get:
+        return true;
+      case HttpMethod.post:
+      case HttpMethod.put:
+      case HttpMethod.patch:
+      case HttpMethod.delete:
+        return false;
+    }
   }
 
   String _generateRequestId() {

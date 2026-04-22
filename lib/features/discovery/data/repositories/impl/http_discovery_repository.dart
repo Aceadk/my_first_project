@@ -13,11 +13,16 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     : _apiClient = apiClient;
 
   final ApiClient _apiClient;
+  DiscoveryDeckPageInfo? _lastDeckPageInfo;
+
+  @override
+  DiscoveryDeckPageInfo? get lastDeckPageInfo => _lastDeckPageInfo;
 
   @override
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   }) async {
     final queryParams = <String, String>{};
     if (filter.maxDistanceKm != null) {
@@ -31,6 +36,9 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     }
     if (filter.effectiveLongitude != null) {
       queryParams['longitude'] = filter.effectiveLongitude.toString();
+    }
+    if (cursor != null) {
+      queryParams['cursor'] = cursor;
     }
 
     final result = await _apiClient.get<Map<String, dynamic>>(
@@ -47,6 +55,10 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     }
 
     final deckDto = DiscoveryDeckDto.fromJson(result.data!);
+    _lastDeckPageInfo = DiscoveryDeckPageInfo(
+      hasMore: deckDto.hasMore,
+      nextCursor: deckDto.nextCursor,
+    );
     return deckDto.profiles
         .map((dto) => DiscoveryMapper.profileFromDiscoveryDto(dto))
         .toList();
@@ -77,16 +89,11 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
       return null;
     }
 
-    final response = SwipeResponseDto.fromJson(result.data!);
-
-    if (response.isMatch == true && response.match != null) {
-      return DiscoveryMapper.matchFromDto(
-        response.match!,
-        currentUserId: userId,
-      );
-    }
-
-    return null;
+    return _matchFromSwipeResponse(
+      responseData: result.data!,
+      currentUserId: userId,
+      targetUserId: targetUserId,
+    );
   }
 
   @override
@@ -115,6 +122,10 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchTopPicks(String userId) async {
     final result = await _apiClient.get<Map<String, dynamic>>(
       ApiEndpoints.discoveryTopPicks,
+      queryParams: const <String, String>{
+        'limit': '10',
+        'requireVerified': 'true',
+      },
       parser: (data) => data as Map<String, dynamic>,
     );
 
@@ -189,9 +200,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
 
   @override
   Future<Profile?> fetchProfileById(String profileId) async {
-    // DISC-002: Use ApiEndpoints.profiles() which sanitizes the ID
     final result = await _apiClient.get<Map<String, dynamic>>(
-      ApiEndpoints.profiles(profileId),
+      ApiEndpoints.profileById(profileId),
       parser: (data) => data as Map<String, dynamic>,
     );
 
@@ -202,10 +212,8 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
       return null;
     }
 
-    final data = result.data!['profile'] as Map<String, dynamic>?;
-    if (data == null) return null;
     return DiscoveryMapper.profileFromDiscoveryDto(
-      DiscoveryProfileDto.fromJson(data),
+      DiscoveryProfileDto.fromJson(result.data!),
     );
   }
 
@@ -220,7 +228,7 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
     );
 
     final result = await _apiClient.post<Map<String, dynamic>>(
-      ApiEndpoints.discoverySuperLike,
+      ApiEndpoints.discoverySwipe,
       body: request.toJson(),
       parser: (data) => data as Map<String, dynamic>,
     );
@@ -232,35 +240,53 @@ class HttpDiscoveryRepository implements DiscoveryRepository {
       return null;
     }
 
-    final response = SwipeResponseDto.fromJson(result.data!);
-    if (response.isMatch == true && response.match != null) {
-      return DiscoveryMapper.matchFromDto(
-        response.match!,
-        currentUserId: userId,
-      );
-    }
-
-    return null;
+    return _matchFromSwipeResponse(
+      responseData: result.data!,
+      currentUserId: userId,
+      targetUserId: targetUserId,
+    );
   }
 
   @override
   Future<Profile?> rewindLastSwipe(String userId) async {
-    final result = await _apiClient.post<Map<String, dynamic>>(
-      ApiEndpoints.discoveryRewind,
-      parser: (data) => data as Map<String, dynamic>,
+    AppLogger.warning(
+      'HttpDiscoveryRepository: Rewind is not yet supported by the REST backend.',
     );
+    return null;
+  }
 
-    if (result.isFailure) {
-      AppLogger.error(
-        'HttpDiscoveryRepository: Rewind failed - ${result.error}',
+  CrushMatch? _matchFromSwipeResponse({
+    required Map<String, dynamic> responseData,
+    required String currentUserId,
+    required String targetUserId,
+  }) {
+    final response = SwipeResponseDto.fromJson(responseData);
+    if (response.isMatch == true && response.match != null) {
+      return DiscoveryMapper.matchFromDto(
+        response.match!,
+        currentUserId: currentUserId,
       );
+    }
+
+    final isMatch = response.isMatch == true || responseData['matched'] == true;
+    if (!isMatch) {
       return null;
     }
 
-    final profileData = result.data!['profile'] as Map<String, dynamic>?;
-    if (profileData == null) return null;
-    return DiscoveryMapper.profileFromDiscoveryDto(
-      DiscoveryProfileDto.fromJson(profileData),
+    final matchId =
+        responseData['match_id'] as String? ??
+        responseData['matchId'] as String?;
+    if (matchId == null || matchId.isEmpty) {
+      return null;
+    }
+
+    return CrushMatch(
+      id: matchId,
+      userId: currentUserId,
+      otherUserId: targetUserId,
+      status: MatchStatus.mutual,
+      preMatchMessageRequestsCount: 0,
+      pinnedForUser: false,
     );
   }
 }

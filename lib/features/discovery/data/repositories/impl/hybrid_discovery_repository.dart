@@ -29,6 +29,10 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
 
   final FirebaseDiscoveryRepository _firebaseRepo;
   final StubDiscoveryRepository? _stubRepo;
+  DiscoveryDeckPageInfo? _lastDeckPageInfo;
+
+  @override
+  DiscoveryDeckPageInfo? get lastDeckPageInfo => _lastDeckPageInfo;
 
   /// Returns true if stub data should be included (debug/profile builds only)
   bool get _includeStubData => !kReleaseMode && _stubRepo != null;
@@ -37,13 +41,20 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   }) async {
     // SECURITY: In release mode, only return real Firebase profiles
     if (!_includeStubData) {
       AppLogger.debug(
         'HybridDiscoveryRepository: RELEASE mode - returning Firebase only',
       );
-      return _firebaseRepo.fetchDeck(userId, filter: filter);
+      final profiles = await _firebaseRepo.fetchDeck(
+        userId,
+        filter: filter,
+        cursor: cursor,
+      );
+      _lastDeckPageInfo = _firebaseRepo.lastDeckPageInfo;
+      return profiles;
     }
 
     // DEBUG/PROFILE: Fetch from both sources in parallel
@@ -55,8 +66,8 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
         'HybridDiscoveryRepository: Fetching deck for user $userId',
       );
       final results = await Future.wait([
-        _firebaseRepo.fetchDeck(userId, filter: filter),
-        _stubRepo!.fetchDeck(userId, filter: filter),
+        _firebaseRepo.fetchDeck(userId, filter: filter, cursor: cursor),
+        _stubRepo!.fetchDeck(userId, filter: filter, cursor: cursor),
       ]);
       firebaseProfiles = results[0];
       stubProfiles = results[1];
@@ -70,7 +81,11 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
       // If Firebase fails, just use stub profiles (debug only)
       AppLogger.error('HybridDiscoveryRepository: Firebase error: $e');
       firebaseProfiles = [];
-      stubProfiles = await _stubRepo!.fetchDeck(userId, filter: filter);
+      stubProfiles = await _stubRepo!.fetchDeck(
+        userId,
+        filter: filter,
+        cursor: cursor,
+      );
     }
 
     // Combine and shuffle - stub profiles included in debug mode only
@@ -78,6 +93,9 @@ class HybridDiscoveryRepository implements DiscoveryRepository {
 
     // Shuffle to mix real and dummy accounts
     combined.shuffle();
+
+    // Cursor pagination is only deterministic in the Firebase-backed release path.
+    _lastDeckPageInfo = const DiscoveryDeckPageInfo(hasMore: false);
 
     return combined;
   }

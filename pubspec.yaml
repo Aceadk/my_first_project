@@ -78,7 +78,7 @@ flutter:
   generate: true
   assets:
     - assets/animations/
-    - assets/icons/
+    - assets/icons/google_logo.png
 
 dev_dependencies:
   flutter_test:

@@ -60,12 +60,26 @@ class PermissionRationaleScreen extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final textScale = MediaQuery.textScalerOf(context).scale(1);
+        final compressedLayout = textScale > 1.3 || constraints.maxHeight < 760;
         final maxWidth = DsBreakpoints.responsiveValue<double>(
           constraints.maxWidth,
           mobile: double.infinity,
           tablet: 480,
           desktop: 480,
         );
+        final contentPadding = compressedLayout
+            ? const EdgeInsets.fromLTRB(
+                DsSpacing.lg,
+                DsSpacing.md,
+                DsSpacing.lg,
+                DsSpacing.lg,
+              )
+            : DsEdgeInsets.allXxl;
+        final heroSize = compressedLayout ? 72.0 : 120.0;
+        final heroIconSize = compressedLayout ? 34.0 : 56.0;
+        final sectionGap = compressedLayout ? DsSpacing.md : DsSpacing.xxxl;
+        final bodyGap = compressedLayout ? DsSpacing.sm : DsSpacing.lg;
 
         return Center(
           child: ConstrainedBox(
@@ -92,184 +106,204 @@ class PermissionRationaleScreen extends StatelessWidget {
                 ),
                 child: SafeArea(
                   child: Padding(
-                    padding: DsEdgeInsets.allXxl,
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          DsGap.xxxl,
-
-                          // Icon circle
-                          Semantics(
-                            image: true,
-                            label: _permissionTypeLabel,
-                            excludeSemantics: true,
-                            child: Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  begin: AlignmentDirectional.topStart,
-                                  end: AlignmentDirectional.bottomEnd,
-                                  colors: [
-                                    DsColors.primary.withValues(alpha: 0.2),
-                                    DsColors.secondary.withValues(alpha: 0.15),
-                                  ],
-                                ),
-                                border: Border.all(
-                                  color: DsColors.primary.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  width: 2,
-                                ),
-                              ),
-                              child: Icon(
-                                icon,
-                                size: 56,
-                                color: DsColors.primary,
-                              ),
-                            ),
-                          ),
-
-                          DsGap.xxxl,
-
-                          // Title
-                          Semantics(
-                            header: true,
-                            child: Text(
-                              title,
-                              style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? DsColors.textPrimaryDark
-                                        : DsColors.textPrimaryLight,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-
-                          DsGap.lg,
-
-                          // Description
-                          Text(
-                            description,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: isDark
-                                      ? DsColors.textMutedDark
-                                      : DsColors.textMutedLight,
-                                  height: 1.5,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-
-                          DsGap.lg,
-
-                          // Privacy assurance chip
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: DsSpacing.lg,
-                              vertical: DsSpacing.sm,
-                            ),
-                            decoration: BoxDecoration(
-                              color: DsColors.success.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(
-                                DsRadius.round,
-                              ),
-                              border: Border.all(
-                                color: DsColors.success.withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Row(
+                    padding: contentPadding,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
-                                  Icons.shield_rounded,
-                                  size: 16,
-                                  color: DsColors.success,
-                                ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: Text(
-                                    _privacyAssuranceText,
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(
-                                          color: DsColors.success,
-                                          fontWeight: FontWeight.w600,
+                                SizedBox(height: sectionGap),
+
+                                // Icon circle
+                                Semantics(
+                                  image: true,
+                                  label: _permissionTypeLabel,
+                                  excludeSemantics: true,
+                                  child: Container(
+                                    width: heroSize,
+                                    height: heroSize,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        begin: AlignmentDirectional.topStart,
+                                        end: AlignmentDirectional.bottomEnd,
+                                        colors: [
+                                          DsColors.primary.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          DsColors.secondary.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                        ],
+                                      ),
+                                      border: Border.all(
+                                        color: DsColors.primary.withValues(
+                                          alpha: 0.3,
                                         ),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      icon,
+                                      size: heroIconSize,
+                                      color: DsColors.primary,
+                                    ),
+                                  ),
+                                ),
+
+                                SizedBox(height: sectionGap),
+
+                                // Title
+                                Semantics(
+                                  header: true,
+                                  child: Text(
+                                    title,
+                                    style:
+                                        (compressedLayout
+                                                ? Theme.of(
+                                                    context,
+                                                  ).textTheme.titleLarge
+                                                : Theme.of(
+                                                    context,
+                                                  ).textTheme.headlineSmall)
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: isDark
+                                                  ? DsColors.textPrimaryDark
+                                                  : DsColors.textPrimaryLight,
+                                            ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+
+                                SizedBox(height: bodyGap),
+
+                                // Description
+                                Text(
+                                  description,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: isDark
+                                            ? DsColors.textMutedDark
+                                            : DsColors.textMutedLight,
+                                        height: 1.5,
+                                      ),
+                                  textAlign: TextAlign.center,
+                                ),
+
+                                SizedBox(height: bodyGap),
+
+                                // Privacy assurance chip
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: DsSpacing.lg,
+                                    vertical: DsSpacing.sm,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: DsColors.success.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                      DsRadius.round,
+                                    ),
+                                    border: Border.all(
+                                      color: DsColors.success.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.shield_rounded,
+                                        size: 16,
+                                        color: DsColors.success,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          _privacyAssuranceText,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: DsColors.success,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                SizedBox(height: sectionGap),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: bodyGap),
+
+                        // Allow button
+                        SizedBox(
+                          width: double.infinity,
+                          child: GlassPrimaryButton(
+                            semanticLabel: 'Allow $title',
+                            onPressed: onAllow,
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.check_rounded, size: 20),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Allow',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
                             ),
                           ),
+                        ),
+                        SizedBox(height: bodyGap),
 
-                          DsGap.xxxl,
-
-                          // Allow button
-                          SizedBox(
-                            width: double.infinity,
-                            child: GlassPrimaryButton(
-                              semanticLabel: 'Allow $title',
-                              onPressed: onAllow,
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.check_rounded, size: 20),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Allow',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                        // Not Now button
+                        SizedBox(
+                          width: double.infinity,
+                          child: GlassOutlinedButton(
+                            semanticLabel: 'Skip this permission for now',
+                            onPressed: onSkip,
+                            child: const Text(
+                              'Not Now',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
+                        ),
+                        SizedBox(height: bodyGap),
 
-                          DsGap.md,
-
-                          // Not Now button
-                          SizedBox(
-                            width: double.infinity,
-                            child: GlassOutlinedButton(
-                              semanticLabel: 'Skip this permission for now',
-                              onPressed: onSkip,
-                              child: const Text(
-                                'Not Now',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                        // Settings reminder
+                        Semantics(
+                          label: 'You can enable this later in Settings',
+                          child: Text(
+                            'You can change this anytime in Settings',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: isDark
+                                      ? DsColors.textMutedDark
+                                      : DsColors.textMutedLight,
+                                  fontSize: 12,
                                 ),
-                              ),
-                            ),
+                            textAlign: TextAlign.center,
                           ),
-
-                          DsGap.md,
-
-                          // Settings reminder
-                          Semantics(
-                            label: 'You can enable this later in Settings',
-                            child: Text(
-                              'You can change this anytime in Settings',
-                              style: Theme.of(context).textTheme.bodySmall
-                                  ?.copyWith(
-                                    color: isDark
-                                        ? DsColors.textMutedDark
-                                        : DsColors.textMutedLight,
-                                    fontSize: 12,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-
-                          DsGap.xxxl,
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

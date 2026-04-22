@@ -416,41 +416,13 @@ class HttpProfileRepository with CachingMixin implements ProfileRepository {
 
   /// Upload multiple photos at once.
   Future<List<String>> uploadPhotos(List<String> filePaths) async {
-    if (!_circuitBreaker.allowRequest()) {
-      throw Exception('Service unavailable (Circuit open)');
+    final uploadedUrls = <String>[];
+    for (var index = 0; index < filePaths.length; index += 1) {
+      uploadedUrls.add(
+        await _uploadPhoto(filePaths[index], isPrimary: index == 0),
+      );
     }
-
-    final files = <File>[];
-    for (final path in filePaths) {
-      final file = File(path);
-      if (!await file.exists()) {
-        throw Exception('Photo file not found: $path');
-      }
-      files.add(file);
-    }
-
-    final result = await _apiClient.uploadFiles<UploadMultipleResponseDto>(
-      endpoint: ApiEndpoints.profilePhotos,
-      files: files,
-      fieldName: 'photos',
-      parser: (data) =>
-          UploadMultipleResponseDto.fromJson(data as Map<String, dynamic>),
-    );
-
-    if (result.isFailure) {
-      _circuitBreaker.recordFailure();
-      throw Exception(result.error?.message ?? 'Failed to upload photos');
-    }
-
-    _circuitBreaker.recordSuccess();
-
-    final urls = result.data?.urls;
-
-    if (urls == null || urls.isEmpty) {
-      throw Exception('No photo URLs returned from server');
-    }
-
-    return urls;
+    return uploadedUrls;
   }
 
   /// Delete a profile photo.
@@ -478,7 +450,7 @@ class HttpProfileRepository with CachingMixin implements ProfileRepository {
     }
 
     final result = await _apiClient.post<void>(
-      '${ApiEndpoints.profilePhotos}/reorder',
+      ApiEndpoints.profilePhotoReorder,
       body: {'photo_ids': photoIds},
     );
 

@@ -19,12 +19,21 @@ import {
   __callSignalingTestHelpers,
   addIceCandidate as addIceCandidateSignaling,
   answerCall as answerCallSignaling,
+  endCallForUser,
   endCall as endCallSignaling,
   enforceCallRingTimeout as enforceCallRingTimeoutSignaling,
   getIceServers as getIceServersSignaling,
+  initiateCallForUser,
   initiateCall as initiateCallSignaling,
   notifyCallSafetyEvent as notifyCallSafetyEventSignaling,
 } from "./calls/signaling";
+import {
+  callable,
+  evaluateCallableAppCheck,
+  isHttpsError,
+  type CallableContext,
+  verifyCallableAppCheck,
+} from "./shared/callable";
 
 const bigquery = new BigQuery();
 const BQ_DATASET = "crushhour_ml";
@@ -423,6 +432,8 @@ const DAILY_LIKE_LIMIT_PLUS = 300;
 const HOURLY_LIKE_LIMIT_FREE = 10; // Hourly throttle for free users
 const HOURLY_LIKE_LIMIT_PLUS = 50; // Hourly throttle for plus users
 const DISCOVERY_PAGE_SIZE = 120;
+const DISCOVERY_QUERY_SCAN_LIMIT = 1000;
+const DISCOVERY_DECK_CURSOR_VERSION = 1;
 
 // Content moderation - comprehensive banned terms list
 // Includes leetspeak and common substitution variations
@@ -508,16 +519,6 @@ const BANNED_TERMS = [
   "fentanyl",
 ];
 
-type CallableContext = functions.https.CallableContext;
-type CallableHandler<TData> = (
-  data: TData,
-  context: CallableContext,
-) => Promise<unknown>;
-
-const isHttpsError = (err: unknown): err is functions.https.HttpsError => {
-  return err instanceof functions.https.HttpsError;
-};
-
 function toAuthHttpsError(err: unknown): functions.https.HttpsError | null {
   const code = (err as { code?: unknown })?.code;
   if (typeof code !== "string") return null;
@@ -548,80 +549,14 @@ function toAuthHttpsError(err: unknown): functions.https.HttpsError | null {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════
-// APP CHECK CONFIGURATION
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * App Check enforcement policy:
- * - Production runtime: enforce
- * - Emulator/local runtime: monitor-only
- */
-const ENFORCE_APP_CHECK = isProductionRuntime;
-
-/**
- * Verify App Check token and optionally enforce it.
- * Returns true if the request has a valid App Check token.
- */
-function verifyAppCheck(context: CallableContext, action: string): boolean {
-  const appCheckToken = context.app;
-
-  if (appCheckToken) {
-    // Valid App Check token present
-    return true;
-  }
-
-  if (ENFORCE_APP_CHECK) {
-    console.warn("App Check: Rejected request without valid token", {
-      action,
-      uid: context.auth?.uid,
-    });
-    throw new functions.https.HttpsError(
-      "failed-precondition",
-      "App Check verification failed. Please update your app.",
-    );
-  }
-
-  // Log warning but allow request (enforcement disabled)
-  console.info("App Check: Request without token (enforcement disabled)", {
-    action,
-    uid: context.auth?.uid,
-  });
-  return false;
-}
-
-function callable<TData>(handler: CallableHandler<TData>) {
-  return functions.https.onCall(
-    async (data: TData, context: CallableContext) => {
-      try {
-        // Verify App Check token (logs warning if missing, throws if enforcement enabled)
-        verifyAppCheck(context, handler.name || "callable");
-
-        return await handler(data, context);
-      } catch (err) {
-        if (isHttpsError(err)) {
-          throw err;
-        }
-        console.error("Callable error", {
-          name: handler.name || "anonymous",
-          uid: context.auth?.uid,
-          error: err,
-        });
-        throw new functions.https.HttpsError(
-          "internal",
-          "Unexpected error. Please try again later.",
-        );
-      }
-    },
-  );
-}
-
 type RestAppCheckOutcome = "valid" | "missing" | "invalid";
 
 interface RestAppCheckEvaluation {
   allowed: boolean;
   outcome: RestAppCheckOutcome;
 }
+
+const ENFORCE_APP_CHECK = isProductionRuntime;
 
 function getRestAppCheckToken(req: Request): string | undefined {
   const headerValue = req.header("X-Firebase-AppCheck");
@@ -2017,10 +1952,51 @@ interface DiscoveryCandidateEvaluationResult {
 interface DiscoveryExclusionSets {
   blockedByMe: Set<string>;
   blockedMe: Set<string>;
+  reportedByMe: Set<string>;
+  reportedMe: Set<string>;
   swiped: Set<string>;
   liked: Set<string>;
   matched: Set<string>;
   combined: Set<string>;
+}
+
+interface DiscoveryDeckCandidate {
+  user: DiscoveryUserSnapshot;
+  score: number;
+  distanceKm?: number;
+  sortActivityMs: number;
+}
+
+interface DiscoveryDeckCursorPayload {
+  version: number;
+  uid: string;
+  scope: string;
+  lastScore: number;
+  lastActivityMs: number;
+  lastUserId: string;
+}
+
+interface DiscoveryDeckPaginationResult {
+  page: DiscoveryDeckCandidate[];
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
+type DiscoveryCandidateQueryOperator = "==" | "in";
+
+interface DiscoveryCandidateQueryFilter {
+  fieldPath: string;
+  op: DiscoveryCandidateQueryOperator;
+  value: boolean | string | string[];
+}
+
+interface DiscoveryCandidateQueryPlan {
+  filters: DiscoveryCandidateQueryFilter[];
+  orderBy: {
+    fieldPath: string;
+    direction: FirebaseFirestore.OrderByDirection;
+  };
+  limit: number;
 }
 
 function normalizeTimestampMillis(value: unknown): number | null {
@@ -2212,7 +2188,7 @@ function buildDiscoveryUserSnapshot(
     mergedProfile,
     options,
   );
-  const moderation = asRecord(userData.moderation);
+  const moderationStatus = resolveDiscoveryModerationStatus(userData);
 
   return {
     id: uid,
@@ -2245,9 +2221,7 @@ function buildDiscoveryUserSnapshot(
     onboardingComplete: userData.onboardingComplete === true,
     profileComplete: userData.profileComplete === true,
     status: toNonEmptyString(userData.status).toLowerCase() || null,
-    moderationStatus:
-      toNonEmptyString(moderation.status || userData.moderationStatus)
-        .toLowerCase() || null,
+    moderationStatus,
     updatedAtMs:
       normalizeTimestampMillis(userData.updatedAt) ??
       normalizeTimestampMillis(userData.createdAt),
@@ -2256,6 +2230,51 @@ function buildDiscoveryUserSnapshot(
       normalizeTimestampMillis(userData.updatedAt) ??
       normalizeTimestampMillis(userData.createdAt),
   };
+}
+
+function discoveryModerationPriority(status: string): number {
+  switch (status) {
+  case "banned":
+    return 50;
+  case "held":
+    return 40;
+  case "needs_review":
+    return 35;
+  case "suspended":
+    return 30;
+  case "watch":
+    return 10;
+  default:
+    return 0;
+  }
+}
+
+function resolveDiscoveryModerationStatus(
+  userData: Record<string, unknown>,
+): string | null {
+  const moderation = asRecord(userData.moderation);
+  const safetyFlags = asRecord(userData.safetyFlags);
+  const candidates = [
+    toNonEmptyString(moderation.status).toLowerCase(),
+    toNonEmptyString(userData.moderationStatus).toLowerCase(),
+    toNonEmptyString(safetyFlags.status).toLowerCase(),
+  ].filter((status): status is string => status.length > 0);
+
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  let selectedStatus = candidates[0];
+  let selectedPriority = discoveryModerationPriority(selectedStatus);
+  for (const candidateStatus of candidates.slice(1)) {
+    const candidatePriority = discoveryModerationPriority(candidateStatus);
+    if (candidatePriority > selectedPriority) {
+      selectedStatus = candidateStatus;
+      selectedPriority = candidatePriority;
+    }
+  }
+
+  return selectedStatus;
 }
 
 function evaluateDiscoveryEligibility(
@@ -2585,6 +2604,269 @@ function buildDiscoveryProfileResponse(
   };
 }
 
+function normalizeDiscoveryDeckSortScore(score: number): number {
+  if (!Number.isFinite(score)) return 0;
+  return Number(score.toFixed(6));
+}
+
+function buildDiscoveryDeckRequestScope(params: {
+  uid: string;
+  minAge: number;
+  maxAge: number;
+  maxDistanceKm: number;
+  showMeGenders: string[];
+  interests: string[];
+  requirePhotos: boolean;
+  requireVerified: boolean;
+  latitude: number | null;
+  longitude: number | null;
+}): string {
+  const roundedLatitude =
+    params.latitude === null ? null : Number(params.latitude.toFixed(6));
+  const roundedLongitude =
+    params.longitude === null ? null : Number(params.longitude.toFixed(6));
+
+  const payload = {
+    uid: params.uid,
+    minAge: params.minAge,
+    maxAge: params.maxAge,
+    maxDistanceKm: params.maxDistanceKm,
+    showMeGenders: [...params.showMeGenders].sort(),
+    interests: [...params.interests].sort(),
+    requirePhotos: params.requirePhotos,
+    requireVerified: params.requireVerified,
+    latitude: roundedLatitude,
+    longitude: roundedLongitude,
+  };
+
+  return crypto
+    .createHash("sha256")
+    .update(JSON.stringify(payload))
+    .digest("hex");
+}
+
+function encodeDiscoveryDeckCursor(
+  payload: DiscoveryDeckCursorPayload,
+): string {
+  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+}
+
+function decodeDiscoveryDeckCursor(cursor: string): DiscoveryDeckCursorPayload {
+  if (cursor.trim().length === 0) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Discovery cursor cannot be empty.",
+    );
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+  } catch {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Discovery cursor is malformed.",
+    );
+  }
+
+  const payload = parsed as Partial<DiscoveryDeckCursorPayload>;
+  if (
+    payload.version !== DISCOVERY_DECK_CURSOR_VERSION ||
+    typeof payload.uid !== "string" ||
+    typeof payload.scope !== "string" ||
+    typeof payload.lastScore !== "number" ||
+    !Number.isFinite(payload.lastScore) ||
+    typeof payload.lastActivityMs !== "number" ||
+    !Number.isFinite(payload.lastActivityMs) ||
+    typeof payload.lastUserId !== "string" ||
+    payload.lastUserId.length === 0
+  ) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Discovery cursor payload is invalid.",
+    );
+  }
+
+  return payload as DiscoveryDeckCursorPayload;
+}
+
+function compareDiscoveryDeckCandidates(
+  a: DiscoveryDeckCandidate,
+  b: DiscoveryDeckCandidate,
+): number {
+  if (a.score !== b.score) {
+    return b.score - a.score;
+  }
+  if (a.sortActivityMs !== b.sortActivityMs) {
+    return b.sortActivityMs - a.sortActivityMs;
+  }
+  return a.user.id.localeCompare(b.user.id);
+}
+
+function isDiscoveryDeckCandidateAfterCursor(
+  candidate: DiscoveryDeckCandidate,
+  cursor: DiscoveryDeckCursorPayload,
+): boolean {
+  if (candidate.score < cursor.lastScore) return true;
+  if (candidate.score > cursor.lastScore) return false;
+  if (candidate.sortActivityMs < cursor.lastActivityMs) return true;
+  if (candidate.sortActivityMs > cursor.lastActivityMs) return false;
+  return candidate.user.id.localeCompare(cursor.lastUserId) > 0;
+}
+
+function paginateDiscoveryDeckCandidates(params: {
+  uid: string;
+  scope: string;
+  candidates: DiscoveryDeckCandidate[];
+  limit: number;
+  cursor?: string;
+}): DiscoveryDeckPaginationResult {
+  let filteredCandidates = params.candidates;
+
+  if (typeof params.cursor === "string" && params.cursor.trim().length > 0) {
+    const cursor = decodeDiscoveryDeckCursor(params.cursor);
+    if (cursor.uid !== params.uid || cursor.scope !== params.scope) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Discovery cursor does not match this request.",
+      );
+    }
+
+    filteredCandidates = params.candidates.filter((candidate) =>
+      isDiscoveryDeckCandidateAfterCursor(candidate, cursor),
+    );
+  }
+
+  const page = filteredCandidates.slice(0, params.limit);
+  const hasMore = filteredCandidates.length > page.length;
+  const lastCandidate = page.length > 0 ? page[page.length - 1] : undefined;
+  const nextCursor =
+    hasMore && lastCandidate
+      ? encodeDiscoveryDeckCursor({
+          version: DISCOVERY_DECK_CURSOR_VERSION,
+          uid: params.uid,
+          scope: params.scope,
+          lastScore: lastCandidate.score,
+          lastActivityMs: lastCandidate.sortActivityMs,
+          lastUserId: lastCandidate.user.id,
+        })
+      : null;
+
+  return {
+    page,
+    hasMore,
+    nextCursor,
+  };
+}
+
+function areAllCanonicalDiscoveryGendersSelected(
+  genders: string[],
+): boolean {
+  if (genders.length !== CANONICAL_DISCOVERY_GENDERS.length) {
+    return false;
+  }
+
+  const selected = new Set(genders);
+  return CANONICAL_DISCOVERY_GENDERS.every((gender) => selected.has(gender));
+}
+
+function buildDiscoveryCandidateQueryPlan(params: {
+  showMeGenders: string[];
+  requireVerified: boolean;
+  limit: number;
+}): DiscoveryCandidateQueryPlan {
+  const filters: DiscoveryCandidateQueryFilter[] = [
+    { fieldPath: "onboardingComplete", op: "==", value: true },
+    { fieldPath: "profileComplete", op: "==", value: true },
+  ];
+
+  const normalizedGenders = [...new Set(params.showMeGenders)].sort();
+  if (
+    normalizedGenders.length > 0 &&
+    !areAllCanonicalDiscoveryGendersSelected(normalizedGenders)
+  ) {
+    filters.push({
+      fieldPath: "gender",
+      op: normalizedGenders.length === 1 ? "==" : "in",
+      value:
+        normalizedGenders.length === 1
+          ? normalizedGenders[0]
+          : normalizedGenders,
+    });
+  }
+
+  if (params.requireVerified) {
+    filters.push({ fieldPath: "isVerified", op: "==", value: true });
+  }
+
+  return {
+    filters,
+    orderBy: {
+      fieldPath: "updatedAt",
+      direction: "desc",
+    },
+    limit: params.limit,
+  };
+}
+
+async function fetchDiscoveryCandidateSnapshotWithFallback(params: {
+  uid: string;
+  source: string;
+  plan: DiscoveryCandidateQueryPlan;
+}): Promise<FirebaseFirestore.QuerySnapshot> {
+  try {
+    let query: FirebaseFirestore.Query = db.collection("users");
+    for (const filter of params.plan.filters) {
+      query = query.where(
+        filter.fieldPath,
+        filter.op as FirebaseFirestore.WhereFilterOp,
+        filter.value as string | string[] | boolean,
+      );
+    }
+
+    return await query
+      .orderBy(params.plan.orderBy.fieldPath, params.plan.orderBy.direction)
+      .limit(params.plan.limit)
+      .get();
+  } catch (err) {
+    console.warn("discovery_prefilter_query_fallback", {
+      uid: params.uid,
+      source: params.source,
+      filters: params.plan.filters.map((filter) => ({
+        fieldPath: filter.fieldPath,
+        op: filter.op,
+      })),
+      error: err instanceof Error ? err.message : String(err),
+    });
+
+    try {
+      return await db
+        .collection("users")
+        .orderBy("updatedAt", "desc")
+        .limit(params.plan.limit)
+        .get();
+    } catch (fallbackErr) {
+      console.warn("discovery_query_order_fallback", {
+        uid: params.uid,
+        source: params.source,
+        error:
+          fallbackErr instanceof Error
+            ? fallbackErr.message
+            : String(fallbackErr),
+      });
+      try {
+        return await db
+          .collection("users")
+          .orderBy("createdAt", "desc")
+          .limit(params.plan.limit)
+          .get();
+      } catch {
+        return db.collection("users").limit(params.plan.limit).get();
+      }
+    }
+  }
+}
+
 function evaluateDiscoveryCandidateForRequester(params: {
   requester: DiscoveryUserSnapshot;
   candidate: DiscoveryUserSnapshot;
@@ -2625,6 +2907,30 @@ function evaluateDiscoveryCandidateForRequester(params: {
           code: "blocked_requester",
           stage: "relationship",
           message: "This profile has blocked the requester.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.reportedByMe.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "reported_by_requester",
+          stage: "relationship",
+          message: "The requester has reported this profile.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.reportedMe.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "reported_requester",
+          stage: "relationship",
+          message: "This profile has reported the requester.",
         },
       ],
     };
@@ -2859,6 +3165,121 @@ function evaluateDiscoveryCandidateForRequester(params: {
       noLocationPenalty,
   };
 }
+
+function readDiscoveryRelationUserId(
+  record: Record<string, unknown>,
+  fieldNames: string[],
+): string | null {
+  for (const fieldName of fieldNames) {
+    const value = optionalString(record[fieldName]);
+    if (value) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function addDiscoveryRelationSet(params: {
+  uid: string;
+  records: Array<Record<string, unknown>>;
+  fieldNames: string[];
+}): Set<string> {
+  const result = new Set<string>();
+
+  for (const record of params.records) {
+    const targetId = readDiscoveryRelationUserId(record, params.fieldNames);
+    if (targetId && targetId !== params.uid) {
+      result.add(targetId);
+    }
+  }
+
+  return result;
+}
+
+function buildDiscoveryExclusionSetsFromRecords(
+  uid: string,
+  sources: {
+    blockedByMe?: Array<Record<string, unknown>>;
+    blockedMe?: Array<Record<string, unknown>>;
+    reportedByMe?: Array<Record<string, unknown>>;
+    reportedMe?: Array<Record<string, unknown>>;
+    likes?: Array<Record<string, unknown>>;
+    swipes?: Array<Record<string, unknown>>;
+    matches?: Array<Record<string, unknown>>;
+  },
+): DiscoveryExclusionSets {
+  const blockedByMe = addDiscoveryRelationSet({
+    uid,
+    records: sources.blockedByMe ?? [],
+    fieldNames: ["blockedId", "blocked_id"],
+  });
+
+  const blockedMe = addDiscoveryRelationSet({
+    uid,
+    records: sources.blockedMe ?? [],
+    fieldNames: ["blockerId", "blocker_id"],
+  });
+
+  const reportedByMe = addDiscoveryRelationSet({
+    uid,
+    records: sources.reportedByMe ?? [],
+    fieldNames: ["reportedId", "reported_id"],
+  });
+
+  const reportedMe = addDiscoveryRelationSet({
+    uid,
+    records: sources.reportedMe ?? [],
+    fieldNames: ["reporterId", "reporter_id"],
+  });
+
+  const liked = addDiscoveryRelationSet({
+    uid,
+    records: sources.likes ?? [],
+    fieldNames: ["toUserId", "to_user_id"],
+  });
+
+  const swiped = addDiscoveryRelationSet({
+    uid,
+    records: sources.swipes ?? [],
+    fieldNames: ["targetId", "swipedUserId", "target_id", "swiped_user_id"],
+  });
+
+  const matched = new Set<string>();
+  for (const record of sources.matches ?? []) {
+    const userIds = Array.isArray(record.userIds)
+      ? record.userIds
+      : Array.isArray(record.participants)
+        ? record.participants
+        : [];
+    for (const otherId of userIds) {
+      if (typeof otherId === "string" && otherId && otherId !== uid) {
+        matched.add(otherId);
+      }
+    }
+  }
+
+  const combined = new Set<string>([
+    uid,
+    ...blockedByMe,
+    ...blockedMe,
+    ...reportedByMe,
+    ...reportedMe,
+    ...liked,
+    ...swiped,
+    ...matched,
+  ]);
+
+  return {
+    blockedByMe,
+    blockedMe,
+    reportedByMe,
+    reportedMe,
+    swiped,
+    liked,
+    matched,
+    combined,
+  };
+}
 // OTP secret is required - never fall back to a predictable value
 const getOtpSecretChecked = () => {
   const otpSecret = getOtpSecret();
@@ -3000,6 +3421,41 @@ function throwRateLimitError(retryAfterMs?: number): never {
     `Too many attempts. Please try again in ${retryTime}.`,
     { retryAfterMs: retryAfterMs ?? 60000 },
   );
+}
+
+function parseBoundedIntQueryParam(
+  value: unknown,
+  {
+    fallback,
+    min,
+    max,
+  }: {
+    fallback: number;
+    min: number;
+    max: number;
+  },
+): number {
+  if (typeof value !== "string") return fallback;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(parsed, min), max);
+}
+
+function parseChatMessagesBeforeCursor(value: unknown): {
+  beforeTimestamp?: Date;
+  beforeMessageId?: string;
+} {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (raw.length === 0) {
+    return {};
+  }
+
+  const parsedDate = new Date(raw);
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return { beforeTimestamp: parsedDate };
+  }
+
+  return { beforeMessageId: raw };
 }
 
 async function logAuthAudit(params: {
@@ -4819,6 +5275,7 @@ type ProfileData = {
 
 interface DiscoveryRequest {
   limit?: number;
+  cursor?: string;
   minAge?: number;
   maxAge?: number;
   maxDistanceKm?: number;
@@ -6144,67 +6601,48 @@ async function ensureNotBlocked(uid: string, targetUserId: string) {
 async function getDiscoveryExclusionSets(
   uid: string,
 ): Promise<DiscoveryExclusionSets> {
-  const [blockedByMeSnap, blockedMeSnap, likesSnap, swipesSnap, matchesSnap] =
-    await Promise.all([
-      db.collection("blocks").where("blockerId", "==", uid).get(),
-      db.collection("blocks").where("blockedId", "==", uid).get(),
-      db.collection("likes").where("fromUserId", "==", uid).limit(1000).get(),
-      db.collection("swipes").where("swiperId", "==", uid).limit(1000).get(),
-      db.collection("matches").where("userIds", "array-contains", uid).get(),
-    ]);
-
-  const blockedByMe = new Set<string>();
-  blockedByMeSnap.forEach((doc) => {
-    const blockedId = optionalString(doc.data().blockedId);
-    if (blockedId) blockedByMe.add(blockedId);
-  });
-
-  const blockedMe = new Set<string>();
-  blockedMeSnap.forEach((doc) => {
-    const blockerId = optionalString(doc.data().blockerId);
-    if (blockerId) blockedMe.add(blockerId);
-  });
-
-  const liked = new Set<string>();
-  likesSnap.forEach((doc) => {
-    const targetId = optionalString(doc.data().toUserId);
-    if (targetId) liked.add(targetId);
-  });
-
-  const swiped = new Set<string>();
-  swipesSnap.forEach((doc) => {
-    const data = doc.data();
-    const targetId = optionalString(data.targetId) ?? optionalString(data.swipedUserId);
-    if (targetId) swiped.add(targetId);
-  });
-
-  const matched = new Set<string>();
-  matchesSnap.forEach((doc) => {
-    const userIds = Array.isArray(doc.data().userIds) ? doc.data().userIds : [];
-    for (const otherId of userIds) {
-      if (typeof otherId === "string" && otherId && otherId !== uid) {
-        matched.add(otherId);
-      }
-    }
-  });
-
-  const combined = new Set<string>([
-    uid,
-    ...blockedByMe,
-    ...blockedMe,
-    ...liked,
-    ...swiped,
-    ...matched,
+  const [
+    blockedByMeSnap,
+    legacyBlockedByMeSnap,
+    blockedMeSnap,
+    legacyBlockedMeSnap,
+    reportedByMeSnap,
+    legacyReportedByMeSnap,
+    reportedMeSnap,
+    legacyReportedMeSnap,
+    likesSnap,
+    swipesSnap,
+    matchesSnap,
+    legacyMatchesSnap,
+  ] = await Promise.all([
+    db.collection("blocks").where("blockerId", "==", uid).get(),
+    db.collection("blocks").where("blocker_id", "==", uid).get(),
+    db.collection("blocks").where("blockedId", "==", uid).get(),
+    db.collection("blocks").where("blocked_id", "==", uid).get(),
+    db.collection("reports").where("reporterId", "==", uid).get(),
+    db.collection("reports").where("reporter_id", "==", uid).get(),
+    db.collection("reports").where("reportedId", "==", uid).get(),
+    db.collection("reports").where("reported_id", "==", uid).get(),
+    db.collection("likes").where("fromUserId", "==", uid).limit(1000).get(),
+    db.collection("swipes").where("swiperId", "==", uid).limit(1000).get(),
+    db.collection("matches").where("userIds", "array-contains", uid).get(),
+    db.collection("matches").where("participants", "array-contains", uid).get(),
   ]);
 
-  return {
-    blockedByMe,
-    blockedMe,
-    swiped,
-    liked,
-    matched,
-    combined,
-  };
+  const records = (snapshots: FirebaseFirestore.QuerySnapshot[]) =>
+    snapshots.flatMap((snapshot) =>
+      snapshot.docs.map((doc) => asRecord(doc.data())),
+    );
+
+  return buildDiscoveryExclusionSetsFromRecords(uid, {
+    blockedByMe: records([blockedByMeSnap, legacyBlockedByMeSnap]),
+    blockedMe: records([blockedMeSnap, legacyBlockedMeSnap]),
+    reportedByMe: records([reportedByMeSnap, legacyReportedByMeSnap]),
+    reportedMe: records([reportedMeSnap, legacyReportedMeSnap]),
+    likes: records([likesSnap]),
+    swipes: records([swipesSnap]),
+    matches: records([matchesSnap, legacyMatchesSnap]),
+  });
 }
 
 function setCorsHeaders(res: functions.Response, req?: functions.Request) {
@@ -6228,7 +6666,15 @@ async function ensureUserInMatch(matchId: string, uid: string) {
     throw new functions.https.HttpsError("not-found", "Match not found.");
   }
   const matchData = matchSnap.data() as FirebaseFirestore.DocumentData;
-  const userIds = (matchData.userIds || []) as string[];
+  const userIds = (
+    Array.isArray(matchData.userIds)
+      ? matchData.userIds
+      : Array.isArray(matchData.users)
+        ? matchData.users
+        : Array.isArray(matchData.participants)
+          ? matchData.participants
+          : []
+  ) as string[];
   if (!userIds.includes(uid)) {
     throw new functions.https.HttpsError(
       "permission-denied",
@@ -7358,46 +7804,39 @@ async function buildDiscoveryDeckPayload(params: {
       interest.toLowerCase(),
     ),
   );
+  const requirePhotos = params.request.requirePhotos === true;
   const requireVerified = params.request.requireVerified === true;
+  const requestScope = buildDiscoveryDeckRequestScope({
+    uid: params.uid,
+    minAge,
+    maxAge,
+    maxDistanceKm,
+    showMeGenders,
+    interests: Array.from(requiredInterests),
+    requirePhotos,
+    requireVerified,
+    latitude: toNumber(params.request.latitude) ?? null,
+    longitude: toNumber(params.request.longitude) ?? null,
+  });
 
-  const myLat = toNumber(params.request.latitude) ?? meSnapshot.latitude;
-  const myLon = toNumber(params.request.longitude) ?? meSnapshot.longitude;
+  const queryLimit = Math.min(
+    DISCOVERY_QUERY_SCAN_LIMIT,
+    Math.max(DISCOVERY_PAGE_SIZE * 4, limit * 20),
+  );
+  const queryPlan = buildDiscoveryCandidateQueryPlan({
+    showMeGenders,
+    requireVerified,
+    limit: queryLimit,
+  });
+  const snap = await fetchDiscoveryCandidateSnapshotWithFallback({
+    uid: params.uid,
+    source: params.source,
+    plan: queryPlan,
+  });
 
-  const queryLimit = Math.max(DISCOVERY_PAGE_SIZE * 2, limit * 8);
-
-  let snap: FirebaseFirestore.QuerySnapshot;
-  try {
-    snap = await db
-      .collection("users")
-      .orderBy("updatedAt", "desc")
-      .limit(queryLimit)
-      .get();
-  } catch (err) {
-    console.warn("discovery_query_order_fallback", {
-      uid: params.uid,
-      source: params.source,
-      error: err instanceof Error ? err.message : String(err),
-    });
-    try {
-      snap = await db
-        .collection("users")
-        .orderBy("createdAt", "desc")
-        .limit(queryLimit)
-        .get();
-    } catch {
-      snap = await db.collection("users").limit(queryLimit).get();
-    }
-  }
-
-  const candidates: Array<{
-    user: DiscoveryUserSnapshot;
-    score: number;
-    distanceKm?: number;
-  }> = [];
+  const candidates: DiscoveryDeckCandidate[] = [];
 
   snap.forEach((doc) => {
-    if (exclusionSets.combined.has(doc.id)) return;
-
     const candidate = buildDiscoveryUserSnapshot(
       doc.id,
       doc.data() as Record<string, unknown>,
@@ -7412,29 +7851,34 @@ async function buildDiscoveryDeckPayload(params: {
         maxDistanceKm,
         showMeGenders,
         interests: Array.from(requiredInterests),
+        requirePhotos,
         requireVerified,
       },
       exclusionSets,
     });
     if (!evaluation.included) return;
 
+    const score = normalizeDiscoveryDeckSortScore(evaluation.score ?? 0);
     candidates.push({
       user: candidate,
-      score: evaluation.score ?? 0,
+      score,
       distanceKm: evaluation.distanceKm,
+      sortActivityMs: candidate.updatedAtMs ?? candidate.lastActiveMs ?? 0,
     });
   });
 
-  candidates.sort((a, b) => {
-    if (b.score !== a.score) return b.score - a.score;
-    const bTime = b.user.updatedAtMs ?? b.user.lastActiveMs ?? 0;
-    const aTime = a.user.updatedAtMs ?? a.user.lastActiveMs ?? 0;
-    return bTime - aTime;
+  candidates.sort(compareDiscoveryDeckCandidates);
+
+  const pagination = paginateDiscoveryDeckCandidates({
+    uid: params.uid,
+    scope: requestScope,
+    candidates,
+    limit,
+    cursor: params.request.cursor,
   });
 
   return {
-    candidates: candidates
-      .slice(0, limit)
+    candidates: pagination.page
       .map((candidate) =>
         buildDiscoveryProfileResponse(
           candidate.user,
@@ -7443,6 +7887,8 @@ async function buildDiscoveryDeckPayload(params: {
         ),
       ),
     total: candidates.length,
+    hasMore: pagination.hasMore,
+    nextCursor: pagination.nextCursor,
     requesterStatus: {
       eligible: requesterStatus.eligible,
       reasons: requesterStatus.reasons,
@@ -8617,6 +9063,10 @@ export const syncSubscriptionStatus = callable(async (_data, context) => {
 // Expose helpers for testing
 export const __test__helpers = {
   clearExpressRateLimitStore: () => rateLimitStore.clear(),
+  setUploadValidationTestOverrides,
+  resetUploadValidationTestOverrides,
+  evaluateCallableAppCheck,
+  parseChatMessagesBeforeCursor,
   requireAuth,
   requireString,
   optionalString,
@@ -8645,7 +9095,13 @@ export const __test__helpers = {
   evaluateDiscoveryEligibility,
   buildDiscoveryDebugSummary,
   buildLegacyDiscoveryMirrorPatch,
+  buildDiscoveryExclusionSetsFromRecords,
   evaluateDiscoveryCandidateForRequester,
+  buildDiscoveryDeckRequestScope,
+  encodeDiscoveryDeckCursor,
+  decodeDiscoveryDeckCursor,
+  paginateDiscoveryDeckCandidates,
+  buildDiscoveryCandidateQueryPlan,
   buildDiscoveryDeckPayload,
   evaluateProfileCompleteness,
   ensureProfileQuality,
@@ -8883,7 +9339,6 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
 // ═══════════════════════════════════════════════════════════════════════════
 
 const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
 const PROFILE_PHOTO_MAX_BYTES = 10 * 1024 * 1024; // 10MB
 const PROFILE_PHOTO_ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
@@ -8899,10 +9354,117 @@ const PROFILE_PHOTO_EXTENSION_BY_MIME: Record<string, string> = {
   "image/heic": "heic",
   "image/heif": "heif",
 };
+type ChatMediaUploadKind = "image" | "video" | "audio";
+const CHAT_MEDIA_MAX_BYTES_BY_KIND: Record<ChatMediaUploadKind, number> = {
+  image: 25 * 1024 * 1024,
+  video: 100 * 1024 * 1024,
+  audio: 25 * 1024 * 1024,
+};
+const CHAT_MEDIA_ALLOWED_MIME_TYPES_BY_KIND: Record<
+  ChatMediaUploadKind,
+  Set<string>
+> = {
+  image: new Set([
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+  ]),
+  video: new Set([
+    "video/mp4",
+    "video/quicktime",
+    "video/x-msvideo",
+    "video/webm",
+  ]),
+  audio: new Set([
+    "audio/mpeg",
+    "audio/mp4",
+    "audio/aac",
+    "audio/wav",
+    "audio/ogg",
+  ]),
+};
+const CHAT_MEDIA_EXTENSION_BY_MIME: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "image/heic": "heic",
+  "image/heif": "heif",
+  "video/mp4": "mp4",
+  "video/quicktime": "mov",
+  "video/x-msvideo": "avi",
+  "video/webm": "webm",
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "audio/aac": "aac",
+  "audio/wav": "wav",
+  "audio/ogg": "ogg",
+};
+const CHAT_MEDIA_MAX_BYTES = Math.max(
+  ...Object.values(CHAT_MEDIA_MAX_BYTES_BY_KIND),
+);
 const profilePhotoUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: PROFILE_PHOTO_MAX_BYTES },
 });
+const chatMediaUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: CHAT_MEDIA_MAX_BYTES },
+});
+
+type FileTypeDetectionResult = { mime: string; ext: string };
+type FileTypeDetector = (
+  buffer: Buffer,
+) => Promise<FileTypeDetectionResult | undefined>;
+type SafeSearchDetector = (
+  buffer: Buffer,
+) => Promise<Array<{ safeSearchAnnotation?: unknown }>>;
+type FaceDetectionDetector = (
+  buffer: Buffer,
+) => Promise<Array<{ faceAnnotations?: unknown[] | null }>>;
+
+let detectFileTypeFromBuffer: FileTypeDetector = async (buffer) =>
+  fileType.fromBuffer(buffer);
+let safeSearchImageContent: SafeSearchDetector = async (buffer) =>
+  visionClient.safeSearchDetection(buffer);
+let detectImageFaces: FaceDetectionDetector = async (buffer) =>
+  visionClient.faceDetection(buffer);
+
+function setUploadValidationTestOverrides(overrides: {
+  detectFileTypeFromBuffer?: FileTypeDetector;
+  safeSearchImageContent?: SafeSearchDetector;
+  detectImageFaces?: FaceDetectionDetector;
+}): void {
+  if (overrides.detectFileTypeFromBuffer) {
+    detectFileTypeFromBuffer = overrides.detectFileTypeFromBuffer;
+  }
+  if (overrides.safeSearchImageContent) {
+    safeSearchImageContent = overrides.safeSearchImageContent;
+  }
+  if (overrides.detectImageFaces) {
+    detectImageFaces = overrides.detectImageFaces;
+  }
+}
+
+function resetUploadValidationTestOverrides(): void {
+  detectFileTypeFromBuffer = async (buffer) => fileType.fromBuffer(buffer);
+  safeSearchImageContent = async (buffer) =>
+    visionClient.safeSearchDetection(buffer);
+  detectImageFaces = async (buffer) => visionClient.faceDetection(buffer);
+}
+
+class UploadValidationError extends Error {
+  constructor(
+    readonly statusCode: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "UploadValidationError";
+  }
+}
 
 function profilePhotoUploadMiddleware(
   req: Request,
@@ -8925,6 +9487,138 @@ function profilePhotoUploadMiddleware(
     console.error("Profile photo upload middleware error:", err);
     res.status(400).json({ error: "Invalid photo upload payload." });
   });
+}
+
+function chatMediaUploadMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  chatMediaUpload.single("media")(req, res, (err: unknown) => {
+    if (!err) {
+      next();
+      return;
+    }
+
+    if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+      res.status(413).json({
+        error: `Media exceeds maximum size of ${Math.round(CHAT_MEDIA_MAX_BYTES / (1024 * 1024))}MB.`,
+      });
+      return;
+    }
+
+    console.error("Chat media upload middleware error:", err);
+    res.status(400).json({ error: "Invalid media upload payload." });
+  });
+}
+
+function normalizeUploadedMimeType(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+
+  switch (normalized) {
+    case "image/jpg":
+      return "image/jpeg";
+    case "image/x-png":
+      return "image/png";
+    case "audio/x-wav":
+    case "audio/vnd.wave":
+      return "audio/wav";
+    case "audio/x-m4a":
+      return "audio/mp4";
+    default:
+      return normalized;
+  }
+}
+
+function bytesToMb(bytes: number): number {
+  return Math.round(bytes / (1024 * 1024));
+}
+
+function allowedMimeTypesMessage(allowedMimeTypes: Set<string>): string {
+  return Array.from(allowedMimeTypes).sort().join(", ");
+}
+
+function parseChatMediaUploadKind(value: unknown): ChatMediaUploadKind | null {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().toLowerCase();
+  switch (normalized) {
+    case "image":
+      return "image";
+    case "video":
+      return "video";
+    case "audio":
+    case "voice":
+      return "audio";
+    default:
+      return null;
+  }
+}
+
+async function validateBinaryUpload(params: {
+  file: Express.Multer.File | undefined;
+  fieldLabel: string;
+  maxBytes: number;
+  allowedMimeTypes: Set<string>;
+  extensionByMime: Record<string, string>;
+  unsupportedTypeMessage: string;
+}): Promise<{
+  mimeType: string;
+  extension: string;
+  sizeBytes: number;
+}> {
+  const { file } = params;
+  if (!file) {
+    throw new UploadValidationError(400, "No file uploaded");
+  }
+
+  const sizeBytes =
+    typeof file.size === "number" ? file.size : file.buffer?.length ?? 0;
+  if (!Buffer.isBuffer(file.buffer) || file.buffer.length === 0 || sizeBytes <= 0) {
+    throw new UploadValidationError(
+      400,
+      `${params.fieldLabel} upload payload is empty.`,
+    );
+  }
+
+  if (sizeBytes > params.maxBytes) {
+    throw new UploadValidationError(
+      413,
+      `${params.fieldLabel} exceeds maximum size of ${bytesToMb(params.maxBytes)}MB.`,
+    );
+  }
+
+  const claimedMimeType = normalizeUploadedMimeType(file.mimetype);
+  if (
+    !claimedMimeType ||
+    !params.allowedMimeTypes.has(claimedMimeType)
+  ) {
+    throw new UploadValidationError(415, params.unsupportedTypeMessage);
+  }
+
+  const detectedType = await detectFileTypeFromBuffer(file.buffer);
+  const detectedMimeType = normalizeUploadedMimeType(detectedType?.mime);
+  if (
+    !detectedMimeType ||
+    !params.allowedMimeTypes.has(detectedMimeType)
+  ) {
+    throw new UploadValidationError(
+      415,
+      "Invalid file magic bytes. File appears to be spoofed or unsupported.",
+    );
+  }
+
+  const extension = params.extensionByMime[detectedMimeType];
+  if (!extension) {
+    throw new UploadValidationError(415, params.unsupportedTypeMessage);
+  }
+
+  return {
+    mimeType: detectedMimeType,
+    extension,
+    sizeBytes,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -9491,55 +10185,40 @@ app.post(
   profilePhotoUploadMiddleware,
   async (req: AuthRequest, res: Response) => {
     try {
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
-      }
-
-      const mimeType = (req.file.mimetype || "").toLowerCase();
-      if (!PROFILE_PHOTO_ALLOWED_MIME_TYPES.has(mimeType)) {
-        return res.status(415).json({
-          error:
-            "Unsupported photo type. Allowed types: image/jpeg, image/png, image/webp, image/heic, image/heif.",
-        });
-      }
-      if (req.file.size > PROFILE_PHOTO_MAX_BYTES) {
-        return res.status(413).json({
-          error: `Photo exceeds maximum size of ${Math.round(PROFILE_PHOTO_MAX_BYTES / (1024 * 1024))}MB.`,
-        });
-      }
-
-      const extension = PROFILE_PHOTO_EXTENSION_BY_MIME[mimeType];
-      if (!extension) {
-        return res.status(415).json({ error: "Unsupported photo type." });
-      }
-
-      // Verify Magic Bytes
-      const fileTypeResult = await fileType.fromBuffer(req.file.buffer);
-      if (
-        !fileTypeResult ||
-        !PROFILE_PHOTO_ALLOWED_MIME_TYPES.has(fileTypeResult.mime)
-      ) {
-        return res.status(415).json({
-          error:
-            "Invalid file magic bytes. File appears to be spoofed or unsupported.",
-        });
-      }
-
       const isPrimary = req.body.is_primary === "true";
+      const userRef = db.collection("users").doc(req.uid!);
+      const userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const validatedUpload = await validateBinaryUpload({
+        file: req.file,
+        fieldLabel: "Photo",
+        maxBytes: PROFILE_PHOTO_MAX_BYTES,
+        allowedMimeTypes: PROFILE_PHOTO_ALLOWED_MIME_TYPES,
+        extensionByMime: PROFILE_PHOTO_EXTENSION_BY_MIME,
+        unsupportedTypeMessage: `Unsupported photo type. Allowed types: ${allowedMimeTypesMessage(PROFILE_PHOTO_ALLOWED_MIME_TYPES)}.`,
+      });
 
       // Google Cloud Vision Moderation
       try {
-        const [result] = await visionClient.safeSearchDetection(
-          req.file.buffer,
-        );
-        const detections = result.safeSearchAnnotation;
+        const [result] = await safeSearchImageContent(req.file!.buffer);
+        const detections =
+          result.safeSearchAnnotation &&
+          typeof result.safeSearchAnnotation === "object"
+            ? (result.safeSearchAnnotation as Record<string, unknown>)
+            : null;
         if (detections) {
-          const isExplicit = [
+          const likelihoodValues = [
             detections.adult,
             detections.violence,
             detections.medical,
             detections.spoof,
-          ].some(
+          ].map((likelihood) =>
+            typeof likelihood === "string" ? likelihood : null,
+          );
+          const isExplicit = likelihoodValues.some(
             (likelihood) =>
               likelihood === "LIKELY" || likelihood === "VERY_LIKELY",
           );
@@ -9552,9 +10231,7 @@ app.post(
 
         // Face Detection for primary photos
         if (isPrimary) {
-          const [faceResult] = await visionClient.faceDetection(
-            req.file.buffer,
-          );
+          const [faceResult] = await detectImageFaces(req.file!.buffer);
           const faces = faceResult.faceAnnotations;
           if (!faces || faces.length === 0) {
             return res.status(400).json({
@@ -9570,13 +10247,13 @@ app.post(
       }
 
       const bucket = admin.storage().bucket();
-      const fileName = `photos/${req.uid}/${Date.now()}_${crypto.randomUUID()}.${extension}`;
+      const fileName = `photos/${req.uid}/${Date.now()}_${crypto.randomUUID()}.${validatedUpload.extension}`;
       const file = bucket.file(fileName);
       const downloadToken = crypto.randomUUID();
 
-      await file.save(req.file.buffer, {
+      await file.save(req.file!.buffer, {
         metadata: {
-          contentType: mimeType,
+          contentType: validatedUpload.mimeType,
           metadata: {
             firebaseStorageDownloadTokens: downloadToken,
           },
@@ -9588,11 +10265,6 @@ app.post(
       const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
 
       // Update user's photo array
-      const userRef = db.collection("users").doc(req.uid!);
-      const userDoc = await userRef.get();
-      if (!userDoc.exists) {
-        return res.status(404).json({ error: "User not found" });
-      }
       const userData = userDoc.data() || {};
       const profile = userData.profile || {};
       const photos = profile.photoUrls || [];
@@ -9615,6 +10287,9 @@ app.post(
       });
     } catch (err) {
       console.error("Upload photo error:", err);
+      if (err instanceof UploadValidationError) {
+        return res.status(err.statusCode).json({ error: err.message });
+      }
       return res.status(500).json({ error: "Failed to upload photo" });
     }
   },
@@ -9673,6 +10348,72 @@ app.delete(
     } catch (err) {
       console.error("Delete photo error:", err);
       return res.status(500).json({ error: "Failed to delete photo" });
+    }
+  },
+);
+
+// Reorder photos
+app.post(
+  "/v1/profile/photos/reorder",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const photoIds = Array.isArray(req.body?.photo_ids)
+        ? (req.body.photo_ids as unknown[]).map((value) => String(value))
+        : [];
+      if (photoIds.length === 0) {
+        return res.status(400).json({ error: "photo_ids must be a non-empty array." });
+      }
+
+      const userRef = db.collection("users").doc(req.uid!);
+      const userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const profile = (userDoc.data()?.profile ?? {}) as Record<string, unknown>;
+      const currentPhotos = toStringArray(profile.photoUrls);
+      if (currentPhotos.length !== photoIds.length) {
+        return res.status(400).json({
+          error: "photo_ids must include every current photo exactly once.",
+        });
+      }
+
+      const requestedIndexes = photoIds.map((photoId) => parseProfilePhotoIndex(photoId));
+      if (requestedIndexes.some((index) => index == null)) {
+        return res.status(400).json({
+          error: "Each photo id must use the format photo_<index>.",
+        });
+      }
+
+      const normalizedIndexes = requestedIndexes.map((index) => index as number);
+      const uniqueIndexes = new Set(normalizedIndexes);
+      if (
+        uniqueIndexes.size !== currentPhotos.length ||
+        normalizedIndexes.some((index) => index < 0 || index >= currentPhotos.length)
+      ) {
+        return res.status(400).json({
+          error: "photo_ids must reference each existing photo exactly once.",
+        });
+      }
+
+      const reorderedPhotos = normalizedIndexes.map((index) => currentPhotos[index]);
+      await userRef.update({
+        "profile.photoUrls": reorderedPhotos,
+        "profile.updatedAt": serverTimestamp(),
+      });
+
+      return res.json({
+        success: true,
+        photos: reorderedPhotos.map((url, index) => ({
+          id: `photo_${index}`,
+          url,
+          is_primary: index === 0,
+        })),
+      });
+    } catch (err) {
+      console.error("Reorder photos error:", err);
+      return res.status(500).json({ error: "Failed to reorder photos" });
     }
   },
 );
@@ -9797,6 +10538,8 @@ app.get(
             typeof req.query.limit === "string"
               ? Number(req.query.limit)
               : undefined,
+          cursor:
+            typeof req.query.cursor === "string" ? req.query.cursor : undefined,
           minAge:
             typeof req.query.minAge === "string"
               ? Number(req.query.minAge)
@@ -9860,12 +10603,175 @@ app.get(
           typeof payload.total === "number"
             ? payload.total
             : profiles.length, // Keep for backward compatibility
-        has_more: profiles.length >= 20,
+        has_more: payload.hasMore === true,
+        hasMore: payload.hasMore === true,
+        next_cursor:
+          typeof payload.nextCursor === "string" ? payload.nextCursor : null,
+        nextCursor:
+          typeof payload.nextCursor === "string" ? payload.nextCursor : null,
         requester_status: payload.requesterStatus ?? null,
       });
     } catch (err) {
       console.error("Get deck error:", err);
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
       return res.status(500).json({ error: "Failed to get discovery deck" });
+    }
+  },
+);
+
+// People who liked the current user
+app.get(
+  "/v1/discovery/likes-you",
+  authMiddleware,
+  rateLimitDiscovery,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const offset = parseBoundedIntQueryParam(req.query.offset, {
+        fallback: 0,
+        min: 0,
+        max: 5000,
+      });
+      const hasExplicitLimit =
+        typeof req.query.limit === "string" && req.query.limit.trim().length > 0;
+      const limit = hasExplicitLimit
+        ? parseBoundedIntQueryParam(req.query.limit, {
+          fallback: 25,
+          min: 1,
+          max: 100,
+        })
+        : null;
+
+      const [likesSnap, swipesSnap] = await Promise.all([
+        db.collection("likes").where("toUserId", "==", req.uid!).get(),
+        db.collection("swipes").where("targetId", "==", req.uid!).get(),
+      ]);
+
+      const relations: Array<{
+        likerId: string;
+        createdAt: Date | null;
+        source: "likes" | "swipes";
+      }> = [];
+
+      likesSnap.docs.forEach((doc) => {
+        const data = doc.data();
+        const likerId = optionalString(data.fromUserId) ?? "";
+        if (!likerId || likerId === req.uid) {
+          return;
+        }
+
+        relations.push({
+          likerId,
+          createdAt: normalizeDate(data.createdAt),
+          source: "likes",
+        });
+      });
+
+      swipesSnap.docs.forEach((doc) => {
+        const data = doc.data();
+        const action = typeof data.action === "string" ? data.action : "";
+        if (action === "like" || action === "super_like") {
+          const likerId = optionalString(data.swiperId) ?? "";
+          if (!likerId || likerId === req.uid) {
+            return;
+          }
+
+          relations.push({
+            likerId,
+            createdAt: normalizeDate(data.createdAt),
+            source: "swipes",
+          });
+        }
+      });
+
+      relations.sort((left, right) => {
+        const timeDiff =
+          (right.createdAt?.getTime() ?? 0) - (left.createdAt?.getTime() ?? 0);
+        if (timeDiff !== 0) {
+          return timeDiff;
+        }
+
+        const likerDiff = left.likerId.localeCompare(right.likerId);
+        if (likerDiff !== 0) {
+          return likerDiff;
+        }
+
+        return left.source.localeCompare(right.source);
+      });
+
+      const likerIds: string[] = [];
+      const seenLikerIds = new Set<string>();
+      for (const relation of relations) {
+        if (seenLikerIds.has(relation.likerId)) {
+          continue;
+        }
+
+        seenLikerIds.add(relation.likerId);
+        likerIds.push(relation.likerId);
+      }
+
+      const totalCount = likerIds.length;
+      if (totalCount === 0) {
+        return res.json({
+          candidates: [],
+          profiles: [],
+          total_count: 0,
+          has_more: false,
+          next_offset: null,
+        });
+      }
+
+      const safeOffset = Math.min(offset, totalCount);
+      const pageSize = limit ?? Math.max(totalCount - safeOffset, 0);
+      const pageLikerIds = likerIds.slice(safeOffset, safeOffset + pageSize);
+      const hasMore = safeOffset + pageLikerIds.length < totalCount;
+      const nextOffset = hasMore ? safeOffset + pageLikerIds.length : null;
+
+      const userDocs = new Map<string, FirebaseFirestore.DocumentData>();
+      for (let i = 0; i < pageLikerIds.length; i += 30) {
+        const chunk = pageLikerIds.slice(i, i + 30);
+        const usersSnap = await db
+          .collection("users")
+          .where(admin.firestore.FieldPath.documentId(), "in", chunk)
+          .get();
+        usersSnap.docs.forEach((doc) => userDocs.set(doc.id, doc.data()));
+      }
+
+      const profiles = pageLikerIds.map((likerId) => {
+        const userData = userDocs.get(likerId) ?? {};
+        const profile = (userData.profile ?? {}) as Record<string, unknown>;
+        return {
+          id: likerId,
+          display_name:
+            optionalString(profile.name) ??
+            optionalString(profile.displayName) ??
+            "Someone",
+          age: deriveProfileAge(profile),
+          bio: optionalString(profile.bio) ?? null,
+          city: optionalString(profile.city) ?? null,
+          photos: toStringArray(profile.photoUrls).map((url, index) => ({
+            id: `photo_${index}`,
+            url,
+            is_primary: index === 0,
+          })),
+          interests: toStringArray(profile.interests),
+          is_verified: userData.idVerified === true,
+        };
+      });
+
+      return res.json({
+        candidates: profiles,
+        profiles,
+        total_count: totalCount,
+        has_more: hasMore,
+        next_offset: nextOffset,
+      });
+    } catch (err) {
+      console.error("Get likes-you error:", err);
+      return res.status(500).json({ error: "Failed to get likes-you profiles" });
     }
   },
 );
@@ -9968,25 +10874,69 @@ app.post(
 app.get(
   "/v1/matches",
   authMiddleware,
+  rateLimitDefault,
   async (req: AuthRequest, res: Response) => {
     try {
-      const offset = parseInt(req.query.offset as string) || 0;
-      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = parseBoundedIntQueryParam(req.query.offset, {
+        fallback: 0,
+        min: 0,
+        max: 5000,
+      });
+      const limit = parseBoundedIntQueryParam(req.query.limit, {
+        fallback: 20,
+        min: 1,
+        max: 50,
+      });
+      const beforeRaw =
+        typeof req.query.before === "string" ? req.query.before.trim() : "";
+      const beforeTimestamp =
+        beforeRaw.length > 0 ? new Date(beforeRaw) : undefined;
 
-      const matchesSnap = await db
-        .collection("matches")
-        .where("users", "array-contains", req.uid)
-        .orderBy("lastMessageAt", "desc")
-        .offset(offset)
-        .limit(limit)
-        .get();
-
-      if (matchesSnap.empty) {
-        return res.json({ matches: [], total_count: 0, has_more: false });
+      if (
+        beforeRaw.length > 0 &&
+        (!beforeTimestamp || Number.isNaN(beforeTimestamp.getTime()))
+      ) {
+        return res.status(400).json({ error: "Invalid before cursor" });
       }
 
+      let matchesQuery = db
+        .collection("matches")
+        .where("users", "array-contains", req.uid)
+        .orderBy("lastMessageAt", "desc");
+
+      if (beforeTimestamp) {
+        matchesQuery = matchesQuery.where(
+          "lastMessageAt",
+          "<",
+          admin.firestore.Timestamp.fromDate(beforeTimestamp),
+        );
+      } else if (offset > 0) {
+        matchesQuery = matchesQuery.offset(offset);
+      }
+
+      const matchesSnap = await matchesQuery.limit(limit + 1).get();
+
+      if (matchesSnap.empty) {
+        return res.json({
+          matches: [],
+          total_count: 0,
+          has_more: false,
+          next_cursor: null,
+        });
+      }
+
+      const totalCountSnap = await db
+        .collection("matches")
+        .where("users", "array-contains", req.uid)
+        .count()
+        .get();
+      const totalCount = totalCountSnap.data().count ?? matchesSnap.size;
+      const hasMore = matchesSnap.docs.length > limit;
+      const pageDocs =
+        hasMore ? matchesSnap.docs.slice(0, limit) : matchesSnap.docs;
+
       // Collect all other user IDs
-      const otherUserIds = matchesSnap.docs
+      const otherUserIds = pageDocs
         .map((doc) => doc.data().users.find((id: string) => id !== req.uid))
         .filter(Boolean);
 
@@ -10010,7 +10960,7 @@ app.get(
         );
       }
 
-      const matches = matchesSnap.docs.map((doc) => {
+      const matches = pageDocs.map((doc) => {
         const data = doc.data();
         const otherUserId = data.users.find((id: string) => id !== req.uid);
         const otherUserData = usersMap.get(otherUserId) || {};
@@ -10026,10 +10976,16 @@ app.get(
         };
       });
 
+      const nextCursorDate =
+        hasMore && pageDocs.length > 0
+          ? pageDocs[pageDocs.length - 1].data().lastMessageAt?.toDate?.()
+          : null;
+
       res.json({
         matches,
-        total_count: matches.length,
-        has_more: matches.length >= limit,
+        total_count: totalCount,
+        has_more: hasMore,
+        next_cursor: nextCursorDate ? nextCursorDate.toISOString() : null,
       });
     } catch (err) {
       console.error("Get matches error:", err);
@@ -10077,18 +11033,61 @@ app.get(
   rateLimitDefault,
   async (req: AuthRequest, res: Response) => {
     try {
-      const matchesSnap = await db
-        .collection("matches")
-        .where("users", "array-contains", req.uid)
-        .orderBy("lastMessageAt", "desc")
-        .limit(50)
-        .get();
+      const limit = parseBoundedIntQueryParam(req.query.limit, {
+        fallback: 50,
+        min: 1,
+        max: 100,
+      });
+      const beforeRaw =
+        typeof req.query.before === "string" ? req.query.before.trim() : "";
+      const beforeTimestamp =
+        beforeRaw.length > 0 ? new Date(beforeRaw) : undefined;
 
-      if (matchesSnap.empty) {
-        return res.json({ conversations: [] });
+      if (
+        beforeRaw.length > 0 &&
+        (!beforeTimestamp || Number.isNaN(beforeTimestamp.getTime()))
+      ) {
+        return res.status(400).json({ error: "Invalid before cursor" });
       }
 
-      const otherUserIds = matchesSnap.docs
+      const totalCountPromise = db
+        .collection("matches")
+        .where("users", "array-contains", req.uid)
+        .count()
+        .get();
+
+      let matchesQuery = db
+        .collection("matches")
+        .where("users", "array-contains", req.uid)
+        .orderBy("lastMessageAt", "desc");
+
+      if (beforeTimestamp) {
+        matchesQuery = matchesQuery.where(
+          "lastMessageAt",
+          "<",
+          admin.firestore.Timestamp.fromDate(beforeTimestamp),
+        );
+      }
+
+      const [totalCountSnap, matchesSnap] = await Promise.all([
+        totalCountPromise,
+        matchesQuery.limit(limit + 1).get(),
+      ]);
+      const totalCount = totalCountSnap.data().count ?? matchesSnap.size;
+
+      if (matchesSnap.empty) {
+        return res.json({
+          conversations: [],
+          total_count: totalCount,
+          has_more: false,
+          next_cursor: null,
+        });
+      }
+
+      const hasMore = matchesSnap.docs.length > limit;
+      const pageDocs = hasMore ? matchesSnap.docs.slice(0, limit) : matchesSnap.docs;
+
+      const otherUserIds = pageDocs
         .map((doc) => doc.data().users.find((id: string) => id !== req.uid))
         .filter(Boolean);
 
@@ -10112,11 +11111,18 @@ app.get(
       }
 
       const conversations = await Promise.all(
-        matchesSnap.docs.map(async (doc) => {
+        pageDocs.map(async (doc) => {
           const data = doc.data();
           const otherUserId = data.users.find((id: string) => id !== req.uid);
           const otherUserData = usersMap.get(otherUserId) || {};
           const profile = otherUserData.profile || {};
+          const participantPayload = otherUserId
+            ? {
+                id: otherUserId,
+                name: profile.name || profile.displayName,
+                photo_url: (profile.photoUrls || [])[0],
+              }
+            : null;
 
           // Get last message (still per-match, but profiles are batched)
           const lastMsgSnap = await db
@@ -10126,28 +11132,56 @@ app.get(
             .orderBy("createdAt", "desc")
             .limit(1)
             .get();
-          const lastMsg = lastMsgSnap.docs[0]?.data();
+          const lastMsgDoc = lastMsgSnap.docs[0];
+          const lastMsg = lastMsgDoc?.data();
+          const lastMessageTimestamp = lastMsg?.createdAt?.toDate?.();
+          const updatedAt = data.lastMessageAt?.toDate?.();
 
           return {
             id: doc.id,
-            participant: {
-              id: otherUserId,
-              name: profile.name || profile.displayName,
-              photo_url: (profile.photoUrls || [])[0],
-            },
+            match_id: doc.id,
+            participants: participantPayload
+              ? [
+                  {
+                    user_id: participantPayload.id,
+                    display_name: participantPayload.name,
+                    photo_url: participantPayload.photo_url,
+                  },
+                ]
+              : [],
+            participant: participantPayload,
             last_message: lastMsg
               ? {
+                  id: lastMsgDoc.id,
+                  conversation_id: doc.id,
+                  sender_id:
+                    typeof lastMsg.senderId === "string"
+                      ? lastMsg.senderId
+                      : typeof lastMsg.fromUserId === "string"
+                        ? lastMsg.fromUserId
+                        : "",
                   content: lastMsg.content,
                   type: lastMsg.type || "text",
-                  sent_at: lastMsg.createdAt?.toDate?.()?.toISOString(),
+                  created_at: lastMessageTimestamp?.toISOString() ?? null,
+                  sent_at: lastMessageTimestamp?.toISOString() ?? null,
                 }
               : null,
-            updated_at: data.lastMessageAt?.toDate?.()?.toISOString(),
+            updated_at: updatedAt?.toISOString(),
           };
         }),
       );
 
-      res.json({ conversations });
+      const nextCursorDate =
+        hasMore && pageDocs.length > 0
+          ? pageDocs[pageDocs.length - 1].data().lastMessageAt?.toDate?.()
+          : null;
+
+      res.json({
+        conversations,
+        total_count: totalCount,
+        has_more: hasMore,
+        next_cursor: nextCursorDate ? nextCursorDate.toISOString() : null,
+      });
     } catch (err) {
       console.error("Get conversations error:", err);
       return res.status(500).json({ error: "Failed to get conversations" });
@@ -10159,25 +11193,46 @@ app.get(
 app.get(
   "/v1/chat/:conversationId/messages",
   authMiddleware,
+  rateLimitDefault,
   async (req: AuthRequest, res: Response) => {
     try {
       const { conversationId } = req.params;
-      const limit = parseInt(req.query.limit as string) || 50;
-      const before = req.query.before as string;
+      const limit = parseBoundedIntQueryParam(req.query.limit, {
+        fallback: 50,
+        min: 1,
+        max: 100,
+      });
+      const beforeCursor = parseChatMessagesBeforeCursor(req.query.before);
+
+      const matchDoc = await db.collection("matches").doc(conversationId).get();
+      if (!matchDoc.exists) {
+        return res.status(404).json({ error: "Conversation not found" });
+      }
+
+      const matchData = matchDoc.data();
+      if (!Array.isArray(matchData?.users) || !matchData.users.includes(req.uid)) {
+        return res.status(403).json({ error: "Not authorized" });
+      }
 
       let query = db
         .collection("matches")
         .doc(conversationId)
         .collection("messages")
         .orderBy("createdAt", "desc")
-        .limit(limit);
+        .limit(limit + 1);
 
-      if (before) {
+      if (beforeCursor.beforeTimestamp != null) {
+        query = query.where(
+          "createdAt",
+          "<",
+          admin.firestore.Timestamp.fromDate(beforeCursor.beforeTimestamp),
+        );
+      } else if (beforeCursor.beforeMessageId != null) {
         const beforeDoc = await db
           .collection("matches")
           .doc(conversationId)
           .collection("messages")
-          .doc(before)
+          .doc(beforeCursor.beforeMessageId)
           .get();
         if (beforeDoc.exists) {
           query = query.startAfter(beforeDoc);
@@ -10185,8 +11240,11 @@ app.get(
       }
 
       const messagesSnap = await query.get();
+      const hasMore = messagesSnap.docs.length > limit;
+      const pageDocs =
+        hasMore ? messagesSnap.docs.slice(0, limit) : messagesSnap.docs;
 
-      const messages = messagesSnap.docs
+      const messages = pageDocs
         .map((doc) => {
           const data = doc.data();
           return {
@@ -10201,7 +11259,19 @@ app.get(
         })
         .reverse();
 
-      res.json({ messages });
+      const oldestPageTimestamp =
+        pageDocs.length > 0
+          ? pageDocs[pageDocs.length - 1].data().createdAt?.toDate?.()
+          : null;
+
+      res.json({
+        messages,
+        has_more: hasMore,
+        next_cursor:
+          hasMore && oldestPageTimestamp instanceof Date
+            ? oldestPageTimestamp.toISOString()
+            : null,
+      });
     } catch (err) {
       console.error("Get messages error:", err);
       return res.status(500).json({ error: "Failed to get messages" });
@@ -10256,28 +11326,57 @@ app.post(
   authMiddleware,
   requireVerifiedEmail,
   rateLimitMessage,
-  upload.single("media"),
+  chatMediaUploadMiddleware,
   async (req: AuthRequest, res: Response) => {
     try {
       const { conversationId } = req.params;
-      if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
+      const mediaKind = parseChatMediaUploadKind(req.body?.type);
+      if (!mediaKind) {
+        return res.status(400).json({
+          error: "Media type must be one of: image, video, audio.",
+        });
       }
 
-      const bucket = admin.storage().bucket();
-      const fileName = `chat/${conversationId}/${Date.now()}_${req.file.originalname}`;
-      const file = bucket.file(fileName);
+      await ensureUserInMatch(conversationId, req.uid!);
 
-      await file.save(req.file.buffer, {
-        metadata: { contentType: req.file.mimetype },
+      const validatedUpload = await validateBinaryUpload({
+        file: req.file,
+        fieldLabel: "Media",
+        maxBytes: CHAT_MEDIA_MAX_BYTES_BY_KIND[mediaKind],
+        allowedMimeTypes: CHAT_MEDIA_ALLOWED_MIME_TYPES_BY_KIND[mediaKind],
+        extensionByMime: CHAT_MEDIA_EXTENSION_BY_MIME,
+        unsupportedTypeMessage: `Unsupported ${mediaKind} upload type. Allowed types: ${allowedMimeTypesMessage(CHAT_MEDIA_ALLOWED_MIME_TYPES_BY_KIND[mediaKind])}.`,
       });
 
-      await file.makePublic();
-      const url = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      const bucket = admin.storage().bucket();
+      const fileName = `chat_media/${req.uid}/${conversationId}/${Date.now()}_${crypto.randomUUID()}.${validatedUpload.extension}`;
+      const file = bucket.file(fileName);
+      const downloadToken = crypto.randomUUID();
+
+      await file.save(req.file!.buffer, {
+        metadata: {
+          contentType: validatedUpload.mimeType,
+          metadata: {
+            firebaseStorageDownloadTokens: downloadToken,
+          },
+        },
+        resumable: false,
+      });
+
+      const encodedPath = encodeURIComponent(fileName);
+      const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
 
       res.json({ url });
     } catch (err) {
       console.error("Upload media error:", err);
+      if (err instanceof UploadValidationError) {
+        return res.status(err.statusCode).json({ error: err.message });
+      }
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
       return res.status(500).json({ error: "Failed to upload media" });
     }
   },
@@ -10303,6 +11402,87 @@ app.post(
     } catch (err) {
       console.error("Mark read error:", err);
       return res.status(500).json({ error: "Failed to mark as read" });
+    }
+  },
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALLS ENDPOINTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+app.post(
+  "/v1/calls/start",
+  authMiddleware,
+  requireVerifiedEmail,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const matchId = optionalString(req.body?.match_id);
+      if (!matchId) {
+        return res.status(400).json({ error: "match_id required" });
+      }
+
+      const { otherUserId } = await ensureUserInMatch(matchId, req.uid!);
+      if (!otherUserId) {
+        return res.status(400).json({ error: "Could not resolve the other match participant." });
+      }
+
+      const isVideoCall = req.body?.is_video === true || req.body?.is_video === "true";
+      const result = await initiateCallForUser({
+        callerId: req.uid!,
+        receiverId: otherUserId,
+        type: isVideoCall ? "video" : "audio",
+      });
+
+      return res.json({
+        call_id: result.callId,
+        channel_name: result.callId,
+        local_uid: 0,
+        is_video: isVideoCall,
+        status: result.status,
+        expires_at_ms: result.expiresAtMs,
+      });
+    } catch (err) {
+      console.error("Start call error:", err);
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
+      return res.status(500).json({ error: "Failed to start call" });
+    }
+  },
+);
+
+app.post(
+  "/v1/calls/end",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const callId = optionalString(req.body?.call_id);
+      if (!callId) {
+        return res.status(400).json({ error: "call_id required" });
+      }
+
+      const result = await endCallForUser({
+        uid: req.uid!,
+        callId,
+        reason: optionalString(req.body?.reason),
+      });
+
+      return res.json({
+        success: true,
+        call_id: result.callId,
+        status: result.status,
+        end_reason: result.endReason,
+      });
+    } catch (err) {
+      console.error("End call error:", err);
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
+      return res.status(500).json({ error: "Failed to end call" });
     }
   },
 );
@@ -10445,6 +11625,49 @@ app.get(
 // ─────────────────────────────────────────────────────────────────────────────
 // SAFETY ENDPOINTS
 // ─────────────────────────────────────────────────────────────────────────────
+
+// Submit an appeal for a safety action
+app.post(
+  "/v1/safety/appeal",
+  authMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const reason = requireString(req.body?.reason, "reason");
+      const targetType = optionalString(req.body?.target_type) ?? "account";
+      const targetId = optionalString(req.body?.target_id) ?? null;
+
+      await db.collection("appeals").add({
+        userId: req.uid!,
+        reason,
+        targetType,
+        targetId,
+        status: "open",
+        createdAt: serverTimestamp(),
+      });
+
+      await db.collection("users").doc(req.uid!).set(
+        {
+          safetyFlags: {
+            appealOpen: true,
+            lastAppealAt: serverTimestamp(),
+            lastReason: reason,
+          },
+        },
+        { merge: true },
+      );
+
+      return res.json({ success: true });
+    } catch (err) {
+      console.error("Submit safety appeal error:", err);
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
+      return res.status(500).json({ error: "Failed to submit appeal" });
+    }
+  },
+);
 
 // Block user
 app.post(
@@ -11299,8 +12522,6 @@ app.get(
 // =============================================================================
 
 const DELETION_GRACE_PERIOD_DAYS = 14;
-// Reserved for future scheduled auto-deletion of deactivated accounts
-// const DEACTIVATION_AUTO_DELETE_DAYS = 180;
 
 /**
  * Helper: Cascading deletion of all user data across Firestore, RTDB, Storage, and Auth.
@@ -11574,7 +12795,7 @@ export const processScheduledAccountDeletions = functions.pubsub
  */
 export const requestAccountDeletion = functions.https.onCall(
   async (data, context) => {
-    verifyAppCheck(context, "requestAccountDeletion");
+    verifyCallableAppCheck(context, "requestAccountDeletion");
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
@@ -11635,7 +12856,7 @@ export const requestAccountDeletion = functions.https.onCall(
  */
 export const cancelAccountDeletion = functions.https.onCall(
   async (_data, context) => {
-    verifyAppCheck(context, "cancelAccountDeletion");
+    verifyCallableAppCheck(context, "cancelAccountDeletion");
     if (!context.auth) {
       throw new functions.https.HttpsError(
         "unauthenticated",
@@ -11711,8 +12932,18 @@ function toIsoString(value: unknown): string | null {
       Timestamp?: { new (...args: unknown[]): { toDate: () => Date } };
     }
   )?.Timestamp;
-  if (timestampCtor && value instanceof timestampCtor) {
+  if (typeof timestampCtor === "function" && value instanceof timestampCtor) {
     return value.toDate().toISOString();
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    const date = (value as { toDate: () => Date }).toDate();
+    return date instanceof Date && !Number.isNaN(date.getTime())
+      ? date.toISOString()
+      : null;
   }
   if (value instanceof Date) {
     return value.toISOString();
@@ -11730,8 +12961,16 @@ function normalizeDate(value: unknown): Date | null {
       Timestamp?: { new (...args: unknown[]): { toDate: () => Date } };
     }
   )?.Timestamp;
-  if (timestampCtor && value instanceof timestampCtor) {
+  if (typeof timestampCtor === "function" && value instanceof timestampCtor) {
     return value.toDate();
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    const date = (value as { toDate: () => Date }).toDate();
+    return date instanceof Date && !Number.isNaN(date.getTime()) ? date : null;
   }
   if (value instanceof Date) return value;
   if (typeof value === "string") {

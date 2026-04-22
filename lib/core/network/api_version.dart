@@ -169,9 +169,11 @@ class ApiEndpoints {
   static const String profileUpdate = '/profile/me';
   static const String profilePhoto = '/profile/photo';
   static const String profilePhotos = '/profile/photos';
+  static const String profilePhotoReorder = '/profile/photos/reorder';
   static const String profilePreferences = '/profile/preferences';
-  static String profileById(String id) => '/profile/$id';
-  static String profilePhotoById(String photoId) => '/profile/photos/$photoId';
+  static String profileById(String id) => '/profile/${Uri.encodeComponent(id)}';
+  static String profilePhotoById(String photoId) =>
+      '/profile/photos/${Uri.encodeComponent(photoId)}';
 
   // ─────────────────────────────────────────────────────────────────────────
   // DISCOVERY
@@ -181,13 +183,11 @@ class ApiEndpoints {
   static const String discoverySwipe = '/discovery/swipe';
   static const String discoverySettings = '/discovery/settings';
   static const String discoveryBoost = '/discovery/boost';
-  // DISC-001: Previously hardcoded in HttpDiscoveryRepository
-  static const String discoveryTopPicks = '/discovery/top-picks';
+  static const String discoveryTopPicks = discoveryDeck;
   static const String discoveryLikesYou = '/discovery/likes-you';
-  static const String discoverySuperLike = '/discovery/super-like';
+  static const String discoverySuperLike = discoverySwipe;
   static const String discoveryRewind = '/discovery/rewind';
-  static String profiles(String profileId) =>
-      '/profiles/${Uri.encodeComponent(profileId)}';
+  static String profiles(String profileId) => profileById(profileId);
 
   // ─────────────────────────────────────────────────────────────────────────
   // CHAT
@@ -211,9 +211,9 @@ class ApiEndpoints {
   // SUBSCRIPTION
   // ─────────────────────────────────────────────────────────────────────────
 
-  static const String subscriptionStatus = '/subscription/status';
-  static const String subscriptionPlans = '/subscription/tiers';
-  static const String subscriptionPurchase = '/subscription/purchase';
+  static const String subscriptionStatus = '/subscription/current';
+  static const String subscriptionPlans = '/subscription/plans';
+  static const String subscriptionPurchase = '/subscription/checkout';
   static const String subscriptionCancel = '/subscription/cancel';
   static const String subscriptionRestore = '/subscription/restore';
 
@@ -221,10 +221,18 @@ class ApiEndpoints {
   // REPORTING & SAFETY
   // ─────────────────────────────────────────────────────────────────────────
 
-  static const String reportUser = '/safety/report';
-  static const String blockUser = '/safety/block';
-  static const String unblockUser = '/safety/unblock';
+  static const String reportUser = '/users/report';
+  static const String blockUser = '/users/block';
+  static const String unblockUser = '/users/unblock';
   static const String blockedUsers = '/safety/blocked';
+  static const String safetyAppeal = '/safety/appeal';
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // CALLS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  static const String callStart = '/calls/start';
+  static const String callEnd = '/calls/end';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -60,6 +60,7 @@ class ErrorMessages {
   static const String superLikeFailed =
       'Could not super like. Please try again.';
   static const String rewindFailed = 'Could not undo swipe. Please try again.';
+  static const String rewindUnavailable = 'Rewind is not available right now.';
   static const String noSwipeToUndo = 'No swipe to undo.';
   static const String freeUndoUsed =
       'You\'ve used your free undo today. Upgrade to Plus for unlimited undos!';

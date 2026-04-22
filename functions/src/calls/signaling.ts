@@ -1,11 +1,10 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions/v1";
+import { callable as makeCallable, type CallableContext } from "../shared/callable";
 
 const CALLS_COLLECTION = "calls";
 const RING_TIMEOUT_MS = 30_000;
 const RATE_LIMIT_WINDOW_MS = 10_000;
-
-type CallableContext = functions.https.CallableContext;
 
 interface InitiateCallRequest {
   receiverId?: string;
@@ -222,171 +221,116 @@ function assertCallParticipant(
   }
 }
 
-const makeCallable = <TData>(
-  handler: (data: TData, context: CallableContext) => Promise<unknown>
-) => functions.https.onCall(async (data: TData, context: CallableContext) => {
-  try {
-    return await handler(data, context);
-  } catch (error) {
-    if (error instanceof functions.https.HttpsError) throw error;
-    console.error("call_signaling_error", {
-      name: handler.name || "anonymous",
-      uid: context.auth?.uid,
-      error,
-    });
+export async function initiateCallForUser({
+  callerId,
+  receiverId,
+  type,
+  offer,
+}: {
+  callerId: string;
+  receiverId: string;
+  type: "audio" | "video";
+  offer?: Record<string, unknown> | null;
+}): Promise<{ callId: string; status: "ringing"; expiresAtMs: number }> {
+  if (callerId === receiverId) {
     throw new functions.https.HttpsError(
-      "internal",
-      "Unexpected error. Please try again later."
+      "invalid-argument",
+      "You cannot call yourself."
     );
   }
-});
 
-export const initiateCall = makeCallable<InitiateCallRequest>(
-  async (data, context) => {
-    const callerId = requireAuth(context, "initiate a call");
-    const receiverId = requireString(data?.receiverId, "receiverId", 128);
-    const type = parseCallType(data?.type);
-
-    if (callerId === receiverId) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "You cannot call yourself."
-      );
-    }
-
-    const db = admin.firestore();
-    const nowMs = Date.now();
-    const now = admin.firestore.Timestamp.fromMillis(nowMs);
-    const expiresAt = admin.firestore.Timestamp.fromMillis(nowMs + RING_TIMEOUT_MS);
-
-    const callerRateRef = db
-      .collection("users")
-      .doc(callerId)
-      .collection("callLimits")
-      .doc("initiate");
-
-    await db.runTransaction(async (tx) => {
-      const rateSnap = await tx.get(callerRateRef);
-      const lastInitiatedAt = rateSnap.exists
-        ? (rateSnap.data()?.lastInitiatedAt as FirebaseFirestore.Timestamp | undefined)
-        : undefined;
-      const lastInitiatedAtMs = lastInitiatedAt?.toMillis() ?? 0;
-
-      if (isRateLimitExceeded(lastInitiatedAtMs, nowMs)) {
-        throw new functions.https.HttpsError(
-          "resource-exhausted",
-          "You can initiate only one call every 10 seconds."
-        );
-      }
-
-      tx.set(
-        callerRateRef,
-        {
-          lastInitiatedAt: now,
-          updatedAt: now,
-        },
-        { merge: true }
-      );
-    });
-
-    const callRef = db.collection(CALLS_COLLECTION).doc();
-    const callPayload = {
-      callId: callRef.id,
-      callerId,
-      receiverId,
-      participants: [callerId, receiverId],
-      type,
-      status: "ringing",
-      createdAt: now,
-      updatedAt: now,
-      expiresAt,
-      answeredAt: null,
-      endedAt: null,
-      endReason: null,
-      offer: data?.offer ?? null,
-    };
-
-    await callRef.set(callPayload);
-
-    try {
-      await sendPushToUser(receiverId, {
-        title: type === "video" ? "Incoming video call" : "Incoming audio call",
-        body: "Open Crush to answer.",
-        data: {
-          type: "incoming_call",
-          callId: callRef.id,
-          callerId,
-          receiverId,
-          callType: type,
-          isVideoCall: type === "video",
-          targetRoute: "/incoming-call",
-        },
-        highPriority: true,
-      });
-    } catch (error) {
-      console.warn("incoming_call_push_failed", {
-        callId: callRef.id,
-        receiverId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-
-    return {
-      callId: callRef.id,
-      status: "ringing",
-      expiresAtMs: nowMs + RING_TIMEOUT_MS,
-    };
-  }
-);
-
-export const answerCall = makeCallable<AnswerCallRequest>(async (data, context) => {
-  const uid = requireAuth(context, "answer a call");
-  const callId = requireString(data?.callId, "callId", 128);
   const db = admin.firestore();
-  const callRef = db.collection(CALLS_COLLECTION).doc(callId);
-  const now = admin.firestore.Timestamp.now();
+  const nowMs = Date.now();
+  const now = admin.firestore.Timestamp.fromMillis(nowMs);
+  const expiresAt = admin.firestore.Timestamp.fromMillis(nowMs + RING_TIMEOUT_MS);
+
+  const callerRateRef = db
+    .collection("users")
+    .doc(callerId)
+    .collection("callLimits")
+    .doc("initiate");
 
   await db.runTransaction(async (tx) => {
-    const snap = await tx.get(callRef);
-    if (!snap.exists) {
-      throw new functions.https.HttpsError("not-found", "Call not found.");
-    }
+    const rateSnap = await tx.get(callerRateRef);
+    const lastInitiatedAt = rateSnap.exists
+      ? (rateSnap.data()?.lastInitiatedAt as FirebaseFirestore.Timestamp | undefined)
+      : undefined;
+    const lastInitiatedAtMs = lastInitiatedAt?.toMillis() ?? 0;
 
-    const callData = snap.data() ?? {};
-    assertCallParticipant(callData, uid);
-    if ((callData.receiverId as string | undefined) !== uid) {
+    if (isRateLimitExceeded(lastInitiatedAtMs, nowMs)) {
       throw new functions.https.HttpsError(
-        "permission-denied",
-        "Only the receiver can answer this call."
+        "resource-exhausted",
+        "You can initiate only one call every 10 seconds."
       );
     }
 
-    const currentStatus = String(callData.status ?? "");
-    if (currentStatus !== "ringing") {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "Call is no longer in ringing state."
-      );
-    }
-
-    tx.update(callRef, {
-      status: "ongoing",
-      answeredAt: now,
-      updatedAt: now,
-      answer: data?.answer ?? null,
-    });
+    tx.set(
+      callerRateRef,
+      {
+        lastInitiatedAt: now,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
   });
 
-  return {
-    callId,
-    status: "ongoing",
-  };
-});
+  const callRef = db.collection(CALLS_COLLECTION).doc();
+  await callRef.set({
+    callId: callRef.id,
+    callerId,
+    receiverId,
+    participants: [callerId, receiverId],
+    type,
+    status: "ringing",
+    createdAt: now,
+    updatedAt: now,
+    expiresAt,
+    answeredAt: null,
+    endedAt: null,
+    endReason: null,
+    offer: offer ?? null,
+  });
 
-export const endCall = makeCallable<EndCallRequest>(async (data, context) => {
-  const uid = requireAuth(context, "end a call");
-  const callId = requireString(data?.callId, "callId", 128);
-  const reason = data?.reason?.trim() || "userHangup";
+  try {
+    await sendPushToUser(receiverId, {
+      title: type === "video" ? "Incoming video call" : "Incoming audio call",
+      body: "Open Crush to answer.",
+      data: {
+        type: "incoming_call",
+        callId: callRef.id,
+        callerId,
+        receiverId,
+        callType: type,
+        isVideoCall: type === "video",
+        targetRoute: "/incoming-call",
+      },
+      highPriority: true,
+    });
+  } catch (error) {
+    console.warn("incoming_call_push_failed", {
+      callId: callRef.id,
+      receiverId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  return {
+    callId: callRef.id,
+    status: "ringing",
+    expiresAtMs: nowMs + RING_TIMEOUT_MS,
+  };
+}
+
+export async function endCallForUser({
+  uid,
+  callId,
+  reason,
+}: {
+  uid: string;
+  callId: string;
+  reason?: string | null;
+}): Promise<{ callId: string; status: "ended"; endReason: string }> {
+  const normalizedReason = reason?.trim() || "userHangup";
   const db = admin.firestore();
   const callRef = db.collection(CALLS_COLLECTION).doc(callId);
   const now = admin.firestore.Timestamp.now();
@@ -408,7 +352,7 @@ export const endCall = makeCallable<EndCallRequest>(async (data, context) => {
     tx.update(callRef, {
       status: "ended",
       endedAt: now,
-      endReason: reason,
+      endReason: normalizedReason,
       updatedAt: now,
     });
   });
@@ -416,9 +360,84 @@ export const endCall = makeCallable<EndCallRequest>(async (data, context) => {
   return {
     callId,
     status: "ended",
-    endReason: reason,
+    endReason: normalizedReason,
   };
-});
+}
+
+export const initiateCall = makeCallable<InitiateCallRequest>(
+  async (data, context) => {
+    const callerId = requireAuth(context, "initiate a call");
+    const receiverId = requireString(data?.receiverId, "receiverId", 128);
+    const type = parseCallType(data?.type);
+    return initiateCallForUser({
+      callerId,
+      receiverId,
+      type,
+      offer: data?.offer ?? null,
+    });
+  },
+  { action: "initiateCall" }
+);
+
+export const answerCall = makeCallable<AnswerCallRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "answer a call");
+    const callId = requireString(data?.callId, "callId", 128);
+    const db = admin.firestore();
+    const callRef = db.collection(CALLS_COLLECTION).doc(callId);
+    const now = admin.firestore.Timestamp.now();
+
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(callRef);
+      if (!snap.exists) {
+        throw new functions.https.HttpsError("not-found", "Call not found.");
+      }
+
+      const callData = snap.data() ?? {};
+      assertCallParticipant(callData, uid);
+      if ((callData.receiverId as string | undefined) !== uid) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Only the receiver can answer this call."
+        );
+      }
+
+      const currentStatus = String(callData.status ?? "");
+      if (currentStatus !== "ringing") {
+        throw new functions.https.HttpsError(
+          "failed-precondition",
+          "Call is no longer in ringing state."
+        );
+      }
+
+      tx.update(callRef, {
+        status: "ongoing",
+        answeredAt: now,
+        updatedAt: now,
+        answer: data?.answer ?? null,
+      });
+    });
+
+    return {
+      callId,
+      status: "ongoing",
+    };
+  },
+  { action: "answerCall" }
+);
+
+export const endCall = makeCallable<EndCallRequest>(
+  async (data, context) => {
+    const uid = requireAuth(context, "end a call");
+    const callId = requireString(data?.callId, "callId", 128);
+    return endCallForUser({
+      uid,
+      callId,
+      reason: data?.reason,
+    });
+  },
+  { action: "endCall" }
+);
 
 export const addIceCandidate = makeCallable<AddIceCandidateRequest>(
   async (data, context) => {
@@ -471,7 +490,8 @@ export const addIceCandidate = makeCallable<AddIceCandidateRequest>(
       callId,
       candidateId: candidateRef.id,
     };
-  }
+  },
+  { action: "addIceCandidate" }
 );
 
 export const notifyCallSafetyEvent = makeCallable<NotifyCallSafetyEventRequest>(
@@ -535,7 +555,8 @@ export const notifyCallSafetyEvent = makeCallable<NotifyCallSafetyEventRequest>(
       eventType,
       deliveredTo,
     };
-  }
+  },
+  { action: "notifyCallSafetyEvent" }
 );
 
 export const getIceServers = makeCallable<Record<string, never>>(
@@ -545,7 +566,8 @@ export const getIceServers = makeCallable<Record<string, never>>(
       iceServers: buildIceServers(),
       ttlSeconds: 3600,
     };
-  }
+  },
+  { action: "getIceServers" }
 );
 
 export const enforceCallRingTimeout = functions.firestore

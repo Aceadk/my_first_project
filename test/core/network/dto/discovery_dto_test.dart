@@ -229,13 +229,19 @@ void main() {
         ],
         'total_count': 1,
         'new_match_count': 1,
+        'has_more': true,
+        'next_cursor': '2026-03-08T01:00:00.000Z',
       });
 
       expect(populated.matches, hasLength(1));
       expect(populated.matches.first.id, 'm2');
       expect(populated.totalCount, 1);
       expect(populated.newMatchCount, 1);
+      expect(populated.hasMore, isTrue);
+      expect(populated.nextCursor, '2026-03-08T01:00:00.000Z');
       expect(populated.toJson()['matches'], isA<List<dynamic>>());
+      expect(populated.toJson()['has_more'], isTrue);
+      expect(populated.toJson()['next_cursor'], '2026-03-08T01:00:00.000Z');
     });
   });
 }

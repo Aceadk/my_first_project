@@ -3,6 +3,7 @@ const http = require('http');
 const admin = require('firebase-admin');
 
 const users = new Map();
+const matches = new Map();
 const storageObjects = new Set();
 const storageDeleteFailures = new Set();
 const storageDeleteLog = [];
@@ -84,10 +85,13 @@ class MockCollectionRef {
   }
 
   doc(id) {
-    if (this.name !== 'users') {
-      throw new Error(`Unsupported collection in test mock: ${this.name}`);
+    if (this.name === 'users') {
+      return new MockDocRef(users, id);
     }
-    return new MockDocRef(users, id);
+    if (this.name === 'matches') {
+      return new MockDocRef(matches, id);
+    }
+    throw new Error(`Unsupported collection in test mock: ${this.name}`);
   }
 }
 
@@ -202,10 +206,46 @@ Object.defineProperty(admin, 'auth', {
 });
 
 const functions = require('../lib/index.js');
+const uploadTestHelpers = functions.__test__helpers;
 
 describe('profile REST endpoints', () => {
   let server;
   let baseUrl;
+
+  function detectMimeFromBytes(buffer) {
+    if (!buffer || buffer.length === 0) return undefined;
+    if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+      return { mime: 'image/jpeg', ext: 'jpg' };
+    }
+    if (
+      buffer.length >= 8 &&
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47
+    ) {
+      return { mime: 'image/png', ext: 'png' };
+    }
+    if (
+      buffer.length >= 6 &&
+      String.fromCharCode(...buffer.slice(0, 6)) === 'GIF89a'
+    ) {
+      return { mime: 'image/gif', ext: 'gif' };
+    }
+    if (
+      buffer.length >= 12 &&
+      String.fromCharCode(...buffer.slice(4, 8)) === 'ftyp'
+    ) {
+      return { mime: 'video/mp4', ext: 'mp4' };
+    }
+    if (
+      buffer.length >= 3 &&
+      String.fromCharCode(...buffer.slice(0, 3)) === 'ID3'
+    ) {
+      return { mime: 'audio/mpeg', ext: 'mp3' };
+    }
+    return undefined;
+  }
 
   function expectedAgeFor(dobIsoLike) {
     const dob = new Date(dobIsoLike);
@@ -237,6 +277,11 @@ describe('profile REST endpoints', () => {
         showMyDistance: true,
       },
     },
+  });
+
+  const defaultMatchDoc = () => ({
+    userIds: ['user-1', 'user-2'],
+    createdAt: new Date().toISOString(),
   });
 
   async function sendRequest(method, path, options = {}) {
@@ -272,11 +317,15 @@ describe('profile REST endpoints', () => {
     const bytes = options.bytes || new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
     const mimeType = options.mimeType || 'image/jpeg';
     const fileName = options.fileName || 'photo.jpg';
+    const fieldName = options.fieldName || 'photo';
     const form = new FormData();
-    form.append('photo', new Blob([bytes], { type: mimeType }), fileName);
+    form.append(fieldName, new Blob([bytes], { type: mimeType }), fileName);
     if (options.isPrimary !== undefined) {
       form.append('is_primary', String(options.isPrimary));
     }
+    Object.entries(options.fields || {}).forEach(([key, value]) => {
+      form.append(key, String(value));
+    });
 
     const response = await fetch(`${baseUrl}${path}`, {
       method: 'POST',
@@ -308,12 +357,32 @@ describe('profile REST endpoints', () => {
 
   beforeEach(() => {
     users.clear();
+    matches.clear();
     storageObjects.clear();
     storageDeleteFailures.clear();
     storageDeleteLog.length = 0;
     storageSaveLog.length = 0;
     storageMakePublicLog.length = 0;
     users.set('user-1', defaultUserDoc());
+    matches.set('conversation-1', defaultMatchDoc());
+    uploadTestHelpers.setUploadValidationTestOverrides({
+      detectFileTypeFromBuffer: async (buffer) => detectMimeFromBytes(buffer),
+      safeSearchImageContent: async () => [
+        {
+          safeSearchAnnotation: {
+            adult: 'UNLIKELY',
+            violence: 'UNLIKELY',
+            medical: 'UNLIKELY',
+            spoof: 'UNLIKELY',
+          },
+        },
+      ],
+      detectImageFaces: async () => [{ faceAnnotations: [{}] }],
+    });
+  });
+
+  afterEach(() => {
+    uploadTestHelpers.resetUploadValidationTestOverrides();
   });
 
   it('GET /v1/profile/me returns canonical nested profile.preferences', async () => {
@@ -628,6 +697,19 @@ describe('profile REST endpoints', () => {
     expect(users.get('user-1').profile.photoUrls).to.deep.equal([]);
   });
 
+  it('POST /v1/profile/photos rejects spoofed magic bytes even when client mime is allowed', async () => {
+    const result = await sendMultipartRequest('/v1/profile/photos', {
+      mimeType: 'image/jpeg',
+      fileName: 'spoofed.jpg',
+      bytes: new TextEncoder().encode('not-an-image'),
+    });
+
+    expect(result.status).to.equal(415);
+    expect(result.json.error).to.match(/magic bytes/i);
+    expect(storageObjects.size).to.equal(0);
+    expect(storageSaveLog).to.have.lengthOf(0);
+  });
+
   it('POST /v1/profile/photos rejects oversize uploads', async () => {
     const tooLarge = new Uint8Array(10 * 1024 * 1024 + 1);
     const result = await sendMultipartRequest('/v1/profile/photos', {
@@ -676,6 +758,102 @@ describe('profile REST endpoints', () => {
 
     expect(result.status).to.equal(404);
     expect(result.json.error).to.match(/user not found/i);
+    expect(storageObjects.size).to.equal(0);
+    expect(storageSaveLog).to.have.lengthOf(0);
+  });
+
+  it('POST /v1/chat/:conversationId/media uploads allowed image for a match participant with private randomized storage path', async () => {
+    const result = await sendMultipartRequest('/v1/chat/conversation-1/media', {
+      fieldName: 'media',
+      mimeType: 'image/jpeg',
+      fileName: 'secret_photo.jpg',
+      fields: { type: 'image' },
+    });
+
+    expect(result.status).to.equal(200);
+    expect(result.json.url).to.match(
+      /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/mock-bucket\/o\/chat_media%2Fuser-1%2Fconversation-1%2F/
+    );
+    expect(result.json.url).to.match(/token=/);
+    expect(storageObjects.size).to.equal(1);
+    const [savedObjectKey] = Array.from(storageObjects);
+    expect(savedObjectKey).to.match(
+      /^mock-bucket\/chat_media\/user-1\/conversation-1\/\d+_[0-9a-f-]{36}\.jpg$/
+    );
+    expect(savedObjectKey).to.not.include('secret_photo');
+    expect(storageMakePublicLog).to.deep.equal([]);
+    expect(storageSaveLog).to.have.lengthOf(1);
+    expect(storageSaveLog[0].metadata).to.have.nested.property(
+      'metadata.firebaseStorageDownloadTokens'
+    );
+  });
+
+  it('POST /v1/chat/:conversationId/media rejects users outside the match', async () => {
+    matches.set('conversation-1', {
+      ...defaultMatchDoc(),
+      userIds: ['user-2', 'user-3'],
+    });
+
+    const result = await sendMultipartRequest('/v1/chat/conversation-1/media', {
+      fieldName: 'media',
+      mimeType: 'image/jpeg',
+      fileName: 'blocked.jpg',
+      fields: { type: 'image' },
+    });
+
+    expect(result.status).to.equal(403);
+    expect(result.json.error).to.match(/not part of this match/i);
+    expect(storageObjects.size).to.equal(0);
+    expect(storageSaveLog).to.have.lengthOf(0);
+  });
+
+  it('POST /v1/chat/:conversationId/media rejects spoofed media payloads', async () => {
+    const result = await sendMultipartRequest('/v1/chat/conversation-1/media', {
+      fieldName: 'media',
+      mimeType: 'image/jpeg',
+      fileName: 'spoofed.jpg',
+      bytes: new TextEncoder().encode('definitely-not-an-image'),
+      fields: { type: 'image' },
+    });
+
+    expect(result.status).to.equal(415);
+    expect(result.json.error).to.match(/magic bytes/i);
+    expect(storageObjects.size).to.equal(0);
+    expect(storageSaveLog).to.have.lengthOf(0);
+  });
+
+  it('POST /v1/chat/:conversationId/media rejects image uploads above the per-type size limit', async () => {
+    const tooLarge = new Uint8Array(25 * 1024 * 1024 + 1);
+    tooLarge[0] = 0xff;
+    tooLarge[1] = 0xd8;
+    tooLarge[2] = 0xff;
+
+    const result = await sendMultipartRequest('/v1/chat/conversation-1/media', {
+      fieldName: 'media',
+      mimeType: 'image/jpeg',
+      fileName: 'too-large.jpg',
+      bytes: tooLarge,
+      fields: { type: 'image' },
+    });
+
+    expect(result.status).to.equal(413);
+    expect(result.json.error).to.match(/maximum size/i);
+    expect(storageObjects.size).to.equal(0);
+    expect(storageSaveLog).to.have.lengthOf(0);
+  });
+
+  it('POST /v1/chat/:conversationId/media rejects missing or unsupported media type fields', async () => {
+    const result = await sendMultipartRequest('/v1/chat/conversation-1/media', {
+      fieldName: 'media',
+      mimeType: 'image/jpeg',
+      fileName: 'bad-type.jpg',
+      fields: { type: 'document' },
+    });
+
+    expect(result.status).to.equal(400);
+    expect(result.json.error).to.match(/media type must be one of/i);
+    expect(storageObjects.size).to.equal(0);
+    expect(storageSaveLog).to.have.lengthOf(0);
   });
 
   it('DELETE /v1/profile/photos/:photoId deletes storage object and updates profile list', async () => {

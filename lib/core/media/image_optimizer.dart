@@ -75,7 +75,7 @@ class OptimizedImage {
 /// final result = await ImageOptimizer.instance.optimize(
 ///   File('/path/to/photo.jpg'),
 /// );
-/// print('Saved ${result.savedBytes} bytes');
+/// final savedBytes = result.savedBytes;
 /// ```
 class ImageOptimizer {
   ImageOptimizer._();

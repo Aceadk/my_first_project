@@ -1607,7 +1607,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                       items: [
                         'Passport to any city',
                         'See who likes you first',
-                        'Unlimited likes & rewinds',
+                        'Unlimited likes & Passport',
                       ],
                     ),
                     DsGap.lg,
@@ -1620,7 +1620,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                 Navigator.pop(sheetContext);
                                 if (!isPlus) {
                                   sheetContext.read<SubscriptionBloc>().add(
-                                    SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly),
+                                    SubscriptionCheckoutRequested(
+                                      SubscriptionTier.plus,
+                                      BillingPeriod.monthly,
+                                    ),
                                   );
                                 }
                               },

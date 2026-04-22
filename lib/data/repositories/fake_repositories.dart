@@ -1178,9 +1178,14 @@ class FakeDiscoveryRepository implements DiscoveryRepository {
   final Map<String, Map<String, Profile>> _incomingRightSwipes = {};
 
   @override
+  DiscoveryDeckPageInfo? get lastDeckPageInfo =>
+      const DiscoveryDeckPageInfo(hasMore: false);
+
+  @override
   Future<List<Profile>> fetchDeck(
     String userId, {
     DiscoveryFilter filter = const DiscoveryFilter(),
+    String? cursor,
   }) async {
     final user = await profileRepo.getCurrentUser();
     final prefs =

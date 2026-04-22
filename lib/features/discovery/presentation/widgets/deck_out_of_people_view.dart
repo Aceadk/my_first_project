@@ -182,7 +182,7 @@ class DeckOutOfPeopleView extends StatelessWidget {
                           'Go global with Passport and explore people from anywhere.',
                       bullets: [
                         'Passport to any city',
-                        'Unlimited likes & rewinds',
+                        'Unlimited likes & Passport',
                         'See who likes you first',
                       ],
                     ),
