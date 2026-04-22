@@ -55,23 +55,30 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 ### T-2026-04-22-GIT-SAVE-PUBLISH
 - Date: 2026-04-22
 - Owner: Codex
-- Status: In Progress
+- Status: Completed
 - Goal: Save the current full repo worktree locally and publish it to GitHub on the current branch.
 - Scope: repo state inspection, GitHub auth/remote validation, commit creation for the full confirmed worktree, branch push, PR publication if needed, and the required workflow docs.
 - Key Changes:
   - Confirmed the user wants the full current worktree saved, including the large in-progress audit backlog across Flutter app code, Cloud Functions, tests, reports, and workflow docs.
   - Verified GitHub CLI availability, authenticated GitHub access, and the active remote repository/branch before staging any files.
+  - Staged the full confirmed worktree, created checkpoint commit `c3d7000` (`checkpoint audit remediation progress`), and pushed `codex/publish-auth-startup-hardening` to `origin`.
+  - Verified the pushed branch is already attached to draft PR `#1` (`[codex] harden auth startup flow`) targeting `main`.
 - Decisions/Handoffs:
   - Treated "save everything" as explicit confirmation that the whole current tracked and untracked worktree belongs in scope for this publish step, so a full-worktree stage is appropriate.
   - Kept the current non-default branch `codex/publish-auth-startup-hardening` instead of creating a new branch because the branch already tracks `origin` and is the active collaboration branch.
 - Verification:
   - `git status --short --branch`
   - `git diff --stat`
+  - `git diff --cached --stat`
+  - `git diff --cached --check`
   - `gh --version`
   - `gh auth status`
   - `git remote -v`
   - `gh repo view --json nameWithOwner,defaultBranchRef`
-- Next Step: Stage the full confirmed worktree, create a commit, push `codex/publish-auth-startup-hardening`, and publish the branch state to GitHub.
+  - `git commit -m "checkpoint audit remediation progress"`
+  - `git push -u origin $(git branch --show-current)`
+  - `gh pr view --json number,url,state,isDraft,title,headRefName,baseRefName`
+- Next Step: Continue functional verification and the remaining audit backlog from the now-saved branch state; GitHub publication for this checkpoint is complete.
 
 ### T-2026-04-22-IOS-DEVICE-DEPLOY-BIS-IPHONE-RECHECK
 - Date: 2026-04-22

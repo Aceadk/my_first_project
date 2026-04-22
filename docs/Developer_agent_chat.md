@@ -14613,7 +14613,7 @@ developer mode is on in the iphone , can you check any other problems that has s
 ### Task #274 — Save Current Worktree And Publish To GitHub
 **Date:** 2026-04-22
 **Agent:** Codex (GPT-5)
-**Status:** In Progress
+**Status:** Completed
 
 **Original Request:**
 save everything and also save to github
@@ -14633,19 +14633,29 @@ save everything and also save to github
 **Status Updates:**
 - **Received:** Reloaded the required workflow docs, inspected the current worktree, and confirmed the repo is on `codex/publish-auth-startup-hardening` with a large mixed tracked/untracked change set.
 - **In Progress:** Verified `gh` availability/auth and the `origin` remote, then logged this save/publish request before staging the full confirmed worktree.
+- **Completed:** Staged the full worktree, created checkpoint commit `c3d7000`, pushed the branch to `origin`, and confirmed the branch already maps to the existing draft PR to `main`.
 
 **Outcome:**
 - **Files changed:**
   - `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
-- **Result:** GitHub access is ready (`gh` authenticated as `Aceadk` against `Aceadk/my_first_project`), and the current branch is positioned for a full-worktree save/publish.
-- **Notes:** The actual commit hash, push result, and PR status will be appended after staging and publication complete.
+- **Result:** The full confirmed worktree is now saved locally and on GitHub:
+  - commit: `c3d7000` (`checkpoint audit remediation progress`)
+  - branch: `codex/publish-auth-startup-hardening`
+  - remote: `origin` / `Aceadk/my_first_project`
+  - PR: draft `#1` `[codex] harden auth startup flow` -> `main`
+- **Notes:** No new PR was needed because the current branch already had an open draft PR. This task only performed the save/publish checkpoint, not a new functional verification pass over the entire accumulated diff.
 
 **Verification:**
 - `git status --short --branch`
 - `git diff --stat`
+- `git diff --cached --stat`
+- `git diff --cached --check`
 - `gh --version`
 - `gh auth status`
 - `git remote -v`
 - `gh repo view --json nameWithOwner,defaultBranchRef`
+- `git commit -m "checkpoint audit remediation progress"`
+- `git push -u origin $(git branch --show-current)`
+- `gh pr view --json number,url,state,isDraft,title,headRefName,baseRefName`
 
-**Next Step:** Stage the full confirmed worktree, create an intentional commit, push the branch to `origin`, and publish the GitHub branch/PR state.
+**Next Step:** Continue the remaining audit/remediation work from the saved branch state, and use the existing draft PR as the publication lane for future checkpoint pushes.
