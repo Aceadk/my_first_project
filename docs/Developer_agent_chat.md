@@ -134,8 +134,8 @@ Commit the entire current working tree on the active branch and push it to the c
 
 **Outcome:**
 - Files changed: full current working tree, including required workflow docs.
-- Result: Created commit `f2ddd0c` (`save flutter launch and warning fixes`) on `codex/publish-auth-startup-hardening`, pushed it to `origin`, and reused draft PR #1 (`https://github.com/Aceadk/my_first_project/pull/1`) into `main`.
-- Verification: `gh --version`; `gh auth status`; `git status -sb`; `git diff --stat`; `git diff --check`; `scripts/check_ai_docs_sync.sh --files ...`; `git push -u origin codex/publish-auth-startup-hardening`; `gh pr list --head codex/publish-auth-startup-hardening --state open`.
+- Result: Created commit `f2ddd0c` (`save flutter launch and warning fixes`) plus docs follow-up commit `28d36ae`, pushed `codex/publish-auth-startup-hardening` to `origin`, and updated draft PR #1 (`https://github.com/Aceadk/my_first_project/pull/1`) into `main`.
+- Verification: `gh --version`; `gh auth status`; `git status -sb`; `git diff --stat`; `git diff --check`; `scripts/check_ai_docs_sync.sh --files ...`; `git push -u origin codex/publish-auth-startup-hardening`; `gh pr list --head codex/publish-auth-startup-hardening --state open`; `gh pr edit 1`.
 
 ### Task #063 — Suppress Current iOS SPM and L10n Warning Noise
 **Date:** 2026-05-20

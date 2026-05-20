@@ -64,8 +64,8 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - Verified `origin` points to `https://github.com/Aceadk/my_first_project.git`.
   - Confirmed the active branch tracks `origin/codex/publish-auth-startup-hardening`.
   - Included the untracked `ios/Runner/SceneDelegate.swift` and `lib/core/services/native_permission_service.dart` because the developer requested saving everything.
-  - Created commit `f2ddd0c` and pushed `codex/publish-auth-startup-hardening` to GitHub.
-  - Reused existing draft PR #1 into `main`: `https://github.com/Aceadk/my_first_project/pull/1`.
+  - Created commit `f2ddd0c`, added docs follow-up commit `28d36ae`, and pushed `codex/publish-auth-startup-hardening` to GitHub.
+  - Reused and updated existing draft PR #1 into `main`: `https://github.com/Aceadk/my_first_project/pull/1`.
 - Decisions/Handoffs:
   - Used the existing tracked feature branch rather than creating a new branch.
   - Staged the full working tree intentionally because the requested scope was “everything.”
@@ -78,7 +78,8 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `scripts/check_ai_docs_sync.sh --files ...`
   - `git push -u origin codex/publish-auth-startup-hardening`
   - `gh pr list --head codex/publish-auth-startup-hardening --state open`
-- Next Step: Update the existing draft PR body to reflect the expanded saved scope.
+  - `gh pr edit 1`
+- Next Step: None; branch and draft PR are saved on GitHub.
 
 ### T-2026-05-20-SPM-L10N-WARNING-CLEANUP
 - Date: 2026-05-20
