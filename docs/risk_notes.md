@@ -219,6 +219,100 @@ Created: 2026-02-18
 
 ---
 
+### R-008 — iOS project still uses CocoaPods while Flutter SPM adoption is pending
+
+Category: Build / Toolchain
+
+Description:
+The direct `permission_handler` and `app_tracking_transparency` dependencies were removed to eliminate the current unsupported-iOS-SPM plugin warning, but the Runner project is still kept on the existing CocoaPods integration path with `enable-swift-package-manager: false`.
+
+Impact: Low
+
+Likelihood: Medium
+
+Affected Areas:
+
+- pubspec.yaml
+- ios/Runner.xcodeproj/project.pbxproj
+- ios/Podfile
+- ios/Podfile.lock
+
+Mitigation:
+
+- Plan a deliberate iOS generated-project migration to Swift Package Manager after validating Firebase/plugin compatibility.
+- Keep future Flutter upgrades paired with an iOS no-codesign build check.
+- Revisit `enable-swift-package-manager` before Flutter turns SPM migration warnings into build errors.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-05-20
+
+---
+
+### R-009 — Android Kotlin Gradle Plugin migration warning
+
+Category: Build / Toolchain
+
+Description:
+`flutter build apk --debug` succeeds, but Flutter warns that the app and several plugins still apply the Kotlin Gradle Plugin path that will fail in a future Flutter version unless migrated to Built-in Kotlin or upgraded to compatible plugin versions.
+
+Impact: Low
+
+Likelihood: Medium
+
+Affected Areas:
+
+- android/app/build.gradle.kts
+- android/gradle.properties
+- Flutter plugins that still apply Kotlin Gradle Plugin
+
+Mitigation:
+
+- Plan a separate Android Built-in Kotlin migration.
+- Upgrade plugins as compatible releases become available.
+- Keep Android debug build verification in future Flutter upgrade tasks.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-05-20
+
+---
+
+### R-008 — Some iOS plugins do not yet support Swift Package Manager
+
+Category: Build / Toolchain
+
+Description:
+Flutter 3.44 warns that `permission_handler_apple` and `app_tracking_transparency` do not support Swift Package Manager for iOS. The current build still succeeds through CocoaPods/Flutter compatibility handling, but Flutter says this will become an error in a future version.
+
+Impact: Low
+
+Likelihood: Medium
+
+Affected Areas:
+
+- `pubspec.yaml`
+- `ios/Runner.xcodeproj/project.pbxproj`
+- `ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme`
+
+Mitigation:
+
+- Track plugin releases for Swift Package Manager support.
+- Update or replace affected plugins before Flutter removes the compatibility fallback.
+- Keep CocoaPods build verification in place while mixed SPM/CocoaPods support is still required.
+
+Status: Monitoring
+
+Owner: AI
+
+Created: 2026-05-20
+
+---
+
 ### R-008 — Biometric Auth Emulator/Simulator Behavior (was R-138)
 
 Category: Security / Testing

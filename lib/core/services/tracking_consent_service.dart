@@ -1,9 +1,17 @@
 import 'dart:io';
 
-import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:crushhour/core/app_logger.dart';
+
+enum TrackingStatus {
+  notDetermined,
+  restricted,
+  denied,
+  authorized,
+  notSupported,
+}
 
 typedef IsIosPlatform = bool Function();
 typedef TrackingStatusProvider = Future<TrackingStatus> Function();
@@ -35,16 +43,35 @@ class TrackingConsentService {
 
   static bool _defaultIsIosPlatform() => Platform.isIOS;
 
-  static Future<TrackingStatus> _defaultTrackingStatusProvider() {
-    return AppTrackingTransparency.trackingAuthorizationStatus;
+  static const MethodChannel _trackingChannel = MethodChannel(
+    'app_tracking_transparency',
+  );
+
+  static Future<TrackingStatus> _defaultTrackingStatusProvider() async {
+    final status = await _trackingChannel.invokeMethod<int>(
+      'getTrackingAuthorizationStatus',
+    );
+    return _trackingStatusFromIndex(status);
   }
 
-  static Future<TrackingStatus> _defaultTrackingRequester() {
-    return AppTrackingTransparency.requestTrackingAuthorization();
+  static Future<TrackingStatus> _defaultTrackingRequester() async {
+    final status = await _trackingChannel.invokeMethod<int>(
+      'requestTrackingAuthorization',
+    );
+    return _trackingStatusFromIndex(status);
   }
 
   static Future<void> _defaultAnalyticsCollectionSetter(bool enabled) {
     return FirebaseAnalytics.instance.setAnalyticsCollectionEnabled(enabled);
+  }
+
+  static TrackingStatus _trackingStatusFromIndex(int? statusIndex) {
+    if (statusIndex == null ||
+        statusIndex < 0 ||
+        statusIndex >= TrackingStatus.values.length) {
+      return TrackingStatus.notSupported;
+    }
+    return TrackingStatus.values[statusIndex];
   }
 
   final IsIosPlatform _isIosPlatform;

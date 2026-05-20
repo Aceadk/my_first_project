@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:crushhour/core/app_logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 /// Service for recording voice notes.
 import 'package:crushhour/features/chat/domain/repositories/voice_recorder_repository.dart';
@@ -41,14 +40,13 @@ class VoiceRecorderService implements VoiceRecorderRepository {
   /// Request microphone permission.
   @override
   Future<bool> requestPermission() async {
-    final status = await Permission.microphone.request();
-    return status.isGranted;
+    return _recorder.hasPermission();
   }
 
   /// Check if microphone permission is granted.
   @override
   Future<bool> hasPermission() async {
-    return await Permission.microphone.isGranted;
+    return _recorder.hasPermission(request: false);
   }
 
   /// Start recording a voice note.

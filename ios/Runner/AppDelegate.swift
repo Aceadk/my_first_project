@@ -1,4 +1,7 @@
+import AdSupport
+import AppTrackingTransparency
 import AVFAudio
+import AVFoundation
 import CallKit
 import Flutter
 import UIKit
@@ -322,7 +325,7 @@ final class CallKitEventStreamHandler: NSObject, FlutterStreamHandler {
 }
 
 @main
-@objc class AppDelegate: FlutterAppDelegate {
+@objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   private let screenCaptureHandler = ScreenCaptureStreamHandler()
   private let callKitCoordinator = CallKitCoordinator()
   private lazy var callKitEventHandler = CallKitEventStreamHandler(
@@ -333,92 +336,194 @@ final class CallKitEventStreamHandler: NSObject, FlutterStreamHandler {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    GeneratedPluginRegistrant.register(with: self)
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
 
-    if let controller = window?.rootViewController as? FlutterViewController {
-      let screenCaptureChannel = FlutterEventChannel(
-        name: "crushhour/screen_capture_events",
-        binaryMessenger: controller.binaryMessenger
-      )
-      screenCaptureChannel.setStreamHandler(screenCaptureHandler)
+  func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+    GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    configureFlutterChannels(binaryMessenger: engineBridge.applicationRegistrar.messenger())
+  }
 
-      let callKitMethodChannel = FlutterMethodChannel(
-        name: "crushhour/callkit",
-        binaryMessenger: controller.binaryMessenger
-      )
-      callKitMethodChannel.setMethodCallHandler { [weak self] call, result in
-        guard let self else {
+  private func configureFlutterChannels(binaryMessenger: FlutterBinaryMessenger) {
+    let screenCaptureChannel = FlutterEventChannel(
+      name: "crushhour/screen_capture_events",
+      binaryMessenger: binaryMessenger
+    )
+    screenCaptureChannel.setStreamHandler(screenCaptureHandler)
+
+    let callKitMethodChannel = FlutterMethodChannel(
+      name: "crushhour/callkit",
+      binaryMessenger: binaryMessenger
+    )
+    callKitMethodChannel.setMethodCallHandler { [weak self] call, result in
+      guard let self else {
+        result(
+          FlutterError(
+            code: "callkit_unavailable",
+            message: "CallKit coordinator unavailable.",
+            details: nil
+          )
+        )
+        return
+      }
+
+      switch call.method {
+      case "showIncomingCall":
+        guard let args = call.arguments as? [String: Any] else {
           result(
             FlutterError(
-              code: "callkit_unavailable",
-              message: "CallKit coordinator unavailable.",
+              code: "invalid_args",
+              message: "showIncomingCall requires payload map.",
               details: nil
             )
           )
           return
         }
-
-        switch call.method {
-        case "showIncomingCall":
-          guard let args = call.arguments as? [String: Any] else {
-            result(
-              FlutterError(
-                code: "invalid_args",
-                message: "showIncomingCall requires payload map.",
-                details: nil
-              )
+        self.callKitCoordinator.reportIncomingCall(payload: args)
+        result(true)
+      case "endCall":
+        guard
+          let args = call.arguments as? [String: Any],
+          let callId = args["callId"] as? String
+        else {
+          result(
+            FlutterError(
+              code: "invalid_args",
+              message: "endCall requires callId.",
+              details: nil
             )
-            return
-          }
-          self.callKitCoordinator.reportIncomingCall(payload: args)
-          result(true)
-        case "endCall":
-          guard
-            let args = call.arguments as? [String: Any],
-            let callId = args["callId"] as? String
-          else {
-            result(
-              FlutterError(
-                code: "invalid_args",
-                message: "endCall requires callId.",
-                details: nil
-              )
-            )
-            return
-          }
-          let reason = args["reason"] as? String ?? "ended"
-          self.callKitCoordinator.requestEndCall(callId: callId, reason: reason)
-          result(true)
-        case "setMuted":
-          guard
-            let args = call.arguments as? [String: Any],
-            let callId = args["callId"] as? String,
-            let isMuted = args["isMuted"] as? Bool
-          else {
-            result(
-              FlutterError(
-                code: "invalid_args",
-                message: "setMuted requires callId and isMuted.",
-                details: nil
-              )
-            )
-            return
-          }
-          self.callKitCoordinator.requestMute(callId: callId, isMuted: isMuted)
-          result(true)
-        default:
-          result(FlutterMethodNotImplemented)
+          )
+          return
         }
+        let reason = args["reason"] as? String ?? "ended"
+        self.callKitCoordinator.requestEndCall(callId: callId, reason: reason)
+        result(true)
+      case "setMuted":
+        guard
+          let args = call.arguments as? [String: Any],
+          let callId = args["callId"] as? String,
+          let isMuted = args["isMuted"] as? Bool
+        else {
+          result(
+            FlutterError(
+              code: "invalid_args",
+              message: "setMuted requires callId and isMuted.",
+              details: nil
+            )
+          )
+          return
+        }
+        self.callKitCoordinator.requestMute(callId: callId, isMuted: isMuted)
+        result(true)
+      default:
+        result(FlutterMethodNotImplemented)
       }
-
-      let callKitEventChannel = FlutterEventChannel(
-        name: "crushhour/callkit_events",
-        binaryMessenger: controller.binaryMessenger
-      )
-      callKitEventChannel.setStreamHandler(callKitEventHandler)
     }
 
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    let callKitEventChannel = FlutterEventChannel(
+      name: "crushhour/callkit_events",
+      binaryMessenger: binaryMessenger
+    )
+    callKitEventChannel.setStreamHandler(callKitEventHandler)
+
+    let permissionChannel = FlutterMethodChannel(
+      name: "crushhour/native_permissions",
+      binaryMessenger: binaryMessenger
+    )
+    permissionChannel.setMethodCallHandler { [weak self] call, result in
+      self?.handlePermissionCall(call, result: result)
+    }
+
+    let trackingChannel = FlutterMethodChannel(
+      name: "app_tracking_transparency",
+      binaryMessenger: binaryMessenger
+    )
+    trackingChannel.setMethodCallHandler { [weak self] call, result in
+      self?.handleTrackingCall(call, result: result)
+    }
+  }
+
+  private func handlePermissionCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard
+      let args = call.arguments as? [String: Any],
+      let permission = args["permission"] as? String,
+      let mediaType = mediaType(for: permission)
+    else {
+      result(
+        FlutterError(
+          code: "invalid_args",
+          message: "Permission call requires camera or microphone permission.",
+          details: nil
+        )
+      )
+      return
+    }
+
+    switch call.method {
+    case "hasPermission":
+      result(AVCaptureDevice.authorizationStatus(for: mediaType) == .authorized)
+    case "requestPermission":
+      requestMediaAccess(mediaType: mediaType, result: result)
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
+
+  private func mediaType(for permission: String) -> AVMediaType? {
+    switch permission {
+    case "camera":
+      return .video
+    case "microphone":
+      return .audio
+    default:
+      return nil
+    }
+  }
+
+  private func requestMediaAccess(mediaType: AVMediaType, result: @escaping FlutterResult) {
+    switch AVCaptureDevice.authorizationStatus(for: mediaType) {
+    case .authorized:
+      result(true)
+    case .notDetermined:
+      AVCaptureDevice.requestAccess(for: mediaType) { granted in
+        DispatchQueue.main.async {
+          result(granted)
+        }
+      }
+    case .denied, .restricted:
+      result(false)
+    @unknown default:
+      result(false)
+    }
+  }
+
+  private func handleTrackingCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    if #available(iOS 14, *) {
+      switch call.method {
+      case "getTrackingAuthorizationStatus":
+        result(Int(ATTrackingManager.trackingAuthorizationStatus.rawValue))
+      case "requestTrackingAuthorization":
+        ATTrackingManager.requestTrackingAuthorization { status in
+          DispatchQueue.main.async {
+            result(Int(status.rawValue))
+          }
+        }
+      case "getAdvertisingIdentifier":
+        result(ASIdentifierManager.shared().advertisingIdentifier.uuidString)
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+      return
+    }
+
+    switch call.method {
+    case "getTrackingAuthorizationStatus", "requestTrackingAuthorization":
+      result(4)
+    case "getAdvertisingIdentifier":
+      result("")
+    default:
+      result(FlutterMethodNotImplemented)
+    }
   }
 
   override func application(

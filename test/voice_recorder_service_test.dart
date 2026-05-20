@@ -7,41 +7,23 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const permissionChannel = MethodChannel(
-    'flutter.baseflow.com/permissions/methods',
-  );
   const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
   const recordChannel = MethodChannel('com.llfbandit.record/messages');
 
   late Directory tempDir;
-  late int permissionStatus;
-  late int requestStatus;
+  late List<bool> permissionResponses;
+  late List<bool?> permissionRequestFlags;
   String? lastRecordingPath;
   bool throwOnStart = false;
   bool throwOnStop = false;
 
   setUp(() async {
     tempDir = await Directory.systemTemp.createTemp('voice_recorder_test_');
-    permissionStatus = 1; // granted
-    requestStatus = 1; // granted
+    permissionResponses = <bool>[true];
+    permissionRequestFlags = <bool?>[];
     lastRecordingPath = null;
     throwOnStart = false;
     throwOnStop = false;
-
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(permissionChannel, (call) async {
-          switch (call.method) {
-            case 'checkPermissionStatus':
-              return permissionStatus;
-            case 'requestPermissions':
-              final requested = (call.arguments as List<dynamic>).cast<int>();
-              return <int, int>{
-                for (final permission in requested) permission: requestStatus,
-              };
-            default:
-              return null;
-          }
-        });
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProviderChannel, (call) async {
@@ -56,6 +38,13 @@ void main() {
           switch (call.method) {
             case 'create':
               return null;
+            case 'hasPermission':
+              final args = call.arguments as Map<dynamic, dynamic>;
+              permissionRequestFlags.add(args['request'] as bool?);
+              if (permissionResponses.length > 1) {
+                return permissionResponses.removeAt(0);
+              }
+              return permissionResponses.first;
             case 'start':
               if (throwOnStart) {
                 throw PlatformException(code: 'start_failed');
@@ -87,8 +76,6 @@ void main() {
 
   tearDownAll(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(permissionChannel, null);
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProviderChannel, null);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(recordChannel, null);
@@ -99,19 +86,19 @@ void main() {
       final service = VoiceRecorderService();
       addTearDown(service.dispose);
 
-      permissionStatus = 0;
+      permissionResponses = <bool>[false];
       expect(await service.hasPermission(), isFalse);
 
-      requestStatus = 1;
+      permissionResponses = <bool>[true];
       expect(await service.requestPermission(), isTrue);
 
-      requestStatus = 0;
+      permissionResponses = <bool>[false];
       expect(await service.requestPermission(), isFalse);
+      expect(permissionRequestFlags, <bool?>[false, true, true]);
     });
 
     test('startRecording returns null when permission denied', () async {
-      permissionStatus = 0;
-      requestStatus = 0;
+      permissionResponses = <bool>[false];
 
       final service = VoiceRecorderService();
       addTearDown(service.dispose);

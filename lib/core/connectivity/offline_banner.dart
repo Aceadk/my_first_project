@@ -31,7 +31,7 @@ class OfflineBanner extends StatelessWidget {
               transitionBuilder: (child, animation) {
                 return SizeTransition(
                   sizeFactor: animation,
-                  axisAlignment: -1,
+                  alignment: AlignmentDirectional.topStart,
                   child: child,
                 );
               },

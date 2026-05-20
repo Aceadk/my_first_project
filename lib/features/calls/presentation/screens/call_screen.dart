@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:crushhour/core/services/native_permission_service.dart';
 import 'package:crushhour/core/services/screen_capture_service.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
@@ -23,7 +24,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 
@@ -334,12 +334,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   Future<bool> _ensureCallPermissions() async {
     try {
-      final microphoneStatus = await Permission.microphone.request();
-      if (!microphoneStatus.isGranted) return false;
+      const permissionService = NativePermissionService();
+      final hasMicrophone = await permissionService.requestPermission(
+        NativePermission.microphone,
+      );
+      if (!hasMicrophone) return false;
 
       if (!widget.isVideoCall) return true;
-      final cameraStatus = await Permission.camera.request();
-      return cameraStatus.isGranted;
+      return permissionService.requestPermission(NativePermission.camera);
     } catch (_) {
       // Keep widget/integration tests stable when permission channels are not wired.
       return true;

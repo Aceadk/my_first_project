@@ -4,6 +4,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 const String _appleIdSetupMessage =
     'Apple Sign-In could not complete. Make sure this device is signed into an Apple ID. If you are using the iPhone simulator, open Settings, sign in to Apple Account, and try again.';
+const String _appleRetryMessage = 'Apple Sign-In failed. Please try again.';
 
 AuthFailure mapAppleSignInFailure(Object error) {
   if (error is AuthFailure) {
@@ -63,6 +64,14 @@ AuthFailure mapAppleSignInFailure(Object error) {
         return AuthFailure(
           AuthFailureType.unsupportedProvider,
           message: _appleIdSetupMessage,
+          cause: error,
+        );
+      case AuthorizationErrorCode.credentialExport:
+      case AuthorizationErrorCode.credentialImport:
+      case AuthorizationErrorCode.matchedExcludedCredential:
+        return AuthFailure(
+          AuthFailureType.unsupportedProvider,
+          message: _appleRetryMessage,
           cause: error,
         );
     }

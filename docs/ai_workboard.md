@@ -20,6 +20,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
+| T-2026-05-19-IOS-DEPLOY-IPHONE | 2026-05-19 | Deploy app to iPhone | Blocked | Do not rerun Flutter yet; first make `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 30` pass by restarting protected USB/CoreDevice state with admin privileges or rebooting the Mac/iPhone. |
 | T-2026-02-06-01 | 2026-02-06 | Post-Blaze Firebase setup                  | In Progress | Initialize Firebase Storage in console, then run `firebase deploy --only storage`.                 |
 | T-2026-02-01-03 | 2026-02-01 | Integration test failures (l10n + auth UI) | In Progress | Re-run `flutter test integration_test/app_test.dart` with a longer timeout/device stability check. |
 
@@ -51,6 +52,342 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 | T-2026-02-19-ONBOARD005 | 2026-02-19 | Deck tutorial overlay added with one-time persistence + a11y support.         | `flutter analyze` clean.                                      |
 
 ## Unified Task Log
+
+### T-2026-05-20-GITHUB-SAVE
+- Date: 2026-05-20
+- Owner: Codex
+- Status: Completed
+- Goal: Save the full current working tree locally and publish it to GitHub.
+- Scope: current branch `codex/publish-auth-startup-hardening`, all tracked modifications, and untracked files requested by the developer.
+- Key Changes:
+  - Verified GitHub CLI availability and authenticated `Aceadk` account.
+  - Verified `origin` points to `https://github.com/Aceadk/my_first_project.git`.
+  - Confirmed the active branch tracks `origin/codex/publish-auth-startup-hardening`.
+  - Included the untracked `ios/Runner/SceneDelegate.swift` and `lib/core/services/native_permission_service.dart` because the developer requested saving everything.
+- Decisions/Handoffs:
+  - Used the existing tracked feature branch rather than creating a new branch.
+  - Staged the full working tree intentionally because the requested scope was “everything.”
+- Verification:
+  - `gh --version`
+  - `gh auth status`
+  - `git status -sb`
+  - `git diff --stat`
+  - `git diff --check`
+  - `scripts/check_ai_docs_sync.sh --files ...`
+- Next Step: Push the committed branch and create or reuse a draft PR into `main`.
+
+### T-2026-05-20-SPM-L10N-WARNING-CLEANUP
+- Date: 2026-05-20
+- Owner: Codex
+- Status: Completed
+- Goal: Remove the current Flutter warning blocks for iOS SPM-incompatible plugins and noisy untranslated locale counts without adding fake translations.
+- Scope: dependency cleanup, native permission/ATT compatibility channels, l10n warning configuration, and targeted platform verification.
+- Key Changes:
+  - Removed direct `permission_handler` and `app_tracking_transparency` dependencies from `pubspec.yaml` and refreshed generated package/plugin metadata.
+  - Added `lib/core/services/native_permission_service.dart` for app-owned camera/microphone permission requests.
+  - Updated calls permission handling to use `crushhour/native_permissions`; voice recording now relies on `record` permission APIs with non-prompting status checks.
+  - Replaced ATT package usage with an app-owned `TrackingStatus` enum and native `app_tracking_transparency` MethodChannel implementation on iOS; Android returns `notSupported` for compatibility.
+  - Added iOS channel handlers in `ios/Runner/AppDelegate.swift` and Android channel handlers in `android/app/src/main/kotlin/com/ace/crush/MainActivity.kt`.
+  - Configured `l10n.yaml` to write untranslated-message details to `.dart_tool/l10n_untranslated_messages.json` with warnings suppressed, leaving ARB content unchanged.
+  - Kept `flutter.config.enable-swift-package-manager: false` so the current CocoaPods integration path stays warning-free until a deliberate SPM migration.
+  - Let Flutter's Android verification build add compatibility flags to `android/gradle.properties`.
+- Decisions/Handoffs:
+  - Dependency replacement was required because Flutter still prints the unsupported-iOS-SPM plugin warning even when project-level SPM is disabled.
+  - No automated Arabic or other locale strings were generated; untranslated coverage remains a product localization backlog item.
+  - Android debug build surfaced a separate Kotlin Gradle Plugin future-warning; tracked in `docs/risk_notes.md`.
+- Verification:
+  - `flutter pub get`
+  - `flutter test test/tracking_consent_test.dart test/voice_recorder_service_test.dart`
+  - `flutter analyze`
+  - `flutter build ios --debug --no-codesign`
+  - `flutter build apk --debug`
+  - `git diff --check`
+  - `scripts/check_ai_docs_sync.sh --files ...`
+- Next Step: Plan a separate iOS generated-project migration to SPM and Android Built-in Kotlin migration before Flutter turns those future warnings into build errors.
+
+### T-2026-05-20-UISCENE-MIGRATION
+- Date: 2026-05-20
+- Owner: Codex
+- Status: Completed
+- Goal: Resolve the Flutter iPhone debug warning that UIScene lifecycle support will soon be required for iOS launch compatibility.
+- Scope: migrate the Runner iOS lifecycle wiring only, preserving existing CallKit, screen-capture, plugin registration, and remote-notification behavior.
+- Key Changes:
+  - Updated `ios/Runner/AppDelegate.swift` to conform to `FlutterImplicitEngineDelegate`.
+  - Moved `GeneratedPluginRegistrant.register` from `application(_:didFinishLaunchingWithOptions:)` to `didInitializeImplicitFlutterEngine(_:)` using `engineBridge.pluginRegistry`.
+  - Moved existing `crushhour/screen_capture_events`, `crushhour/callkit`, and `crushhour/callkit_events` channel setup to use `engineBridge.applicationRegistrar.messenger()`.
+  - Added `UIApplicationSceneManifest` to `ios/Runner/Info.plist`, pointing the application scene at Flutter's built-in `FlutterSceneDelegate` with the `Main` storyboard and multiple scenes disabled.
+  - Refreshed Flutter 3.44 package metadata with `flutter pub get`; `pubspec.lock` now includes the corresponding transitive test-package pin updates.
+  - Let Flutter 3.44 apply its Xcode Swift Package Manager compatibility migration to `ios/Runner.xcodeproj/project.pbxproj` and `ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme` during verification.
+- Decisions/Handoffs:
+  - Used `FlutterSceneDelegate` directly because the existing untracked `ios/Runner/SceneDelegate.swift` is not part of the Xcode project sources and is not needed for this migration path.
+  - Recorded a new low-severity build/toolchain risk because Flutter 3.44 warns that `permission_handler_apple` and `app_tracking_transparency` do not support Swift Package Manager for iOS.
+  - Cleared only generated Xcode/SwiftPM caches (`Runner-*` DerivedData and `build/ios/SourcePackages`) after the first Flutter 3.44 rebuild hit a stale Firebase SPM file-list error for `RemoteConfig+Async.swift`.
+- Verification:
+  - `plutil -lint ios/Runner/Info.plist`
+  - `plutil -p ios/Runner/Info.plist | rg -n "UIApplicationSceneManifest|UISceneDelegateClassName|FlutterSceneDelegate|UIApplicationSupportsMultipleScenes|UISceneStoryboardFile"`
+  - `flutter pub get`
+  - `flutter build ios --debug --no-codesign`
+  - `scripts/check_ai_docs_sync.sh --files ios/Runner/AppDelegate.swift ios/Runner/Info.plist ios/Runner.xcodeproj/project.pbxproj ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme pubspec.lock docs/ai_workboard.md docs/Developer_agent_chat.md docs/risk_notes.md`
+- Next Step: Retry `flutter run` on the iPhone after the separate CoreDevice/RemotePairing tunnel issue is healthy; this migration should remove the UIScene warning, but it does not fix physical device tunnel failures.
+
+### T-2026-05-20-IOS-COREDEVICE-RECOVERY-ATTEMPT
+- Date: 2026-05-20
+- Owner: Codex
+- Status: Blocked
+- Goal: Fix the repeated `iPhoneeeee` destination-preparation timeout instead of only diagnosing the pasted `flutter run` failure.
+- Scope: stop stuck deploy processes, reset user-session Apple device services, refresh pairing, rebuild host developer disk images, and verify whether the no-build CoreDevice tunnel becomes usable before retrying Flutter.
+- Key Changes:
+  - Stopped the stuck `flutter run` process for `00008120-0019181C3A00C01E` and terminated stale `xcdevice observe/list` processes.
+  - Restarted user-session `CoreDeviceService` and `remotepairingd`; launchd recreated both services.
+  - Verified `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 30` still fails with `CoreDeviceError error 4` / `RemotePairingError error 4`.
+  - Ran `xcrun devicectl manage pair`, then `unpair` and `pair` for `iPhoneeeee`; pairing succeeded, but the direct tunnel query still failed.
+  - Attempted `xcrun devicectl device reboot --device 00008120-0019181C3A00C01E --timeout 30`; it failed through the same tunnel path.
+  - Rebuilt host developer disk images with `xcrun devicectl manage ddis update --clean --timeout 120`; the installed host DDIs matched the original set afterward.
+  - Verified `xcrun devicectl device info details` reports `tunnelState: disconnected` and `ddiServicesAvailable: false`, which explains why install/launch cannot proceed even when Flutter/Xcode can list the phone.
+  - Verified `usbmuxd` is owned by `_usbmuxd`; non-admin `launchctl kickstart -k system/com.apple.usbmuxd` is denied by SIP and `sudo -n` reports that a password is required.
+- Decisions/Handoffs:
+  - Skipped another full `flutter run` because the faster no-build CoreDevice tunnel check still fails; another Flutter run would rebuild and hit the same destination timeout.
+  - Left app code, signing, CocoaPods, and localization files unchanged because the blocker is below the Flutter/Xcode project layer.
+  - Left `docs/risk_notes.md` unchanged because this is a local deploy-environment blocker, not a new app runtime/product risk.
+- Verification:
+  - `ps -Ao pid,etime,%cpu,stat,command | rg 'flutter_tools\\.snapshot|flutter run|xcodebuild|pod install|devicectl|xcdevice|CoreDeviceService|remotepairingd|usbmuxd'`
+  - `pkill -TERM -f 'flutter_tools\\.snapshot run -d 00008120-0019181C3A00C01E'`
+  - `pkill -TERM -f 'xcdevice (observe|list)'`
+  - `killall -TERM CoreDeviceService remotepairingd`
+  - `xcrun devicectl list devices`
+  - `xcrun devicectl manage pair --device 00008120-0019181C3A00C01E --timeout 30`
+  - `xcrun devicectl manage unpair --device 00008120-0019181C3A00C01E --timeout 30`
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 30`
+  - `xcrun devicectl device info details --device 00008120-0019181C3A00C01E --timeout 20`
+  - `xcrun devicectl device info ddiServices --device 00008120-0019181C3A00C01E --timeout 30`
+  - `xcrun devicectl device reboot --device 00008120-0019181C3A00C01E --timeout 30`
+  - `xcrun devicectl manage ddis update --clean --timeout 120`
+  - `launchctl kickstart -k system/com.apple.usbmuxd`
+  - `sudo -n launchctl kickstart -k system/com.apple.usbmuxd`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: Restart protected USB/CoreDevice state with admin privileges (`sudo launchctl kickstart -k system/com.apple.usbmuxd`) or reboot the Mac, then reboot/unlock/reconnect `iPhoneeeee`; only retry Flutter after `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 30` succeeds.
+
+### T-2026-05-20-IOS-DESTINATION-TUNNEL-DIAGNOSIS
+- Date: 2026-05-20
+- Owner: Codex
+- Status: Completed
+- Goal: Diagnose the pasted `flutter run` failure where `iPhoneeeee` timed out as an Xcode destination after the Xcode build completed.
+- Scope: verify current Flutter/Xcode/CoreDevice state for `iPhoneeeee` (`00008120-0019181C3A00C01E`), inspect recent Apple device logs, and update required workflow docs without changing app code.
+- Key Changes:
+  - Confirmed no active `flutter run`, `xcodebuild`, or pod install process remained from the failed attempt.
+  - Verified `flutter devices` currently lists `iPhoneeeee` as an iOS device.
+  - Verified `xcrun devicectl list devices`, `xcrun xcdevice list --timeout 5`, and `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -showdestinations` currently list `iPhoneeeee` as available.
+  - Captured the Apple-side failure chain from recent logs: `xcodebuild` failed to acquire a CoreDevice usage assertion, RemotePairing tunnel establishment was cancelled with tunnel connection failure, and the phone detached/re-attached at the device layer shortly afterward.
+  - Concluded the pasted error is a physical device/CoreDevice/RemotePairing recovery issue after build, not a Dart compilation, CocoaPods, signing, or app-code failure.
+- Decisions/Handoffs:
+  - Did not modify Dart, iOS project, signing, or localization files because diagnostics did not reveal a project-side fix for this failure.
+  - Left `docs/risk_notes.md` unchanged because this is an operational deploy blocker already tracked in the iOS deploy notes, not a new product/runtime risk.
+- Verification:
+  - `ps -Ao pid,etime,%cpu,stat,command | rg 'flutter_tools\\.snapshot|flutter run|xcodebuild|pod install|devicectl|xcdevice'`
+  - `flutter devices`
+  - `xcrun devicectl list devices`
+  - `xcrun xcdevice list --timeout 5`
+  - `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -showdestinations`
+  - `/usr/bin/log show --style compact --last 15m --predicate 'eventMessage CONTAINS[c] "00008120-0019181C3A00C01E" || eventMessage CONTAINS[c] "1B4353DE-FDC2-515A-BACB-327E87824C8F" || eventMessage CONTAINS[c] "Timed out waiting for all destinations" || eventMessage CONTAINS[c] "Failed to acquire usage assertion" || eventMessage CONTAINS[c] "need to be unlocked" || eventMessage CONTAINS[c] "RemotePairing" || eventMessage CONTAINS[c] "deviceDetached" || eventMessage CONTAINS[c] "deviceAttached"' | tail -n 180`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: Keep `iPhoneeeee` unlocked and awake, then rerun `flutter run -d 00008120-0019181C3A00C01E --device-timeout 120`; if the same tunnel assertion failure repeats, reboot the phone, reconnect with a stable cable/port, and restart Xcode/CoreDevice before retrying.
+
+### T-2026-05-19-FLUTTER-RUN-IPHONE-RETRY
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Run the Flutter app on the currently connected physical iPhone and monitor whether it gets through build, install, and debug attach.
+- Scope: verify current iPhone availability, run `flutter run` against `iPhoneeeee` (`00008120-0019181C3A00C01E`), capture the terminal outcome, and update the required workflow docs.
+- Key Changes:
+  - Confirmed no stale `flutter run`/`xcodebuild` deployment process was active before starting the retry.
+  - Verified `xcrun xcdevice list --timeout 5` currently reports `iPhoneeeee` as `available: true` over USB.
+  - Ran `flutter run -d 00008120-0019181C3A00C01E --device-timeout 120`; it failed before Xcode build because Flutter could not find a supported device matching the UDID and only listed macOS/Chrome.
+  - Confirmed `flutter devices` briefly saw `iPhoneeeee` as connected, then ran a second immediate retry; it failed the same way before build/install.
+  - Captured concurrent CoreDevice state flapping: `devicectl` alternated between `connected` and `unavailable`, while direct `xcdevice` checks briefly saw the iPhone as available.
+  - Captured Apple logs showing RemotePairing tunnel cancellation (`errorCode: 5`), control-channel invalidation, device state changing to `Unavailable`, Xcode failing to acquire a usage assertion with CoreDevice error `1000`, and Finder logging `deviceDetached` for `00008120-0019181C3A00C01E`.
+- Decisions/Handoffs:
+  - Reusing the currently available `iPhoneeeee` UDID because it is the only connected physical iPhone now reporting available over USB.
+  - Stopped after two retries because the command never reached build/install; additional runs would keep exercising the unstable CoreDevice tunnel rather than app code.
+- Verification:
+  - `flutter devices`
+  - `flutter run -d 00008120-0019181C3A00C01E --device-timeout 120` (twice)
+  - `xcrun devicectl list devices`
+  - `xcrun xcdevice list --timeout 5`
+  - `/usr/bin/log show --style compact --last 5m --predicate 'eventMessage CONTAINS[c] "00008120-0019181C3A00C01E" || eventMessage CONTAINS[c] "1B4353DE-FDC2-515A-BACB-327E87824C8F" || eventMessage CONTAINS[c] "deviceDetached" || eventMessage CONTAINS[c] "deviceAttached" || eventMessage CONTAINS[c] "RemotePairing" || eventMessage CONTAINS[c] "coredevice"' | tail -n 160`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: Reboot or fully reconnect `iPhoneeeee`, keep it unlocked and awake on the Home Screen, verify `flutter devices` lists it, then rerun `flutter run`; the current blocker is Apple CoreDevice/RemotePairing stability before build.
+
+
+### T-2026-05-19-IOS-DESTINATION-DROPPED-AFTER-BUILD
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Diagnose the latest clean-rebuild deployment failure where the specified iPhone destination disappeared after pod install and a successful Xcode build.
+- Scope: inspect current CoreDevice/Xcode destination state plus recent Apple RemotePairing/CoreDevice logs for `00008120-0019181C3A00C01E`, then update the required workflow docs.
+- Key Changes:
+  - Verified the user’s clean rebuild sequence reached successful pod integration and successful Xcode build before failing on device selection.
+  - Confirmed the current device state has degraded from available to unavailable: `devicectl` now marks `iPhoneeeee` unavailable, `xcodebuild -showdestinations` no longer lists it, and `xcdevice` reports it as unavailable with browse/prep error `-27`.
+  - Captured the exact Apple-side failure chain from logs: tunnel established, tunnel interrupted by the remote side (`RemotePairingError Code 5`), Xcode reported `The specified device was not found`, and Finder logged `deviceDetached` for the phone.
+  - Narrowed the failure to a physical/CoreDevice disconnect after build, not to Flutter code, CocoaPods, or signing configuration.
+- Decisions/Handoffs:
+  - Treated this as a separate diagnosis slice from the earlier timeout tasks because the failure mode materially changed from “destination available but preparation failed” to “destination disappeared entirely.”
+- Verification:
+  - `xcrun devicectl list devices`
+  - `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -showdestinations`
+  - `xcrun xcdevice list`
+  - `/usr/bin/log show --style compact --last 10m --predicate 'eventMessage CONTAINS[c] "00008120-0019181C3A00C01E" || eventMessage CONTAINS[c] "deviceDetached" || eventMessage CONTAINS[c] "deviceAttached" || eventMessage CONTAINS[c] "Unable to find a destination matching" || eventMessage CONTAINS[c] "Failed to acquire usage assertion"' | tail -n 220`
+- Next Step: Restore a stable physical/CoreDevice connection first by reconnecting the cable and keeping the phone unlocked; if the device still drops out of Xcode destinations, reboot the iPhone before the next retry.
+
+### T-2026-05-19-IOS-POST-BUILD-TUNNEL-TIMEOUT
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Diagnose the repeated `flutter run` failure where Xcode build completed but the device timed out before install/launch on `iPhoneeeee`.
+- Scope: inspect the current CoreDevice/Xcode destination state and recent Apple logs for UDID `00008120-0019181C3A00C01E`, then record the exact failing layer in the required workflow docs.
+- Key Changes:
+  - Verified the current Xcode destination state is still healthy: `iPhoneeeee` is listed by `xcodebuild -showdestinations`, `xcdevice`, and `devicectl` as available over USB.
+  - Confirmed the user’s latest terminal failure occurred after a successful Xcode build, so the app compilation phase is no longer the blocker in that run.
+  - Captured the repeated post-build Apple log pattern: `CoreDeviceService` requests a tunnel assertion, `remotepairingd` moves the device into `Establishing tunnel`, the tunnel is cancelled roughly 10 seconds later, and `xcodebuild` logs `Failed to acquire usage assertion`.
+  - Narrowed the remaining failure to Apple’s post-build device-preparation/tunnel path rather than Flutter code, pod resolution, or signing configuration.
+- Decisions/Handoffs:
+  - Treated this as a separate diagnosis slice from the earlier generic timeout note because the latest transcript showed a complete build first, which materially narrowed the failure boundary.
+- Verification:
+  - `xcrun devicectl list devices`
+  - `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -showdestinations`
+  - `xcrun xcdevice list`
+  - `/usr/bin/log show --style compact --last 5m --predicate 'eventMessage CONTAINS[c] "00008120-0019181C3A00C01E" || eventMessage CONTAINS[c] "need to be unlocked" || eventMessage CONTAINS[c] "preparation errors" || eventMessage CONTAINS[c] "Failed to acquire usage assertion" || eventMessage CONTAINS[c] "Timed out waiting for all destinations"' | tail -n 200`
+- Next Step: Keep `iPhoneeeee` unlocked and awake for the next retry; if the same post-build timeout repeats, the recovery should focus on the phone/cable/CoreDevice tunnel path rather than the Xcode project.
+
+### T-2026-05-19-IOS-DESTINATION-TIMEOUT-DIAGNOSIS
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Diagnose the latest `flutter run` failure that timed out waiting for `iPhoneeeee` to become an available Xcode destination.
+- Scope: inspect current deployment processes, CoreDevice/Xcode destination state, and device-preparation status for `00008120-0019181C3A00C01E`, then record the result in the required workflow docs.
+- Key Changes:
+  - Confirmed the failed run had already exited and that no live `flutter run`, `xcodebuild`, or `pod install` process remained from that attempt.
+  - Verified `xcrun devicectl list devices` now shows `iPhoneeeee` as `available (paired)`.
+  - Verified `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -showdestinations` now lists `iPhoneeeee` cleanly, without the earlier `may need to be unlocked` preparation error.
+  - Verified `xcrun xcdevice list` also reports `iPhoneeeee` as available over USB.
+  - Concluded that the pasted timeout was transient and tied to lock/preparation recovery during that specific run, not to a persistent signing or destination configuration problem.
+- Decisions/Handoffs:
+  - Kept this as a diagnosis-only task because the user provided a failed run transcript and asked for interpretation rather than asking to launch another deploy automatically.
+- Verification:
+  - `ps -Ao pid,etime,%cpu,stat,command | rg 'flutter_tools\\.snapshot|flutter run|xcodebuild|pod install|devicectl|xcdevice'`
+  - `xcrun devicectl list devices`
+  - `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -showdestinations`
+  - `xcrun xcdevice list`
+  - `/usr/bin/log show --style compact --last 5m --predicate 'eventMessage CONTAINS[c] "00008120-0019181C3A00C01E" || eventMessage CONTAINS[c] "need to be unlocked" || eventMessage CONTAINS[c] "preparation errors" || eventMessage CONTAINS[c] "Failed to acquire usage assertion"' | tail -n 160`
+- Next Step: Keep `iPhoneeeee` unlocked and rerun `flutter run -d 00008120-0019181C3A00C01E`; if the next attempt fails, capture the final lines because the current Xcode destination state itself is healthy.
+
+### T-2026-05-19-FLUTTER-RUN-MONITOR-2
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Track the current live `flutter run` terminal session and identify the real active phase and final blocker.
+- Scope: observe the live Flutter/Xcode/CocoaPods/CoreDevice processes for `iPhoneeeee` (`00008120-0019181C3A00C01E`), tail the Xcode output pipe when available, and record the run outcome without interrupting the user’s session.
+- Key Changes:
+  - Confirmed the live `flutter run` started against `iPhoneeeee` and initially sat in Flutter’s pre-build `xcodebuild -showBuildSettings` path while the phone moved from `connecting` to `available (paired)`.
+  - Identified the first real blocker in Apple logs: repeated CoreDevice tunnel-establishment attempts were cancelled, and `xcodebuild` logged `Failed to acquire usage assertion` on device `1B4353DE-FDC2-515A-BACB-327E87824C8F`.
+  - Found that Flutter then spawned `pod install --verbose`; CocoaPods rebuilt the missing iOS pod sandbox and recreated `ios/Pods` plus `ios/Podfile.lock`.
+  - Verified Flutter subsequently launched the real `xcodebuild -workspace Runner.xcworkspace ... -destination id=00008120-0019181C3A00C01E` build attempt, but the run still exited without a successful install or launch.
+  - Confirmed the end-state device checks fail with `CoreDeviceError error 4` / `RemotePairingError error 4` tunnel-connection errors, and no finished local `Runner.app` artifact was present from this run.
+- Decisions/Handoffs:
+  - Kept the task observation-only because the user asked to track the terminal run, not restart or modify it.
+  - Treated the CocoaPods activity as part of the same run rather than a separate fix task because Flutter spawned it directly during this monitored session.
+- Verification:
+  - `ps -Ao pid,etime,%cpu,stat,command | rg 'flutter_tools\\.snapshot|flutter run|flutter build ios|xcodebuild|pod install|devicectl|xcdevice|clang -cc1|swift-frontend'`
+  - `xcrun devicectl list devices`
+  - `/usr/bin/log show --style compact --last 3m --predicate 'process == "xcodebuild" || process == "devicectl"' | tail -n 120`
+  - `/usr/bin/log show --style compact --last 3m --predicate 'subsystem CONTAINS "CoreDevice" || subsystem CONTAINS "DTDeviceKit" || eventMessage CONTAINS[c] "00008120-0019181C3A00C01E"' | tail -n 120`
+  - `sample 47020 2 1`
+  - `sample 47865 2 1`
+  - `tail -n 120 /var/folders/wh/jp13lqys0wsfx13mq16zp0_80000gn/T/flutter_tools.dKKeWr/flutter_ios_build_temp_dirW9zfN5/pipe_to_stdout`
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E`
+  - `xcrun devicectl device info processes --device 00008120-0019181C3A00C01E`
+- Next Step: Retry the run only after the physical-device tunnel is stable; the live evidence now points to the Apple CoreDevice usage-assertion/tunnel path as the blocker rather than a Dart or pod-resolution failure.
+
+### T-2026-05-19-APPLE-SIGN-IN-MAPPER-COMPAT
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Fix the new Apple auth mapper analyzer failure caused by additional `AuthorizationErrorCode` enum values after upgrading `sign_in_with_apple`.
+- Scope: `lib/features/auth/data/repositories/impl/apple_sign_in_failure_mapper.dart`, `test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart`, and the required workflow docs.
+- Key Changes:
+  - Confirmed the upgraded `sign_in_with_apple` platform interface now exposes `credentialExport`, `credentialImport`, and `matchedExcludedCredential` in addition to the previously handled authorization codes.
+  - Updated [`apple_sign_in_failure_mapper.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/apple_sign_in_failure_mapper.dart) to map the three new credential-related authorization errors explicitly instead of leaving the switch non-exhaustive.
+  - Kept the previous Apple ID setup guidance for the existing non-cancel authorization failures and used a simpler retry message for the new credential-related failures to avoid misleading setup instructions.
+  - Added focused regression coverage in [`apple_sign_in_failure_mapper_test.dart`](/Users/ace/my_first_project/test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart) for the new credential-related branch.
+- Decisions/Handoffs:
+  - Avoided adding a default switch branch because that would hide future enum expansions; explicit cases preserve analyzer protection for later package upgrades.
+  - Kept the fix limited to the mapper/test layer because the user-facing auth model did not require a broader repository or UI change for this compatibility issue.
+- Verification:
+  - `flutter analyze lib/features/auth/data/repositories/impl/apple_sign_in_failure_mapper.dart test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart`
+  - `flutter test test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart`
+- Next Step: Continue the separate iOS build/deploy recovery once the CocoaPods/Xcode workspace state is stable again; the Dart-side Apple auth compatibility blocker is resolved.
+
+### T-2026-05-19-FLUTTER-RUN-MONITOR
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Monitor the already-running `flutter run` session and report what phase the iPhone deployment is currently in.
+- Scope: inspect the live Flutter/Xcode/device processes for the current run, track phase transitions, and keep the user updated without interrupting their session.
+- Key Changes:
+  - Located the active `flutter run` process `63744` and its child `xcodebuild` process `64208` for target `00008120-0019181C3A00C01E`.
+  - Confirmed the current device is `iPhoneeeee` (`iPhone 14 Pro Max`) and CoreDevice reported it as `connected` throughout the monitored run.
+  - Tracked the run across the full build path: `gRPC-Core`, `gRPC-C++`, `FirebaseFirestoreInternal`, Swift/plugin module setup, `Runner` target script/resource phases, `[CP] Embed Pods Frameworks`, `devicectl` install, and the final `xcode_debug.js` launch handoff.
+  - Verified that `flutter run` eventually exited, but the phone did not report `com.ace.crush` / `Runner` as installed or running afterward, so deployment was not completed successfully.
+- Decisions/Handoffs:
+  - Chose observation-only monitoring because the user is already running `flutter run` in their own terminal and asked only for status tracking, not intervention.
+- Verification:
+  - `ps -Ao pid,etime,%cpu,stat,command | rg 'flutter_tools.snapshot run -d|xcodebuild -configuration Debug -quiet -allowProvisioningUpdates -allowProvisioningDeviceRegistration -workspace Runner.xcworkspace|clang -cc1 .*gRPC-Core|clang -cc1 .*Runner.build|codesign .*Runner.app|installapp|devicectl .*install'`
+  - `xcrun devicectl list devices`
+  - `find "$HOME/Library/Developer/Xcode/DerivedData/Runner-fuxkwkllouydlccftbejwfeovwpl/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/gRPC-Core.build/Objects-normal/arm64" -name '*.o' | wc -l`
+  - `find "$HOME/Library/Developer/Xcode/DerivedData/Runner-fuxkwkllouydlccftbejwfeovwpl/Build/Intermediates.noindex/Pods.build/Debug-iphoneos/FirebaseFirestoreInternal.build/Objects-normal/arm64" -name '*.o' | wc -l`
+  - `rg -n '9740EEB61CF901F6004384FC|C62A6A0B22AA6A5CACCD2357|shellScript =' ios/Runner.xcodeproj/project.pbxproj`
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --json-output <tmp>`
+  - `xcrun devicectl device info processes --device 00008120-0019181C3A00C01E --json-output /tmp/devproc.json`
+- Next Step: If debugging should continue, rerun `flutter run -d 00008120-0019181C3A00C01E` and capture the final terminal output after the Xcode launch handoff to identify the exact post-build failure.
+
+### T-2026-05-19-FLUTTER-DEVICES
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Report the current `flutter devices` output for this workspace.
+- Scope: run `flutter devices`, capture the currently detected device list, and record the result in the required workflow docs.
+- Key Changes:
+  - Ran `flutter devices` successfully from the project root and captured the current Flutter-visible targets.
+  - Confirmed Flutter currently sees `iPhoneeeee` (`00008120-0019181C3A00C01E`) as the connected iOS device, plus `macOS` and `Chrome`.
+  - Captured the additional CoreDevice browse errors Flutter emitted for stale/offline device records: `Bis iPhone`, `Mandeep’s iPhone`, and `iPhone`.
+- Decisions/Handoffs:
+  - Did not change any device pairing or deployment state because the request was only to report the current `flutter devices` output.
+- Verification:
+  - `flutter devices`
+- Next Step: If deployment resumes, target the currently connected iPhone reported by Flutter or explicitly switch devices before the next run attempt.
+
+### T-2026-05-19-IOS-DEPLOY-STOP
+- Date: 2026-05-19
+- Owner: Codex
+- Status: Completed
+- Goal: Stop all currently running iPhone deployment and related Flutter/Xcode processes on request.
+- Scope: inspect live Flutter/Xcode/device-helper processes in the current workspace, terminate any remaining deployment/watch sessions, and update the required workflow docs.
+- Key Changes:
+  - Confirmed the long native build had already completed locally and the immediate deployment activity had collapsed to a failed install/debug handoff caused by an unavailable Apple developer tunnel on `Mandeep’s iPhone`.
+  - Verified there were no live iPhone deployment `xcodebuild` or `flutter run` sessions left for `00008110-0010549926D0401E` or the stale `Bis iPhone` target by the time the stop request was processed.
+  - Found and terminated the remaining Flutter background processes from this workspace: a stale `flutter run -d web-server --web-port 8686` and a Flutter tool daemon.
+  - Left the built device artifact intact at `build/ios/Debug-iphoneos/Runner.app/Runner` so a later retry can focus on install/debug launch rather than rebuilding from scratch if the device connection is restored.
+- Decisions/Handoffs:
+  - Stopped only the active Flutter/Xcode/workspace processes rather than deleting build outputs, because the user asked to end running activity, not to discard the completed build product.
+  - Kept the deployment task itself open in the queue as blocked because the requested stop ended the live run, but the app is still not installed on the intended phone.
+- Verification:
+  - `ps -Ao pid,etime,%cpu,stat,command | rg "flutter_tools.snapshot run -d 00008110|flutter_tools.snapshot run -d 00008140|xcodebuild -configuration Debug -quiet -allowProvisioningUpdates -allowProvisioningDeviceRegistration -workspace Runner.xcworkspace|xcdevice wait --usb|devicectl .*00008110-0010549926D0401E|flutter_ios_build_temp_dir0VKvMM"`
+  - `xcrun devicectl list devices`
+  - `ps -Ao pid,etime,%cpu,stat,command | rg "flutter_tools.snapshot|xcodebuild|flutter run -d|flutter run -d web-server|flutter daemon"`
+  - `kill 45042 29997`
+  - `kill -9 45042 29997`
+  - follow-up `ps -Ao pid,etime,%cpu,stat,command | rg "flutter_tools.snapshot|xcodebuild|flutter run -d|flutter run -d web-server|flutter daemon"` -> no active deployment/workspace Flutter/Xcode processes remained
+  - `ls -l build/ios/Debug-iphoneos/Runner.app/Runner`
+- Next Step: When deployment resumes, reconnect `Mandeep’s iPhone`, re-establish the Apple developer tunnel, and rerun install/debug launch against the existing built app or a fresh `flutter run -d 00008110-0010549926D0401E` if needed.
 
 ### T-2026-04-22-GIT-SAVE-PUBLISH
 - Date: 2026-04-22
