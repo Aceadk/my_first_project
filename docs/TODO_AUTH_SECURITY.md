@@ -12,7 +12,10 @@
 - Description: Trace every token, refresh token, session cookie, and pending-auth artifact. Verify secure storage, session cleanup, logout clearing, and deletion clearing.
 - Acceptance Criteria: storage matrix documented; insecure storage paths removed or tracked; logout and delete flows clear all auth artifacts.
 - Testing: unit coverage for storage wrappers plus manual login/logout validation on mobile and web.
-- Status: open
+- Status: completed 2026-05-27
+- Evidence: `docs/reports/auth_token_storage_audit_2026-05-27.md`
+- Verification: `flutter test test/core/services/user_data_clearance_service_test.dart`, `flutter test test/features/auth/data/repositories/auth_secure_storage_test.dart test/features/auth/data/repositories/http_auth_repository_contract_test.dart test/core/services/user_data_clearance_service_test.dart`, `flutter analyze lib/core/services/user_data_clearance_service.dart test/core/services/user_data_clearance_service_test.dart`, `flutter analyze`, `pnpm --dir /Users/ace/crush-web --filter @crush/core typecheck`, `pnpm --dir /Users/ace/crush-web --filter @crush/core lint`
+- Manual Follow-up: real-device/browser login, logout, and account-deletion smoke checks remain required before store submission.
 
 ### AUTH-SEC-002 - Implement silent token refresh with safe request retry
 - Files: auth repositories, HTTP client wrappers, token/session managers

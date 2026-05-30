@@ -1,7 +1,7 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
 
-// Disable code signing for simulator debug builds to avoid CodeSign failures when no signing identity is configured.
-CODE_SIGNING_ALLOWED=NO
-CODE_SIGNING_REQUIRED=NO
-CODE_SIGN_STYLE=Manual
+// Disable code signing only for simulator debug builds to avoid CodeSign failures when no signing identity is configured.
+CODE_SIGNING_ALLOWED[sdk=iphonesimulator*]=NO
+CODE_SIGNING_REQUIRED[sdk=iphonesimulator*]=NO
+CODE_SIGN_STYLE[sdk=iphonesimulator*]=Manual
 #include "Generated.xcconfig"

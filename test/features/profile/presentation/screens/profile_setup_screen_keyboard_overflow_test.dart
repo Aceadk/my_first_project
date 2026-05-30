@@ -110,6 +110,166 @@ void main() {
           'Top progress summary should be hidden while keyboard is visible.',
     );
   });
+
+  testWidgets(
+    'keeps profile setup text fields focused when keyboard insets appear',
+    (tester) async {
+      final authRepository = _NoopAuthRepository();
+      final profileRepository = _NoopProfileRepository(currentUser: _testUser);
+      final profileMediaRepository = _NoopProfileMediaRepository();
+      final passportLocationsRepository = _NoopPassportLocationsRepository();
+      final authBloc = _TestAuthBloc(_authenticatedState);
+      final profileBloc = _TestProfileBloc(
+        const ProfileState(user: _testUser, status: ProfileStatus.loaded),
+      );
+
+      addTearDown(() async {
+        await authBloc.close();
+        await profileBloc.close();
+      });
+
+      tester.view
+        ..physicalSize = const Size(800, 700)
+        ..devicePixelRatio = 1.0
+        ..viewInsets = FakeViewPadding.zero;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+        tester.view.resetViewInsets();
+      });
+
+      await tester.pumpWidget(
+        MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<AuthRepository>.value(value: authRepository),
+            RepositoryProvider<ProfileRepository>.value(
+              value: profileRepository,
+            ),
+            RepositoryProvider<ProfileMediaRepository>.value(
+              value: profileMediaRepository,
+            ),
+            RepositoryProvider<PassportLocationsRepository>.value(
+              value: passportLocationsRepository,
+            ),
+          ],
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AuthBloc>.value(value: authBloc),
+              BlocProvider<ProfileBloc>.value(value: profileBloc),
+            ],
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: ProfileSetupScreen(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 300));
+      if (find.text('Not Now').evaluate().isNotEmpty) {
+        tester.state<NavigatorState>(find.byType(Navigator)).pop();
+        await tester.pumpAndSettle();
+      }
+
+      final firstTextField = find.byType(TextField).first;
+      await tester.showKeyboard(firstTextField);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      tester.view.viewInsets = const FakeViewPadding(bottom: 320);
+      await tester.pump();
+
+      expect(
+        tester.testTextInput.isVisible,
+        isTrue,
+        reason:
+            'Opening the keyboard must not rebuild away the focused text field.',
+      );
+
+      tester.testTextInput.enterText('I love thoughtful conversations');
+      await tester.pump();
+
+      expect(find.text('I love thoughtful conversations'), findsOneWidget);
+      expect(find.text('Profile Completion'), findsNothing);
+      expect(find.textContaining('Start Matching'), findsNothing);
+    },
+  );
+
+  testWidgets('does not absorb input for a non-local profile save state', (
+    tester,
+  ) async {
+    final authRepository = _NoopAuthRepository();
+    final profileRepository = _NoopProfileRepository(currentUser: _testUser);
+    final profileMediaRepository = _NoopProfileMediaRepository();
+    final passportLocationsRepository = _NoopPassportLocationsRepository();
+    final authBloc = _TestAuthBloc(_authenticatedState);
+    final profileBloc = _TestProfileBloc(
+      const ProfileState(
+        user: _testUser,
+        status: ProfileStatus.loaded,
+        isSaving: true,
+      ),
+    );
+
+    addTearDown(() async {
+      await authBloc.close();
+      await profileBloc.close();
+    });
+
+    tester.view
+      ..physicalSize = const Size(800, 900)
+      ..devicePixelRatio = 1.0
+      ..viewInsets = FakeViewPadding.zero;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      tester.view.resetViewInsets();
+    });
+
+    await tester.pumpWidget(
+      MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<AuthRepository>.value(value: authRepository),
+          RepositoryProvider<ProfileRepository>.value(value: profileRepository),
+          RepositoryProvider<ProfileMediaRepository>.value(
+            value: profileMediaRepository,
+          ),
+          RepositoryProvider<PassportLocationsRepository>.value(
+            value: passportLocationsRepository,
+          ),
+        ],
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<AuthBloc>.value(value: authBloc),
+            BlocProvider<ProfileBloc>.value(value: profileBloc),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: ProfileSetupScreen(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 300));
+    if (find.text('Not Now').evaluate().isNotEmpty) {
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.text('Setting up your profile...'), findsNothing);
+
+    final firstTextField = find.byType(TextField).first;
+    await tester.showKeyboard(firstTextField);
+    tester.testTextInput.enterText('Typing is still allowed');
+    await tester.pump();
+
+    expect(find.text('Typing is still allowed'), findsOneWidget);
+    expect(tester.testTextInput.isVisible, isTrue);
+  });
 }
 
 const _testPreferences = DiscoveryPreferences(

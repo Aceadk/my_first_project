@@ -46,6 +46,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   List<String> _videoPaths = [];
   final List<String> _selectedInterests = [];
   bool _uploading = false;
+  bool _setupSaveInProgress = false;
   bool _usernameTouched = false;
   bool _usernameInitialized = false;
   bool _isEditingUsername = false;
@@ -374,7 +375,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Future<void> _submit(ProfileState state) async {
     final l10n = AppLocalizations.of(context);
-    if (_uploading || state.isSaving) return;
+    if (_uploading || _setupSaveInProgress || state.isSaving) return;
 
     final userId = state.user?.id;
     if (userId == null) {
@@ -387,6 +388,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     if (isSkipping) {
       // User is skipping - mark profile setup as skipped
+      setState(() => _setupSaveInProgress = true);
       context.read<ProfileBloc>().add(ProfileSetupSkipped());
       return;
     }
@@ -415,6 +417,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       return;
     }
 
+    setState(() => _setupSaveInProgress = true);
     context.read<ProfileBloc>().add(
       ProfileDetailsSubmitted(
         bio: _bioController.text.trim(),
@@ -536,8 +539,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             (previous.isSaving && !current.isSaving) ||
                             previous.errorMessage != current.errorMessage,
                         listener: (context, state) {
+                          final setupSaveFinished =
+                              _setupSaveInProgress && !state.isSaving;
+
+                          if (setupSaveFinished) {
+                            setState(() => _setupSaveInProgress = false);
+                          }
+
                           // Profile save completed successfully
-                          if (!state.isSaving &&
+                          if (setupSaveFinished &&
                               state.user?.hasCompletedProfileSetup == true &&
                               state.errorMessage == null) {
                             // Set flag and trigger auth refresh
@@ -566,13 +576,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                           );
                         }
 
-                        final saving = state.isSaving || _uploading;
+                        final saving = _uploading || _setupSaveInProgress;
                         final textScale = MediaQuery.textScalerOf(
                           context,
                         ).scale(1);
+                        final stableViewportHeight = MediaQuery.sizeOf(
+                          context,
+                        ).height;
                         final useWholePageScroll =
-                            !keyboardVisible &&
-                            (textScale > 1.3 || constraints.maxHeight < 760);
+                            textScale > 1.3 || stableViewportHeight < 760;
 
                         return Stack(
                           children: [
@@ -589,13 +601,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                       child: Column(
                                         children: [
                                           _buildAppBar(context, isDark),
-                                          DsGap.lg,
-                                          _buildProgressIndicator(
+                                          _buildProgressSlot(
                                             context,
                                             isDark,
                                             state,
+                                            keyboardVisible,
                                           ),
-                                          DsGap.lg,
                                           Padding(
                                             padding: DsEdgeInsets.horizontalXxl,
                                             child: _buildFormSections(
@@ -618,16 +629,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                   : Column(
                                       children: [
                                         _buildAppBar(context, isDark),
-                                        if (!keyboardVisible) ...[
-                                          DsGap.lg,
-                                          _buildProgressIndicator(
-                                            context,
-                                            isDark,
-                                            state,
-                                          ),
-                                          DsGap.lg,
-                                        ] else
-                                          DsGap.sm,
+                                        _buildProgressSlot(
+                                          context,
+                                          isDark,
+                                          state,
+                                          keyboardVisible,
+                                        ),
                                         Expanded(
                                           child: SingleChildScrollView(
                                             keyboardDismissBehavior:
@@ -1471,6 +1478,29 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProgressSlot(
+    BuildContext context,
+    bool isDark,
+    ProfileState state,
+    bool keyboardVisible,
+  ) {
+    return AnimatedSize(
+      duration: _a11yAnimationDuration(context),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.topCenter,
+      child: keyboardVisible
+          ? const SizedBox(height: DsSpacing.sm)
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DsGap.lg,
+                _buildProgressIndicator(context, isDark, state),
+                DsGap.lg,
+              ],
+            ),
     );
   }
 

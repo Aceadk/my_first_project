@@ -94,6 +94,7 @@ class GlassBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
     final bgColor =
         backgroundColor ??
         DsGlassColors.surfaceFor(
@@ -108,30 +109,30 @@ class GlassBottomNavBar extends StatelessWidget {
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
           child: Container(
-            height: height,
+            height: height + bottomInset,
             decoration: BoxDecoration(
               color: bgColor,
               border: Border(top: BorderSide(color: borderColor, width: 0.6)),
             ),
-            child: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: DsSpacing.xs,
-                  vertical: DsSpacing.xs,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: List.generate(items.length, (index) {
-                    final item = items[index];
-                    final isSelected = index == currentIndex;
-                    return _GlassNavItemWidget(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                DsSpacing.sm,
+                DsSpacing.xs,
+                DsSpacing.sm,
+                DsSpacing.xs + bottomInset,
+              ),
+              child: Row(
+                children: List.generate(items.length, (index) {
+                  final item = items[index];
+                  final isSelected = index == currentIndex;
+                  return Expanded(
+                    child: _GlassNavItemWidget(
                       item: item,
                       isSelected: isSelected,
                       onTap: () => onTap(index),
-                    );
-                  }),
-                ),
+                    ),
+                  );
+                }),
               ),
             ),
           ),
@@ -178,85 +179,78 @@ class _GlassNavItemWidget extends StatelessWidget {
       button: true,
       selected: isSelected,
       hint: 'Double tap to navigate to ${item.label}',
-      child: Semantics(
-        button: true,
-        child: GestureDetector(
-          onTap: () {
-            HapticService.navTap();
-            onTap();
-          },
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: (200 * motionScale).round()),
-            curve: Curves.easeOutCubic,
-            padding: EdgeInsets.symmetric(
-              horizontal: isSelected ? DsSpacing.md : DsSpacing.sm,
-              vertical: DsSpacing.xs + 2,
-            ),
-            decoration: BoxDecoration(
-              gradient: isSelected ? item.gradient : null,
-              borderRadius: BorderRadius.circular(DsRadius.round),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: glowColor.withValues(alpha: shadowOpacity),
-                        blurRadius: 14,
-                        offset: const Offset(0, 3),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icon with badge
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    AnimatedSwitcher(
-                      duration: Duration(
-                        milliseconds: (150 * motionScale).round(),
-                      ),
-                      child: Icon(
-                        isSelected ? item.activeIcon : item.icon,
-                        key: ValueKey(isSelected),
-                        size: 22,
-                        color: isSelected ? Colors.white : inactiveColor,
+      child: GestureDetector(
+        onTap: () {
+          HapticService.navTap();
+          onTap();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: (200 * motionScale).round()),
+          curve: Curves.easeOutCubic,
+          height: 56,
+          margin: const EdgeInsets.symmetric(horizontal: DsSpacing.xxs),
+          padding: const EdgeInsets.symmetric(
+            horizontal: DsSpacing.xs,
+            vertical: DsSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            gradient: isSelected ? item.gradient : null,
+            borderRadius: BorderRadius.circular(DsRadius.round),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: glowColor.withValues(alpha: shadowOpacity),
+                      blurRadius: 14,
+                      offset: const Offset(0, 3),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedSwitcher(
+                    duration: Duration(
+                      milliseconds: (150 * motionScale).round(),
+                    ),
+                    child: Icon(
+                      isSelected ? item.activeIcon : item.icon,
+                      key: ValueKey(isSelected),
+                      size: isSelected ? 23 : 22,
+                      color: isSelected ? Colors.white : inactiveColor,
+                    ),
+                  ),
+                  if (item.badgeCount > 0)
+                    PositionedDirectional(
+                      end: item.showDotOnly ? -2 : -6,
+                      top: item.showDotOnly ? -2 : -4,
+                      child: _NavBadge(
+                        count: item.badgeCount,
+                        dotOnly: item.showDotOnly,
                       ),
                     ),
-                    // Badge (dot or count)
-                    if (item.badgeCount > 0)
-                      PositionedDirectional(
-                        end: item.showDotOnly ? -2 : -6,
-                        top: item.showDotOnly ? -2 : -4,
-                        child: _NavBadge(
-                          count: item.badgeCount,
-                          dotOnly: item.showDotOnly,
-                        ),
-                      ),
-                  ],
+                ],
+              ),
+              const SizedBox(height: DsSpacing.xxs),
+              Text(
+                item.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : inactiveColor,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  fontSize: 11.5,
+                  height: 1.1,
                 ),
-                AnimatedSize(
-                  duration: Duration(milliseconds: (200 * motionScale).round()),
-                  curve: Curves.easeOutCubic,
-                  child: isSelected
-                      ? Padding(
-                          padding: const EdgeInsetsDirectional.only(
-                            start: DsSpacing.xs + 2,
-                          ),
-                          child: Text(
-                            item.label,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

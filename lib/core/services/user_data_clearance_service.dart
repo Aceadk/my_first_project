@@ -1,3 +1,7 @@
+import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/security/biometric_service.dart';
+import 'package:crushhour/core/security/session_manager.dart';
+import 'package:crushhour/core/services/app_state_preserver.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -63,7 +67,10 @@ class UserDataClearanceService {
     // 1. Clear SharedPreferences user-specific keys
     await _clearSharedPreferences();
 
-    // 2. Clear image cache (profile photos, match photos)
+    // 2. Clear secure-storage artifacts that can restore user-specific state
+    await _clearSecureSessionArtifacts();
+
+    // 3. Clear image cache (profile photos, match photos)
     _clearImageCache();
   }
 
@@ -79,5 +86,37 @@ class UserDataClearanceService {
   /// Clear the in-memory image cache.
   void _clearImageCache() {
     NetworkImageCache.instance.clear();
+  }
+
+  Future<void> _clearSecureSessionArtifacts() async {
+    await Future.wait([
+      _clearBestEffort(
+        'session timeout state',
+        SessionManager.instance.clearSession,
+      ),
+      _clearBestEffort(
+        'preserved app route',
+        AppStatePreserver.instance.clearPreservedRoute,
+      ),
+      _clearBestEffort(
+        'biometric credentials',
+        BiometricService.instance.clear,
+      ),
+    ]);
+  }
+
+  Future<void> _clearBestEffort(
+    String label,
+    Future<void> Function() clear,
+  ) async {
+    try {
+      await clear();
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        'UserDataClearanceService: failed to clear $label',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 }

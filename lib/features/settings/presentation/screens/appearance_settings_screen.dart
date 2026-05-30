@@ -27,6 +27,7 @@ class AppearanceSettingsScreen extends StatefulWidget {
 class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   late AppThemeMode _previewMode;
   bool _previewDirty = false;
+  bool _isApplyingTheme = false;
 
   @override
   void initState() {
@@ -80,17 +81,44 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
     });
   }
 
-  Future<void> _applyTheme(AppThemeMode current, bool isPlus) async {
-    if (_previewMode == current) return;
+  Future<void> _continueWithPreview(AppThemeMode current, bool isPlus) async {
+    if (_isApplyingTheme) return;
     if (_isPremiumLocked(_previewMode, isPlus)) {
       _showLockedSnack();
       return;
     }
-    await context.read<ThemeCubit>().setTheme(_previewMode);
+
+    if (_previewMode != current) {
+      setState(() {
+        _isApplyingTheme = true;
+      });
+
+      try {
+        await context.read<ThemeCubit>().setTheme(_previewMode);
+      } finally {
+        if (mounted) {
+          setState(() {
+            _previewDirty = false;
+            _isApplyingTheme = false;
+          });
+        }
+      }
+    }
+
     if (!mounted) return;
-    setState(() {
-      _previewDirty = false;
-    });
+    await _exitScreen();
+  }
+
+  Future<void> _keepCurrentThemeAndExit(AppThemeMode current) async {
+    if (_isApplyingTheme) return;
+    if (_previewMode != current || _previewDirty) {
+      _resetPreview(current);
+    }
+    await _exitScreen();
+  }
+
+  Future<void> _exitScreen() async {
+    await Navigator.of(context).maybePop();
   }
 
   void _showLockedSnack() {
@@ -129,7 +157,6 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                   final subState = context.watch<SubscriptionBloc>().state;
                   final isPlus = subState.tier.hasPremium;
                   final previewTheme = _themeForPreview(context, _previewMode);
-                  final hasChanges = _previewMode != currentMode;
                   final isLocked = _isPremiumLocked(_previewMode, isPlus);
                   final useModernLuxury =
                       _previewMode == AppThemeMode.darkLuxuryModern;
@@ -153,6 +180,10 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                         theme: previewTheme,
                         mode: _previewMode,
                         durationMs: (260 * motionScale).round(),
+                        isApplying: _isApplyingTheme,
+                        onContinue: () =>
+                            _continueWithPreview(currentMode, isPlus),
+                        onLater: () => _keepCurrentThemeAndExit(currentMode),
                       ),
                       DsGap.lg,
                       Text(
@@ -237,9 +268,13 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                               FilledButton(
                                 onPressed: subState.isCheckoutInProgress
                                     ? null
-                                    : () => context
-                                          .read<SubscriptionBloc>()
-                                          .add(SubscriptionCheckoutRequested(SubscriptionTier.plus, BillingPeriod.monthly)),
+                                    : () =>
+                                          context.read<SubscriptionBloc>().add(
+                                            SubscriptionCheckoutRequested(
+                                              SubscriptionTier.plus,
+                                              BillingPeriod.monthly,
+                                            ),
+                                          ),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: luxurySurface,
                                   foregroundColor: luxuryAccent,
@@ -259,25 +294,6 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                             ],
                           ),
                         ),
-                      ] else ...[
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton(
-                            onPressed: hasChanges
-                                ? () => _applyTheme(currentMode, isPlus)
-                                : null,
-                            child: Text(hasChanges ? 'Apply theme' : 'Applied'),
-                          ),
-                        ),
-                        if (hasChanges) ...[
-                          const SizedBox(height: DsSpacing.sm),
-                          TextButton(
-                            onPressed: () => _resetPreview(currentMode),
-                            child: Text(
-                              AppLocalizations.of(context).resetPreview,
-                            ),
-                          ),
-                        ],
                       ],
                       DsGap.xxl,
                     ],
@@ -350,11 +366,17 @@ class _ThemePreviewCard extends StatelessWidget {
     required this.theme,
     required this.mode,
     required this.durationMs,
+    required this.isApplying,
+    required this.onContinue,
+    required this.onLater,
   });
 
   final ThemeData theme;
   final AppThemeMode mode;
   final int durationMs;
+  final bool isApplying;
+  final VoidCallback onContinue;
+  final VoidCallback onLater;
 
   @override
   Widget build(BuildContext context) {
@@ -480,15 +502,33 @@ class _ThemePreviewCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: FilledButton(
-                              onPressed: () {},
-                              child: Text(
-                                AppLocalizations.of(context).continueLabel,
+                              onPressed: isApplying ? null : onContinue,
+                              child: AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 150),
+                                child: isApplying
+                                    ? SizedBox(
+                                        key: const ValueKey('applying-theme'),
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: scheme.onPrimary,
+                                        ),
+                                      )
+                                    : Text(
+                                        key: const ValueKey(
+                                          'continue-theme-preview',
+                                        ),
+                                        AppLocalizations.of(
+                                          context,
+                                        ).continueLabel,
+                                      ),
                               ),
                             ),
                           ),
                           const SizedBox(width: DsSpacing.sm),
                           OutlinedButton(
-                            onPressed: () {},
+                            onPressed: isApplying ? null : onLater,
                             child: Text(AppLocalizations.of(context).later),
                           ),
                         ],

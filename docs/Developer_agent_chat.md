@@ -77,6 +77,329 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #071 — Save Current Work And Publish To GitHub
+**Date:** 2026-05-30
+**Agent:** Codex
+**Status:** In Progress
+
+**Original Request:**
+Developer asked to save the current work and also save it to GitHub.
+
+**Developer Intent Analysis:**
+- Primary goal: persist the current local changes in git and push them to GitHub.
+- Secondary goals: include both the Flutter repo changes and the related `crush-web` auth cleanup changes, preserve the existing dirty worktree, and update existing/open PRs where applicable.
+- Implicit requirements: do not drop any completed local work, use the existing publish branch where already active, create a feature branch if a repo is on `main`, and keep required workflow docs synchronized.
+- Quality expectations: inspect scope before staging, commit intentionally, push with tracking, and report branch/commit/PR outcomes.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Commit and push the current completed work to GitHub for `/Users/ace/my_first_project` and the related `/Users/ace/crush-web` changes.
+- **Scope:** inspect local git status/remotes, update workflow docs, stage the intended current changes, commit, push, and create or update draft PRs as needed.
+- **Constraints:** do not revert unrelated changes, avoid destructive git commands, keep `my_first_project` on its current publish branch, create a new branch for `crush-web` because it is on `main`, and preserve all verification evidence already gathered.
+- **Expected Outcome:** all current work is committed locally, pushed to GitHub, and available through GitHub branches/PRs.
+
+**Status Updates:**
+- **Received:** Confirmed `my_first_project` has the completed iOS/nav/profile/theme/auth TODO changes on `codex/publish-auth-startup-hardening`, and `crush-web` has related auth cleanup changes on `main`.
+- **In Progress:** Preparing workflow docs, staging intended files, and publishing both repositories.
+
+**Outcome:**
+- Pending.
+
+### Task #070 — Start TODO Backlog With AUTH-SEC-001 Token Storage Audit
+**Date:** 2026-05-27
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer asked to start working on TODOs.
+
+**Developer Intent Analysis:**
+- Primary goal: begin executing the active TODO backlog rather than only discussing it.
+- Secondary goals: choose a high-priority task from the project TODO docs, make concrete progress locally, and keep workflow documentation synchronized.
+- Implicit requirements: follow the current workboard priority order, preserve existing uncommitted work, and avoid external-console tasks that cannot be completed from the workspace.
+- Quality expectations: implement or complete a bounded TODO with verification evidence and clear handoff for anything that cannot be fully automated.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Start the active TODO backlog by completing or materially advancing `AUTH-SEC-001`, the first open P0 item in `docs/TODO_AUTH_SECURITY.md`.
+- **Scope:** audit mobile and web auth/session token storage, pending-auth artifacts, logout and account-deletion cleanup paths; fix any local insecure storage issues that are safe to change now; document the matrix and update the TODO/workflow docs.
+- **Constraints:** do not rewrite auth architecture broadly, do not disturb existing Firebase-auth behavior, do not revert unrelated dirty worktree changes, and document any external/manual verification that cannot be run locally.
+- **Expected Outcome:** token/session storage is mapped across iOS/Android/iPad/web, insecure paths are either remediated or explicitly tracked, and targeted tests/checks verify the affected cleanup/storage behavior.
+
+**Status Updates:**
+- **Received:** Selected `AUTH-SEC-001` as the first active P0 TODO because `TODO_DISCOVERY_BACKEND.md` has no open items and this is the first open security task.
+- **In Progress:** Scanning auth repositories, secure-storage helpers, session cleanup services, backend auth endpoints, and the web app session-cookie implementation.
+- **In Progress:** Found that mobile logout/data clearance missed secure-storage session, preserved-route, and biometric/PIN artifacts; also found web sign-out fallback only cleared one legacy auth cookie and did not remove pending email-link state.
+- **In Progress:** Hardened mobile clearance and web sign-out cleanup, then added a token/session storage matrix report and focused regression coverage.
+- **Completed:** Closed `AUTH-SEC-001` with documented storage coverage, cleanup fixes, and targeted mobile/web verification.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/services/user_data_clearance_service.dart`
+  - `test/core/services/user_data_clearance_service_test.dart`
+  - `docs/reports/auth_token_storage_audit_2026-05-27.md`
+  - `docs/TODO_AUTH_SECURITY.md`
+  - `/Users/ace/crush-web/packages/core/src/services/auth.ts`
+  - `/Users/ace/crush-web/packages/core/src/stores/auth.ts`
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+- **Result:**
+  - `AUTH-SEC-001` is marked completed with a storage matrix covering mobile Firebase/HTTP auth, pending email-link state, secure-storage session artifacts, web HttpOnly cookies, web email-link localStorage, and trusted-device identifiers.
+  - Mobile `UserDataClearanceService.clearAllUserData()` now clears secure-storage session timeout state, preserved app route state, and biometric/PIN credentials in addition to user-specific `SharedPreferences` and image cache.
+  - Added regression coverage proving logout/data clearance removes those secure auth-adjacent artifacts while preserving non-user theme preference.
+  - Web `authService.signOut()` now clears the in-memory phone confirmation result and removes `emailForSignIn` from `localStorage`.
+  - Web auth-cookie fallback now clears `auth-token`, `session-last-active`, and `session-remember-me` legacy cookies if the HttpOnly session DELETE call fails.
+- **Verification:**
+  - `flutter test test/core/services/user_data_clearance_service_test.dart`
+  - `flutter test test/features/auth/data/repositories/auth_secure_storage_test.dart test/features/auth/data/repositories/http_auth_repository_contract_test.dart test/core/services/user_data_clearance_service_test.dart`
+  - `flutter analyze lib/core/services/user_data_clearance_service.dart test/core/services/user_data_clearance_service_test.dart`
+  - `flutter analyze`
+  - `pnpm --dir /Users/ace/crush-web --filter @crush/core typecheck`
+  - `pnpm --dir /Users/ace/crush-web --filter @crush/core lint` (passes with existing warnings outside changed files)
+  - `git diff --check`
+  - `git -C /Users/ace/crush-web diff --check`
+  - `scripts/check_ai_docs_sync.sh --files docs/Developer_agent_chat.md docs/TODO_AUTH_SECURITY.md docs/ai_workboard.md docs/reports/auth_token_storage_audit_2026-05-27.md ios/Flutter/Debug.xcconfig ios/Runner.xcodeproj/project.pbxproj ios/Runner/Info.plist lib/core/services/user_data_clearance_service.dart lib/design_system/widgets/glass_bottom_nav_bar.dart lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/settings/presentation/screens/appearance_settings_screen.dart test/core/services/user_data_clearance_service_test.dart test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart test/design_system/glass_bottom_nav_bar_test.dart test/features/settings/presentation/screens/appearance_settings_screen_test.dart /Users/ace/crush-web/packages/core/src/services/auth.ts /Users/ace/crush-web/packages/core/src/stores/auth.ts`
+- **Next Step:** Continue the P0 auth backlog with `AUTH-SEC-002` silent refresh/retry behavior; also run manual mobile/web login, logout, and account-deletion smoke checks on real runtimes before store submission.
+
+### Task #069 — Apply Or Dismiss Appearance Theme Preview
+**Date:** 2026-05-27
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer asked that on the Appearance & Themes screen, pressing `Continue` should apply the selected appearance/theme, while pressing `Later` should keep the currently applied theme and return the user to the previous screen.
+
+**Developer Intent Analysis:**
+- Primary goal: make the preview card actions real instead of decorative.
+- Secondary goals: preserve current theme when users dismiss changes, apply selected theme only through the existing settings theme state, and navigate back after either action.
+- Implicit requirements: avoid broad routing/state rewrites, preserve premium theme gating, and keep the UX predictable from the screenshot.
+- Quality expectations: focused implementation with regression coverage for both `Continue` and `Later` behavior.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Wire Appearance & Themes preview actions so `Continue` commits the selected theme through `ThemeCubit` and exits, while `Later` discards the draft preview, keeps the applied theme, and exits.
+- **Scope:** update `lib/features/settings/presentation/screens/appearance_settings_screen.dart`, add targeted widget tests for action behavior, and update required workflow docs.
+- **Constraints:** preserve existing premium locking/upgrade behavior, do not alter app-wide routing structure, do not rewrite `ThemeCubit` persistence unless needed, and keep selected theme preview behavior intact.
+- **Expected Outcome:** users can preview a theme, commit it with `Continue`, or leave the screen with `Later` without accidentally changing their active appearance.
+
+**Status Updates:**
+- **Received:** Confirmed the screenshot shows the preview card actions that currently do not control the real theme flow.
+- **In Progress:** Inspecting the Appearance screen, theme cubit, subscription gating, and current settings route behavior before editing.
+- **In Progress:** Wired the preview card buttons to commit or discard the draft theme selection, then added widget coverage for both navigation outcomes.
+- **Completed:** Verified `Continue` applies the selected preview theme and exits, while `Later` keeps the current theme and exits.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/appearance_settings_screen.dart`
+  - `test/features/settings/presentation/screens/appearance_settings_screen_test.dart`
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+- **Result:**
+  - The preview card `Continue` button now commits the selected theme through `ThemeCubit.setTheme`, updates local/account preference through the existing cubit path, and returns to the previous screen.
+  - The preview card `Later` button now resets the draft preview back to the currently applied theme and returns to the previous screen without changing stored preferences.
+  - The old lower-page apply/reset controls were removed so the screen has one clear action model matching the screenshot.
+  - Premium-locked theme selection still follows the existing lock behavior instead of bypassing subscription gating.
+- **Verification:**
+  - `flutter test test/features/settings/presentation/screens/appearance_settings_screen_test.dart`
+  - `flutter analyze lib/features/settings/presentation/screens/appearance_settings_screen.dart test/features/settings/presentation/screens/appearance_settings_screen_test.dart`
+  - `flutter test test/features/settings/presentation/screens/appearance_settings_screen_test.dart test/design_system/glass_bottom_nav_bar_test.dart test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`
+  - `flutter analyze`
+  - `git diff --check`
+  - `scripts/check_ai_docs_sync.sh --files docs/Developer_agent_chat.md docs/ai_workboard.md ios/Flutter/Debug.xcconfig ios/Runner.xcodeproj/project.pbxproj ios/Runner/Info.plist lib/design_system/widgets/glass_bottom_nav_bar.dart lib/features/profile/presentation/screens/profile_setup_screen.dart lib/features/settings/presentation/screens/appearance_settings_screen.dart test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart test/design_system/glass_bottom_nav_bar_test.dart test/features/settings/presentation/screens/appearance_settings_screen_test.dart`
+- **Next Step:** Reopen Appearance & Themes on the iPhone, select a non-locked theme, and confirm `Continue` returns to Settings with the selected theme applied; select a different theme and press `Later` to confirm the old theme remains active.
+
+### Task #068 — Fix First-Time Profile Setup Text Input Blocking
+**Date:** 2026-05-22
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer reported that during first-time account/profile creation, text-entry fields such as About Me, Job Title, Company, and other typed profile details fail because the keyboard opens then immediately closes, preventing users from entering details. Developer asked to find and solve related bugs in the new-account creation flow.
+
+**Developer Intent Analysis:**
+- Primary goal: make first-time profile setup text inputs reliably focus and accept keyboard typing.
+- Secondary goals: detect any loading, validation, rebuild, submit, or state-management issue that blocks profile detail entry; improve the flow enough that new users can finish setup.
+- Implicit requirements: preserve onboarding/profile architecture, avoid unrelated redesigns, account for iPhone keyboard behavior, and keep required docs synchronized.
+- Quality expectations: root-cause fix with targeted regression coverage for editable fields and loading-state behavior.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Diagnose and fix first-time profile setup input failures where the keyboard dismisses or fields become unusable while entering text details.
+- **Scope:** inspect profile setup/basic info screens, form state, loading overlays, focus handling, submit/save triggers, and relevant tests; modify only the impacted onboarding/profile setup components.
+- **Constraints:** do not rewrite routing/auth broadly, do not remove validation or completion tracking, preserve existing completed-profile UX, and avoid blocking user input during normal editing.
+- **Expected Outcome:** users can tap and type into all profile text fields during first-time setup, loading indicators appear only during actual save/submit work, and targeted tests prevent regression.
+
+**Status Updates:**
+- **Received:** Screenshot shows the profile setup completion section with a `Setting up your profile...` loading overlay while profile fields are still visible, matching the reported keyboard dismissal/input blocking.
+- **In Progress:** Tracing the profile setup screen, form field widgets, and loading/submission state that can steal focus or disable input.
+- **In Progress:** Found the keyboard-close root cause: the screen switched between two different top-level layouts when the keyboard appeared, disposing/recreating focused text fields.
+- **In Progress:** Found a second blocker: the setup screen treated any shared `ProfileBloc.isSaving` as a local profile-setup save and absorbed the whole form.
+- **Completed:** Stabilized the layout across keyboard visibility changes and limited the blocking setup overlay to saves started by this screen.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/presentation/screens/profile_setup_screen.dart`
+  - `test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+- **Result:**
+  - Text fields no longer get disposed when iOS keyboard insets appear, so the keyboard stays open and typed profile details remain editable.
+  - The progress summary now collapses through a stable slot instead of swapping the whole page layout.
+  - The full-screen `Setting up your profile...` blocker only appears after this screen starts upload/save work; stale/shared save state from another onboarding step no longer blocks typing.
+  - Added regression coverage for keyboard inset focus retention and non-local save-state input behavior.
+- **Verification:**
+  - `flutter test test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`
+  - `flutter test test/design_system/glass_bottom_nav_bar_test.dart test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`
+  - `flutter analyze`
+  - `git diff --check`
+- **Next Step:** Run the updated first-time profile setup flow on the iPhone and confirm About Me, Job Title, Company, City/Country, and custom favourite entries all accept typing with the keyboard open.
+
+### Task #067 — Fix Mobile Bottom Navigation Visibility
+**Date:** 2026-05-22
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer shared an iPhone screenshot where the bottom navigation labels/icons for Matches, Discover, Chats, and Profile are not clearly visible and asked to fix it properly for better UX.
+
+**Developer Intent Analysis:**
+- Primary goal: make the bottom navigation readable and usable on iPhone, especially above the home indicator/safe area.
+- Secondary goal: improve UX so all core destinations are identifiable without clipped labels.
+- Implicit requirements: keep the existing CRUSH glass visual style, preserve badges and haptic behavior, avoid broad navigation/routing changes, and verify with targeted Flutter checks.
+- Quality expectations: fixed layout dimensions, safe-area-aware bottom padding, no clipped text, and mandatory workflow docs updated.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Update the mobile `GlassBottomNavBar` so Discover, Matches, Chats, and Profile are all visible and tap-friendly on iPhones with bottom safe areas.
+- **Scope:** inspect and modify the shared bottom navigation widget and add targeted widget coverage; avoid changing route behavior or screen content.
+- **Constraints:** preserve existing item data, badge support, haptics, gradients, and accessibility semantics; do not touch unrelated app architecture.
+- **Expected Outcome:** bottom navigation reserves home-indicator space, displays all four labels without clipping, keeps the selected tab visually distinct, and passes targeted tests/analyze/docs guard.
+
+**Status Updates:**
+- **Received:** Reviewed the screenshot and located the shared mobile bottom nav in `lib/design_system/widgets/glass_bottom_nav_bar.dart`.
+- **In Progress:** Adjusting the nav layout to reserve bottom safe-area height outside the content area and show stable icon-plus-label tabs for all items.
+- **Completed:** Updated the bottom nav to use equal-width icon-plus-label tabs and reserve the iPhone bottom safe area without clipping labels.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/design_system/widgets/glass_bottom_nav_bar.dart`
+  - `test/design_system/glass_bottom_nav_bar_test.dart`
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+- **Result:**
+  - The nav bar height now adds the device bottom safe-area inset instead of squeezing content inside a fixed 64 px area.
+  - Discover, Matches, Chats, and Profile labels render for every tab, not only the selected tab.
+  - Each tab uses an equal-width hit target, preserving badges, gradients, semantics, and haptic tap behavior.
+  - Added an iPhone-sized widget test that verifies labels stay above the bottom safe area and tabs remain tappable.
+- **Verification:**
+  - `flutter test test/design_system/glass_bottom_nav_bar_test.dart`
+  - `flutter test test/design_system/glass_bottom_nav_bar_test.dart test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`
+  - `flutter analyze`
+  - `git diff --check`
+- **Next Step:** Reinstall or hot restart the app on the iPhone to visually confirm the bottom nav labels are readable above the home indicator.
+
+### Task #066 — Install And Launch CRUSH On Connected iPhone
+**Date:** 2026-05-21
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer gave full permission to modify the project/Xcode settings as needed and asked to install and launch the CRUSH Flutter app on the connected iPhone as soon as possible, using previous failure history and external research where useful.
+
+**Developer Intent Analysis:**
+- Primary goal: successfully install the current CRUSH app build onto the connected physical iPhone and launch it.
+- Secondary goals: fix any project, signing, Xcode, Flutter, CocoaPods, or CoreDevice issues that block deployment; use previous deployment notes instead of repeating failed guesses.
+- Implicit requirements: keep the phone target explicit, preserve unrelated local changes, use automatic signing where possible, and update mandatory workflow docs before closeout.
+- Quality expectations: verify device discovery, signing, build, install, and launch; document exact commands and any remaining manual device prompt if the phone requires user action.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Deploy and launch CRUSH on the connected iPhone, currently expected to be `iPhoneeeee` (`00008120-0019181C3A00C01E`), from the local Flutter/Xcode workspace.
+- **Scope:** inspect current Flutter/Xcode/CoreDevice state, verify or fix iOS signing settings, run targeted build/install/launch commands, recover CoreDevice if it drops, and update workflow docs.
+- **Constraints:** avoid unrelated code rewrites, do not revert existing uncommitted project changes, use official Flutter/Apple guidance for signing/device requirements, and escalate only for physical phone prompts that cannot be automated.
+- **Expected Outcome:** the app is installed and launched on the iPhone, or the remaining blocker is proven to be outside the codebase with exact recovery steps.
+
+**Status Updates:**
+- **Received:** Reviewed the prior deployment history showing repeated CoreDevice/RemotePairing tunnel drops and the latest successful recovery where Flutter saw `iPhoneeeee` again.
+- **In Progress:** Checking current device visibility, signing configuration, and build state before making Xcode project changes.
+- **In Progress:** Found that `ios/Flutter/Debug.xcconfig` disabled code signing for all Debug builds, which produced an unsigned physical-device app even though Xcode automatic signing was configured.
+- **In Progress:** Limited the Debug signing override to simulator SDKs only, then verified physical-device Debug build settings now allow automatic Apple Development signing.
+- **In Progress:** Installed the signed Debug app successfully, then switched to Profile because direct-launching a Flutter Debug app outside Flutter/Xcode terminates without the debug engine tooling.
+- **Completed:** Built, installed, and launched the signed Profile app on `iPhoneeeee`.
+
+**Outcome:**
+- **Files changed:**
+  - `ios/Flutter/Debug.xcconfig` — changed Debug code-signing overrides to apply only to simulator builds.
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+  - Preserved existing uncommitted Xcode/Info.plist changes in `ios/Runner.xcodeproj/project.pbxproj` and `ios/Runner/Info.plist`.
+- **Result:**
+  - `iPhoneeeee` (`00008120-0019181C3A00C01E`) was visible to Flutter, `devicectl`, `xcdevice`, and Xcode destinations.
+  - Root cause for the install integrity error was the unsigned `build/ios/iphoneos/Runner.app`; Debug signing had been disabled globally.
+  - Physical-device Debug signing now resolves to `CODE_SIGNING_ALLOWED = YES`, `CODE_SIGN_STYLE = Automatic`, `DEVELOPMENT_TEAM = 6792W23U3C`, and `CODE_SIGN_IDENTITY = Apple Development`.
+  - Signed Debug app installed as `com.gyanendra.testapp`, but direct launch is not usable outside Flutter/Xcode because Flutter Debug mode requires tooling.
+  - Signed Profile app built successfully at `build/ios/Profile-iphoneos/Runner.app`, installed as `com.gyanendra.myfirstproject`, and launched on the phone.
+  - `xcrun devicectl device info processes` confirmed a live `/Runner.app/Runner` process after launch.
+- **Verification:**
+  - `flutter devices -v`
+  - `xcrun devicectl list devices`
+  - `xcrun xcdevice list --timeout 10`
+  - `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -showdestinations`
+  - `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -configuration Debug -sdk iphoneos -showBuildSettings`
+  - `flutter run -d 00008120-0019181C3A00C01E --device-timeout 120 --verbose`
+  - `codesign --verify --deep --strict --verbose=4 build/ios/Debug-iphoneos/Runner.app`
+  - `xcrun devicectl device install app --device 00008120-0019181C3A00C01E build/ios/Debug-iphoneos/Runner.app --timeout 120`
+  - `flutter run --profile -d 00008120-0019181C3A00C01E --device-timeout 120`
+  - `codesign --verify --deep --strict --verbose=4 build/ios/Profile-iphoneos/Runner.app`
+  - `xcrun devicectl device install app --device 00008120-0019181C3A00C01E build/ios/Profile-iphoneos/Runner.app --timeout 180`
+  - `xcrun devicectl device process launch --device 00008120-0019181C3A00C01E --terminate-existing --timeout 90 com.gyanendra.myfirstproject`
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E`
+  - `xcrun devicectl device info processes --device 00008120-0019181C3A00C01E`
+- **Next Step:** None for the current install/launch; for future direct phone installs, use the signed Profile app path, and for live debugging, launch through Flutter/Xcode instead of direct `devicectl`.
+
+### Task #065 — Recover Flutter iPhone Device Discovery
+**Date:** 2026-05-21
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer pasted `flutter doctor` output where Flutter did not show the connected iPhone even though Xcode could deploy to it, then asked to continue the diagnosis.
+
+**Developer Intent Analysis:**
+- Primary goal: make Flutter CLI see the same physical iPhone that Xcode can deploy to.
+- Secondary goal: distinguish the iPhone discovery failure from the unrelated `flutter doctor` network-resource failures in the pasted output.
+- Implicit requirements: preserve current app/project files, avoid unnecessary rebuilds, and identify the exact device state that blocks Flutter.
+- Quality expectations: report concrete commands and device state, and keep required workflow docs synchronized.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Recover and verify Flutter CLI visibility for `iPhoneeeee` (`00008120-0019181C3A00C01E`) without making app-code changes.
+- **Scope:** compare `flutter devices`, `xcrun devicectl`, `xcrun xcdevice`, and `xcodebuild -showdestinations`; run the fastest CoreDevice tunnel checks; verify network-resource status; update workflow docs.
+- **Constraints:** do not revert existing worktree changes, do not relaunch a full Flutter build unless the device is stably visible, and treat remembered unavailable iPhones as non-blocking noise.
+- **Expected Outcome:** Flutter lists the connected iPhone or the remaining blocker is narrowed to CoreDevice/RemotePairing state.
+
+**Status Updates:**
+- **Received:** Reviewed the pasted `flutter doctor` output showing iPhone browse errors (`code -27`) and DNS failures for Flutter network resources.
+- **In Progress:** Confirmed `devicectl` initially listed all remembered iPhones as unavailable, including `iPhoneeeee`, while Flutter only listed macOS and Chrome.
+- **In Progress:** Ran a direct no-build CoreDevice app-info query for `iPhoneeeee`; it acquired a tunnel, enabled developer disk image services, and acquired a usage assertion.
+- **Completed:** Re-ran Flutter device/doctor checks; Flutter now lists `iPhoneeeee`, CoreDevice reports a wired connected tunnel, and Flutter network resources are available.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+- **Result:**
+  - `flutter devices` now shows `iPhoneeeee (mobile) • 00008120-0019181C3A00C01E • ios • iOS 26.5 23F77`.
+  - `xcrun devicectl device info details` reports `transportType: wired`, `tunnelState: connected`, `ddiServicesAvailable: true`, `developerModeStatus: enabled`, and install/launch capabilities.
+  - `flutter doctor -v` reports `No issues found`; network resources are available now.
+  - The remaining `code -27` messages are for other remembered iPhones that are unavailable, not for the currently connected `iPhoneeeee`.
+  - No Dart, native app code, or signing settings were changed. Pre-existing local changes in `ios/Runner.xcodeproj/project.pbxproj` and `ios/Runner/Info.plist` were observed and left intact.
+- **Verification:**
+  - `flutter devices -v`
+  - `xcrun devicectl list devices`
+  - `xcrun xcdevice list --timeout 10`
+  - `xcodebuild -workspace ios/Runner.xcworkspace -scheme Runner -showdestinations`
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 30`
+  - `flutter devices`
+  - `ping -c 1 pub.dev`
+  - `xcrun devicectl device info details --device 00008120-0019181C3A00C01E --timeout 20`
+  - `flutter doctor -v`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next Step:** Keep `iPhoneeeee` unlocked and connected, then run `flutter run -d 00008120-0019181C3A00C01E --device-timeout 120`; if it disappears again, first run `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 30` to re-establish/check the CoreDevice tunnel.
+
 ### Task #064 — Save Current Worktree to GitHub
 **Date:** 2026-05-20
 **Agent:** Codex
