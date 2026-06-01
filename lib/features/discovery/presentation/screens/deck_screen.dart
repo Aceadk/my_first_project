@@ -11,6 +11,7 @@ import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/radius.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:crushhour/design_system/utils/accessibility.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
 import 'package:crushhour/features/discovery/presentation/bloc/boost_cubit.dart';
@@ -77,6 +78,10 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
   bool _showLocationBanner = false;
   Timer? _locationBannerTimer;
   bool _hasCheckedLocation = false;
+
+  // Last deck status announced to screen readers, so the listener does not
+  // repeat an announcement when it fires for an unrelated reason.
+  DeckStatus? _lastAnnouncedStatus;
 
   ProfileValidationRepository get _validationService =>
       widget.validationService ?? context.read<ProfileValidationRepository>();
@@ -238,8 +243,16 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
       listenWhen: (previous, current) =>
           previous.errorMessage != current.errorMessage ||
           previous.newMatch != current.newMatch ||
-          previous.premiumGateSource != current.premiumGateSource,
+          previous.premiumGateSource != current.premiumGateSource ||
+          previous.status != current.status,
       listener: (context, state) {
+        // Announce deck state transitions to screen readers. The deck swaps
+        // whole views (loading → ready/empty/error) without any visible text
+        // change a screen reader would otherwise pick up, so surface the change
+        // explicitly. Errors already raise an (auto-announced) snackbar below,
+        // so they are intentionally not re-announced here.
+        _announceDeckStatus(context, state.status);
+
         final premiumGateSource = state.premiumGateSource;
         if (premiumGateSource != null) {
           context.read<DiscoveryBloc>().add(DiscoveryPremiumGateHandled());
@@ -474,132 +487,35 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                         profile: currentProfile,
                                       ),
                                     ),
-                                    onSwipeLeft: () async {
-                                      // Pass action (swipe right to left)
-                                      if (userId == null) return;
-                                      final discoveryBloc = context
-                                          .read<DiscoveryBloc>();
-                                      if (!_canSwipe(
-                                        completeness,
-                                        backendSwipeReady,
-                                        isAccountVerified: isAccountVerified,
-                                      )) {
-                                        _showProfileIncompleteDialog(
-                                          context,
-                                          completeness,
-                                          remote: _backendCompleteness,
-                                          minimum: 'swipe',
-                                          isAccountVerified: isAccountVerified,
-                                        );
-                                        return;
-                                      }
-                                      final outcome =
-                                          await _evaluateBackendAllowance(
-                                            minimum: 'swipe',
-                                            local: completeness,
-                                            isAccountVerified:
-                                                isAccountVerified,
-                                          );
-                                      if (!context.mounted) return;
-                                      final allowed = _handleBackendOutcome(
-                                        context,
-                                        outcome,
-                                        minimum: 'swipe',
-                                        completeness: completeness,
-                                        isAccountVerified: isAccountVerified,
-                                      );
-                                      if (!allowed) return;
-                                      discoveryBloc.add(
-                                        DiscoverySwipedLeft(
-                                          userId: userId,
-                                          targetUserId: currentProfile.id,
-                                        ),
-                                      );
-                                    },
-                                    onSwipeRight: () async {
-                                      // Like action (swipe left to right)
-                                      if (userId == null) return;
-                                      final discoveryBloc = context
-                                          .read<DiscoveryBloc>();
-                                      if (!_canSwipe(
-                                        completeness,
-                                        backendSwipeReady,
-                                        isAccountVerified: isAccountVerified,
-                                      )) {
-                                        _showProfileIncompleteDialog(
-                                          context,
-                                          completeness,
-                                          remote: _backendCompleteness,
-                                          minimum: 'swipe',
-                                          isAccountVerified: isAccountVerified,
-                                        );
-                                        return;
-                                      }
-                                      final outcome =
-                                          await _evaluateBackendAllowance(
-                                            minimum: 'swipe',
-                                            local: completeness,
-                                            isAccountVerified:
-                                                isAccountVerified,
-                                          );
-                                      if (!context.mounted) return;
-                                      final allowed = _handleBackendOutcome(
-                                        context,
-                                        outcome,
-                                        minimum: 'swipe',
-                                        completeness: completeness,
-                                        isAccountVerified: isAccountVerified,
-                                      );
-                                      if (!allowed) return;
-                                      discoveryBloc.add(
-                                        DiscoverySwipedRight(
-                                          userId: userId,
-                                          targetUserId: currentProfile.id,
-                                        ),
-                                      );
-                                    },
-                                    onSwipeUp: () async {
-                                      // SuperLike action (swipe up)
-                                      if (userId == null) return;
-                                      final discoveryBloc = context
-                                          .read<DiscoveryBloc>();
-                                      if (!_canSwipe(
-                                        completeness,
-                                        backendSwipeReady,
-                                        isAccountVerified: isAccountVerified,
-                                      )) {
-                                        _showProfileIncompleteDialog(
-                                          context,
-                                          completeness,
-                                          remote: _backendCompleteness,
-                                          minimum: 'swipe',
-                                          isAccountVerified: isAccountVerified,
-                                        );
-                                        return;
-                                      }
-                                      final outcome =
-                                          await _evaluateBackendAllowance(
-                                            minimum: 'swipe',
-                                            local: completeness,
-                                            isAccountVerified:
-                                                isAccountVerified,
-                                          );
-                                      if (!context.mounted) return;
-                                      final allowed = _handleBackendOutcome(
-                                        context,
-                                        outcome,
-                                        minimum: 'swipe',
-                                        completeness: completeness,
-                                        isAccountVerified: isAccountVerified,
-                                      );
-                                      if (!allowed) return;
-                                      discoveryBloc.add(
-                                        DiscoverySuperLiked(
-                                          userId: userId,
-                                          targetUserId: currentProfile.id,
-                                        ),
-                                      );
-                                    },
+                                    onSwipeLeft: () => _performSwipe(
+                                      context,
+                                      action: _SwipeAction.pass,
+                                      userId: userId,
+                                      target: currentProfile,
+                                      completeness: completeness,
+                                      backendSwipeReady: backendSwipeReady,
+                                      isAccountVerified: isAccountVerified,
+                                    ),
+                                    onSwipeRight: () => _performSwipe(
+                                      context,
+                                      action: _SwipeAction.like,
+                                      userId: userId,
+                                      target: currentProfile,
+                                      completeness: completeness,
+                                      backendSwipeReady: backendSwipeReady,
+                                      isAccountVerified: isAccountVerified,
+                                    ),
+                                    onSwipeUp: () => _performSwipe(
+                                      context,
+                                      action: _SwipeAction.superLike,
+                                      userId: userId,
+                                      target: currentProfile,
+                                      completeness: completeness,
+                                      backendSwipeReady: backendSwipeReady,
+                                      isAccountVerified: isAccountVerified,
+                                      superLikesRemaining:
+                                          state.superLikesRemaining,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -863,13 +779,25 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                   ),
                                 ),
 
-                              // Floating action buttons on the right side - vertical layout
+                              // Floating action buttons on the right side - vertical layout.
+                              // Wrapped in a scroll view so the column never
+                              // clips on short viewports (small landscape /
+                              // split-screen); it stays centred when there is
+                              // room and becomes scrollable when there is not.
                               PositionedDirectional(
                                 end: DsSpacing.md,
                                 top: 0,
                                 bottom: 0,
-                                child: Center(
-                                  child: Column(
+                                child: LayoutBuilder(
+                                  builder: (context, actionConstraints) {
+                                    return SingleChildScrollView(
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          minHeight: actionConstraints.maxHeight,
+                                        ),
+                                        child: IntrinsicHeight(
+                                          child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       // Rewind button (premium only)
@@ -877,6 +805,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                         icon: Icons.replay,
                                         color: DsColors.actionRewind,
                                         semanticLabel: 'Undo last swipe',
+                                        semanticHint: 'Same as swiping down',
                                         size: 44,
                                         enabled: state.canRewind,
                                         onTap: () async {
@@ -894,51 +823,17 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                         icon: Icons.close_rounded,
                                         color: DsColors.actionPass,
                                         semanticLabel: 'Pass on this profile',
+                                        semanticHint: 'Same as swiping left',
                                         size: 52,
-                                        onTap: () async {
-                                          if (userId == null) return;
-                                          final discoveryBloc = context
-                                              .read<DiscoveryBloc>();
-                                          if (!_canSwipe(
-                                            completeness,
-                                            backendSwipeReady,
-                                            isAccountVerified:
-                                                isAccountVerified,
-                                          )) {
-                                            _showProfileIncompleteDialog(
-                                              context,
-                                              completeness,
-                                              remote: _backendCompleteness,
-                                              minimum: 'swipe',
-                                              isAccountVerified:
-                                                  isAccountVerified,
-                                            );
-                                            return;
-                                          }
-                                          final outcome =
-                                              await _evaluateBackendAllowance(
-                                                minimum: 'swipe',
-                                                local: completeness,
-                                                isAccountVerified:
-                                                    isAccountVerified,
-                                              );
-                                          if (!context.mounted) return;
-                                          final allowed = _handleBackendOutcome(
-                                            context,
-                                            outcome,
-                                            minimum: 'swipe',
-                                            completeness: completeness,
-                                            isAccountVerified:
-                                                isAccountVerified,
-                                          );
-                                          if (!allowed) return;
-                                          discoveryBloc.add(
-                                            DiscoverySwipedLeft(
-                                              userId: userId,
-                                              targetUserId: currentProfile.id,
-                                            ),
-                                          );
-                                        },
+                                        onTap: () => _performSwipe(
+                                          context,
+                                          action: _SwipeAction.pass,
+                                          userId: userId,
+                                          target: currentProfile,
+                                          completeness: completeness,
+                                          backendSwipeReady: backendSwipeReady,
+                                          isAccountVerified: isAccountVerified,
+                                        ),
                                       ),
                                       const SizedBox(height: DsSpacing.md),
                                       // Super Like button (with remaining count badge)
@@ -950,55 +845,23 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                             color: DsColors.actionSuperLike,
                                             semanticLabel:
                                                 'Super like this profile',
+                                            semanticHint: 'Same as swiping up',
                                             size: 48,
                                             enabled:
                                                 state.superLikesRemaining > 0,
-                                            onTap: () async {
-                                              if (userId == null) return;
-                                              final discoveryBloc = context
-                                                  .read<DiscoveryBloc>();
-                                              if (!_canSwipe(
-                                                completeness,
-                                                backendSwipeReady,
-                                                isAccountVerified:
-                                                    isAccountVerified,
-                                              )) {
-                                                _showProfileIncompleteDialog(
-                                                  context,
-                                                  completeness,
-                                                  remote: _backendCompleteness,
-                                                  minimum: 'swipe',
-                                                  isAccountVerified:
-                                                      isAccountVerified,
-                                                );
-                                                return;
-                                              }
-                                              final outcome =
-                                                  await _evaluateBackendAllowance(
-                                                    minimum: 'swipe',
-                                                    local: completeness,
-                                                    isAccountVerified:
-                                                        isAccountVerified,
-                                                  );
-                                              if (!context.mounted) return;
-                                              final allowed =
-                                                  _handleBackendOutcome(
-                                                    context,
-                                                    outcome,
-                                                    minimum: 'swipe',
-                                                    completeness: completeness,
-                                                    isAccountVerified:
-                                                        isAccountVerified,
-                                                  );
-                                              if (!allowed) return;
-                                              discoveryBloc.add(
-                                                DiscoverySuperLiked(
-                                                  userId: userId,
-                                                  targetUserId:
-                                                      currentProfile.id,
-                                                ),
-                                              );
-                                            },
+                                            onTap: () => _performSwipe(
+                                              context,
+                                              action: _SwipeAction.superLike,
+                                              userId: userId,
+                                              target: currentProfile,
+                                              completeness: completeness,
+                                              backendSwipeReady:
+                                                  backendSwipeReady,
+                                              isAccountVerified:
+                                                  isAccountVerified,
+                                              superLikesRemaining:
+                                                  state.superLikesRemaining,
+                                            ),
                                           ),
                                           // Badge showing remaining super likes
                                           PositionedDirectional(
@@ -1040,54 +903,24 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                         icon: Icons.favorite_rounded,
                                         color: DsColors.actionLike,
                                         semanticLabel: 'Like this profile',
+                                        semanticHint: 'Same as swiping right',
                                         size: 52,
-                                        onTap: () async {
-                                          if (userId == null) return;
-                                          final discoveryBloc = context
-                                              .read<DiscoveryBloc>();
-                                          if (!_canSwipe(
-                                            completeness,
-                                            backendSwipeReady,
-                                            isAccountVerified:
-                                                isAccountVerified,
-                                          )) {
-                                            _showProfileIncompleteDialog(
-                                              context,
-                                              completeness,
-                                              remote: _backendCompleteness,
-                                              minimum: 'swipe',
-                                              isAccountVerified:
-                                                  isAccountVerified,
-                                            );
-                                            return;
-                                          }
-                                          final outcome =
-                                              await _evaluateBackendAllowance(
-                                                minimum: 'swipe',
-                                                local: completeness,
-                                                isAccountVerified:
-                                                    isAccountVerified,
-                                              );
-                                          if (!context.mounted) return;
-                                          final allowed = _handleBackendOutcome(
-                                            context,
-                                            outcome,
-                                            minimum: 'swipe',
-                                            completeness: completeness,
-                                            isAccountVerified:
-                                                isAccountVerified,
-                                          );
-                                          if (!allowed) return;
-                                          discoveryBloc.add(
-                                            DiscoverySwipedRight(
-                                              userId: userId,
-                                              targetUserId: currentProfile.id,
-                                            ),
-                                          );
-                                        },
+                                        onTap: () => _performSwipe(
+                                          context,
+                                          action: _SwipeAction.like,
+                                          userId: userId,
+                                          target: currentProfile,
+                                          completeness: completeness,
+                                          backendSwipeReady: backendSwipeReady,
+                                          isAccountVerified: isAccountVerified,
+                                        ),
                                       ),
                                     ],
-                                  ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
 
@@ -1116,6 +949,24 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
         );
       },
     );
+  }
+
+  /// Announces a deck status change to assistive technologies, de-duplicating
+  /// against the last status announced. Loading/initial are silent (transient);
+  /// errors are conveyed by the auto-announced error snackbar instead.
+  void _announceDeckStatus(BuildContext context, DeckStatus status) {
+    if (status == _lastAnnouncedStatus) return;
+    _lastAnnouncedStatus = status;
+    switch (status) {
+      case DeckStatus.ready:
+        DsAccessibility.announce(context, 'Profiles ready');
+      case DeckStatus.empty:
+        DsAccessibility.announce(context, 'No more profiles nearby');
+      case DeckStatus.loading:
+      case DeckStatus.initial:
+      case DeckStatus.error:
+        break;
+    }
   }
 
   void _requestDeckIfNeeded(
@@ -1317,6 +1168,89 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // SHARED SWIPE ACTION PIPELINE
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Runs the shared gating pipeline for a like / pass / super-like and, when
+  /// permitted, dispatches the matching [DiscoveryBloc] event.
+  ///
+  /// This is the single source of truth behind every way a user can act on the
+  /// current profile — drag gestures ([SwipeableCard]), the on-screen
+  /// [DeckActionButton]s, and keyboard shortcuts — so the completeness checks,
+  /// the backend allowance round-trip, and the dispatched events stay identical
+  /// across all of them (DISC-UI-003). Previously this logic was copy-pasted at
+  /// nine call sites.
+  ///
+  /// [announceBlock] mirrors the previous per-entry-point behaviour: the
+  /// gesture and button paths surface the "complete your profile" dialog when a
+  /// completeness check fails, whereas the keyboard path returns silently.
+  /// [superLikesRemaining] is only consulted for [_SwipeAction.superLike].
+  Future<void> _performSwipe(
+    BuildContext context, {
+    required _SwipeAction action,
+    required String? userId,
+    required Profile target,
+    required ProfileCompletenessSummary completeness,
+    required bool backendSwipeReady,
+    required bool isAccountVerified,
+    int superLikesRemaining = 1,
+    bool announceBlock = true,
+  }) async {
+    if (userId == null) return;
+    if (action == _SwipeAction.superLike && superLikesRemaining <= 0) return;
+
+    // Capture the bloc before any await so we never touch a stale context.
+    final discoveryBloc = context.read<DiscoveryBloc>();
+
+    if (!_canSwipe(
+      completeness,
+      backendSwipeReady,
+      isAccountVerified: isAccountVerified,
+    )) {
+      if (announceBlock) {
+        _showProfileIncompleteDialog(
+          context,
+          completeness,
+          remote: _backendCompleteness,
+          minimum: 'swipe',
+          isAccountVerified: isAccountVerified,
+        );
+      }
+      return;
+    }
+
+    final outcome = await _evaluateBackendAllowance(
+      minimum: 'swipe',
+      local: completeness,
+      isAccountVerified: isAccountVerified,
+    );
+    if (!context.mounted) return;
+    final allowed = _handleBackendOutcome(
+      context,
+      outcome,
+      minimum: 'swipe',
+      completeness: completeness,
+      isAccountVerified: isAccountVerified,
+    );
+    if (!allowed) return;
+
+    switch (action) {
+      case _SwipeAction.pass:
+        discoveryBloc.add(
+          DiscoverySwipedLeft(userId: userId, targetUserId: target.id),
+        );
+      case _SwipeAction.like:
+        discoveryBloc.add(
+          DiscoverySwipedRight(userId: userId, targetUserId: target.id),
+        );
+      case _SwipeAction.superLike:
+        discoveryBloc.add(
+          DiscoverySuperLiked(userId: userId, targetUserId: target.id),
+        );
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // KEYBOARD SHORTCUT HANDLERS
   // ═══════════════════════════════════════════════════════════════════════════
 
@@ -1327,31 +1261,18 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     ProfileCompletenessSummary completeness,
     bool backendSwipeReady,
     bool isAccountVerified,
-  ) async {
-    if (userId == null) return;
-    if (!_canSwipe(
-      completeness,
-      backendSwipeReady,
-      isAccountVerified: isAccountVerified,
-    )) {
-      return;
-    }
-    final outcome = await _evaluateBackendAllowance(
-      minimum: 'swipe',
-      local: completeness,
-      isAccountVerified: isAccountVerified,
-    );
-    if (!context.mounted) return;
-    final allowed = _handleBackendOutcome(
+  ) {
+    // Keyboard path stays silent on an incomplete profile (announceBlock:
+    // false) instead of surfacing the completeness dialog.
+    return _performSwipe(
       context,
-      outcome,
-      minimum: 'swipe',
+      action: _SwipeAction.pass,
+      userId: userId,
+      target: target,
       completeness: completeness,
+      backendSwipeReady: backendSwipeReady,
       isAccountVerified: isAccountVerified,
-    );
-    if (!allowed) return;
-    context.read<DiscoveryBloc>().add(
-      DiscoverySwipedLeft(userId: userId, targetUserId: target.id),
+      announceBlock: false,
     );
   }
 
@@ -1362,31 +1283,16 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     ProfileCompletenessSummary completeness,
     bool backendSwipeReady,
     bool isAccountVerified,
-  ) async {
-    if (userId == null) return;
-    if (!_canSwipe(
-      completeness,
-      backendSwipeReady,
-      isAccountVerified: isAccountVerified,
-    )) {
-      return;
-    }
-    final outcome = await _evaluateBackendAllowance(
-      minimum: 'swipe',
-      local: completeness,
-      isAccountVerified: isAccountVerified,
-    );
-    if (!context.mounted) return;
-    final allowed = _handleBackendOutcome(
+  ) {
+    return _performSwipe(
       context,
-      outcome,
-      minimum: 'swipe',
+      action: _SwipeAction.like,
+      userId: userId,
+      target: target,
       completeness: completeness,
+      backendSwipeReady: backendSwipeReady,
       isAccountVerified: isAccountVerified,
-    );
-    if (!allowed) return;
-    context.read<DiscoveryBloc>().add(
-      DiscoverySwipedRight(userId: userId, targetUserId: target.id),
+      announceBlock: false,
     );
   }
 
@@ -1398,31 +1304,17 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     ProfileCompletenessSummary completeness,
     bool backendSwipeReady,
     bool isAccountVerified,
-  ) async {
-    if (userId == null || state.superLikesRemaining <= 0) return;
-    if (!_canSwipe(
-      completeness,
-      backendSwipeReady,
-      isAccountVerified: isAccountVerified,
-    )) {
-      return;
-    }
-    final outcome = await _evaluateBackendAllowance(
-      minimum: 'swipe',
-      local: completeness,
-      isAccountVerified: isAccountVerified,
-    );
-    if (!context.mounted) return;
-    final allowed = _handleBackendOutcome(
+  ) {
+    return _performSwipe(
       context,
-      outcome,
-      minimum: 'swipe',
+      action: _SwipeAction.superLike,
+      userId: userId,
+      target: target,
       completeness: completeness,
+      backendSwipeReady: backendSwipeReady,
       isAccountVerified: isAccountVerified,
-    );
-    if (!allowed) return;
-    context.read<DiscoveryBloc>().add(
-      DiscoverySuperLiked(userId: userId, targetUserId: target.id),
+      superLikesRemaining: state.superLikesRemaining,
+      announceBlock: false,
     );
   }
 
@@ -1793,3 +1685,8 @@ class _BackendCheckOutcome {
 }
 
 enum _DeckSafetyAction { viewProfile, report, block, guidelines }
+
+/// A non-gesture discovery action that can be triggered from the swipe gesture
+/// callbacks, the on-screen action buttons, or the keyboard shortcuts. Routed
+/// through [_DeckScreenState._performSwipe].
+enum _SwipeAction { pass, like, superLike }

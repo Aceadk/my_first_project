@@ -688,33 +688,36 @@ class _ChatTileState extends State<_ChatTile>
                           radius: 28,
                         ),
                       ),
-                      // Online indicator with glow effect
-                      // Online indicator (green dot)
+                      // Online status — paired with a screen-reader label so
+                      // the state is not communicated by color alone.
                       if (_isOnline)
                         PositionedDirectional(
                           end: 0,
                           bottom: 0,
-                          child: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: DsColors.onlineIndicator,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: isDark
-                                    ? DsColors.ink900
-                                    : DsColors.surfaceLight,
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: DsColors.onlineIndicator.withValues(
-                                    alpha: 0.5,
-                                  ),
-                                  blurRadius: 6,
-                                  spreadRadius: 1,
+                          child: Semantics(
+                            label: 'Online now',
+                            child: Container(
+                              width: 16,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: DsColors.onlineIndicator,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: isDark
+                                      ? DsColors.ink900
+                                      : DsColors.surfaceLight,
+                                  width: 2,
                                 ),
-                              ],
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: DsColors.onlineIndicator.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),

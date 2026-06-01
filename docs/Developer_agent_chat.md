@@ -77,6 +77,540 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #296 — Profile Frontend Adaptive Layout, Media UX, and Completion Guidance
+**Date:** 2026-05-30
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer identified `TODO_PROFILE_FRONTEND.md` P1 high items `PROF-FE-001`, `PROF-FE-002`, and `PROF-FE-003` as incomplete and asked to do them cleanly with extended implementation rather than oversimplified code.
+
+**Developer Intent Analysis:**
+- Primary goal: complete the high-priority profile frontend backlog items with real UI/UX hardening, not documentation-only status changes.
+- Secondary goals: cover mobile, iPad/tablet, desktop web, profile media picker/reorder/delete flows, and completion/validation guidance.
+- Implicit requirements: follow the AI docs workflow; preserve unrelated dirty worktree changes; update TODO/evidence/workflow docs; run focused Flutter and web checks; document manual picker/crop/device smoke gaps that cannot run locally.
+- Quality expectations: comprehensive, readable implementations that respect existing architecture and design patterns, with tests around adaptive layout, validation guidance, and media interactions where practical.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `PROF-FE-001` through `PROF-FE-003` by auditing and improving Flutter and web profile create/edit/view surfaces, hardening profile media interactions, and making profile completion guidance/validation copy explicit and accessible.
+- **Scope:** `lib/features/profile/presentation/**`, profile media widgets/services as needed, relevant Flutter widget tests, `/Users/ace/crush-web/**/profile/**` profile surfaces, `docs/TODO_PROFILE_FRONTEND.md`, a profile frontend evidence report, and required workflow docs.
+- **Constraints:** avoid unrelated auth/security/notification/a11y dirty changes; prefer existing design-system widgets and routing; keep data contracts unchanged unless a UI issue requires additive metadata; do not fake manual iOS/Android/iPad/web picker/crop verification.
+- **Expected Outcome:** adaptive profile layouts with sane content widths and multi-column large-screen behavior, robust media reorder/delete/empty-state UX, clearer profile completion next actions and validation messages, TODOs marked complete, and focused checks passing.
+
+**Status Updates:**
+- **Received:** Scoped to `PROF-FE-001`, `PROF-FE-002`, and `PROF-FE-003` from `docs/TODO_PROFILE_FRONTEND.md`.
+- **In Progress:** Inspecting existing Flutter and web profile surfaces, media flows, and available test coverage.
+- **Completed:** Implemented adaptive Flutter/web profile layouts, hardened media picker/crop/reorder UX, added completion guidance helpers/tests, and updated TODO/evidence/workflow docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/profile/presentation/widgets/profile_adaptive_layout.dart`
+  - `lib/features/profile/presentation/widgets/profile_completion_guidance.dart`
+  - `lib/features/profile/presentation/widgets/profile_media_picker.dart`
+  - `lib/features/profile/presentation/screens/profile_setup_screen.dart`
+  - `lib/features/profile/presentation/screens/profile_edit_screen.dart`
+  - `lib/features/profile/presentation/screens/profile_view_screen.dart`
+  - `test/features/profile/presentation/widgets/profile_adaptive_layout_test.dart`
+  - `test/features/profile/presentation/widgets/profile_completion_guidance_test.dart`
+  - `test/features/profile/presentation/widgets/profile_media_picker_test.dart`
+  - `/Users/ace/crush-web/apps/web/src/components/profile/profile-completion.ts`
+  - `/Users/ace/crush-web/apps/web/src/components/profile/__tests__/profile-completion.test.ts`
+  - `/Users/ace/crush-web/apps/web/src/components/profile/photo-grid-reorder.tsx`
+  - `/Users/ace/crush-web/apps/web/src/components/profile/photo-crop-modal.tsx`
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/profile/edit/profile-edit-form.tsx`
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/profile/profile-view.tsx`
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/profile/preview/profile-preview.tsx`
+  - `docs/TODO_PROFILE_FRONTEND.md`
+  - `docs/reports/profile_frontend_audit_2026-05-30.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** `PROF-FE-001`, `PROF-FE-002`, and `PROF-FE-003` are completed with shared Flutter adaptive layout metrics, tablet-aware setup/edit layouts, hardened Flutter media reorder/empty-state controls, web profile side-rail layouts, web upload/crop/reorder validation, and explicit required/recommended completion guidance.
+- **Verification:**
+  - `flutter test test/features/profile/presentation/widgets/profile_media_picker_test.dart test/features/profile/presentation/widgets/profile_completion_guidance_test.dart test/features/profile/presentation/widgets/profile_adaptive_layout_test.dart test/features/profile/presentation/screens/profile_media_screen_test.dart test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart`
+  - `flutter analyze` on touched Flutter profile widgets/screens/tests — no issues.
+  - `pnpm --filter @crush/web test src/components/profile/__tests__/profile-completion.test.ts` — 3 passing.
+  - `pnpm --filter @crush/web typecheck`
+  - `pnpm --filter @crush/web lint` — 0 errors, 35 pre-existing warnings outside this slice.
+- **Next Step:** Run physical iOS/iPad/Android picker/camera/crop smoke checks and desktop Chrome/Safari/Firefox upload/crop/reorder checks before release.
+
+### Task #295 — Notification TODOs Permission, Routing, Preferences, and Web Push
+**Date:** 2026-05-30
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer pointed to `TODO_NOTIFICATIONS.md` line 10 and identified `NOTIF-001`, `NOTIF-002`, `NOTIF-003`, and `NOTIF-004` as incomplete.
+
+**Developer Intent Analysis:**
+- Primary goal: complete the open P1 notification backlog items rather than only listing them.
+- Secondary goals: keep work separate from Claude's accessibility lane, verify mobile notification permission timing/deep links/preference enforcement, and implement the missing web push parity surface.
+- Implicit requirements: follow the AI docs workflow, update TODO status and evidence, avoid unrelated dirty files, and run focused mobile/backend/web checks.
+- Quality expectations: behavior-backed fixes with tests or documented manual smoke matrices for foreground/background/cold-start notification flows.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `NOTIF-001` through `NOTIF-004` by making notification permission prompts contextual, hardening notification deep-link routing, aligning client/backend preference enforcement, and adding browser push parity for the web app.
+- **Scope:** mobile push service/settings/deep-link helpers, backend notification delivery filters, notification tests, `/Users/ace/crush-web` web push/service-worker/settings files, `docs/TODO_NOTIFICATIONS.md`, an evidence report, and required workflow docs.
+- **Constraints:** avoid accessibility files and unrelated concurrent changes; validate remote notification routes before navigation; keep safety alerts deliverable while suppressing muted optional categories; document manual iOS/Android/web smoke checks that cannot run locally.
+- **Expected Outcome:** no front-loaded OS notification prompt on app startup, deterministic notification route resolution for foreground/background/cold-start taps, server-side category/quiet-hours/cap enforcement matching client settings, browser FCM token lifecycle plus notification-click routing, TODOs marked complete with verification.
+
+**Status Updates:**
+- **Received:** Scoped to `NOTIF-001` through `NOTIF-004` from `docs/TODO_NOTIFICATIONS.md`.
+- **In Progress:** Auditing the existing mobile push service, app deep-link handling, backend send filters, tests, and the separate `crush-web` settings surface.
+- **Completed:** Implemented contextual permission/token lifecycle, allowlisted tap routing, server preference enforcement, web push parity, and required evidence/docs.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/services/push_notification_service.dart`
+  - `lib/core/routing/notification_routes.dart`
+  - `lib/app.dart`
+  - `lib/features/settings/data/preferences/notification_preference_sync_service.dart`
+  - `lib/features/settings/presentation/bloc/notification_settings_cubit.dart`
+  - `lib/features/settings/presentation/bloc/safety_cubit.dart`
+  - `lib/features/settings/presentation/screens/notifications_settings_screen.dart`
+  - `functions/src/index.ts`
+  - `functions/src/calls/signaling.ts`
+  - `functions/test/notificationPrefsSyncContract.test.js`
+  - `functions/test/call-signaling.test.js`
+  - `test/push_notification_service_test.dart`
+  - `test/notification_settings_cubit_test.dart`
+  - `test/core/routing/notification_routes_test.dart`
+  - `test/safety_cubit_test.dart`
+  - `/Users/ace/crush-web/apps/web/public/firebase-messaging-sw.js`
+  - `/Users/ace/crush-web/apps/web/src/shared/providers/notification-initializer.tsx`
+  - `/Users/ace/crush-web/apps/web/src/shared/providers/runtime-providers.tsx`
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/settings/notifications/page.tsx`
+  - `/Users/ace/crush-web/apps/web/src/app/(app)/settings/settings-view.tsx`
+  - `/Users/ace/crush-web/packages/core/src/services/notification.ts`
+  - `/Users/ace/crush-web/packages/core/src/firebase/config.ts`
+  - `/Users/ace/crush-web/packages/core/src/index.ts`
+  - `/Users/ace/crush-web/packages/core/src/services/user.ts`
+  - `/Users/ace/crush-web/packages/core/src/services/user_document.ts`
+  - `/Users/ace/crush-web/packages/core/src/types/user.ts`
+  - `docs/TODO_NOTIFICATIONS.md`
+  - `docs/reports/notification_audit_web_push_2026-05-30.md`
+  - `docs/project_flowchart.md`
+  - `docs/project_dfd.md`
+  - `docs/project_er_diagram.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** Notification startup no longer front-loads OS permission prompts; mobile/web token registration is user-contextual; notification taps resolve through allowlisted routes with notification-center fallback; backend sends suppress disabled, muted, or blocked optional categories while keeping safety alerts deliverable; and the web app now has browser FCM registration, service-worker delivery, foreground toasts, and notification-click routing.
+- **Verification:**
+  - `flutter test test/push_notification_service_test.dart test/notification_settings_cubit_test.dart test/core/routing/notification_routes_test.dart test/safety_cubit_test.dart`
+  - `flutter analyze lib/core/services/push_notification_service.dart lib/features/settings/data/preferences/notification_preference_sync_service.dart lib/features/settings/presentation/bloc/notification_settings_cubit.dart lib/features/settings/presentation/bloc/safety_cubit.dart lib/features/settings/presentation/screens/notifications_settings_screen.dart lib/app.dart lib/core/routing/notification_routes.dart test/push_notification_service_test.dart test/notification_settings_cubit_test.dart test/core/routing/notification_routes_test.dart test/safety_cubit_test.dart`
+  - `npm run build` + `npm run lint` in `functions/`
+  - `npx mocha --exit test/notificationPrefsSyncContract.test.js test/call-signaling.test.js` in `functions/` (18 passing)
+  - `pnpm --filter @crush/web typecheck`
+  - `pnpm --filter @crush/web lint` (0 errors, 37 pre-existing warnings)
+- **Next Step:** Run live iOS/Android foreground/background/terminated push smoke tests and Chrome/Safari/Firefox web push checks before release submission.
+
+### Task #294 — AUTH-SEC-005 Account Deletion Completeness
+**Date:** 2026-05-30
+**Agent:** Claude
+**Status:** Completed
+
+**Original Request:**
+Developer said "continue" after the frontend security audit, indicating to pick up the last open auth backlog item (`AUTH-SEC-005`) under the same audit-plus-refactor workflow.
+
+**Developer Intent Analysis:**
+- Primary goal: complete `AUTH-SEC-005` — verify account deletion is complete (sessions, data, premium, GDPR/CCPA).
+- Secondary goals: produce a deletion map and ensure downstream cleanup is complete or explicitly tracked.
+- Implicit requirements: follow the evidence-report + TODO-status + workflow-doc pattern; fix real gaps in the touched destructive code carefully; refactor; don't destabilize unrelated worktree changes.
+- Quality expectations: real verification of what is/isn't deleted, with tests around the deletion map.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `AUTH-SEC-005` by mapping and verifying the deletion cascade, fixing completeness gaps, and documenting session/premium/GDPR handling.
+- **Scope:** `cascadeDeleteUserData` + deletion lifecycle in `functions/src/index.ts`, `docs/TODO_AUTH_SECURITY.md`, a new evidence report, a deletion-map test, and required workflow docs.
+- **Constraints:** treat the destructive cascade carefully (no behavior change beyond deleting the correct, previously-missed data); retain abuse/safety history; do not touch unrelated dirty worktree files; leave `docs/risk_notes.md` unchanged absent a new durable risk.
+- **Expected Outcome:** a documented deletion map, the matches-field and top-level-relation fixes with a tested deletion plan, `AUTH-SEC-005` completed, and green deletion/callable suites.
+
+**Status Updates:**
+- **Received:** Scoped to the last open P0 auth item, `AUTH-SEC-005`.
+- **In Progress:** Traced the request→grace→scheduled-cascade→Auth-deletion flow, mapped `cascadeDeleteUserData`, and compared against the actual match/relation data model.
+- **Completed:** Fixed the matches-membership and top-level-relation gaps, refactored to a tested deletion map, and marked the task completed.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+  - `functions/test/accountDeletionMap.test.js`
+  - `docs/TODO_AUTH_SECURITY.md`
+  - `docs/reports/auth_account_deletion_audit_2026-05-30.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** Deletion now removes matches/messages across all membership field variants (previously missed because it queried only `participants`) and scrubs the top-level `likes`/`swipes`/`blocks`/`reports` footprint, while retaining inbound abuse reports/blocks about the user. Sessions are revoked at purge via `deleteUser`; premium entitlement is removed with the user doc (store-side cancellation documented as a platform limitation). The repeated batch-delete pattern is now a paginated `deleteDocsByQuery`, and the deletion map is unit-tested.
+- **Verification:**
+  - `npm run build` + `npm run lint` in `functions/` (clean)
+  - `npx mocha --exit test/accountDeletionMap.test.js` (4 passing)
+  - `npx mocha --exit test/callables.test.js` (11 passing)
+  - `npm test` 131 passing / 50 failing (pre-existing cross-file mock contamination); +4 new passing, zero new failures.
+- **Next Step:** Staging end-to-end deletion run + store-subscription cancellation reminder before submission. AUTH-SEC-001..005 complete.
+
+### Task #293 — SEC-FE-001/002/003 Frontend Security Audit
+**Date:** 2026-05-30
+**Agent:** Claude
+**Status:** Completed
+
+**Original Request:**
+Developer pointed to `TODO_SECURITY_FRONTEND.md` with `SEC-FE-001`, `SEC-FE-002`, `SEC-FE-003` incomplete, asked to complete them, and to look for additional refactors on the files worked on.
+
+**Developer Intent Analysis:**
+- Primary goal: complete the three frontend-security tasks — client OWASP risks, transport/cert policy, and web XSS/CSRF/CSP.
+- Secondary goals: document risks/prioritization, make the transport policy explicit, and track web security gaps.
+- Implicit requirements: follow the evidence-report + TODO-status + workflow-doc pattern; fix and refactor touched files; don't destabilize unrelated worktree changes.
+- Quality expectations: real config/code verification with targeted tests, not just prose.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `SEC-FE-001/002/003` by auditing both clients, fixing the issues found, and documenting the posture with tracked gaps.
+- **Scope:** mobile transport/cert/sanitizer/deep-links in `lib/**`, `android/`+`ios/` config, `crush-web` headers/CSP/cookies review, mobile security tests, `docs/TODO_SECURITY_FRONTEND.md`, a new evidence report, and required workflow docs.
+- **Constraints:** do not edit the separate `crush-web` repo in this slice; preserve sanitizer behavior for valid input; do not touch unrelated dirty worktree files; leave `docs/risk_notes.md` unchanged absent a new durable risk.
+- **Expected Outcome:** client OWASP matrix + explicit transport policy + web CSP/CSRF/XSS posture with tracked gaps, the cert-pinning and sanitizer fixes with tests, all three TODOs completed, and green mobile suites.
+
+**Status Updates:**
+- **Received:** Scoped to the three open P0 frontend-security items as audit-plus-targeted-fix across mobile and web.
+- **In Progress:** Reviewed secure storage, deep-link allowlist, client sanitizer, Android/iOS transport, cert pinning, and the web nonce-CSP/headers/SameSite cookies.
+- **Completed:** Documented the posture, fixed the cert-pinning accept default and the sanitizer trailing-tag gap, added tests, and marked all three tasks completed.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/network/certificate_pinning.dart`
+  - `lib/core/security/input_sanitizer.dart`
+  - `test/core/network/certificate_pinning_test.dart`
+  - `test/input_sanitizer_hotspot_test.dart`
+  - `docs/TODO_SECURITY_FRONTEND.md`
+  - `docs/reports/security_frontend_audit_2026-05-30.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** Mobile is HTTPS-only (Android cleartext disabled, iOS no ATS exceptions); deep links are scheme/host allowlisted; the cert-pinning callback no longer blanket-accepts non-pinned hosts; the client sanitizer no longer leaves trailing unterminated tags. Web ships a per-request nonce CSP (`object-src 'none'`, no prod `unsafe-inline` script), clickjacking/MIME/referrer/permissions headers, and `SameSite=Lax` HttpOnly session cookies. Web HSTS and optional CSP `frame-ancestors` are tracked gaps.
+- **Verification:**
+  - `flutter analyze` (cert pinning + sanitizer + tests) clean
+  - `flutter test test/core/network/certificate_pinning_test.dart test/input_sanitizer_hotspot_test.dart` passing
+  - Web review of `next.config.js`, `middleware.ts`, `api/auth/**`
+- **Next Step:** Verify deployed web HSTS, optionally add CSP `frame-ancestors`, and run on-device deep-link/MITM smoke checks before submission.
+
+### Task #292 — AUTH-SEC-004 Auth Abuse Protection
+**Date:** 2026-05-30
+**Agent:** Claude
+**Status:** Completed
+
+**Original Request:**
+Developer said "continue" after the OAuth provider audit, indicating to pick up the next open P0 backlog item (`AUTH-SEC-004`) under the same audit-plus-refactor workflow.
+
+**Developer Intent Analysis:**
+- Primary goal: complete `AUTH-SEC-004` — verify brute-force/OTP/password-reset abuse protections with limits, logging, and safe messaging.
+- Secondary goals: confirm rate limits are enforced, abuse tests exist, and user-facing errors don't leak account existence.
+- Implicit requirements: follow the evidence-report + TODO-status + workflow-doc pattern; refactor touched files; do not destabilize unrelated worktree changes; treat security code conservatively.
+- Quality expectations: real verification of limits/lockouts/enumeration-safety and only safe, behavior-preserving refactors.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `AUTH-SEC-004` by auditing the auth abuse controls, documenting the rate-limit/enumeration matrix, and applying a safe refactor to the duplicated OTP logic.
+- **Scope:** auth callables + `applyRateLimit` + OTP/password-reset flows in `functions/src/index.ts`, `docs/TODO_AUTH_SECURITY.md`, a new evidence report, and required workflow docs.
+- **Constraints:** no behavior change to the rate-limit orchestration (subtle throw-vs-return semantics); preserve timing-safe/lockout behavior exactly; do not touch unrelated dirty worktree files; leave `docs/risk_notes.md` unchanged absent a new durable risk.
+- **Expected Outcome:** documented abuse-protection matrix + enumeration-safety table, the `matchOtpCandidate` extraction, `AUTH-SEC-004` completed, and green abuse/callable suites.
+
+**Status Updates:**
+- **Received:** Scoped to the next open P0 auth item, `AUTH-SEC-004`.
+- **In Progress:** Reviewed login dual-rate-limit + dummy-hash flow, OTP request/verify limits + per-code lockout, password-reset enumeration safety, and audit logging.
+- **Completed:** Documented the controls, extracted the shared OTP matcher, and marked the task completed with no security gaps found.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+  - `docs/TODO_AUTH_SECURITY.md`
+  - `docs/reports/auth_abuse_protection_audit_2026-05-30.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** Brute-force (dual IP+identifier limits, dummy-hash constant-time login, generic errors), OTP abuse (request limit + 30s cooldown + per-code 5-attempt lockout + timing-safe compare), and password-reset abuse (constant enumeration-safe response on every branch) are all confirmed enforced with hashed-identifier audit logging. The duplicated OTP matching/lockout loop is now a shared `matchOtpCandidate` helper. Sign-up email-existence disclosure is documented as an accepted tradeoff.
+- **Verification:**
+  - `npm run build` + `npm run lint` in `functions/` (clean)
+  - `npx mocha --exit test/securityAbuseLanes.test.js` (7 passing)
+  - `npx mocha --exit test/callables.test.js` (11 passing)
+  - `npm test` 127 passing / 50 failing with and without the change (pre-existing cross-file mock contamination; zero new failures).
+- **Next Step:** Live brute-force/OTP/reset-enumeration smoke tests before submission; then continue with `AUTH-SEC-005` (account-deletion completeness).
+
+### Task #291 — AUTH-SEC-003 OAuth Provider Compliance Audit
+**Date:** 2026-05-30
+**Agent:** Claude
+**Status:** Completed
+
+**Original Request:**
+Developer said "continue" after the backend security audit, indicating to pick up the next open P0 backlog item (`AUTH-SEC-003`) under the same audit-plus-refactor workflow.
+
+**Developer Intent Analysis:**
+- Primary goal: complete `AUTH-SEC-003` — verify Google/Apple OAuth compliance, store readiness, and platform failure handling.
+- Secondary goals: confirm Apple replay protection (PKCE-equivalent), document provider flows, and track provider-specific blockers.
+- Implicit requirements: follow the evidence-report + TODO-status + workflow-doc pattern; refactor the files touched; do not destabilize unrelated worktree changes.
+- Quality expectations: real compliance verification (entitlements, nonce, scopes) and closing of any test gaps.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `AUTH-SEC-003` by auditing provider auth, confirming Apple iOS compliance, refactoring the duplicated failure-mapping, and documenting the provider matrix.
+- **Scope:** Apple/Google mappers + sign-in impl, iOS entitlements/Info.plist, Android manifest, web auth review, mapper tests, `docs/TODO_AUTH_SECURITY.md`, a new evidence report, and required workflow docs.
+- **Constraints:** no auth flow rewrite; preserve provider error-message behavior exactly; do not touch unrelated dirty worktree files; leave `docs/risk_notes.md` unchanged absent a new durable risk.
+- **Expected Outcome:** provider matrix + Apple 4.8 compliance documented, the shared-mapping refactor with tests, `AUTH-SEC-003` completed, and green mapper suites.
+
+**Status Updates:**
+- **Received:** Scoped to the next open P0 auth item, `AUTH-SEC-003`, as audit-plus-targeted-refactor.
+- **In Progress:** Reviewed Apple nonce/scope/entitlement setup, Google iOS URL scheme + native/web flows, both failure mappers, and the web auth route.
+- **Completed:** Documented compliance, extracted the shared Firebase mapping, added shared-branch tests, and marked the task completed.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/data/repositories/impl/provider_firebase_auth_failure_mapper.dart` (new)
+  - `lib/features/auth/data/repositories/impl/apple_sign_in_failure_mapper.dart`
+  - `lib/features/auth/data/repositories/impl/google_sign_in_failure_mapper.dart`
+  - `test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart`
+  - `test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart`
+  - `docs/TODO_AUTH_SECURITY.md`
+  - `docs/reports/auth_oauth_provider_audit_2026-05-30.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** Apple sign-in is confirmed iOS-submission compliant (nonce+sha256 replay protection, `applesignin` entitlement in dev+release, email/fullName scopes, offered alongside Google per Guideline 4.8). Google iOS reversed-client-ID scheme and native/web flows verified. The duplicated `FirebaseAuthException` mapping is now a shared helper, and the previously-untested shared error branches are covered. Web-lacks-Apple is tracked as non-blocking.
+- **Verification:**
+  - `flutter analyze` (provider mappers + new helper + tests) clean
+  - `flutter test …apple_sign_in_failure_mapper_test.dart …google_sign_in_failure_mapper_test.dart` (17 passing)
+- **Next Step:** Real-device Apple/Google (iOS, Android) and web Google popup smoke checks before store submission; then continue with `AUTH-SEC-004` (auth abuse protection).
+
+### Task #290 — SEC-BE-001/002/003 Backend Security Audit
+**Date:** 2026-05-30
+**Agent:** Claude
+**Status:** Completed
+
+**Original Request:**
+Developer pointed to `TODO_SECURITY_BACKEND.md` with `SEC-BE-001`, `SEC-BE-002`, `SEC-BE-003` incomplete, asked to complete them, and to look for additional refactors on the files worked on.
+
+**Developer Intent Analysis:**
+- Primary goal: complete the three backend security tasks — OWASP audit, secrets/dependency triage, and upload/sanitization verification.
+- Secondary goals: track high-severity findings with fixes, produce a secret inventory, and document an enforced sanitization policy.
+- Implicit requirements: follow the established evidence-report + TODO-status + workflow-doc pattern; fix (not just inspect) real issues in touched files; do not destabilize unrelated in-progress worktree changes.
+- Quality expectations: real malicious-payload/upload coverage and a defensible triage of dependency risk.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `SEC-BE-001/002/003` by auditing the Functions backend, fixing the input-sanitization gaps found, and documenting controls + dependency triage.
+- **Scope:** `functions/src/index.ts` auth/discovery/chat/upload/validators, secrets config, `functions/package.json`, a new evidence report and sanitization test, `docs/TODO_SECURITY_BACKEND.md`, and required workflow docs.
+- **Constraints:** no endpoint contract rewrite; do not force-upgrade transitive deps onto a P0 backend; keep the strip-based sanitization policy; do not touch unrelated dirty worktree files; leave `docs/risk_notes.md` unchanged absent a new durable risk.
+- **Expected Outcome:** an OWASP control matrix + secret inventory + dependency triage + sanitization/upload policy, the `stripHtml`/`validateProfileName` fixes with tests, all three TODOs completed, and green per-file suites.
+
+**Status Updates:**
+- **Received:** Scoped to the three open P0 backend-security items as an audit-plus-targeted-fix.
+- **In Progress:** Reviewed authn/authz/injection/deserialization/upload paths, the secrets params and `.env` hygiene, the `npm audit` results, and the `stripHtml` sanitizer.
+- **Completed:** Documented controls + triage, hardened `stripHtml`, fixed `validateProfileName`, added sanitization tests, and marked all three tasks completed.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+  - `functions/test/sanitizationPolicy.test.js`
+  - `docs/TODO_SECURITY_BACKEND.md`
+  - `docs/reports/security_backend_audit_2026-05-30.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** Backend OWASP controls confirmed (ID-token auth + App Check on every route, ownership checks, magic-byte upload verification, JSON-only bodies, fail-closed CORS). `stripHtml` no longer leaves trailing unterminated tags and `validateProfileName` enforces its minimum post-sanitization. Secret inventory documented with no hardcoded secrets; all `npm audit` high/critical findings are transitive, triaged low-exposure, and tracked (no breaking force-fix applied).
+- **Verification:**
+  - `npm run build` in `functions/`
+  - `npx mocha --exit test/sanitizationPolicy.test.js` (7 passing)
+  - `npx mocha --exit test/safetyValidation.test.js test/securityAbuseLanes.test.js test/chatRestPagination.test.js test/callables.test.js` (per-file)
+  - `FIREBASE_CONFIG=… npx mocha --exit test/profileRestValidation.test.js test/profileCompleteness.test.js` (18 passing)
+  - `npm run lint` clean; `npm audit --omit=dev` triaged
+  - `npm test` 127 passing / 50 failing identical with and without the change (pre-existing cross-file mock contamination; zero new failures, confirmed via `git stash`).
+- **Next Step:** Continue the P0 backlog; tracked follow-ups in the report (durable Firestore REST limiting, dependency-bump monitoring, optional media moderation, per-file test-mock isolation).
+
+### Task #289 — API-002 Pagination, Rate-Limit & Retry Audit
+**Date:** 2026-05-30
+**Agent:** Claude
+**Status:** Completed
+
+**Original Request:**
+Developer pointed to `TODO_API_ARCHITECTURE.md` with `API-002` incomplete, asked to complete it, and to look for additional refactors on the files worked on.
+
+**Developer Intent Analysis:**
+- Primary goal: complete `API-002` — audit pagination, rate limiting, and retry semantics across list endpoints and client wrappers.
+- Secondary goals: ensure consistent cursor/offset semantics, confirm rate limits match endpoint risk, and define retry safety.
+- Implicit requirements: follow the established evidence-report + TODO-status + workflow-doc pattern; refactor (not just inspect) the files touched; do not destabilize unrelated in-progress worktree changes.
+- Quality expectations: document the per-endpoint strategy, fix real inconsistencies, and verify with the existing endpoint tests.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `API-002` by documenting per-endpoint pagination strategy, the rate-limit matrix, and retry safety, and fixing any inconsistency surfaced by the audit.
+- **Scope:** `functions/src/index.ts` list endpoints + rate-limit helpers, `lib/core/network/api_client.dart` retry semantics, `docs/TODO_API_ARCHITECTURE.md`, a new evidence report, and required workflow docs.
+- **Constraints:** no endpoint contract/response-shape rewrite; do not migrate rate-limit storage in this slice; do not touch unrelated dirty worktree files; leave `docs/risk_notes.md` unchanged absent a new durable risk.
+- **Expected Outcome:** an audit report with pagination + rate-limit matrices and a retry contract, one safe consistency refactor, `API-002` marked completed, and green endpoint tests.
+
+**Status Updates:**
+- **Received:** Scoped to the next open P0 API item, `API-002`, as an audit-plus-targeted-refactor.
+- **In Progress:** Mapped all GET-collection endpoints (deck, likes-you, matches, conversations, messages), both rate-limit systems, and the client retry rules; identified the duplicated cursor parse block.
+- **Completed:** Documented the matrices and retry contract, extracted `parseBeforeTimestampCursor`, verified via the existing pagination/rate-limit suites, and marked `API-002` completed.
+
+**Outcome:**
+- **Files changed:**
+  - `functions/src/index.ts`
+  - `docs/TODO_API_ARCHITECTURE.md`
+  - `docs/reports/api_pagination_ratelimit_audit_2026-05-30.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** Pagination is cursor-first everywhere except the intentionally offset-based `likes-you` merge; rate limits scale with endpoint risk across a durable callable limiter and an in-memory Express limiter (per-instance limitation documented); client retry safety only replays idempotent GETs, does one silent-refresh retry on 401, and never auto-retries 429. The duplicated `before`-cursor parse/validate in `/v1/matches` and `/v1/chat/conversations` is now a shared `parseBeforeTimestampCursor` helper.
+- **Verification:**
+  - `npm run build` in `functions/`
+  - `npx mocha --exit test/chatRestPagination.test.js` (12 passing)
+  - `npx mocha --exit test/callRestRateLimit.test.js test/securityAbuseLanes.test.js`
+  - `npx mocha --exit test/callables.test.js`
+  - Confirmed 2 unrelated `profileRestEndpoints` preference-merge failures are pre-existing via `git stash`.
+- **Next Step:** Optional future hardening to move REST abuse-path rate limiting onto the durable Firestore limiter; otherwise continue the P0 backlog (e.g. `AUTH-SEC-003`).
+
+### Task #288 — AUTH-SEC-002 Silent Token Refresh & Safe Retry
+**Date:** 2026-05-30
+**Agent:** Claude
+**Status:** Completed
+
+**Original Request:**
+Developer pointed to `TODO_AUTH_SECURITY.md` with `AUTH-SEC-001` completed and `AUTH-SEC-002`–`005` incomplete, signalling to continue the auth backlog at the next open item.
+
+**Developer Intent Analysis:**
+- Primary goal: implement `AUTH-SEC-002` — standardized silent token refresh with safe single-retry in the HTTP path.
+- Secondary goals: prevent duplicate retries / refresh storms and route to re-auth cleanly only when refresh is genuinely invalid.
+- Implicit requirements: follow the established evidence-report + TODO-status + workflow-doc pattern set by `AUTH-SEC-001`; do not destabilize unrelated in-progress worktree changes; add enforcing tests.
+- Quality expectations: audit existing refresh wiring first, make the smallest complete change, and document remaining manual store-readiness checks.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `AUTH-SEC-002` so an expired session refreshes once and retries, never duplicate-retries or storms the refresh token, and hard-fails to re-auth only when refresh is invalid.
+- **Scope:** `lib/core/network/api_client.dart`, `test/core/network/api_client_test.dart`, `docs/TODO_AUTH_SECURITY.md`, a new evidence report, and required workflow docs.
+- **Constraints:** no auth-repository or backend-contract rewrite; do not touch the concurrent accessibility/account-management worktree changes; leave `docs/risk_notes.md` unchanged absent a new durable risk.
+- **Expected Outcome:** single-flight refresh + once-per-expiry re-auth routing with tests, TODO marked completed with evidence, and manual stale-session checks documented.
+
+**Status Updates:**
+- **Received:** Scoped to the next open P0 item, `AUTH-SEC-002`, in the shared HTTP client wrapper.
+- **In Progress:** Audited `ApiClient`, `HttpAuthRepository`, the session bridge, and DI refresh wiring; identified refresh-storm and repeated-logout gaps.
+- **Completed:** Added single-flight refresh and once-only re-auth routing with concurrency tests, documented evidence, and marked `AUTH-SEC-002` completed.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/core/network/api_client.dart`
+  - `test/core/network/api_client_test.dart`
+  - `docs/TODO_AUTH_SECURITY.md`
+  - `docs/reports/auth_silent_refresh_2026-05-30.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** Concurrent 401s now share one in-flight refresh (refresh token consumed once), each request still retries at most once, and `onAuthError`/`signOut` fires a single time per expiry with the latch resetting on a healthy response or successful refresh. `AUTH-SEC-002` is closed with a manual stale-session follow-up.
+- **Verification:**
+  - `flutter test test/core/network/api_client_test.dart`
+  - `flutter test test/features/auth/data/repositories/http_auth_repository_contract_test.dart`
+  - `flutter analyze lib/core/network/api_client.dart test/core/network/api_client_test.dart`
+- **Next Step:** Manual stale-session refresh/re-auth smoke checks on real mobile/web runtimes before store submission; then continue with `AUTH-SEC-003` (OAuth/provider compliance).
+
+### Task #287 — Account Management Compliance TODOs
+**Date:** 2026-05-30
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer asked to work on `TODO_ACCOUNT_MGMT.md` items while Claude works on `TODO_ACCESSIBILITY`.
+
+**Developer Intent Analysis:**
+- Primary goal: make concrete progress on the Account Management TODOs without touching accessibility work.
+- Secondary goals: cover deletion compliance, data export/privacy-right workflows, and block/report/consent surfaces in one coherent account-management slice.
+- Implicit requirements: avoid collisions with Claude's accessibility edits, preserve existing dirty worktree changes, follow the project docs workflow, and verify with targeted checks.
+- Quality expectations: inspect existing account/settings/backend flows first, then implement the smallest complete changes needed to satisfy acceptance criteria or document any unavoidable manual/store verification.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete or materially close `ACCT-001`, `ACCT-002`, and `ACCT-003` from `docs/TODO_ACCOUNT_MGMT.md`.
+- **Scope:** settings/account actions, privacy settings, backend deletion/export/report/block support, compliance documentation, tests, TODO status updates, and required workflow docs.
+- **Constraints:** do not edit accessibility-owned files unless unavoidable, do not rewrite auth or settings architecture broadly, do not revert user/Claude changes, and document manual verification limits for store/privacy workflows.
+- **Expected Outcome:** account deletion, data export/privacy rights, and block/report/consent surfaces are discoverable and documented; code/tests are updated where gaps are found; TODO/workflow docs are synchronized.
+
+**Status Updates:**
+- **Received:** Scoped the work to Account Management and noted the parallel accessibility workstream.
+- **In Progress:** Inspecting existing settings, privacy, backend deletion/export, block, report, and consent implementations.
+- **Completed:** Added the missing report-history and privacy-right/consent surfaces, hardened report timestamp parsing, added callable auth tests, documented the compliance matrix, and marked `ACCT-001` through `ACCT-003` completed with manual staging follow-ups.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_ACCOUNT_MGMT.md`
+  - `docs/reports/account_management_compliance_2026-05-30.md`
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+  - `functions/test/callables.test.js`
+  - `lib/features/settings/presentation/bloc/safety_cubit.dart`
+  - `lib/features/settings/presentation/screens/account_actions_settings_screen.dart`
+  - `lib/features/settings/presentation/screens/privacy_settings_screen.dart`
+  - `lib/presentation/screens/safety_screen.dart`
+  - `test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart`
+  - `test/safety_cubit_test.dart`
+- **Result:** `ACCT-001`, `ACCT-002`, and `ACCT-003` are closed in the TODO doc. Account deletion/export flows are documented, privacy settings now surfaces privacy rights and consent status, Safety & Blocking now surfaces report history, report timestamps parse the persisted ISO format correctly, and backend callable auth coverage includes deletion/export authorization checks.
+- **Verification:**
+  - `flutter test test/safety_cubit_test.dart test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart test/features/settings/domain/commands/account_action_commands_test.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart`
+  - `dart analyze lib/features/settings/presentation/bloc/safety_cubit.dart lib/presentation/screens/safety_screen.dart lib/features/settings/presentation/screens/privacy_settings_screen.dart test/safety_cubit_test.dart test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart`
+  - `dart analyze lib/features/settings/presentation/screens/account_actions_settings_screen.dart`
+  - `npx mocha --exit test/callables.test.js` in `functions/`
+- **Next Step:** Run the staging account deletion, data export, block/report, and consent checklists in `docs/reports/account_management_compliance_2026-05-30.md` before store submission.
+
+### Task #286 — Rank TODOs By Status And Importance
+**Date:** 2026-05-30
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer asked to list all completed, incomplete, and partially completed TODOs from most important to least important.
+
+**Developer Intent Analysis:**
+- Primary goal: turn the TODO inventory into an ordered status view.
+- Secondary goals: distinguish complete, incomplete, and partial work; use the project priority rubric instead of alphabetical ordering; keep active TODO docs separate from historical task-log mentions.
+- Implicit requirements: preserve the existing TODO files unchanged, update required workflow docs, and verify docs sync.
+- Quality expectations: provide a concise but complete ordered list that can guide the next execution choice.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Classify current active TODOs by completion status and order them from highest to lowest importance.
+- **Scope:** use `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` for execution ordering, each `docs/TODO_*.md` priority header for severity, explicit `Status:` lines for open/completed state, and unchecked `TODO_CALLS.md` criteria for partial call-module items.
+- **Constraints:** do not modify product code or backlog status; do not count `TODO_WEBAPP.md` as duplicate work because it is a routing board; leave `docs/risk_notes.md` unchanged unless a new risk is created.
+- **Expected Outcome:** final answer includes status counts, ordered TODO groups, cleared/complete notes, and verification.
+
+**Status Updates:**
+- **Received:** Interpreted the request as a status-ranked inventory, not a request to implement TODOs.
+- **In Progress:** Extracted priorities, statuses, partial call criteria, and cleared module notes from the active TODO docs.
+- **Completed:** Classified the active TODO set as 1 explicit completed item, 6 partially completed call items, 101 incomplete open items, and 2 low-priority inline Flutter wrapper TODO markers.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+- **Result:** Status-ranked inventory reported; no product code or backlog status changed.
+- **Verification:**
+  - Parsed active `docs/TODO_*.md` task headings and `- Status:` lines.
+  - Parsed `docs/TODO_CALLS.md` unchecked acceptance criteria for partial items.
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next Step:** Execute the next highest-priority incomplete item, currently `AUTH-SEC-002` or another P0 blocker selected by scope.
+
+### Task #285 — List Current TODO Backlog
+**Date:** 2026-05-30
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer asked to list all the TODOs.
+
+**Developer Intent Analysis:**
+- Primary goal: provide a current inventory of open TODO/backlog items in the repo.
+- Secondary goals: distinguish module backlog items from inline source TODO markers, avoid historical task-log noise, and keep required workflow docs synchronized.
+- Implicit requirements: use the active `docs/TODO_*.md` files as the backlog source of truth and scan tracked source files for TODO/FIXME-style markers.
+- Quality expectations: report counts, file references, and verification commands without changing product code.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** List the current open TODO backlog for `/Users/ace/my_first_project`.
+- **Scope:** read the collaboration docs, scan active `docs/TODO_*.md` backlog files for open items, scan non-doc tracked source for TODO/FIXME/HACK/XXX markers, update workflow docs, and run the docs sync guard.
+- **Constraints:** do not modify product code, do not treat historical task-log mentions as active TODOs, and leave `docs/risk_notes.md` unchanged unless a new durable risk is found.
+- **Expected Outcome:** a concise inventory of all open TODO items with source files/lines and verification evidence.
+
+**Status Updates:**
+- **Received:** Interpreted the request as a repo-wide TODO inventory rather than implementation of a specific item.
+- **In Progress:** Scanned active TODO docs, route-only TODO boards, empty TODO modules, and non-doc source TODO markers.
+- **Completed:** Found 107 active backlog TODO items across the module docs and 2 inline source TODO markers outside docs.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+- **Result:** Open backlog inventory is ready for developer review; no product code changed.
+- **Verification:**
+  - `awk` scan of `docs/TODO_*.md` for `- Status: open`
+  - `awk` scan of `docs/TODO_CALLS.md` for unchecked acceptance items
+  - `rg -n --glob '!docs/**' --glob '!build/**' --glob '!ios/Pods/**' --glob '!node_modules/**' '\bTODO\b|\bFIXME\b|\bHACK\b|\bXXX\b' .`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- **Next Step:** Pick the next highest-priority open item, likely `AUTH-SEC-002` or `API-002`, when ready to execute backlog work.
+
 ### Task #071 — Save Current Work And Publish To GitHub
 **Date:** 2026-05-30
 **Agent:** Codex
@@ -15736,3 +16270,32 @@ The run completed pod install and Xcode build, then failed with:
   - `/usr/bin/log show --style compact --last 5m --predicate 'eventMessage CONTAINS[c] "00008120-0019181C3A00C01E" || eventMessage CONTAINS[c] "1B4353DE-FDC2-515A-BACB-327E87824C8F" || eventMessage CONTAINS[c] "deviceDetached" || eventMessage CONTAINS[c] "deviceAttached" || eventMessage CONTAINS[c] "RemotePairing" || eventMessage CONTAINS[c] "coredevice"' | tail -n 160`
   - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
 - **Next Step:** Reboot or fully reconnect `iPhoneeeee`, keep it unlocked and awake on the Home Screen, then rerun `flutter devices` before another `flutter run`; the blocker is Apple CoreDevice/RemotePairing stability, not the app code.
+
+### Task #285 — Complete Accessibility TODO (A11Y-001 to A11Y-003)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Complete the locally verifiable work in `docs/TODO_ACCESSIBILITY.md` (semantics/screen-reader sweep, dynamic type/focus/keyboard, contrast/reduced motion/color-independent status) rather than leaving the module fully open.
+- **Scope:** auth/onboarding/discovery/chat/profile/settings UI, design-system tokens/animation wrappers/text fields, app-root text-scale cap, and new/extended accessibility test lanes.
+- **Constraints:** fix real issues, add enforcing regression coverage, do not disturb the concurrent account-management WIP, and be honest about what still needs a manual device pass.
+- **Expected Outcome:** automated accessibility coverage and concrete fixes land green; remaining manual VoiceOver/TalkBack/keyboard sign-off is documented.
+
+**Status Updates:**
+- **Received:** User asked to complete the three accessibility TODO items.
+- **In Progress:** Ran the existing a11y baseline (found and fixed a pre-existing account-actions ink assertion), then audited tokens/animations/status indicators and the critical screens.
+- **Completed:** Landed fixes plus four new/extended test lanes covering A11Y-001/002/003; updated the TODO statuses.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/design_system/utils/accessibility.dart`, `lib/core/ui/snackbar_utils.dart`, `lib/design_system/widgets/glass_text_field.dart`, `lib/design_system/widgets/app_text_field.dart`, `lib/features/auth/presentation/screens/login_screen.dart`, `lib/features/auth/presentation/screens/sign_up_screen.dart`, `lib/features/chat/presentation/widgets/chat_input_bar.dart`, `lib/features/chat/presentation/screens/chat_list_screen.dart`, `lib/features/settings/presentation/screens/account_actions_settings_screen.dart`, `lib/features/discovery/presentation/screens/likes_you_screen.dart`, `lib/features/profile/presentation/screens/other_user_profile_screen.dart`, `lib/presentation/screens/safety_screen.dart`, `lib/app.dart`
+  - `test/accessibility_regression_lane_test.dart`, `test/accessibility_token_contrast_test.dart`, `test/accessibility_reduced_motion_test.dart`, `test/accessibility_dynamic_type_test.dart`
+  - `docs/TODO_ACCESSIBILITY.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:**
+  - A11Y-001: `labeledTapTargetGuideline` sweep added on auth gateway/login/chat composer/account actions; fixed the unlabeled password toggle (new `GlassTextField.suffixSemanticLabel`) and the chat send button (single labeled `MergeSemantics` node); labeled the chat-list online dot.
+  - A11Y-002: wired `DsTextScaleCap` into the app root to bound text at 2.0x; added clamp/focus-order/keyboard-activation tests.
+  - A11Y-003: token contrast test plus fixed `accessibleTextColor` mid-tone mis-pick and low-contrast success snackbars; reduced-motion wrapper test.
+- **Verification:**
+  - `flutter analyze lib` (clean)
+  - `flutter test test/accessibility_regression_lane_test.dart test/accessibility_token_contrast_test.dart test/accessibility_reduced_motion_test.dart test/accessibility_dynamic_type_test.dart test/design_system_accessibility_test.dart test/semantics_helper_test.dart test/chat_state_collection_semantics_test.dart` (all pass)
+  - `flutter test test/features/auth test/features/chat test/features/discovery test/features/profile test/features/settings test/onboarding_google_button_layout_test.dart` (pass)
+  - Pre-existing unrelated failure confirmed (with changes stashed) in `test/router_create_router_test.dart` (`PaywallScreen` missing `SubscriptionBloc` provider in the harness).
+- **Next Step:** Manual VoiceOver (iOS) + TalkBack (Android) journey passes, physical external-keyboard navigation, and an on-device visible-focus/contrast visual sweep.

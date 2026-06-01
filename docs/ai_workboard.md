@@ -53,6 +53,300 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 ## Unified Task Log
 
+### T-2026-05-30-PROFILE-FRONTEND-TODOS
+- Date: 2026-05-30
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `PROF-FE-001` through `PROF-FE-003` from `docs/TODO_PROFILE_FRONTEND.md`: adaptive profile create/edit/view layouts, hardened media picker/reorder/delete UX, and clearer completion/validation guidance.
+- Scope: Flutter profile presentation/media surfaces, relevant widget tests, `/Users/ace/crush-web` profile surfaces, `docs/TODO_PROFILE_FRONTEND.md`, an evidence report, and required workflow docs.
+- Key Changes:
+  - Added [`profile_adaptive_layout.dart`](/Users/ace/my_first_project/lib/features/profile/presentation/widgets/profile_adaptive_layout.dart) and applied shared profile-specific content widths/tile metrics to setup, edit, view, and media widgets.
+  - Hardened [`profile_media_picker.dart`](/Users/ace/my_first_project/lib/features/profile/presentation/widgets/profile_media_picker.dart) with a first-photo empty state, horizontal reorder, explicit move controls, primary-photo retention, and adaptive tile sizes.
+  - Added [`profile_completion_guidance.dart`](/Users/ace/my_first_project/lib/features/profile/presentation/widgets/profile_completion_guidance.dart) and wired next-action copy into profile edit/view completion cards.
+  - Updated `/Users/ace/crush-web` profile edit/view/preview, media reorder, crop modal, and completion helper for responsive side-rail layouts, web upload validation, crop errors, accessible reorder/delete controls, and explicit required/recommended completion copy.
+  - Added focused Flutter tests and web completion-helper tests; marked `PROF-FE-001` through `PROF-FE-003` completed in [`docs/TODO_PROFILE_FRONTEND.md`](/Users/ace/my_first_project/docs/TODO_PROFILE_FRONTEND.md) with evidence report [`docs/reports/profile_frontend_audit_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/profile_frontend_audit_2026-05-30.md).
+- Decisions/Handoffs:
+  - Keep this slice scoped to profile frontend and avoid reverting unrelated dirty worktree changes from previous audit lanes.
+  - Treat real picker/crop checks on iOS/Android/iPad/web as documented manual release-gate verification where local automation cannot open platform pickers.
+- Verification:
+  - `flutter test test/features/profile/presentation/widgets/profile_media_picker_test.dart test/features/profile/presentation/widgets/profile_completion_guidance_test.dart test/features/profile/presentation/widgets/profile_adaptive_layout_test.dart test/features/profile/presentation/screens/profile_media_screen_test.dart test/features/profile/presentation/screens/profile_setup_screen_keyboard_overflow_test.dart` — passing.
+  - `flutter analyze` on touched Flutter profile widgets/screens/tests — no issues.
+  - `pnpm --filter @crush/web test src/components/profile/__tests__/profile-completion.test.ts` — 3 passing.
+  - `pnpm --filter @crush/web typecheck` — clean.
+  - `pnpm --filter @crush/web lint` — 0 errors, 35 pre-existing warnings outside this slice.
+- Next Step: Run live iOS/iPad/Android picker/camera/crop smoke checks and desktop browser upload/crop/reorder checks before release.
+
+### T-2026-05-30-NOTIFICATION-TODOS
+- Date: 2026-05-30
+- Owner: Codex
+- Status: Completed
+- Goal: Complete `NOTIF-001` through `NOTIF-004` from `docs/TODO_NOTIFICATIONS.md`: contextual permission prompts, notification deep-link verification, preference sync/enforcement, and web push parity.
+- Scope: mobile push service/settings/deep-link helpers, backend notification delivery filters, notification tests, `/Users/ace/crush-web` web push/service-worker/settings files, `docs/TODO_NOTIFICATIONS.md`, an evidence report, and required workflow docs.
+- Key Changes:
+  - Added [`docs/reports/notification_audit_web_push_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/notification_audit_web_push_2026-05-30.md) and marked `NOTIF-001` through `NOTIF-004` completed in [`docs/TODO_NOTIFICATIONS.md`](/Users/ace/my_first_project/docs/TODO_NOTIFICATIONS.md).
+  - Changed [`push_notification_service.dart`](/Users/ace/my_first_project/lib/core/services/push_notification_service.dart) so startup configures local/FCM handlers without requesting OS notification permission; push token registration now happens only after authorization is granted/provisional, with explicit enable/disable paths.
+  - Added [`notification_routes.dart`](/Users/ace/my_first_project/lib/core/routing/notification_routes.dart) and wired [`app.dart`](/Users/ace/my_first_project/lib/app.dart) notification taps/actions through an allowlisted route resolver with notification-center fallback for malformed/external payloads.
+  - Aligned mobile settings and safety mute flows with backend-enforced `notificationPrefs`, including dotted partial writes and `mutedMessages`/`mutedCalls` sync from [`SafetyCubit`](/Users/ace/my_first_project/lib/features/settings/presentation/bloc/safety_cubit.dart).
+  - Hardened backend delivery in [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts) and [`functions/src/calls/signaling.ts`](/Users/ace/my_first_project/functions/src/calls/signaling.ts): category checks, queued re-checks, muted sender/caller suppression, direct-block suppression, deterministic route payloads, and always-deliverable safety alerts.
+  - Added web push parity in `/Users/ace/crush-web`: FCM service worker, notification service, foreground initializer, canonical settings page, web token registration/deletion, and web route resolution.
+  - Updated architecture/data-flow docs: [`docs/project_flowchart.md`](/Users/ace/my_first_project/docs/project_flowchart.md), [`docs/project_dfd.md`](/Users/ace/my_first_project/docs/project_dfd.md), and [`docs/project_er_diagram.md`](/Users/ace/my_first_project/docs/project_er_diagram.md).
+- Decisions/Handoffs:
+  - Keep the slice away from Claude's active accessibility changes unless a direct notification dependency requires otherwise.
+  - Treat unsupported manual device/browser smoke checks as documented release-gate verification rather than pretending local tests cover OS push delivery.
+  - Left `docs/risk_notes.md` unchanged because this reduces notification privacy/UX risk and documents remaining manual smoke gates in the evidence report.
+- Verification:
+  - `flutter test test/push_notification_service_test.dart test/notification_settings_cubit_test.dart test/core/routing/notification_routes_test.dart test/safety_cubit_test.dart` — passing.
+  - `flutter analyze` on touched notification/app/test files — no issues.
+  - `npm run build` + `npm run lint` in `functions/` — clean.
+  - `npx mocha --exit test/notificationPrefsSyncContract.test.js test/call-signaling.test.js` in `functions/` — 18 passing.
+  - `pnpm --filter @crush/web typecheck` — clean.
+  - `pnpm --filter @crush/web lint` — 0 errors, 37 pre-existing warnings outside this slice.
+- Next Step: Live iOS/Android foreground/background/terminated push smoke tests plus Chrome/Safari/Firefox web push checks before release submission.
+
+### T-2026-05-30-AUTH-SEC-005-ACCOUNT-DELETION-COMPLETENESS
+- Date: 2026-05-30
+- Owner: Claude
+- Status: Completed
+- Goal: Complete `AUTH-SEC-005`: verify account deletion revokes sessions, removes user-owned data, cancels premium correctly, and meets GDPR/CCPA; fix completeness gaps found.
+- Scope: deletion lifecycle + `cascadeDeleteUserData` in [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts), `docs/TODO_AUTH_SECURITY.md`, an evidence report, a new deletion-map test, and required workflow docs.
+- Key Changes:
+  - Added [`docs/reports/auth_account_deletion_audit_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/auth_account_deletion_audit_2026-05-30.md) with the deletion map, session-revocation/premium/GDPR analysis, and tracked follow-ups.
+  - Fixed a critical bug in [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts): `cascadeDeleteUserData` queried matches only by `participants`, but matches are created with `users`/`userIds`, so matches + chat messages were not being deleted. Now queries all `MATCH_MEMBERSHIP_FIELDS` and dedupes by id.
+  - Added top-level relation scrubbing (`likes`/`swipes` outgoing+inbound, `blocks`/`reports` outgoing) via the new tested `userRelationDeletionTargets`; inbound blocks/reports about the user are intentionally retained for abuse history.
+  - Refactored the repeated query→batch→log pattern into `deleteDocsByQuery` (paginated, also fixing the latent `.limit(500)` single-batch truncation) and added [`functions/test/accountDeletionMap.test.js`](/Users/ace/my_first_project/functions/test/accountDeletionMap.test.js).
+  - Marked `AUTH-SEC-005` completed in [`docs/TODO_AUTH_SECURITY.md`](/Users/ace/my_first_project/docs/TODO_AUTH_SECURITY.md) (closing AUTH-SEC-001..005).
+- Decisions/Handoffs:
+  - Retained inbound blocks/reports about a deleted user so abuse history is not erasable by account deletion; deleted outbound records (the user's own personal data) and orphaned inbound like/swipe pointers.
+  - Documented store-side subscription cancellation as a platform limitation (entitlement state lives on the user doc and is removed; Apple/Google recurring billing is the user's action) rather than a data-deletion gap.
+  - Unit-tested the deletion MAP (targets + match fields) rather than mocking the destructive cascade execution; tracked a full emulator integration test as a follow-up.
+  - Left `docs/risk_notes.md` unchanged because the change reduces deletion-completeness risk and tracks the residual store-subscription item in the report.
+- Verification:
+  - `npm run build` + `npm run lint` (in `functions/`) — clean
+  - `npx mocha --exit test/accountDeletionMap.test.js` (4 passing)
+  - `npx mocha --exit test/callables.test.js` (11 passing)
+  - Full-suite delta: `npm test` 131 passing / 50 failing (the 50 are pre-existing cross-file mock contamination); +4 new passing, zero new failures.
+- Next Step: Staging end-to-end deletion run and store-subscription cancellation reminder before submission; AUTH-SEC module (001–005) now complete.
+
+### T-2026-05-30-SEC-FE-001-002-003-FRONTEND-SECURITY-AUDIT
+- Date: 2026-05-30
+- Owner: Claude
+- Status: Completed
+- Goal: Complete `SEC-FE-001` (OWASP client risks), `SEC-FE-002` (transport/cert policy), and `SEC-FE-003` (web XSS/CSRF/CSP), documenting risks and fixing issues found.
+- Scope: mobile transport/cert + sanitizer + deep links in `lib/**`, `android/`+`ios/` transport config, the `crush-web` headers/CSP/cookie review, `docs/TODO_SECURITY_FRONTEND.md`, an evidence report, mobile security tests, and required workflow docs.
+- Key Changes:
+  - Added [`docs/reports/security_frontend_audit_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/security_frontend_audit_2026-05-30.md) covering the client OWASP matrix, the explicit HTTPS-only transport/cert policy, and the web CSP/CSRF/XSS posture with tracked gaps (web HSTS, CSP frame-ancestors).
+  - Fixed a latent MITM in [`certificate_pinning.dart`](/Users/ace/my_first_project/lib/core/network/certificate_pinning.dart): `_validateCertificate` now rejects (was accept) certs on non-pinned hosts that already failed OS validation; added a `validateCertificateForTesting` hook + test.
+  - Hardened [`input_sanitizer.dart`](/Users/ace/my_first_project/lib/core/security/input_sanitizer.dart) `_stripHtmlTags` against trailing unterminated tags (mirrors the `SEC-BE-003` backend fix); added a `sanitizeMessage` test.
+  - Marked `SEC-FE-001/002/003` completed in [`docs/TODO_SECURITY_FRONTEND.md`](/Users/ace/my_first_project/docs/TODO_SECURITY_FRONTEND.md).
+- Decisions/Handoffs:
+  - Documented no-certificate-pinning as an intentional decision (Google-hosted backend rotates certs) while still fixing the unsafe non-pinned-host accept default.
+  - Treated web HSTS as a tracked P2 (Vercel injects it for custom domains by default; verify/add explicitly) rather than editing the separate `crush-web` repo in this slice.
+  - Left `docs/risk_notes.md` unchanged because the audit reduces client risk and tracks the residual web HSTS item in the report.
+- Verification:
+  - `flutter analyze` (cert pinning + input sanitizer + tests) — clean
+  - `flutter test test/core/network/certificate_pinning_test.dart test/input_sanitizer_hotspot_test.dart` — passing (incl. new non-pinned-host reject + trailing-tag cases)
+  - Web review of `apps/web/next.config.js`, `apps/web/src/middleware.ts`, `apps/web/src/app/api/auth/**`
+- Next Step: Verify web HSTS on the deployed domain and (optional) add CSP `frame-ancestors`; on-device deep-link/MITM smoke checks before submission.
+
+### T-2026-05-30-AUTH-SEC-004-AUTH-ABUSE-PROTECTION
+- Date: 2026-05-30
+- Owner: Claude
+- Status: Completed
+- Goal: Complete `AUTH-SEC-004`: verify brute-force, OTP-abuse, and password-reset-abuse protections (limits, logging, enumeration-safe messaging) and fix issues found.
+- Scope: auth callables + `applyRateLimit` + OTP/password-reset flows in [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts), `docs/TODO_AUTH_SECURITY.md`, an evidence report, and required workflow docs.
+- Key Changes:
+  - Added [`docs/reports/auth_abuse_protection_audit_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/auth_abuse_protection_audit_2026-05-30.md) with the rate-limit matrix, brute-force/OTP defenses, enumeration/messaging-safety table, and audit-logging notes.
+  - Extracted `matchOtpCandidate` in [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts) to share the previously-duplicated OTP timing-safe matching + per-code lockout loop between email-OTP and password-reset verification.
+  - Marked `AUTH-SEC-004` completed in [`docs/TODO_AUTH_SECURITY.md`](/Users/ace/my_first_project/docs/TODO_AUTH_SECURITY.md).
+- Decisions/Handoffs:
+  - Confirmed (not just documented) the layered controls: dual IP+identifier durable rate limits, dummy-hash constant-time login, per-OTP 5-attempt lockout, and constant `FORGOT_PASSWORD_RESPONSE` for enumeration safety.
+  - Documented sign-up email-existence disclosure as an accepted, rate-limited UX tradeoff rather than changing signup behavior.
+  - Kept the refactor to a pure byte-for-byte extraction because this is P0 security-critical code; did not unify the subtly different (throw-vs-return) rate-limit orchestration.
+  - Left `docs/risk_notes.md` unchanged because the audit confirms protection without introducing a new durable risk.
+- Verification:
+  - `npm run build` + `npm run lint` (in `functions/`) — clean
+  - `npx mocha --exit test/securityAbuseLanes.test.js` (7 passing)
+  - `npx mocha --exit test/callables.test.js` (11 passing)
+  - Full-suite delta: `npm test` 127 passing / 50 failing with and without the change (pre-existing cross-file mock contamination); zero new failures.
+- Next Step: Live abuse smoke tests before submission; then continue with `AUTH-SEC-005` (account-deletion completeness).
+
+### T-2026-05-30-AUTH-SEC-003-OAUTH-PROVIDER-AUDIT
+- Date: 2026-05-30
+- Owner: Claude
+- Status: Completed
+- Goal: Complete `AUTH-SEC-003`: audit Google/Apple OAuth providers for replay protection/PKCE, App Store compliance, and platform-specific failure handling; document flows and fix issues found.
+- Scope: provider mappers + sign-in impl in [`firebase_auth_repository.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/firebase_auth_repository.dart), iOS entitlements/Info.plist, Android manifest, web auth route review, `docs/TODO_AUTH_SECURITY.md`, an evidence report, the mapper tests, and required workflow docs.
+- Key Changes:
+  - Added [`docs/reports/auth_oauth_provider_audit_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/auth_oauth_provider_audit_2026-05-30.md) with the provider matrix, Apple 4.8/replay-protection compliance, entitlement verification, and tracked non-blocking items.
+  - Extracted [`provider_firebase_auth_failure_mapper.dart`](/Users/ace/my_first_project/lib/features/auth/data/repositories/impl/provider_firebase_auth_failure_mapper.dart) and refactored the Apple + Google mappers to share the duplicated `FirebaseAuthException` mapping (behavior-preserving).
+  - Closed the test gap: added shared-branch coverage (account-collision, invalid-credential/nonce, too-many-requests, network) to both mapper test suites (17 passing).
+  - Marked `AUTH-SEC-003` completed in [`docs/TODO_AUTH_SECURITY.md`](/Users/ace/my_first_project/docs/TODO_AUTH_SECURITY.md).
+- Decisions/Handoffs:
+  - Confirmed Apple sign-in compliance for iOS submission (nonce+sha256 replay protection, `applesignin` entitlement in dev+release, email/fullName scopes) rather than only documenting it.
+  - Treated the web app's lack of Apple sign-in as a non-blocking parity item because Guideline 4.8 targets the native iOS app (which offers it).
+  - Left `docs/risk_notes.md` unchanged because the audit confirms compliance and reduces duplication without introducing a new durable risk.
+- Verification:
+  - `flutter analyze` (provider mappers + new helper + tests) — clean
+  - `flutter test test/features/auth/data/repositories/apple_sign_in_failure_mapper_test.dart test/features/auth/data/repositories/google_sign_in_failure_mapper_test.dart` (17 passing)
+- Next Step: Real-device Apple/Google (iOS, Android) and web Google popup smoke checks before store submission; then continue the P0 auth backlog with `AUTH-SEC-004` (auth abuse protection).
+
+### T-2026-05-30-SEC-BE-001-002-003-BACKEND-SECURITY-AUDIT
+- Date: 2026-05-30
+- Owner: Claude
+- Status: Completed
+- Goal: Complete `SEC-BE-001` (OWASP backend audit), `SEC-BE-002` (secrets + dependency vulns), and `SEC-BE-003` (upload scanning + input sanitization) for the Cloud Functions backend, fixing real issues found during the audit.
+- Scope: [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts) auth/discovery/chat/upload/validation surfaces, secrets configuration, `functions/package.json` deps, `docs/TODO_SECURITY_BACKEND.md`, an evidence report, a new sanitization test, and required workflow docs.
+- Key Changes:
+  - Added [`docs/reports/security_backend_audit_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/security_backend_audit_2026-05-30.md) with the OWASP control matrix, secret inventory, transitive-dependency vuln triage, and the documented sanitization/upload-ingress policy.
+  - Hardened `stripHtml` in [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts) to also remove a trailing unterminated tag start (e.g. `hi <img src=x onerror=...`) while preserving benign `<` usage; this closes a stored-XSS defense-in-depth gap across message/profile validators.
+  - Fixed `validateProfileName` to enforce its 2-char minimum on the sanitized value (consistent with `validateProfileTextField`) so markup cannot pad a single-character name.
+  - Added [`functions/test/sanitizationPolicy.test.js`](/Users/ace/my_first_project/functions/test/sanitizationPolicy.test.js) (7 cases) and exported `stripHtml`/validators via `__test__helpers`.
+  - Marked `SEC-BE-001`, `SEC-BE-002`, `SEC-BE-003` completed in [`docs/TODO_SECURITY_BACKEND.md`](/Users/ace/my_first_project/docs/TODO_SECURITY_BACKEND.md).
+- Decisions/Handoffs:
+  - Did not run `npm audit fix --force`: every high/critical finding is a transitive dep of firebase-admin/@google-cloud/express, the direct manifest is already on current majors, and a forced fix pulls breaking majors onto a P0 backend. Triaged with low real-world exposure and tracked instead.
+  - Kept the `stripHtml` strip-policy (vs switching to entity-encoding) to avoid changing stored-data shape and breaking existing validators/tests; added a precise trailing-fragment strip rather than nuking all `<`/`>`.
+  - Left `docs/risk_notes.md` unchanged because the audit reduces input-handling risk and tracks the residual dependency risk in the report rather than introducing a new durable risk.
+- Verification:
+  - `npm run build` (in `functions/`)
+  - `npx mocha --exit test/sanitizationPolicy.test.js` (7 passing)
+  - `npx mocha --exit test/safetyValidation.test.js` (5), `... test/securityAbuseLanes.test.js` (7), `... test/chatRestPagination.test.js` (12), `... test/callables.test.js` (11)
+  - `FIREBASE_CONFIG=… npx mocha --exit test/profileRestValidation.test.js test/profileCompleteness.test.js` (18 passing)
+  - `npm run lint` clean; `npm audit --omit=dev` triaged
+  - Full-suite delta: `npm test` is 127 passing / 50 failing both with and without this change (the 50 are pre-existing cross-file mock contamination); zero new failures (verified via `git stash`).
+- Next Step: Continue the P0 backlog; tracked follow-ups: durable Firestore REST rate limiting, dependency-bump monitoring, optional media content moderation, and fixing the per-file test-mock isolation so `npm test` runs green recursively.
+
+### T-2026-05-30-API-002-PAGINATION-RATELIMIT-AUDIT
+- Date: 2026-05-30
+- Owner: Claude
+- Status: Completed
+- Goal: Complete `API-002`: audit list-endpoint pagination, rate-limit coverage, and retry safety; document the per-endpoint strategy and fix any inconsistency found.
+- Scope: [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts) list endpoints + rate-limit helpers, the shared client retry semantics in [`lib/core/network/api_client.dart`](/Users/ace/my_first_project/lib/core/network/api_client.dart) (already hardened in `AUTH-SEC-002`), `docs/TODO_API_ARCHITECTURE.md`, an evidence report, and required workflow docs; no endpoint contract rewrite.
+- Key Changes:
+  - Added [`docs/reports/api_pagination_ratelimit_audit_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/api_pagination_ratelimit_audit_2026-05-30.md) with a per-endpoint pagination matrix (deck, likes-you, matches, conversations, messages), a rate-limit matrix for both the durable callable limiter and the in-memory Express limiter, and the client/server retry-safety contract.
+  - Refactored [`functions/src/index.ts`](/Users/ace/my_first_project/functions/src/index.ts) to extract `parseBeforeTimestampCursor`, removing the duplicated `before`-cursor parse/validate block shared by `/v1/matches` and `/v1/chat/conversations` and standardizing the `400 Invalid before cursor` response.
+  - Marked `API-002` completed in [`docs/TODO_API_ARCHITECTURE.md`](/Users/ace/my_first_project/docs/TODO_API_ARCHITECTURE.md).
+- Decisions/Handoffs:
+  - Documented `likes-you` offset pagination as an intentional exception (it merges `likes`+`swipes` in memory, so there is no single Firestore cursor key) rather than forcing a cursor and risking swipe/likes correctness.
+  - Documented the Express in-memory limiter's per-instance limitation and named the durable callable `applyRateLimit` as the authoritative control for abuse-sensitive flows; flagged Firestore-backed REST limiting as optional future hardening instead of doing a risky migration inside this audit.
+  - Left `docs/risk_notes.md` unchanged because the audit reduces contract ambiguity without introducing a new durable risk.
+- Verification:
+  - `npm run build` (in `functions/`)
+  - `npx mocha --exit test/chatRestPagination.test.js` (12 passing)
+  - `npx mocha --exit test/callRestRateLimit.test.js test/securityAbuseLanes.test.js` (run per-file due to the pre-existing global-mock isolation constraint)
+  - `npx mocha --exit test/callables.test.js`
+  - Confirmed the 2 `test/profileRestEndpoints.test.js` failures (`/v1/profile/preferences` merge) are pre-existing and unrelated via `git stash`.
+- Next Step: Optional future hardening to move REST abuse-path rate limiting onto the durable Firestore limiter; otherwise continue the P0 backlog (e.g. `AUTH-SEC-003`).
+
+### T-2026-05-30-AUTH-SEC-002-SILENT-REFRESH
+- Date: 2026-05-30
+- Owner: Claude
+- Status: Completed for locally verifiable scope; manual on-device/browser stale-session sign-off pending.
+- Goal: Complete `AUTH-SEC-002`: standardize silent token refresh in the shared HTTP client wrapper so an expired session refreshes once and retries, prevents duplicate retries/refresh storms, and routes cleanly to re-auth only when refresh is invalid.
+- Scope: [`lib/core/network/api_client.dart`](/Users/ace/my_first_project/lib/core/network/api_client.dart), its test lane, `docs/TODO_AUTH_SECURITY.md`, an evidence report, and required workflow docs; no auth repository or backend contract rewrite.
+- Key Changes:
+  - Added single-flight refresh in [`api_client.dart`](/Users/ace/my_first_project/lib/core/network/api_client.dart) (`_refreshAuthToken` + `_inFlightRefresh`) so concurrent 401s share one refresh and consume the refresh token once instead of storming it.
+  - Added once-per-expiry re-auth routing (`_notifyAuthError` + `_authErrorNotified`) so a burst of 401s after a failed refresh triggers `onAuthError`/`signOut` a single time; the latch resets on any 2xx response or a successful refresh.
+  - Kept the existing per-request single-retry guard (`hasAttemptedTokenRefresh`) so no request retries more than once.
+  - Added concurrency/recovery tests to [`test/core/network/api_client_test.dart`](/Users/ace/my_first_project/test/core/network/api_client_test.dart) (single-flight refresh, once-only re-auth, latch reset after success).
+  - Added [`docs/reports/auth_silent_refresh_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/auth_silent_refresh_2026-05-30.md) and marked `AUTH-SEC-002` completed in [`docs/TODO_AUTH_SECURITY.md`](/Users/ace/my_first_project/docs/TODO_AUTH_SECURITY.md).
+- Decisions/Handoffs:
+  - Hardened the shared HTTP client wrapper (used by all `http_*` repositories) rather than only the auth repo, since refresh storms arise from concurrent traffic across features; Firebase-mode repos use the SDK directly and are unaffected.
+  - Left `HttpAuthRepository.refreshToken()` as-is because the Firebase SDK already coalesces its own token fetches and the HTTP-layer single-flight covers any non-Firebase provider.
+  - Left `docs/risk_notes.md` unchanged because the slice reduces forced-logout/refresh-race risk without introducing a new durable risk.
+- Verification:
+  - `flutter test test/core/network/api_client_test.dart`
+  - `flutter test test/features/auth/data/repositories/http_auth_repository_contract_test.dart`
+  - `flutter analyze lib/core/network/api_client.dart test/core/network/api_client_test.dart`
+- Next Step: Manual stale-session refresh/re-auth smoke checks on real mobile/web runtimes before store submission; then continue the P0 auth backlog with `AUTH-SEC-003` (OAuth/provider compliance).
+
+### T-2026-05-30-A11Y-SWEEP-001-003
+- Date: 2026-05-30
+- Owner: Claude
+- Status: Completed for locally verifiable scope; manual on-device VoiceOver/TalkBack/external-keyboard sign-off pending.
+- Goal: Close the locally completable portions of `docs/TODO_ACCESSIBILITY.md` (A11Y-001 semantics sweep, A11Y-002 dynamic type/focus/keyboard, A11Y-003 contrast/reduced motion/color-independent status) by fixing real issues and adding enforcing regression coverage instead of leaving the module fully open.
+- Scope: Critical auth/onboarding/discovery/chat/profile/settings UI, design-system tokens/animation wrappers/text fields, the app-root text-scale cap, and four new or extended accessibility test lanes.
+- Key Changes:
+  - A11Y-001: Added a `labeledTapTargetGuideline` sweep across the auth gateway, login, chat composer, and account-actions screens in [`test/accessibility_regression_lane_test.dart`](/Users/ace/my_first_project/test/accessibility_regression_lane_test.dart). Fixed the unlabeled password show/hide toggle via a new `GlassTextField.suffixSemanticLabel` (wired in `login_screen.dart` + `sign_up_screen.dart`, passthrough added to `app_text_field.dart`) and collapsed the chat send button into a single labeled, tappable `MergeSemantics` node.
+  - A11Y-002: Wired the previously-dead `DsTextScaleCap` into [`app.dart`](/Users/ace/my_first_project/lib/app.dart) (`MaterialApp.router` builder) to bound system text to a layout-safe 2.0x; added [`test/accessibility_dynamic_type_test.dart`](/Users/ace/my_first_project/test/accessibility_dynamic_type_test.dart) for clamp + focus-order + keyboard-activation.
+  - A11Y-003: Added [`test/accessibility_token_contrast_test.dart`](/Users/ace/my_first_project/test/accessibility_token_contrast_test.dart) and fixed `DsAccessibility.accessibleTextColor` (mis-picked white on mid-tone tokens) plus the low-contrast success snackbars in `snackbar_utils.dart` and 3 call sites. Added [`test/accessibility_reduced_motion_test.dart`](/Users/ace/my_first_project/test/accessibility_reduced_motion_test.dart) and labeled the chat-list online indicator so status is not color-only.
+  - Updated statuses/evidence in [`docs/TODO_ACCESSIBILITY.md`](/Users/ace/my_first_project/docs/TODO_ACCESSIBILITY.md).
+- Decisions/Handoffs:
+  - Left the concurrent `T-2026-05-30-ACCOUNT-MGMT-TODOS` working-tree changes untouched; the only overlap is the Account Actions danger-zone `Material` wrap, which matches that task's stated intent and unblocks its large-text regression test.
+  - Capped dynamic type at the already-tested 2.0x to prevent layout breakage without over-suppressing user preference.
+- Verification:
+  - `flutter analyze lib` clean.
+  - `flutter test` green for the full accessibility suite (regression lane, token contrast, reduced motion, dynamic type, design-system a11y, semantics helper, chat-state semantics) and regression-checked `test/features/{auth,chat,discovery,profile,settings}` + `test/onboarding_google_button_layout_test.dart`.
+  - Pre-existing unrelated failure remains in `test/router_create_router_test.dart` (PaywallScreen `SubscriptionBloc` provider missing in the test harness; reproduced with my changes stashed).
+- Next Step: Manual VoiceOver (iOS) + TalkBack (Android) journey passes, physical external-keyboard navigation, and an on-device visible-focus/contrast visual sweep.
+
+### T-2026-05-30-ACCOUNT-MGMT-TODOS
+- Date: 2026-05-30
+- Owner: Codex
+- Status: Completed
+- Goal: Work through `ACCT-001`, `ACCT-002`, and `ACCT-003` from `docs/TODO_ACCOUNT_MGMT.md` while avoiding overlap with concurrent accessibility work.
+- Scope: Account/privacy/settings surfaces, backend deletion/export/report/block support, compliance documentation, targeted tests, TODO status updates, and required workflow docs.
+- Key Changes:
+  - Added [`docs/reports/account_management_compliance_2026-05-30.md`](/Users/ace/my_first_project/docs/reports/account_management_compliance_2026-05-30.md) with deletion, export, block/report, consent, backend, web, and staging verification evidence.
+  - Marked `ACCT-001`, `ACCT-002`, and `ACCT-003` completed in [`docs/TODO_ACCOUNT_MGMT.md`](/Users/ace/my_first_project/docs/TODO_ACCOUNT_MGMT.md).
+  - Added a Privacy rights & consent panel to [`privacy_settings_screen.dart`](/Users/ace/my_first_project/lib/features/settings/presentation/screens/privacy_settings_screen.dart) that shows local consent status and links to Account Actions and Privacy Policy.
+  - Added recent report history to [`safety_screen.dart`](/Users/ace/my_first_project/lib/presentation/screens/safety_screen.dart), including private-report consequences and reporting-rule navigation.
+  - Fixed [`SafetyCubit`](/Users/ace/my_first_project/lib/features/settings/presentation/bloc/safety_cubit.dart) so persisted ISO report timestamps parse correctly and reported-user profile display data is loaded.
+  - Added callable auth regression coverage in [`functions/test/callables.test.js`](/Users/ace/my_first_project/functions/test/callables.test.js) for account deletion and data export.
+  - Wrapped the Account Actions danger-zone tile in a `Material` surface so destructive account rows keep visible ink/background behavior in tests and runtime.
+- Decisions/Handoffs:
+  - Keep this slice out of `docs/TODO_ACCESSIBILITY.md` and accessibility UI files unless a direct account-management dependency requires otherwise.
+  - Left `docs/risk_notes.md` unchanged because the slice reduces compliance ambiguity without introducing a new durable technical or product risk.
+  - Real staging account deletion/export runs remain a store-submission gate and are documented in the new compliance report.
+- Verification:
+  - `flutter test test/safety_cubit_test.dart test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart test/features/settings/domain/commands/account_action_commands_test.dart test/features/settings/presentation/screens/account_actions_settings_screen_localization_test.dart`
+  - `dart analyze lib/features/settings/presentation/bloc/safety_cubit.dart lib/presentation/screens/safety_screen.dart lib/features/settings/presentation/screens/privacy_settings_screen.dart test/safety_cubit_test.dart test/features/settings/presentation/screens/privacy_settings_screen_localization_test.dart`
+  - `dart analyze lib/features/settings/presentation/screens/account_actions_settings_screen.dart`
+  - `npx mocha --exit test/callables.test.js` (in `functions/`)
+- Next Step: Run the staging account-management checklist in `docs/reports/account_management_compliance_2026-05-30.md` before store submission.
+
+### T-2026-05-30-TODO-STATUS-RANKING
+- Date: 2026-05-30
+- Owner: Codex
+- Status: Completed
+- Goal: Classify current TODOs as completed, incomplete, or partially completed, ordered from most important to least important.
+- Scope: Active `docs/TODO_*.md` files, `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` priority/execution ordering, partial call criteria in `docs/TODO_CALLS.md`, and non-doc inline TODO marker context.
+- Key Changes:
+  - Confirmed 1 explicit completed item remains in active TODO docs: `AUTH-SEC-001`.
+  - Confirmed 6 partially completed call-module items remain open because they still have unchecked acceptance criteria.
+  - Confirmed 101 incomplete open backlog items remain across active TODO docs.
+  - Confirmed 2 low-priority inline source TODO markers outside docs, both from Flutter-generated CMake wrappers.
+  - Updated this workboard and `docs/Developer_agent_chat.md`; no product code or backlog status changed.
+- Decisions/Handoffs:
+  - Ordered the list by TODO doc priority (`P0` before `P1` before `P2` before `P3`) and the master audit execution order.
+  - Treated `docs/TODO_WEBAPP.md` as a routing board and `docs/TODO_SUBSCRIPTION.md` as a cleared historical placeholder, not duplicate active items.
+  - Left `docs/risk_notes.md` unchanged because this was a read-only classification with no new durable risk.
+- Verification:
+  - Parsed active `docs/TODO_*.md` task headings and `- Status:` lines.
+  - Parsed `docs/TODO_CALLS.md` unchecked acceptance criteria for partial items.
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: Start the next selected P0 execution slice, likely `AUTH-SEC-002` unless another blocker is chosen.
+
+### T-2026-05-30-TODO-INVENTORY
+- Date: 2026-05-30
+- Owner: Codex
+- Status: Completed
+- Goal: List the current open TODO backlog and inline TODO markers for `/Users/ace/my_first_project`.
+- Scope: Active `docs/TODO_*.md` backlog files, `docs/TODO_FINDINGS.txt`, non-doc source TODO/FIXME/HACK/XXX marker scan, and required workflow docs.
+- Key Changes:
+  - Scanned active module TODO docs and found 101 open `- Status: open` backlog items.
+  - Scanned `docs/TODO_CALLS.md` checklist sections and found 6 call-module TODO items with unchecked acceptance criteria.
+  - Scanned non-doc source files and found 2 inline TODO markers, both in Flutter-generated CMake wrapper files.
+  - Updated this workboard and `docs/Developer_agent_chat.md`; no product code changed.
+- Decisions/Handoffs:
+  - Treated `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md` and `docs/TODO_WEBAPP.md` as index/routing docs, not duplicate TODO sources.
+  - Left `docs/risk_notes.md` unchanged because this was a read-only inventory with no risk change.
+- Verification:
+  - `awk` scan of `docs/TODO_*.md` for `- Status: open`
+  - `awk` scan of `docs/TODO_CALLS.md` for unchecked acceptance items
+  - `rg -n --glob '!docs/**' --glob '!build/**' --glob '!ios/Pods/**' --glob '!node_modules/**' '\bTODO\b|\bFIXME\b|\bHACK\b|\bXXX\b' .`
+  - `scripts/check_ai_docs_sync.sh --files docs/ai_workboard.md docs/Developer_agent_chat.md`
+- Next Step: Use the inventory to choose the next backlog execution slice, likely `AUTH-SEC-002` or `API-002`.
+
 ### T-2026-05-30-SAVE-TO-GITHUB
 - Date: 2026-05-30
 - Owner: Codex

@@ -1171,6 +1171,9 @@ class _PasswordStep extends StatelessWidget {
           suffixIcon: obscurePassword
               ? Icons.visibility_outlined
               : Icons.visibility_off_outlined,
+          suffixSemanticLabel: obscurePassword
+              ? l10n.a11yShowPassword
+              : l10n.a11yHidePassword,
           onSuffixTap: onToggleObscure,
           onChanged: (_) => onChanged(),
           textInputAction: TextInputAction.done,

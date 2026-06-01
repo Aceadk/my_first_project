@@ -56,7 +56,8 @@ class ChatInputBar extends StatefulWidget {
   State<ChatInputBar> createState() => ChatInputBarState();
 }
 
-class ChatInputBarState extends State<ChatInputBar> {
+class ChatInputBarState extends State<ChatInputBar>
+    with WidgetsBindingObserver {
   final _controller = TextEditingController();
   final _inputFocusNode = FocusNode();
   final _picker = ImagePicker();
@@ -72,15 +73,31 @@ class ChatInputBarState extends State<ChatInputBar> {
     super.initState();
     _controller.addListener(_onTextChanged);
     _inputFocusNode.onKeyEvent = _handleKeyEvent;
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _typingDebounceTimer?.cancel();
     _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _inputFocusNode.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // CHAT-RT-002: when backgrounded, stop the local typing debounce and reset
+    // the sent-flag. ChatBloc emits the actual isTyping:false to the backend;
+    // clearing the flag here keeps re-typing on resume correctly re-announcing.
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      _typingDebounceTimer?.cancel();
+      _isTypingSent = false;
+    }
   }
 
   void _onTextChanged() {
@@ -604,51 +621,57 @@ class ChatInputBarState extends State<ChatInputBar> {
                       ),
                     ),
                     const SizedBox(width: DsSpacing.sm),
-                    Semantics(
-                      button: true,
-                      label: l10n.sendMessage,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: AlignmentDirectional.topStart,
-                            end: AlignmentDirectional.bottomEnd,
-                            colors: [DsColors.primary, DsColors.secondary],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: DsColors.primary.withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              spreadRadius: 1,
-                              offset: const Offset(0, 2),
+                    // Merge the label with the IconButton's own tap node so the
+                    // send control is a single labeled, tappable semantics node.
+                    MergeSemantics(
+                      child: Semantics(
+                        button: true,
+                        label: l10n.sendMessage,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: AlignmentDirectional.topStart,
+                              end: AlignmentDirectional.bottomEnd,
+                              colors: [DsColors.primary, DsColors.secondary],
                             ),
-                            BoxShadow(
-                              color: DsColors.secondary.withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              spreadRadius: 2,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: IconButton(
-                          icon: isSendingText
-                              ? const SizedBox(
-                                  width: DsSizes.iconMd,
-                                  height: DsSizes.iconMd,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation(
-                                      DsColors.surfaceLight,
-                                    ),
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.send_rounded,
-                                  color: DsColors.surfaceLight,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: DsColors.primary.withValues(alpha: 0.4),
+                                blurRadius: 12,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 2),
+                              ),
+                              BoxShadow(
+                                color: DsColors.secondary.withValues(
+                                  alpha: 0.2,
                                 ),
-                          onPressed: isSendingText
-                              ? null
-                              : () => _sendMessage(),
+                                blurRadius: 20,
+                                spreadRadius: 2,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: IconButton(
+                            icon: isSendingText
+                                ? const SizedBox(
+                                    width: DsSizes.iconMd,
+                                    height: DsSizes.iconMd,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation(
+                                        DsColors.surfaceLight,
+                                      ),
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.send_rounded,
+                                    color: DsColors.surfaceLight,
+                                  ),
+                            onPressed: isSendingText
+                                ? null
+                                : () => _sendMessage(),
+                          ),
                         ),
                       ),
                     ),

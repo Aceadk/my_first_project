@@ -17,6 +17,7 @@ class AppTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSuffixTap,
+    this.suffixSemanticLabel,
     this.obscureText = false,
     this.keyboardType,
     this.textInputAction,
@@ -42,6 +43,7 @@ class AppTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final VoidCallback? onSuffixTap;
+  final String? suffixSemanticLabel;
   final bool obscureText;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
@@ -76,6 +78,7 @@ class AppTextField extends StatelessWidget {
       prefixIcon: _iconDataFromWidget(prefixIcon),
       suffixIcon: _iconDataFromWidget(suffixIcon),
       onSuffixTap: onSuffixTap,
+      suffixSemanticLabel: suffixSemanticLabel,
       obscureText: obscureText,
       keyboardType: keyboardType,
       textInputAction: textInputAction,

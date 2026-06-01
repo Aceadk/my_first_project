@@ -11,6 +11,8 @@ import 'package:crushhour/shared/utils/profile_field_options.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
+import 'package:crushhour/features/profile/presentation/widgets/profile_adaptive_layout.dart';
+import 'package:crushhour/features/profile/presentation/widgets/profile_completion_guidance.dart';
 import 'package:crushhour/features/profile/presentation/widgets/prompt_card.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 
@@ -108,6 +110,7 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         }
 
         final summary = evaluateProfileCompleteness(profile);
+        final guidance = ProfileCompletionGuidance.fromSummary(summary);
         final percent = (summary.score * 100).round();
         final isComplete = summary.missing.isEmpty;
         // Check if profile has basic info (age > 0 means they've filled basic info)
@@ -116,9 +119,11 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
         return Scaffold(
           body: LayoutBuilder(
             builder: (context, constraints) {
-              final maxWidth = DsBreakpoints.contentMaxWidth(
-                constraints.maxWidth,
+              final layoutMetrics = ProfileAdaptiveLayoutMetrics.fromWidth(
+                width: constraints.maxWidth,
+                textScale: MediaQuery.textScalerOf(context).scale(1),
               );
+              final maxWidth = layoutMetrics.contentMaxWidth;
               return Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxWidth),
@@ -278,9 +283,14 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                               if (!isComplete || !hasBasicInfo) ...[
                                 _CompletionCard(
                                   percent: hasBasicInfo ? percent : 0,
+                                  guidance: guidance,
                                   missing: hasBasicInfo
                                       ? summary.missing
-                                      : ['age', 'gender', 'bio', 'photos'],
+                                      : [
+                                          'Add age and gender',
+                                          'Add at least 1 photo',
+                                          'Write a short bio',
+                                        ],
                                   isNewProfile: !hasBasicInfo,
                                 ),
                                 DsGap.lg,
@@ -649,11 +659,13 @@ class _ProfileHeader extends StatelessWidget {
 
 class _CompletionCard extends StatelessWidget {
   final int percent;
+  final ProfileCompletionGuidance guidance;
   final List<String> missing;
   final bool isNewProfile;
 
   const _CompletionCard({
     required this.percent,
+    required this.guidance,
     required this.missing,
     this.isNewProfile = false,
   });
@@ -740,21 +752,64 @@ class _CompletionCard extends StatelessWidget {
               ),
             ),
           ],
-          if (missing.isNotEmpty) ...[
+          if (guidance.nextActions.isNotEmpty || missing.isNotEmpty) ...[
             const SizedBox(height: 12),
-            Text(
-              isNewProfile
-                  ? 'Add your age, photos, and more to get started'
-                  : 'Add: ${missing.take(3).join(', ')}',
-              style: TextStyle(
-                fontSize: 13,
-                color: Theme.of(context).textTheme.bodySmall?.color,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isNewProfile
+                      ? 'Next steps to start matching'
+                      : 'Recommended next actions',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ..._completionActionLabels().map(
+                  (label) => Padding(
+                    padding: const EdgeInsetsDirectional.only(bottom: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 16,
+                          color: DsColors.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ],
       ),
     );
+  }
+
+  List<String> _completionActionLabels() {
+    if (guidance.nextActions.isNotEmpty) {
+      return guidance.nextActions
+          .take(3)
+          .map((action) => '${action.title}: ${action.description}')
+          .toList();
+    }
+    return missing.take(3).toList();
   }
 }
 

@@ -1,6 +1,6 @@
 # Project ER Diagram — CrushHour Dating App
 
-*Last updated: 2026-04-21*
+*Last updated: 2026-05-30*
 
 ---
 
@@ -54,6 +54,8 @@ Note: Date plan email notifications are sent via Resend and are not persisted as
 Note: Likes You previews are derived from Like records and do not introduce new entities.
 Note: `ChatTransportAdapter` is an application-layer abstraction for chat transport swapability; it does not add new persisted entities.
 Note: Shared callable App Check parity for call signaling is an infrastructure-only change and does not add or alter persisted entities.
+Note: Web push parity reuses the existing user-owned FCM token subcollection and
+canonical `notificationPrefs` map; no new top-level entity was added.
 
 ---
 
@@ -274,6 +276,7 @@ erDiagram
         string stripeCustomerId "nullable"
         map boost "nested: expiresAt, activatedAt"
         map safetyFlags "nested: openReports, status, etc"
+        map notificationPrefs "push/email/categories/quiet hours/muted IDs"
         map profile "nested Profile object"
         timestamp createdAt
         timestamp updatedAt
@@ -834,6 +837,19 @@ firestore/
 │   │   ├── appealOpen: boolean
 │   │   └── lastAppealAt: timestamp
 │   │ }
+│   ├── notificationPrefs: map {
+│   │   ├── push: boolean
+│   │   ├── email: boolean
+│   │   ├── sound: boolean
+│   │   ├── vibration: boolean
+│   │   ├── matches/messages/likes/profileViews: boolean
+│   │   ├── promotions/subscriptions/safetyAlerts: boolean
+│   │   ├── quietHoursEnabled: boolean
+│   │   ├── quietHoursStart: number
+│   │   ├── quietHoursEnd: number
+│   │   ├── mutedMessages: array<string>
+│   │   └── mutedCalls: array<string>
+│   │ }
 │   ├── createdAt: timestamp
 │   ├── updatedAt: timestamp
 │   └── profile: map {                    # NESTED PROFILE DOCUMENT
@@ -941,6 +957,14 @@ firestore/
 │           ├── hobby: string | null
 │           └── travelDestination: string | null
 │         }
+│     }
+│   └── fcmTokens/{token}: subcollection {
+│       ├── token: string
+│       ├── platform: string ("ios" | "android" | "web")
+│       ├── appVersion: string | null
+│       ├── timezone: string | null
+│       ├── createdAt: timestamp
+│       └── updatedAt: timestamp
 │     }
 │
 ├── usernames/{usernameLower}             # SERVER-ONLY (Username Index)
@@ -1480,6 +1504,15 @@ service cloud.firestore {
 | `profile.longitude` | double | nullable | Location longitude |
 | `profile.privacySettings.showFirstName` | boolean | DEFAULT false | Show first name publicly |
 | `profile.privacySettings.showLastName` | boolean | DEFAULT false | Show last name publicly |
+| `notificationPrefs.push` | boolean | DEFAULT true | Push notification opt-in |
+| `notificationPrefs.email` | boolean | DEFAULT true | Email notification opt-in |
+| `notificationPrefs.matches/messages/likes/profileViews` | boolean | DEFAULT true | Core engagement categories |
+| `notificationPrefs.promotions/subscriptions` | boolean | DEFAULT true | Marketing/subscription categories |
+| `notificationPrefs.safetyAlerts` | boolean | DEFAULT true | Safety category; server keeps deliverable |
+| `notificationPrefs.quietHoursEnabled` | boolean | DEFAULT false | Whether quiet hours suppress optional pushes |
+| `notificationPrefs.mutedMessages` | array | user IDs | Suppressed message senders |
+| `notificationPrefs.mutedCalls` | array | user IDs | Suppressed call senders |
+| `fcmTokens/{token}.platform` | string | ios/android/web | Token platform for mobile and browser push |
 
 ### 7.2 Match & Message Fields
 
@@ -1592,6 +1625,7 @@ service cloud.firestore {
 - **2026-03-08 Discovery refactor (matching engine):** No schema changes; discovery filtering/ranking rules are now implemented in a shared domain decision utility (`MatchingDecisionEngine`) instead of repository-local logic.
 - **2026-03-08 Settings refactor (account commands):** No schema changes; account action orchestration (delete/deactivate/export/cancel-delete) moved behind typed settings command contracts for consistent failure handling.
 - **2026-03-08 Settings refactor (preference sync):** Added additive notification preference metadata fields on user records (`notificationPrefs.quietHoursEnabled`, `notificationPrefsUpdatedAtMs`) to support timestamp-aware local/remote preference sync and explicit quiet-hours enablement.
+- **2026-05-30 Notification parity:** Extended the canonical `notificationPrefs` map with backend-enforced category flags plus `mutedMessages`/`mutedCalls`, and documented web FCM tokens in the existing `/users/{uid}/fcmTokens/{token}` subcollection (`platform: web`).
 - **2026-03-08 Store mobile checkout routing:** No schema changes; checkout entrypoint moved to repository-owned `purchasePlusPlan()` with native billing paths on iOS/Android and Stripe URL path disabled on mobile.
 - **2026-03-08 Store Google server validation:** Added additive user subscription metadata maps (`googlePlayPurchase`, `subscriptionLifecycle`) to persist validated Google Play token/order linkage and lifecycle reconciliation snapshots.
 - **2026-03-08 Store Google RTDN lifecycle:** No schema changes beyond additive metadata updates; RTDN events now refresh existing `googlePlayPurchase` and `subscriptionLifecycle` maps with notification type and lifecycle timestamps.

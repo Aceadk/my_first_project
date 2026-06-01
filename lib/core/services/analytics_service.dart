@@ -1,4 +1,6 @@
+import 'package:crushhour/core/analytics/match_quality_analytics.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/features/discovery/domain/usecases/candidate_filter_pipeline.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 
@@ -290,6 +292,79 @@ class AnalyticsService {
       parameters: {'count': count},
     );
     _log('likes_you_viewed', {'count': count});
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DISCOVERY & MATCH-QUALITY EVENTS (MATCH-003)
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Thin emit wrappers around the pure [MatchQualityEvents] builders, which
+  // own all event-shaping logic and are unit-tested in isolation.
+
+  /// Track deck depletion with the breakdown of why candidates were filtered.
+  Future<void> logDiscoveryDeckDepleted({
+    required int deckDepth,
+    required int swipesBeforeEmpty,
+    Map<FilterRejectionReason, int> rejectionCounts =
+        const <FilterRejectionReason, int>{},
+  }) async {
+    await _emitMatchQuality(
+      MatchQualityEvents.deckDepleted(
+        deckDepth: deckDepth,
+        swipesBeforeEmpty: swipesBeforeEmpty,
+        rejectionCounts: rejectionCounts,
+      ),
+    );
+  }
+
+  /// Track the candidate acceptance rate and rejection causes for one fetch.
+  Future<void> logDiscoveryCandidateRejections({
+    required int evaluatedCount,
+    required int acceptedCount,
+    required Map<FilterRejectionReason, int> rejectionCounts,
+  }) async {
+    await _emitMatchQuality(
+      MatchQualityEvents.candidateRejections(
+        evaluatedCount: evaluatedCount,
+        acceptedCount: acceptedCount,
+        rejectionCounts: rejectionCounts,
+      ),
+    );
+  }
+
+  /// Track the score distribution and cold-start share of a ranked deck.
+  Future<void> logDiscoveryRankingQuality({
+    required int candidateCount,
+    required double topScore,
+    required double averageScore,
+    required int coldStartCount,
+  }) async {
+    await _emitMatchQuality(
+      MatchQualityEvents.rankingQuality(
+        candidateCount: candidateCount,
+        topScore: topScore,
+        averageScore: averageScore,
+        coldStartCount: coldStartCount,
+      ),
+    );
+  }
+
+  /// Track whether a match converted into a conversation, and how quickly.
+  Future<void> logDiscoveryMatchConversion({
+    required String matchId,
+    int? secondsToFirstMessage,
+  }) async {
+    await _emitMatchQuality(
+      MatchQualityEvents.matchConversion(
+        matchId: matchId,
+        secondsToFirstMessage: secondsToFirstMessage,
+      ),
+    );
+  }
+
+  /// Emits a pre-built [MatchQualityEvent] to Firebase and the debug log.
+  Future<void> _emitMatchQuality(MatchQualityEvent event) async {
+    await _analytics.logEvent(name: event.name, parameters: event.parameters);
+    _log(event.name, event.parameters);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

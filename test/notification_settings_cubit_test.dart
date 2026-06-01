@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/features/settings/data/preferences/notification_preference_sync_service.dart';
 import 'package:crushhour/features/settings/presentation/bloc/notification_settings_cubit.dart';
 
 void main() {
@@ -52,8 +53,31 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       final cubit = NotificationSettingsCubit(preferences: prefs);
 
-      await cubit.togglePush(false);
+      final enabled = await cubit.togglePush(false);
 
+      expect(enabled, isFalse);
+      expect(cubit.state.push, isFalse);
+      expect(prefs.getBool('notifications_push'), isFalse);
+      expect(analyticsStub.calls, [
+        {'type': 'push', 'enabled': false},
+      ]);
+
+      await cubit.close();
+    });
+
+    test('togglePush keeps push off when permission is denied', () async {
+      final prefs = await SharedPreferences.getInstance();
+      final cubit = NotificationSettingsCubit(
+        preferences: prefs,
+        syncService: NotificationPreferenceSyncService.testable(
+          preferences: prefs,
+          requestPushPermission: () async => false,
+        ),
+      );
+
+      final enabled = await cubit.togglePush(true);
+
+      expect(enabled, isFalse);
       expect(cubit.state.push, isFalse);
       expect(prefs.getBool('notifications_push'), isFalse);
       expect(analyticsStub.calls, [

@@ -35,10 +35,12 @@ import 'core/constants/network_constants.dart';
 import 'core/deep_link_bootstrap.dart';
 import 'core/di.dart';
 import 'core/router.dart';
+import 'core/routing/notification_routes.dart';
 import 'core/services/app_state_preserver.dart';
 import 'core/services/location_service.dart';
 import 'core/theme.dart';
 import 'design_system/tokens/typography.dart';
+import 'design_system/utils/accessibility.dart' show DsTextScaleCap;
 
 class CrushApp extends StatefulWidget {
   const CrushApp({super.key, required this.preferences});
@@ -434,8 +436,6 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
     try {
       final data = Map<String, dynamic>.from(jsonDecode(payload) as Map);
       final type = data['type'] as String?;
-      final targetRoute = data['targetRoute'] as String?;
-      final targetId = data['targetId'] as String?;
 
       // Incoming call notification payload.
       if (type == 'incoming_call' || type == 'call') {
@@ -452,29 +452,17 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
         }
       }
 
-      // Determine route from notification type
-      String? route;
-      if (targetRoute != null && targetRoute.isNotEmpty) {
-        route = targetRoute;
-      } else {
-        route = switch (type) {
-          'match' ||
-          'message' => targetId != null ? '/chat/$targetId' : '/home',
-          'like' => '/likes-you',
-          'missed_call' => CrushRoutes.callHistory,
-          'profile_view' => '/notifications',
-          'weekly_picks' => '/weekly-picks',
-          'boost_expired' || 'system' => '/notifications',
-          _ => '/home',
-        };
-      }
+      final resolution = NotificationRouteResolver.resolve(data);
+      final route = resolution.route == CrushRoutes.incomingCall
+          ? CrushRoutes.notificationCenter
+          : resolution.route;
 
       // Navigate — go() replaces the current location which works correctly
       // for both iPhone (full-screen push) and iPad (detail panel update).
       _router.go(route);
     } catch (_) {
-      // Malformed payload — fall back to home
-      _router.go('/home');
+      // Malformed payload — fall back to the notification center.
+      _router.go(CrushRoutes.notificationCenter);
     }
   }
 
@@ -491,12 +479,13 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
 
     switch (actionId) {
       case PushNotificationService.actionReply:
-        final targetId = data['targetId'] as String?;
-        if (targetId != null) {
-          _router.go('/chat/$targetId');
-        }
+        final route = NotificationRouteResolver.resolve({
+          ...data,
+          'type': 'message',
+        }).route;
+        _router.go(route);
       case PushNotificationService.actionLikeBack:
-        _router.go('/likes-you');
+        _router.go(CrushRoutes.likesYou);
     }
   }
 
@@ -565,6 +554,13 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
                     themeAnimationDuration: themeAnimationDuration,
                     themeAnimationCurve: Curves.easeInOutCubic,
                     routerConfig: _router,
+                    builder: (context, child) {
+                      // Bound dynamic-type scaling so very large system text
+                      // sizes cannot break the card-based layouts (A11Y-002).
+                      return DsTextScaleCap(
+                        child: child ?? const SizedBox.shrink(),
+                      );
+                    },
                     debugShowCheckedModeBanner: false,
                     // Localization
                     locale: Locale(localeState.languageCode),

@@ -8,6 +8,7 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:crushhour/design_system/tokens/colors.dart';
+import 'package:crushhour/features/profile/presentation/widgets/profile_adaptive_layout.dart';
 import 'package:crushhour/shared/utils/profile_media_limits.dart';
 import 'package:crushhour/shared/widgets/cached_network_image.dart';
 
@@ -98,6 +99,45 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
     if (!widget.enabled || index < 0 || index >= _photos.length) return;
     setState(() {
       _primaryPhotoIndex = index;
+    });
+    _notify();
+  }
+
+  void _reorderPhoto(int oldIndex, int newIndex) {
+    if (!widget.enabled) return;
+    if (oldIndex < 0 || oldIndex >= _photos.length) return;
+
+    final primaryPath = _photos.isEmpty ? null : _photos[_primaryPhotoIndex];
+    final insertionIndex = newIndex.clamp(0, _photos.length - 1).toInt();
+
+    setState(() {
+      final moved = _photos.removeAt(oldIndex);
+      _photos.insert(insertionIndex, moved);
+      if (primaryPath == null) {
+        _primaryPhotoIndex = 0;
+      } else {
+        final nextPrimaryIndex = _photos.indexOf(primaryPath);
+        _primaryPhotoIndex = nextPrimaryIndex == -1 ? 0 : nextPrimaryIndex;
+      }
+    });
+    _notify();
+  }
+
+  void _movePhotoByStep(int index, int delta) {
+    if (!widget.enabled) return;
+    final targetIndex = index + delta;
+    if (targetIndex < 0 || targetIndex >= _photos.length) return;
+
+    final primaryPath = _photos.isEmpty ? null : _photos[_primaryPhotoIndex];
+    setState(() {
+      final moved = _photos.removeAt(index);
+      _photos.insert(targetIndex, moved);
+      if (primaryPath == null) {
+        _primaryPhotoIndex = 0;
+      } else {
+        final nextPrimaryIndex = _photos.indexOf(primaryPath);
+        _primaryPhotoIndex = nextPrimaryIndex == -1 ? 0 : nextPrimaryIndex;
+      }
     });
     _notify();
   }
@@ -341,10 +381,8 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
       return _showBottomSheetSourceMenu(type: type);
     }
 
-    final targetRect = buttonBox.localToGlobal(
-          Offset.zero,
-          ancestor: overlayBox,
-        ) &
+    final targetRect =
+        buttonBox.localToGlobal(Offset.zero, ancestor: overlayBox) &
         buttonBox.size;
     final position = RelativeRect.fromRect(
       targetRect,
@@ -396,60 +434,142 @@ class _ProfileMediaPickerState extends State<ProfileMediaPicker> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
+    final metrics = ProfileAdaptiveLayoutMetrics.of(context);
+    final tileWidth = metrics.mediaTileWidth;
+    final tileHeight = metrics.mediaTileHeight;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (int i = 0; i < _photos.length; i++)
-              _MediaTile(
-                path: _photos[i],
-                isVideo: false,
-                isPrimary: i == _primaryPhotoIndex,
-                onRemove: widget.enabled ? () => _removePhoto(i) : null,
-                onTap: widget.enabled ? () => _setPrimaryPhoto(i) : null,
+            if (_photos.isEmpty)
+              _EmptyPhotoGuidance(
+                key: _addPhotoTileKey,
+                enabled: widget.enabled,
+                onAddPhoto: _addPhotos,
+              )
+            else
+              SizedBox(
+                height: tileHeight,
+                width: constraints.maxWidth,
+                child: ReorderableListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  buildDefaultDragHandles: false,
+                  proxyDecorator: (child, _, animation) {
+                    return AnimatedBuilder(
+                      animation: animation,
+                      builder: (context, child) {
+                        final elevation = Tween<double>(
+                          begin: 0,
+                          end: 8,
+                        ).evaluate(animation);
+                        return Material(
+                          elevation: elevation,
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: child,
+                        );
+                      },
+                      child: child,
+                    );
+                  },
+                  onReorderItem: _reorderPhoto,
+                  itemCount: _photos.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      key: ValueKey('profile-photo-${_photos[index]}'),
+                      padding: const EdgeInsetsDirectional.only(end: 12),
+                      child: _MediaTile(
+                        path: _photos[index],
+                        index: index,
+                        itemCount: _photos.length,
+                        width: tileWidth,
+                        height: tileHeight,
+                        isVideo: false,
+                        isPrimary: index == _primaryPhotoIndex,
+                        enabled: widget.enabled,
+                        dragHandle: ReorderableDragStartListener(
+                          index: index,
+                          enabled: widget.enabled,
+                          child: const _TileIconButton(
+                            icon: Icons.drag_indicator_rounded,
+                            tooltip: 'Drag to reorder photo',
+                          ),
+                        ),
+                        onMoveEarlier: index == 0
+                            ? null
+                            : () => _movePhotoByStep(index, -1),
+                        onMoveLater: index == _photos.length - 1
+                            ? null
+                            : () => _movePhotoByStep(index, 1),
+                        onRemove: widget.enabled
+                            ? () => _removePhoto(index)
+                            : null,
+                        onTap: widget.enabled
+                            ? () => _setPrimaryPhoto(index)
+                            : null,
+                      ),
+                    );
+                  },
+                ),
               ),
-            ..._videos.map(
-              (path) => _MediaTile(
-                path: path,
-                isVideo: true,
-                onRemove: widget.enabled ? () => _removeVideo(path) : null,
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (_photos.isNotEmpty)
+                  _AddTile(
+                    key: _addPhotoTileKey,
+                    icon: Icons.add_a_photo_outlined,
+                    label: 'Add photo',
+                    enabled:
+                        widget.enabled &&
+                        _photos.length < ProfileMediaLimits.maxPhotos,
+                    onTap: _addPhotos,
+                  ),
+                _AddTile(
+                  key: _addVideoTileKey,
+                  icon: Icons.videocam_outlined,
+                  label: 'Add video',
+                  enabled:
+                      widget.enabled &&
+                      _videos.length < ProfileMediaLimits.maxVideos,
+                  onTap: _addVideo,
+                ),
+                for (final path in _videos)
+                  _MediaTile(
+                    path: path,
+                    width: tileWidth,
+                    height: tileHeight,
+                    isVideo: true,
+                    enabled: widget.enabled,
+                    onRemove: widget.enabled ? () => _removeVideo(path) : null,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Photos ${_photos.length}/${ProfileMediaLimits.maxPhotos} · '
+              'Videos ${_videos.length}/${ProfileMediaLimits.maxVideos}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            if (_photos.isNotEmpty)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(top: 4),
+                child: Text(
+                  'Drag photos to reorder. Tap a photo to set the display picture.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: DsColors.ink300,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ),
-            ),
-            _AddTile(
-              key: _addPhotoTileKey,
-              icon: Icons.add_a_photo_outlined,
-              enabled: widget.enabled,
-              onTap: _addPhotos,
-            ),
-            _AddTile(
-              key: _addVideoTileKey,
-              icon: Icons.videocam_outlined,
-              enabled: widget.enabled,
-              onTap: _addVideo,
-            ),
           ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Photos ${_photos.length}/${ProfileMediaLimits.maxPhotos} · '
-          'Videos ${_videos.length}/${ProfileMediaLimits.maxVideos}',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-        if (_photos.isNotEmpty)
-          Padding(
-            padding: const EdgeInsetsDirectional.only(top: 4),
-            child: Text(
-              'Tap a photo to set as display picture',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: DsColors.ink300,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-      ],
+        );
+      },
     );
   }
 }
@@ -458,14 +578,30 @@ class _MediaTile extends StatelessWidget {
   const _MediaTile({
     required this.path,
     required this.isVideo,
+    required this.width,
+    required this.height,
+    this.enabled = true,
+    this.index,
+    this.itemCount,
     this.isPrimary = false,
+    this.dragHandle,
+    this.onMoveEarlier,
+    this.onMoveLater,
     this.onRemove,
     this.onTap,
   });
 
   final String path;
   final bool isVideo;
+  final double width;
+  final double height;
+  final bool enabled;
+  final int? index;
+  final int? itemCount;
   final bool isPrimary;
+  final Widget? dragHandle;
+  final VoidCallback? onMoveEarlier;
+  final VoidCallback? onMoveLater;
   final VoidCallback? onRemove;
   final VoidCallback? onTap;
 
@@ -476,17 +612,24 @@ class _MediaTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final itemPosition = index == null ? '' : ' ${index! + 1}';
+    final mediaType = isVideo ? 'Video' : 'Photo';
     return Semantics(
       button: true,
+      label: isVideo
+          ? 'Profile video'
+          : isPrimary
+          ? 'Display profile photo$itemPosition'
+          : 'Profile photo$itemPosition',
       child: GestureDetector(
-        onTap: onTap,
+        onTap: enabled ? onTap : null,
         child: Stack(
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                width: 96,
-                height: 128,
+                width: width,
+                height: height,
                 decoration: BoxDecoration(
                   color: DsColors.skeletonLight,
                   border: isPrimary
@@ -504,6 +647,8 @@ class _MediaTile extends StatelessWidget {
                 ),
               ),
             ),
+            if (dragHandle != null)
+              PositionedDirectional(start: 4, top: 4, child: dragHandle!),
             // Primary photo badge
             if (isPrimary && !isVideo)
               PositionedDirectional(
@@ -560,6 +705,7 @@ class _MediaTile extends StatelessWidget {
                     ),
                   if (onRemove != null)
                     IconButton(
+                      tooltip: 'Remove ${mediaType.toLowerCase()}',
                       iconSize: 20,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -576,9 +722,60 @@ class _MediaTile extends StatelessWidget {
                 ],
               ),
             ),
+            if (!isVideo && itemCount != null && itemCount! > 1)
+              PositionedDirectional(
+                start: 4,
+                top: 44,
+                child: Column(
+                  children: [
+                    _TileIconButton(
+                      icon: Icons.arrow_back_rounded,
+                      tooltip: 'Move photo$itemPosition earlier',
+                      onPressed: onMoveEarlier,
+                    ),
+                    const SizedBox(height: 4),
+                    _TileIconButton(
+                      icon: Icons.arrow_forward_rounded,
+                      tooltip: 'Move photo$itemPosition later',
+                      onPressed: onMoveLater,
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TileIconButton extends StatelessWidget {
+  const _TileIconButton({
+    required this.icon,
+    required this.tooltip,
+    this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      iconSize: 18,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints.tightFor(width: 32, height: 32),
+      color: onPressed == null
+          ? DsColors.ink900.withValues(alpha: 0.28)
+          : DsColors.ink900.withValues(alpha: 0.87),
+      style: IconButton.styleFrom(
+        backgroundColor: DsColors.surfaceLight.withValues(alpha: 0.78),
+        shape: const CircleBorder(),
+      ),
+      onPressed: onPressed,
+      icon: Icon(icon),
     );
   }
 }
@@ -587,11 +784,13 @@ class _AddTile extends StatelessWidget {
   const _AddTile({
     super.key,
     required this.icon,
+    required this.label,
     required this.enabled,
     required this.onTap,
   });
 
   final IconData icon;
+  final String label;
   final bool enabled;
   final VoidCallback onTap;
 
@@ -599,6 +798,7 @@ class _AddTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
+      label: label,
       child: GestureDetector(
         onTap: enabled ? onTap : null,
         child: Container(
@@ -608,11 +808,97 @@ class _AddTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: DsColors.borderLight, width: 2),
           ),
-          child: Icon(
-            icon,
-            color: enabled
-                ? DsColors.textPrimaryLight
-                : DsColors.textMutedLight,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: enabled
+                    ? DsColors.textPrimaryLight
+                    : DsColors.textMutedLight,
+              ),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: enabled
+                        ? DsColors.textPrimaryLight
+                        : DsColors.textMutedLight,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyPhotoGuidance extends StatelessWidget {
+  const _EmptyPhotoGuidance({
+    super.key,
+    required this.enabled,
+    required this.onAddPhoto,
+  });
+
+  final bool enabled;
+  final VoidCallback onAddPhoto;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      container: true,
+      button: true,
+      label: 'Add your first profile photo',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: enabled ? onAddPhoto : null,
+          child: Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(minHeight: 148),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: DsColors.borderLight, width: 2),
+              color: DsColors.primary.withValues(alpha: 0.04),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add_a_photo_outlined,
+                  size: 34,
+                  color: enabled ? DsColors.primary : DsColors.textMutedLight,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  'Add your first photo',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: enabled
+                        ? DsColors.textPrimaryLight
+                        : DsColors.textMutedLight,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Use a clear portrait. You can drag photos to reorder after adding them.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: DsColors.textMutedLight,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

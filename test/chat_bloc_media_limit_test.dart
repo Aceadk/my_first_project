@@ -448,8 +448,8 @@ class _FakeAuthRepository implements AuthRepository {
   Future<CrushUser?> refreshCurrentUser() async => null;
 }
 
-Message _mediaMessage(String userId, MessageType type) => Message(
-  id: 'm-${type.name}',
+Message _mediaMessage(String userId, MessageType type, {String? id}) => Message(
+  id: id ?? 'm-${type.name}',
   matchId: 'match',
   fromUserId: userId,
   toUserId: 'other',
@@ -481,10 +481,15 @@ void main() {
         authRepository: authRepo,
       );
 
-      // Seed 8 existing media messages from current user
+      // Seed 8 existing media messages from current user. Each needs a unique
+      // id: the reconciler de-duplicates by id (CHAT-RT-001), so identical ids
+      // would correctly collapse to one and never reach the limit.
       bloc.add(
         ChatMessagesUpdated(
-          List<Message>.filled(8, _mediaMessage('me', MessageType.image)),
+          List<Message>.generate(
+            8,
+            (i) => _mediaMessage('me', MessageType.image, id: 'm-image-$i'),
+          ),
           SubscriptionTier.free,
         ),
       );

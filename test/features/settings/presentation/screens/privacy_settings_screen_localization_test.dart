@@ -13,6 +13,10 @@ void main() {
 
   testWidgets('renders localized privacy section titles', (tester) async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'gdpr_consent_timestamp',
+      DateTime.utc(2026, 5, 30).toIso8601String(),
+    );
     final cubit = PrivacySettingsCubit(preferences: prefs);
 
     addTearDown(cubit.close);
@@ -32,7 +36,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Control Your Privacy xxxx'), findsOneWidget);
+    expect(find.text('Privacy rights & consent'), findsOneWidget);
+    expect(find.textContaining('Consent accepted'), findsOneWidget);
+    expect(find.text('Data export & deletion'), findsOneWidget);
     expect(find.text('Name Visibility xxxx'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Sensitive Information xxxx'),
+      300,
+    );
     expect(find.text('Sensitive Information xxxx'), findsOneWidget);
 
     await tester.scrollUntilVisible(find.text('Lifestyle xxxx'), 300);

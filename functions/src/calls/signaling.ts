@@ -144,6 +144,70 @@ async function getFcmTokens(userId: string): Promise<string[]> {
   return snap.docs.map((d) => d.id).filter((token) => token.length > 0);
 }
 
+interface CallNotificationPrefs {
+  push: boolean;
+  mutedCalls: string[];
+}
+
+function normalizeMutedList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const normalized = new Set<string>();
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const trimmed = item.trim();
+    if (trimmed.length > 0 && trimmed.length <= 128) {
+      normalized.add(trimmed);
+    }
+  }
+  return [...normalized];
+}
+
+function normalizeCallNotificationPrefs(
+  rawPrefs: Record<string, unknown>
+): CallNotificationPrefs {
+  return {
+    push: rawPrefs.push !== false,
+    mutedCalls: normalizeMutedList(rawPrefs.mutedCalls),
+  };
+}
+
+async function getCallNotificationPrefs(
+  userId: string
+): Promise<CallNotificationPrefs> {
+  try {
+    const doc = await admin.firestore().collection("users").doc(userId).get();
+    const prefs =
+      (doc.data()?.notificationPrefs as Record<string, unknown> | undefined) ?? {};
+    return normalizeCallNotificationPrefs(prefs);
+  } catch {
+    return normalizeCallNotificationPrefs({});
+  }
+}
+
+function isCallNotificationAllowed(
+  prefs: CallNotificationPrefs,
+  category: "calls" | "safetyAlerts",
+  fromUserId?: string
+): boolean {
+  if (category === "safetyAlerts") return true;
+  if (!prefs.push) return false;
+  if (fromUserId && prefs.mutedCalls.includes(fromUserId)) return false;
+  return true;
+}
+
+async function hasBlockingRelationship(
+  recipientId: string,
+  actorId: string
+): Promise<boolean> {
+  if (recipientId === actorId) return false;
+  const db = admin.firestore();
+  const [recipientBlockedActor, actorBlockedRecipient] = await Promise.all([
+    db.collection("blocks").doc(`${recipientId}_${actorId}`).get(),
+    db.collection("blocks").doc(`${actorId}_${recipientId}`).get(),
+  ]);
+  return recipientBlockedActor.exists || actorBlockedRecipient.exists;
+}
+
 function toStringMap(payload: Record<string, unknown>): Record<string, string> {
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(payload)) {
@@ -160,8 +224,23 @@ async function sendPushToUser(
     body: string;
     data?: Record<string, unknown>;
     highPriority?: boolean;
+    category?: "calls" | "safetyAlerts";
+    fromUserId?: string;
   }
 ): Promise<number> {
+  const category = payload.category ?? "calls";
+  const prefs = await getCallNotificationPrefs(userId);
+  if (!isCallNotificationAllowed(prefs, category, payload.fromUserId)) {
+    return 0;
+  }
+  if (
+    payload.fromUserId &&
+    category !== "safetyAlerts" &&
+    (await hasBlockingRelationship(userId, payload.fromUserId))
+  ) {
+    return 0;
+  }
+
   const tokens = await getFcmTokens(userId);
   if (tokens.length === 0) return 0;
 
@@ -305,6 +384,8 @@ export async function initiateCallForUser({
         targetRoute: "/incoming-call",
       },
       highPriority: true,
+      category: "calls",
+      fromUserId: callerId,
     });
   } catch (error) {
     console.warn("incoming_call_push_failed", {
@@ -534,6 +615,8 @@ export const notifyCallSafetyEvent = makeCallable<NotifyCallSafetyEventRequest>(
         targetRoute: "/safety",
       },
       highPriority: true,
+      category: "safetyAlerts",
+      fromUserId: actorId,
     });
 
     await admin
@@ -613,6 +696,8 @@ export const enforceCallRingTimeout = functions.firestore
             targetRoute: "/call-history",
           },
           highPriority: false,
+          category: "calls",
+          fromUserId: callerId,
         });
       } catch (error) {
         console.warn("missed_call_fallback_push_failed", {
@@ -631,4 +716,6 @@ export const __callSignalingTestHelpers = {
   parseSafetyEventType,
   isRateLimitExceeded,
   buildIceServers,
+  normalizeCallNotificationPrefs,
+  isCallNotificationAllowed,
 };

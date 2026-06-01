@@ -2,6 +2,8 @@ import 'package:crushhour/core/errors/auth_failures.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
+import 'provider_firebase_auth_failure_mapper.dart';
+
 const String _appleIdSetupMessage =
     'Apple Sign-In could not complete. Make sure this device is signed into an Apple ID. If you are using the iPhone simulator, open Settings, sign in to Apple Account, and try again.';
 const String _appleRetryMessage = 'Apple Sign-In failed. Please try again.';
@@ -78,39 +80,18 @@ AuthFailure mapAppleSignInFailure(Object error) {
   }
 
   if (error is fb.FirebaseAuthException) {
-    switch (error.code) {
-      case 'account-exists-with-different-credential':
-        return AuthFailure(
-          AuthFailureType.emailAlreadyInUse,
-          message:
-              'An account already exists with the same email but a different sign-in method.',
-          cause: error,
-        );
-      case 'operation-not-allowed':
-        return AuthFailure(
-          AuthFailureType.unsupportedProvider,
-          message: 'Apple Sign-In is not enabled for this project yet.',
-          cause: error,
-        );
-      case 'invalid-credential':
-      case 'missing-or-invalid-nonce':
-        return AuthFailure(
-          AuthFailureType.invalidCredentials,
-          message: 'Apple Sign-In credentials were rejected. Please try again.',
-          cause: error,
-        );
-      case 'too-many-requests':
-        return AuthFailure(
-          AuthFailureType.rateLimited,
-          message: AuthFailureType.rateLimited.defaultMessage,
-          cause: error,
-        );
-      case 'network-request-failed':
-        return AuthFailure(
-          AuthFailureType.network,
-          message: AuthFailureType.network.defaultMessage,
-          cause: error,
-        );
+    final mapped = mapProviderFirebaseAuthFailure(
+      error,
+      providerLabel: 'Apple Sign-In',
+      invalidCredentialMessage:
+          'Apple Sign-In credentials were rejected. Please try again.',
+      invalidCredentialCodes: const <String>{
+        'invalid-credential',
+        'missing-or-invalid-nonce',
+      },
+    );
+    if (mapped != null) {
+      return mapped;
     }
   }
 

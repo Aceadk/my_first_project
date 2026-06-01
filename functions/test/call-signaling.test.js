@@ -36,6 +36,25 @@ describe("call signaling", () => {
     expect(isRateLimitExceeded(1000, 11000)).to.equal(false);
   });
 
+  it("call notification helper respects push and muted caller prefs", () => {
+    const {
+      normalizeCallNotificationPrefs,
+      isCallNotificationAllowed,
+    } = functions.__test__helpers;
+
+    const prefs = normalizeCallNotificationPrefs({
+      push: true,
+      mutedCalls: ["caller-1", "caller-1", " "],
+    });
+
+    expect(prefs.mutedCalls).to.deep.equal(["caller-1"]);
+    expect(isCallNotificationAllowed(prefs, "calls", "caller-1")).to.equal(false);
+    expect(isCallNotificationAllowed(prefs, "calls", "caller-2")).to.equal(true);
+    expect(
+      isCallNotificationAllowed({ ...prefs, push: false }, "safetyAlerts", "caller-1")
+    ).to.equal(true);
+  });
+
   it("buildIceServers always includes default STUN servers", () => {
     const { buildIceServers } = functions.__test__helpers;
     const previous = process.env.TURN_SERVERS_JSON;

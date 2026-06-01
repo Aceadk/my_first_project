@@ -89,6 +89,11 @@ void main() {
             findsWidgets,
           );
 
+          await expectLater(
+            tester,
+            meetsGuideline(labeledTapTargetGuideline),
+          );
+
           final createAccountFinder = find.text('Create account');
           await tester.ensureVisible(createAccountFinder);
           await tester.pumpAndSettle();
@@ -136,6 +141,11 @@ void main() {
           expect(
             find.bySemanticsLabel(RegExp('forgot', caseSensitive: false)),
             findsWidgets,
+          );
+
+          await expectLater(
+            tester,
+            meetsGuideline(labeledTapTargetGuideline),
           );
 
           final fields = find.byType(EditableText);
@@ -368,6 +378,11 @@ void main() {
             findsWidgets,
           );
 
+          await expectLater(
+            tester,
+            meetsGuideline(labeledTapTargetGuideline),
+          );
+
           final field = find.byType(EditableText);
           await tester.tap(field);
           await tester.enterText(field, 'Hello from keyboard');
@@ -422,6 +437,11 @@ void main() {
           await tester.pumpAndSettle();
 
           expect(tester.takeException(), isNull);
+          await expectLater(
+            tester,
+            meetsGuideline(labeledTapTargetGuideline),
+          );
+
           final constrained = tester.widget<ConstrainedBox>(
             find.byKey(accountActionsConstraintKey),
           );

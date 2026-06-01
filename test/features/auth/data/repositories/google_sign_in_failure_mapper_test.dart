@@ -68,5 +68,48 @@ void main() {
         'Google Sign-In is not enabled for this project yet.',
       );
     });
+
+    test('maps account-exists-with-different-credential to emailAlreadyInUse',
+        () {
+      final failure = mapGoogleSignInFailure(
+        fb.FirebaseAuthException(
+          code: 'account-exists-with-different-credential',
+          message: 'Account exists.',
+        ),
+      );
+
+      expect(failure.type, AuthFailureType.emailAlreadyInUse);
+      expect(failure.message, contains('different sign-in method'));
+    });
+
+    test('maps invalid-credential to invalidCredentials guidance', () {
+      final failure = mapGoogleSignInFailure(
+        fb.FirebaseAuthException(
+          code: 'invalid-credential',
+          message: 'expired',
+        ),
+      );
+
+      expect(failure.type, AuthFailureType.invalidCredentials);
+      expect(
+        failure.message,
+        'Google Sign-In credentials are invalid or expired.',
+      );
+    });
+
+    test('maps too-many-requests and network-request-failed', () {
+      final rateLimited = mapGoogleSignInFailure(
+        fb.FirebaseAuthException(code: 'too-many-requests', message: 'slow'),
+      );
+      expect(rateLimited.type, AuthFailureType.rateLimited);
+
+      final network = mapGoogleSignInFailure(
+        fb.FirebaseAuthException(
+          code: 'network-request-failed',
+          message: 'offline',
+        ),
+      );
+      expect(network.type, AuthFailureType.network);
+    });
   });
 }

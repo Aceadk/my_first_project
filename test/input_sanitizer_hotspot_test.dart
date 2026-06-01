@@ -23,6 +23,20 @@ void main() {
       expect(value, 'alert(&quot;x&quot;)&amp;');
     });
 
+    test('sanitizeMessage strips tags including a trailing unterminated tag', () {
+      expect(InputSanitizer.sanitizeMessage('<b>hi</b> there'), 'hi there');
+      // The naive /<[^>]*>/ stripper leaves this unterminated tag intact.
+      expect(
+        InputSanitizer.sanitizeMessage('hello<img src=x onerror=alert(1)'),
+        'hello',
+      );
+      // Benign "<" that is not a tag start is preserved.
+      expect(
+        InputSanitizer.sanitizeMessage('3 < 5 and i <3 you'),
+        '3 < 5 and i <3 you',
+      );
+    });
+
     test('sanitizeCity and sanitizeJobField keep expected characters', () {
       expect(
         InputSanitizer.sanitizeCity('<i>São-Paulo, BR!</i>'),

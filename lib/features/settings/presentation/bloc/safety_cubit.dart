@@ -1,4 +1,5 @@
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/services/push_notification_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crushhour/core/utils/result.dart';
@@ -6,6 +7,9 @@ import 'package:crushhour/core/services/analytics_service.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/discovery/domain/repositories/discovery_repository.dart';
+
+typedef SafetyNotificationPreferenceSync =
+    Future<void> Function(Map<String, Object?> preferences);
 
 /// Minimal profile info for safety displays (blocked users, etc.)
 class SafetyProfileInfo {
@@ -83,14 +87,18 @@ class SafetyCubit extends Cubit<SafetyState> {
     required SharedPreferences preferences,
     required ChatRepository chatRepository,
     required DiscoveryRepository discoveryRepository,
+    SafetyNotificationPreferenceSync? notificationPreferenceSync,
   }) : _preferences = preferences,
        _chatRepository = chatRepository,
        _discoveryRepository = discoveryRepository,
+       _notificationPreferenceSync =
+           notificationPreferenceSync ?? _syncPushNotificationPreferences,
        super(_readInitial(preferences));
 
   final SharedPreferences _preferences;
   final ChatRepository _chatRepository;
   final DiscoveryRepository _discoveryRepository;
+  final SafetyNotificationPreferenceSync _notificationPreferenceSync;
 
   static const _blockedKey = 'safety_blocked';
   static const _mutedMessagesKey = 'safety_muted_messages';
@@ -103,13 +111,14 @@ class SafetyCubit extends Cubit<SafetyState> {
     final reportedList = prefs.getStringList(_reportedUsersKey) ?? [];
     final reportedUsers = <String, DateTime>{};
     for (final entry in reportedList) {
-      final parts = entry.split(':');
-      if (parts.length == 2) {
-        final userId = parts[0];
-        final timestamp = DateTime.tryParse(parts[1]);
-        if (timestamp != null) {
-          reportedUsers[userId] = timestamp;
-        }
+      final separatorIndex = entry.indexOf(':');
+      if (separatorIndex <= 0 || separatorIndex == entry.length - 1) {
+        continue;
+      }
+      final userId = entry.substring(0, separatorIndex);
+      final timestamp = DateTime.tryParse(entry.substring(separatorIndex + 1));
+      if (timestamp != null) {
+        reportedUsers[userId] = timestamp;
       }
     }
 
@@ -282,6 +291,7 @@ class SafetyCubit extends Cubit<SafetyState> {
       ...state.blockedUsers,
       ...state.mutedMessages,
       ...state.mutedCalls,
+      ...state.reportedUsers.keys,
     };
 
     // Filter out already cached profiles
@@ -329,12 +339,24 @@ class SafetyCubit extends Cubit<SafetyState> {
       next.mutedMessages.toList(),
     );
     await _preferences.setStringList(_mutedCallsKey, next.mutedCalls.toList());
+    await _notificationPreferenceSync({
+      'mutedMessages': (next.mutedMessages.toList()..sort()),
+      'mutedCalls': (next.mutedCalls.toList()..sort()),
+    });
     // Store reported users as "userId:timestamp" format
     await _preferences.setStringList(
       _reportedUsersKey,
       next.reportedUsers.entries
           .map((e) => '${e.key}:${e.value.toIso8601String()}')
           .toList(),
+    );
+  }
+
+  static Future<void> _syncPushNotificationPreferences(
+    Map<String, Object?> preferences,
+  ) {
+    return PushNotificationService.instance.updateNotificationPreferencesMap(
+      preferences,
     );
   }
 }

@@ -404,6 +404,106 @@ void main() {
       expect(authErrorCalled, isTrue);
     });
 
+    test('coalesces concurrent token refreshes into a single call', () async {
+      var refreshCount = 0;
+      var token = 'old-token';
+      final allowRefresh = Completer<void>();
+
+      final mockClient = MockClient((request) async {
+        if (request.headers['Authorization'] == 'Bearer old-token') {
+          return http.Response('{"error":"Unauthorized"}', 401);
+        }
+        return http.Response(jsonEncode(<String, dynamic>{'ok': true}), 200);
+      });
+
+      final client = ApiClient(
+        config: config,
+        httpClient: mockClient,
+        authTokenProvider: () async => token,
+        tokenRefreshProvider: () async {
+          refreshCount++;
+          await allowRefresh.future;
+          token = 'new-token';
+          return token;
+        },
+      );
+
+      // Fire three requests that all expire at once. Without single-flight
+      // refresh each would rotate the refresh token independently.
+      final pending = <Future<ApiResult<Map<String, dynamic>>>>[
+        client.get<Map<String, dynamic>>('/a'),
+        client.get<Map<String, dynamic>>('/b'),
+        client.get<Map<String, dynamic>>('/c'),
+      ];
+
+      // Let all three reach the gated refresh before it resolves.
+      await pumpEventQueue();
+      expect(refreshCount, 1);
+
+      allowRefresh.complete();
+      final results = await Future.wait(pending);
+
+      expect(results.every((r) => r.isSuccess), isTrue);
+      expect(refreshCount, 1);
+    });
+
+    test('routes to re-auth once when concurrent requests fail refresh',
+        () async {
+      var authErrorCount = 0;
+
+      final mockClient = MockClient((request) async {
+        return http.Response('{"error":"Unauthorized"}', 401);
+      });
+
+      final client = ApiClient(
+        config: config,
+        httpClient: mockClient,
+        authTokenProvider: () async => 'token',
+        tokenRefreshProvider: () async => null,
+        onAuthError: () => authErrorCount++,
+      );
+
+      final results = await Future.wait(<Future<ApiResult<dynamic>>>[
+        client.get('/a'),
+        client.get('/b'),
+        client.get('/c'),
+      ]);
+
+      expect(results.every((r) => r.isFailure), isTrue);
+      expect(authErrorCount, 1);
+    });
+
+    test('re-auth routing resets after a successful response', () async {
+      var authErrorCount = 0;
+      var mode = 'fail';
+
+      final mockClient = MockClient((request) async {
+        if (mode == 'ok') {
+          return http.Response(jsonEncode(<String, dynamic>{'ok': true}), 200);
+        }
+        return http.Response('{"error":"Unauthorized"}', 401);
+      });
+
+      final client = ApiClient(
+        config: config,
+        httpClient: mockClient,
+        authTokenProvider: () async => 'token',
+        tokenRefreshProvider: () async => null,
+        onAuthError: () => authErrorCount++,
+      );
+
+      await client.get('/one');
+      expect(authErrorCount, 1);
+
+      // A healthy response clears the latch so a later expiry routes again.
+      mode = 'ok';
+      await client.get('/two');
+
+      mode = 'fail';
+      await client.get('/three');
+      expect(authErrorCount, 2);
+    });
+
     test(
       'version mismatch callback fires for incompatible server versions',
       () async {

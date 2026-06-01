@@ -136,6 +136,69 @@ void main() {
       },
     );
 
+    test('incoming typing indicator auto-clears after the receive TTL', () async {
+      final transport = _FakeChatTransportAdapter(isRealtimeConnected: true);
+      final repo = HttpChatRepository(
+        transportAdapter: transport,
+        typingReceiveTtl: const Duration(milliseconds: 80),
+      );
+
+      final emissions = <Set<String>>[];
+      final sub = repo.watchTyping('match-typing').listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      transport.emitRealtime({
+        'type': 'typing',
+        'conversation_id': 'match-typing',
+        'user_id': 'user-2',
+        'is_typing': true,
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(emissions.last, {'user-2'});
+
+      // No `is_typing:false` arrives; the TTL must clear the indicator.
+      await Future<void>.delayed(const Duration(milliseconds: 120));
+      expect(emissions.last, isEmpty);
+
+      await sub.cancel();
+      repo.dispose();
+      await transport.dispose();
+    });
+
+    test('an explicit stop-typing event clears immediately', () async {
+      final transport = _FakeChatTransportAdapter(isRealtimeConnected: true);
+      final repo = HttpChatRepository(
+        transportAdapter: transport,
+        typingReceiveTtl: const Duration(seconds: 30),
+      );
+
+      final emissions = <Set<String>>[];
+      final sub = repo.watchTyping('match-typing').listen(emissions.add);
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+
+      transport.emitRealtime({
+        'type': 'typing',
+        'conversation_id': 'match-typing',
+        'user_id': 'user-2',
+        'is_typing': true,
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(emissions.last, {'user-2'});
+
+      transport.emitRealtime({
+        'type': 'typing',
+        'conversation_id': 'match-typing',
+        'user_id': 'user-2',
+        'is_typing': false,
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      expect(emissions.last, isEmpty);
+
+      await sub.cancel();
+      repo.dispose();
+      await transport.dispose();
+    });
+
     test(
       'fetchUserMatchesPaginated uses backend has_more instead of page length guess',
       () async {
@@ -301,6 +364,11 @@ class _FakeChatTransportAdapter implements ChatTransportAdapter {
       );
     }
     return ApiResult.success(null as T);
+  }
+
+  /// Pushes a raw payload onto the realtime stream the repository listens to.
+  void emitRealtime(Map<String, dynamic> data) {
+    _messageController.add(data);
   }
 
   @override

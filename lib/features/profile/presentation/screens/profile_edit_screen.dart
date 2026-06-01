@@ -11,11 +11,12 @@ import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/features/profile/domain/repositories/profile_media_repository.dart';
 import 'package:crushhour/shared/utils/profile_completeness.dart';
 import 'package:crushhour/shared/utils/profile_field_options.dart';
-import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/data/models/profile_prompt.dart';
+import 'package:crushhour/features/profile/presentation/widgets/profile_completion_guidance.dart';
+import 'package:crushhour/features/profile/presentation/widgets/profile_adaptive_layout.dart';
 import '../widgets/profile_media_picker.dart';
 import '../widgets/prompt_editor.dart';
 import 'package:crushhour/features/profile/presentation/widgets/profile_widgets.dart';
@@ -934,6 +935,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
         final saving = state.isSaving || _uploading;
         final completenessProfile = profile ?? _fallbackProfile(state);
         final summary = evaluateProfileCompleteness(completenessProfile);
+        final guidance = ProfileCompletionGuidance.fromSummary(summary);
         final percent = (summary.score * 100).round();
         final missing = summary.missing.take(3).toList();
 
@@ -944,10 +946,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
           ),
           body: LayoutBuilder(
             builder: (context, constraints) {
-              final maxWidth = DsBreakpoints.contentMaxWidth(
-                constraints.maxWidth,
+              final layoutMetrics = ProfileAdaptiveLayoutMetrics.fromWidth(
+                width: constraints.maxWidth,
+                textScale: MediaQuery.textScalerOf(context).scale(1),
               );
-              final isMobile = DsBreakpoints.isMobile(constraints.maxWidth);
+              final maxWidth = layoutMetrics.contentMaxWidth;
+              final useTwoColumnLayout = layoutMetrics.useTwoColumnEdit;
               return Center(
                 child: ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxWidth),
@@ -965,13 +969,13 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                           children: [
                             // Progress + Photos + Basic Info
                             // On tablet/desktop: two-column layout (photos left, fields right)
-                            if (!isMobile) ...[
+                            if (useTwoColumnLayout) ...[
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   // Left: Progress + Photos
                                   SizedBox(
-                                    width: 300,
+                                    width: layoutMetrics.sidePanelWidth,
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -980,6 +984,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                           percent: percent,
                                           score: summary.score,
                                           missing: missing,
+                                          guidance: guidance,
                                           meetsRequiredFields:
                                               summary.meetsRequiredFields,
                                           username: state.user?.username,
@@ -1012,7 +1017,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: DsSpacing.lg),
+                                  SizedBox(width: layoutMetrics.columnGap),
                                   // Right: Basic Info
                                   Expanded(
                                     child: Column(
@@ -1075,6 +1080,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                                 percent: percent,
                                 score: summary.score,
                                 missing: missing,
+                                guidance: guidance,
                                 meetsRequiredFields:
                                     summary.meetsRequiredFields,
                                 username: state.user?.username,
@@ -1516,6 +1522,7 @@ class _ProgressCard extends StatelessWidget {
     required this.percent,
     required this.score,
     required this.missing,
+    required this.guidance,
     required this.meetsRequiredFields,
     this.username,
   });
@@ -1523,6 +1530,7 @@ class _ProgressCard extends StatelessWidget {
   final int percent;
   final double score;
   final List<String> missing;
+  final ProfileCompletionGuidance guidance;
   final bool meetsRequiredFields;
   final String? username;
 
@@ -1674,7 +1682,7 @@ class _ProgressCard extends StatelessWidget {
             ),
           ],
           // Show missing fields for non-eligible users
-          if (!isEligibleToSwipe && missing.isNotEmpty) ...[
+          if (!isEligibleToSwipe && guidance.requiredActions.isNotEmpty) ...[
             DsGap.lg,
             Text(
               'Still needed:',
@@ -1688,9 +1696,9 @@ class _ProgressCard extends StatelessWidget {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: missing
+              children: guidance.requiredActions
                   .map(
-                    (m) => Container(
+                    (action) => Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 6,
@@ -1712,7 +1720,7 @@ class _ProgressCard extends StatelessWidget {
                             color: DsColors.warning,
                           ),
                           Text(
-                            m,
+                            action.title,
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,

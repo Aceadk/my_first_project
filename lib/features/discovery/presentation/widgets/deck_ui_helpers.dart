@@ -10,6 +10,19 @@ import 'package:crushhour/design_system/tokens/spacing.dart';
 ///
 /// Features frosted glass background with gradient border on press,
 /// scale animation, and haptic feedback.
+///
+/// Accessibility (DISC-UI-003):
+/// * The interactive hit area is never smaller than
+///   [kMinInteractiveDimension] (48dp) even when the visual circle is smaller
+///   (e.g. the 44dp rewind button), satisfying Material / WCAG 2.5.5
+///   touch-target guidance — the visual size is preserved, only the hit area
+///   is expanded.
+/// * The control is exposed to assistive technologies as a button whose
+///   [Semantics.enabled] state tracks [enabled], so the unavailable state is
+///   conveyed non-visually as well as via dimming/colour.
+/// * A [Tooltip] (defaulting to [semanticLabel]) gives pointer, hover
+///   (web/desktop), and long-press users the same affordance label that screen
+///   readers announce.
 class DeckActionButton extends StatefulWidget {
   const DeckActionButton({
     super.key,
@@ -18,6 +31,7 @@ class DeckActionButton extends StatefulWidget {
     required this.onTap,
     required this.semanticLabel,
     this.semanticHint,
+    this.tooltip,
     this.size = 64,
     this.enabled = true,
   });
@@ -25,8 +39,16 @@ class DeckActionButton extends StatefulWidget {
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
+
+  /// Label announced by assistive technologies and used as the default tooltip.
   final String semanticLabel;
+
+  /// Optional supplementary hint announced after [semanticLabel].
   final String? semanticHint;
+
+  /// Optional tooltip text. Falls back to [semanticLabel] when null.
+  final String? tooltip;
+
   final double size;
   final bool enabled;
 
@@ -43,68 +65,94 @@ class _DeckActionButtonState extends State<DeckActionButton>
     final isEnabled = widget.enabled;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // When disabled, use grey color
+    // When disabled, fall back to a muted grey so the unavailable state is
+    // conveyed by colour as well as by the reduced opacity below.
     final effectiveColor = isEnabled ? widget.color : DsColors.ink300;
 
-    // Softer glass background with subtle color tint
+    // Softer glass background with subtle color tint.
     final bgColor = DsGlassColors.surfaceFor(context);
+
+    // The visual circle (e.g. the 44dp rewind button) may be smaller than the
+    // platform's minimum interactive dimension. Expand the *hit* area to at
+    // least [kMinInteractiveDimension] (48dp) so the control still satisfies
+    // Material / WCAG 2.5.5 touch-target guidance without changing how it looks.
+    final double hitExtent = widget.size < kMinInteractiveDimension
+        ? kMinInteractiveDimension
+        : widget.size;
+
+    final Widget visual = AnimatedOpacity(
+      opacity: isEnabled ? 1.0 : 0.5,
+      duration: const Duration(milliseconds: 150),
+      child: AnimatedScale(
+        scale: _pressed ? 0.92 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: bgColor,
+            // Soft, subtle shadows only - no heavy outlines
+            boxShadow: [
+              // Main soft shadow
+              BoxShadow(
+                color: DsColors.ink900.withValues(
+                  alpha: isDark ? 0.2 : 0.08,
+                ),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
+              ),
+              // Inner glow when pressed
+              if (_pressed)
+                BoxShadow(
+                  color: effectiveColor.withValues(alpha: 0.25),
+                  blurRadius: 16,
+                  spreadRadius: 1,
+                ),
+            ],
+          ),
+          child: Icon(
+            widget.icon,
+            color: effectiveColor,
+            size: widget.size * 0.45,
+          ),
+        ),
+      ),
+    );
+
+    // Tooltip mirrors the semantic label so pointer, hover, and long-press
+    // users get the same affordance that screen readers announce.
+    final String tooltipMessage = widget.tooltip ?? widget.semanticLabel;
 
     return Semantics(
       button: true,
+      enabled: isEnabled,
       label: widget.semanticLabel,
       hint: widget.semanticHint,
       excludeSemantics: true,
-      child: GestureDetector(
-        onTapDown: isEnabled ? (_) => _setPressed(true) : null,
-        onTapCancel: isEnabled ? () => _setPressed(false) : null,
-        onTapUp: isEnabled ? (_) => _setPressed(false) : null,
-        onTap: isEnabled
-            ? () {
-                HapticFeedback.mediumImpact();
-                widget.onTap();
-              }
-            : null,
-        child: AnimatedOpacity(
-          opacity: isEnabled ? 1.0 : 0.5,
-          duration: const Duration(milliseconds: 150),
-          child: AnimatedScale(
-            scale: _pressed ? 0.92 : 1.0,
-            duration: const Duration(milliseconds: 100),
-            curve: Curves.easeOut,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOut,
-              width: widget.size,
-              height: widget.size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: bgColor,
-                // Soft, subtle shadows only - no heavy outlines
-                boxShadow: [
-                  // Main soft shadow
-                  BoxShadow(
-                    color: DsColors.ink900.withValues(
-                      alpha: isDark ? 0.2 : 0.08,
-                    ),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                    spreadRadius: 0,
-                  ),
-                  // Inner glow when pressed
-                  if (_pressed)
-                    BoxShadow(
-                      color: effectiveColor.withValues(alpha: 0.25),
-                      blurRadius: 16,
-                      spreadRadius: 1,
-                    ),
-                ],
-              ),
-              child: Icon(
-                widget.icon,
-                color: effectiveColor,
-                size: widget.size * 0.45,
-              ),
-            ),
+      child: Tooltip(
+        message: tooltipMessage,
+        child: GestureDetector(
+          // Opaque so the full padded hit area (not just the visual circle)
+          // responds to taps.
+          behavior: HitTestBehavior.opaque,
+          onTapDown: isEnabled ? (_) => _setPressed(true) : null,
+          onTapCancel: isEnabled ? () => _setPressed(false) : null,
+          onTapUp: isEnabled ? (_) => _setPressed(false) : null,
+          onTap: isEnabled
+              ? () {
+                  HapticFeedback.mediumImpact();
+                  widget.onTap();
+                }
+              : null,
+          child: SizedBox(
+            width: hitExtent,
+            height: hitExtent,
+            child: Center(child: visual),
           ),
         ),
       ),

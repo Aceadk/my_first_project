@@ -728,7 +728,16 @@ function toMillis(value: unknown, fallback: number): number {
 
 /** Strip HTML tags from input to prevent XSS. */
 function stripHtml(input: string): string {
-  return input.replace(/<[^>]*>/g, "");
+  return (
+    input
+      // Remove complete HTML/XML tags.
+      .replace(/<[^>]*>/g, "")
+      // Remove a trailing, unterminated tag start the tag regex leaves behind
+      // (e.g. "hi <img src=x onerror=alert(1)") which a browser would still
+      // parse once more markup follows. The letter/"/" guard avoids stripping
+      // benign "<" usage like "3 < 5" or the "<3" emoticon.
+      .replace(/<\/?[a-zA-Z][^>]*$/g, "")
+  );
 }
 
 /** Validate message content: 1-2000 chars, no script injection. */
@@ -740,13 +749,16 @@ function validateMessageContent(content: unknown, field = "content"): string {
 /** Validate profile name: 2-50 chars, no HTML. */
 function validateProfileName(name: unknown, field = "name"): string {
   const str = requireString(name, field, 50);
-  if (str.length < 2) {
+  // Enforce the minimum on the sanitized value so markup cannot pad a name that
+  // renders as a single character (consistent with validateProfileTextField).
+  const sanitized = stripHtml(str);
+  if (sanitized.length < 2) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       `${field} must be at least 2 characters.`,
     );
   }
-  return stripHtml(str);
+  return sanitized;
 }
 
 /** Validate profile bio: 0-500 chars, no HTML. */
@@ -3458,6 +3470,29 @@ function parseChatMessagesBeforeCursor(value: unknown): {
   return { beforeMessageId: raw };
 }
 
+/**
+ * Parse a `before` ISO-timestamp pagination cursor shared by the
+ * `lastMessageAt`-ordered list endpoints (matches, conversations).
+ * Returns `invalid: true` for a present-but-unparseable cursor so callers can
+ * answer 400 consistently; an absent cursor is valid with no timestamp.
+ */
+function parseBeforeTimestampCursor(value: unknown): {
+  invalid: boolean;
+  timestamp?: Date;
+} {
+  const raw = typeof value === "string" ? value.trim() : "";
+  if (raw.length === 0) {
+    return { invalid: false };
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) {
+    return { invalid: true };
+  }
+
+  return { invalid: false, timestamp: parsed };
+}
+
 async function logAuthAudit(params: {
   action: string;
   status: "ok" | "blocked" | "invalid" | "error";
@@ -3768,6 +3803,54 @@ function isValidOtp(otp: string): boolean {
   return new RegExp(`^\\d{${OTP_DIGITS}}$`).test(otp);
 }
 
+/**
+ * Find the matching, still-valid OTP among recent candidates using a
+ * constant-time hash compare. Skips used/expired/locked candidates and records
+ * a failed attempt on every non-matching candidate, locking that OTP once it
+ * reaches OTP_VERIFY_MAX_ATTEMPTS to bound brute-force of a single code.
+ *
+ * Shared by email-OTP and password-reset-OTP verification so both paths get
+ * identical timing-safe matching and lockout behavior.
+ */
+async function matchOtpCandidate(
+  candidates: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>,
+  otp: string,
+): Promise<{
+  matchedDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData> | null;
+  matchedData: FirebaseFirestore.DocumentData | undefined;
+}> {
+  const now = Date.now();
+  let matchedDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData> | null =
+    null;
+  let matchedData: FirebaseFirestore.DocumentData | undefined;
+  for (const doc of candidates.docs) {
+    const data = doc.data();
+    const usedAt = toMillis(data.usedAt, 0);
+    const expiresAt = toMillis(data.expiresAt, 0);
+    const lockedUntil = toMillis(data.lockedUntil, 0);
+    if (usedAt) continue;
+    if (expiresAt && expiresAt < now) continue;
+    if (lockedUntil && lockedUntil > now) continue;
+
+    const computed = hashOtpValue(otp, data.otpSalt as string);
+    if (timingSafeEqualHex(computed, data.otpHash as string)) {
+      matchedDoc = doc;
+      matchedData = data;
+      break;
+    }
+    const failedAttempts = (data.failedAttempts as number | undefined) ?? 0;
+    const nextAttempts = failedAttempts + 1;
+    const updates: Record<string, unknown> = {
+      failedAttempts: nextAttempts,
+    };
+    if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
+      updates.lockedUntil = new Date(now + OTP_VERIFY_LOCK_MS);
+    }
+    await doc.ref.update(updates);
+  }
+  return { matchedDoc, matchedData };
+}
+
 function generateResetToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
@@ -4049,35 +4132,7 @@ export const verifyEmailOtp = callable<EmailOtpVerifyRequest>(
       .limit(5)
       .get();
 
-    const now = Date.now();
-    let matchedDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData> | null =
-      null;
-    let matchedData: FirebaseFirestore.DocumentData | undefined;
-    for (const doc of candidates.docs) {
-      const data = doc.data();
-      const usedAt = toMillis(data.usedAt, 0);
-      const expiresAt = toMillis(data.expiresAt, 0);
-      const lockedUntil = toMillis(data.lockedUntil, 0);
-      if (usedAt) continue;
-      if (expiresAt && expiresAt < now) continue;
-      if (lockedUntil && lockedUntil > now) continue;
-
-      const computed = hashOtpValue(otp, data.otpSalt as string);
-      if (timingSafeEqualHex(computed, data.otpHash as string)) {
-        matchedDoc = doc;
-        matchedData = data;
-        break;
-      }
-      const failedAttempts = (data.failedAttempts as number | undefined) ?? 0;
-      const nextAttempts = failedAttempts + 1;
-      const updates: Record<string, unknown> = {
-        failedAttempts: nextAttempts,
-      };
-      if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
-        updates.lockedUntil = new Date(now + OTP_VERIFY_LOCK_MS);
-      }
-      await doc.ref.update(updates);
-    }
+    const { matchedDoc, matchedData } = await matchOtpCandidate(candidates, otp);
 
     if (!matchedDoc || !matchedData) {
       await logAuthAudit({
@@ -4734,35 +4789,10 @@ async function verifyPasswordResetOtpCore(params: {
     .limit(5)
     .get();
 
-  const now = Date.now();
-  let matchedDoc: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData> | null =
-    null;
-  let matchedData: FirebaseFirestore.DocumentData | undefined;
-  for (const doc of candidates.docs) {
-    const data = doc.data();
-    const usedAt = toMillis(data.usedAt, 0);
-    const expiresAt = toMillis(data.expiresAt, 0);
-    const lockedUntil = toMillis(data.lockedUntil, 0);
-    if (usedAt) continue;
-    if (expiresAt && expiresAt < now) continue;
-    if (lockedUntil && lockedUntil > now) continue;
-
-    const computed = hashOtpValue(otpRaw, data.otpSalt as string);
-    if (timingSafeEqualHex(computed, data.otpHash as string)) {
-      matchedDoc = doc;
-      matchedData = data;
-      break;
-    }
-    const failedAttempts = (data.failedAttempts as number | undefined) ?? 0;
-    const nextAttempts = failedAttempts + 1;
-    const updates: Record<string, unknown> = {
-      failedAttempts: nextAttempts,
-    };
-    if (nextAttempts >= OTP_VERIFY_MAX_ATTEMPTS) {
-      updates.lockedUntil = new Date(now + OTP_VERIFY_LOCK_MS);
-    }
-    await doc.ref.update(updates);
-  }
+  const { matchedDoc, matchedData } = await matchOtpCandidate(
+    candidates,
+    otpRaw,
+  );
 
   if (!matchedDoc || !matchedData) {
     await logAuthAudit({
@@ -4795,7 +4825,7 @@ async function verifyPasswordResetOtpCore(params: {
     resetTokenSalt: resetSalt,
     usedAt: null,
     createdAt: serverTimestamp(),
-    expiresAt: new Date(now + RESET_TOKEN_TTL_MS),
+    expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS),
   });
 
   await logAuthAudit({
@@ -6714,6 +6744,7 @@ async function getFcmTokens(userId: string): Promise<string[]> {
 }
 
 type NotificationCategory =
+  | "calls"
   | "messages"
   | "matches"
   | "subscriptions"
@@ -6722,8 +6753,27 @@ type NotificationCategory =
   | "promotions"
   | "safetyAlerts";
 
+const NOTIFICATION_CATEGORIES: readonly NotificationCategory[] = [
+  "calls",
+  "messages",
+  "matches",
+  "subscriptions",
+  "likes",
+  "profileViews",
+  "promotions",
+  "safetyAlerts",
+];
+
+function parseNotificationCategory(value: unknown): NotificationCategory | null {
+  if (typeof value !== "string") return null;
+  return NOTIFICATION_CATEGORIES.includes(value as NotificationCategory)
+    ? (value as NotificationCategory)
+    : null;
+}
+
 interface NotificationPrefs {
   push: boolean;
+  calls: boolean;
   messages: boolean;
   matches: boolean;
   subscriptions: boolean;
@@ -6731,6 +6781,8 @@ interface NotificationPrefs {
   profileViews: boolean;
   promotions: boolean;
   safetyAlerts: boolean;
+  mutedMessages: string[];
+  mutedCalls: string[];
   quietHoursEnabled: boolean;
   quietHoursStart: number; // hour 0-23, default 22
   quietHoursEnd: number; // hour 0-23, default 8
@@ -6754,6 +6806,7 @@ function normalizeNotificationPrefs(
 
   return {
     push: rawPrefs.push !== false,
+    calls: rawPrefs.calls !== false,
     messages: rawPrefs.messages !== false,
     matches: rawPrefs.matches !== false,
     subscriptions: rawPrefs.subscriptions !== false,
@@ -6761,6 +6814,8 @@ function normalizeNotificationPrefs(
     profileViews: rawPrefs.profileViews !== false,
     promotions: rawPrefs.promotions !== false,
     safetyAlerts: true, // Always on — cannot be disabled
+    mutedMessages: normalizeNotificationMutedList(rawPrefs.mutedMessages),
+    mutedCalls: normalizeNotificationMutedList(rawPrefs.mutedCalls),
     quietHoursEnabled,
     quietHoursStart,
     quietHoursEnd,
@@ -6769,6 +6824,19 @@ function normalizeNotificationPrefs(
         ? rawPrefs.timezone
         : timezoneFallback,
   };
+}
+
+function normalizeNotificationMutedList(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const normalized = new Set<string>();
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    const trimmed = item.trim();
+    if (trimmed.length > 0 && trimmed.length <= 128) {
+      normalized.add(trimmed);
+    }
+  }
+  return [...normalized];
 }
 
 async function getNotificationPrefs(
@@ -6790,22 +6858,84 @@ async function getNotificationPrefs(
 async function getPushTokensFor(
   userId: string,
   category: NotificationCategory,
+  options: { fromUserId?: string } = {},
 ): Promise<string[]> {
   const prefs = await getNotificationPrefs(userId);
-  // Safety alerts always go through
-  if (category === "safetyAlerts") {
-    return prefs.push ? getFcmTokens(userId) : [];
-  }
-  const allowed =
-    prefs.push &&
-    ((category === "messages" && prefs.messages) ||
-      (category === "matches" && prefs.matches) ||
-      (category === "subscriptions" && prefs.subscriptions) ||
-      (category === "likes" && prefs.likes) ||
-      (category === "profileViews" && prefs.profileViews) ||
-      (category === "promotions" && prefs.promotions));
+  const allowed = isNotificationCategoryAllowed(prefs, category, options);
   if (!allowed) return [];
+  if (
+    options.fromUserId &&
+    category !== "safetyAlerts" &&
+    (await hasBlockingRelationship(userId, options.fromUserId))
+  ) {
+    return [];
+  }
   return getFcmTokens(userId);
+}
+
+function isNotificationCategoryAllowed(
+  prefs: NotificationPrefs,
+  category: NotificationCategory,
+  options: { fromUserId?: string } = {},
+): boolean {
+  if (category === "safetyAlerts") return true;
+  if (!prefs.push) return false;
+
+  const fromUserId = options.fromUserId;
+  if (
+    fromUserId &&
+    category === "messages" &&
+    prefs.mutedMessages.includes(fromUserId)
+  ) {
+    return false;
+  }
+  if (
+    fromUserId &&
+    category === "calls" &&
+    prefs.mutedCalls.includes(fromUserId)
+  ) {
+    return false;
+  }
+
+  return (
+    (category === "calls" && prefs.calls) ||
+    (category === "messages" && prefs.messages) ||
+    (category === "matches" && prefs.matches) ||
+    (category === "subscriptions" && prefs.subscriptions) ||
+    (category === "likes" && prefs.likes) ||
+    (category === "profileViews" && prefs.profileViews) ||
+    (category === "promotions" && prefs.promotions)
+  );
+}
+
+async function hasBlockingRelationship(
+  recipientId: string,
+  actorId: string,
+): Promise<boolean> {
+  if (recipientId === actorId) return false;
+  const [recipientBlockedActor, actorBlockedRecipient] = await Promise.all([
+    db.collection("blocks").doc(`${recipientId}_${actorId}`).get(),
+    db.collection("blocks").doc(`${actorId}_${recipientId}`).get(),
+  ]);
+  if (recipientBlockedActor.exists || actorBlockedRecipient.exists) return true;
+
+  const [legacyRecipientBlockedActor, legacyActorBlockedRecipient] =
+    await Promise.all([
+      db
+        .collection("blocks")
+        .where("blocker_id", "==", recipientId)
+        .where("blocked_id", "==", actorId)
+        .limit(1)
+        .get(),
+      db
+        .collection("blocks")
+        .where("blocker_id", "==", actorId)
+        .where("blocked_id", "==", recipientId)
+        .limit(1)
+        .get(),
+    ]);
+
+  return !legacyRecipientBlockedActor.empty || !legacyActorBlockedRecipient.empty;
 }
 
 // ---------------------------------------------------------------------------
@@ -6974,8 +7104,8 @@ export const flushNotificationQueue = functions.pubsub
       const prefs = await getNotificationPrefs(userId);
       if (isInQuietHours(prefs)) continue; // Still in quiet hours
 
-      const tokens = await getFcmTokens(userId);
-      if (tokens.length === 0) {
+      const hasAnyToken = (await getFcmTokens(userId)).length > 0;
+      if (!hasAnyToken) {
         // Clean up queue for users with no tokens
         const batch = db.batch();
         for (const doc of docs) batch.delete(doc.ref);
@@ -6986,20 +7116,21 @@ export const flushNotificationQueue = functions.pubsub
       // Batch like notifications: "You have N new likes"
       const likeDocs = docs.filter((d) => d.data().category === "likes");
       const otherDocs = docs.filter((d) => d.data().category !== "likes");
+      const likeTokens = await getPushTokensFor(userId, "likes");
 
-      if (likeDocs.length > 1) {
+      if (likeDocs.length > 1 && likeTokens.length > 0) {
         await sendNotification({
-          tokens,
+          tokens: likeTokens,
           notification: {
             title: "New Likes",
             body: `You have ${likeDocs.length} new likes!`,
           },
-          data: { type: "like", route: "/likes-you" },
+          data: { type: "like", targetRoute: "/likes-you" },
         });
-      } else if (likeDocs.length === 1) {
+      } else if (likeDocs.length === 1 && likeTokens.length > 0) {
         const data = likeDocs[0].data();
         await sendNotification({
-          tokens,
+          tokens: likeTokens,
           notification: { title: data.title, body: data.body },
           data: data.data ?? {},
         });
@@ -7008,6 +7139,15 @@ export const flushNotificationQueue = functions.pubsub
       // Send other queued notifications individually
       for (const doc of otherDocs) {
         const data = doc.data();
+        const category = parseNotificationCategory(data.category);
+        if (!category) continue;
+        const tokens = await getPushTokensFor(userId, category, {
+          fromUserId:
+            typeof data.data?.fromUserId === "string"
+              ? data.data.fromUserId
+              : undefined,
+        });
+        if (tokens.length === 0) continue;
         const msg: admin.messaging.MulticastMessage = {
           tokens,
           notification: { title: data.title, body: data.body },
@@ -7536,14 +7676,21 @@ export const unmatch = callable<{ matchId?: string }>(async (data, context) => {
   );
 
   if (otherUserId) {
-    const tokens = await getFcmTokens(otherUserId);
+    const tokens = await getPushTokensFor(otherUserId, "matches", {
+      fromUserId: uid,
+    });
     await sendNotification({
       tokens,
       notification: {
         title: "Match ended",
         body: "Someone unmatched this chat.",
       },
-      data: { matchId, status: "unmatched" },
+      data: {
+        type: "match_ended",
+        matchId,
+        status: "unmatched",
+        targetRoute: "/notifications",
+      },
     });
   }
 
@@ -7580,7 +7727,9 @@ export const onMessageCreated = functions.firestore
       return;
     }
 
-    const tokens = await getPushTokensFor(toUserId, "messages");
+    const tokens = await getPushTokensFor(toUserId, "messages", {
+      fromUserId,
+    });
     if (tokens.length === 0) return;
 
     await sendNotification({
@@ -7592,9 +7741,12 @@ export const onMessageCreated = functions.firestore
           : "You have a new message.",
       },
       data: {
+        type: "message",
         matchId: context.params.matchId,
+        targetId: context.params.matchId,
+        targetRoute: `/chat/${context.params.matchId}`,
         fromUserId,
-        type: data?.type ?? "text",
+        messageType: type,
       },
     });
   });
@@ -7690,7 +7842,10 @@ export const onMatchCreated = functions.firestore
             body: "Open Crush to start chatting.",
           },
           data: {
+            type: "match",
             matchId: context.params.matchId,
+            targetId: context.params.matchId,
+            targetRoute: `/chat/${context.params.matchId}`,
             userId: uid,
           },
         }),
@@ -7728,7 +7883,11 @@ export const onSubscriptionUpdated = functions.firestore
     await sendNotification({
       tokens,
       notification: { title, body },
-      data: { plan: afterPlan },
+      data: {
+        type: "subscription",
+        plan: afterPlan,
+        targetRoute: "/settings/subscription",
+      },
     });
   });
 
@@ -9067,6 +9226,13 @@ export const __test__helpers = {
   resetUploadValidationTestOverrides,
   evaluateCallableAppCheck,
   parseChatMessagesBeforeCursor,
+  parseBeforeTimestampCursor,
+  stripHtml,
+  validateMessageContent,
+  validateProfileName,
+  validateBio,
+  userRelationDeletionTargets,
+  matchMembershipFields: () => MATCH_MEMBERSHIP_FIELDS,
   requireAuth,
   requireString,
   optionalString,
@@ -9085,6 +9251,7 @@ export const __test__helpers = {
   validateProfilePreferencesPayload,
   getCanonicalProfilePreferences,
   normalizeNotificationPrefs,
+  isNotificationCategoryAllowed,
   isInQuietHours,
   profileBirthDateIso,
   deriveProfileAge,
@@ -10887,17 +11054,11 @@ app.get(
         min: 1,
         max: 50,
       });
-      const beforeRaw =
-        typeof req.query.before === "string" ? req.query.before.trim() : "";
-      const beforeTimestamp =
-        beforeRaw.length > 0 ? new Date(beforeRaw) : undefined;
-
-      if (
-        beforeRaw.length > 0 &&
-        (!beforeTimestamp || Number.isNaN(beforeTimestamp.getTime()))
-      ) {
+      const beforeCursor = parseBeforeTimestampCursor(req.query.before);
+      if (beforeCursor.invalid) {
         return res.status(400).json({ error: "Invalid before cursor" });
       }
+      const beforeTimestamp = beforeCursor.timestamp;
 
       let matchesQuery = db
         .collection("matches")
@@ -11038,17 +11199,11 @@ app.get(
         min: 1,
         max: 100,
       });
-      const beforeRaw =
-        typeof req.query.before === "string" ? req.query.before.trim() : "";
-      const beforeTimestamp =
-        beforeRaw.length > 0 ? new Date(beforeRaw) : undefined;
-
-      if (
-        beforeRaw.length > 0 &&
-        (!beforeTimestamp || Number.isNaN(beforeTimestamp.getTime()))
-      ) {
+      const beforeCursor = parseBeforeTimestampCursor(req.query.before);
+      if (beforeCursor.invalid) {
         return res.status(400).json({ error: "Invalid before cursor" });
       }
+      const beforeTimestamp = beforeCursor.timestamp;
 
       const totalCountPromise = db
         .collection("matches")
@@ -11289,18 +11444,64 @@ app.post(
       const { conversationId } = req.params;
       const { type, content, media_url } = req.body;
 
+      // CHAT-BE-001: enforce participant authorization server-side. Previously
+      // this handler wrote to any match's messages subcollection with no
+      // membership/block check, so any authenticated user could inject messages
+      // into conversations they were not part of. ensureUserInMatch verifies
+      // membership and throws not-found / permission-denied (mapped to 404 / 403
+      // below).
+      const { matchData, otherUserId } = await ensureUserInMatch(
+        conversationId,
+        req.uid!,
+      );
+
+      // The participant set drives the message's visibleTo array (per-user
+      // retention). otherUserId is guaranteed for a normal 2-person match;
+      // fall back to just the sender if a malformed match has no second party.
+      const participants = otherUserId
+        ? [req.uid!, otherUserId]
+        : [req.uid!];
+
+      // Blocked or removed relationships cannot continue chatting.
+      if (
+        otherUserId &&
+        (await hasBlockingRelationship(req.uid!, otherUserId))
+      ) {
+        return res
+          .status(403)
+          .json({ error: "Messaging is unavailable for this conversation." });
+      }
+      // If the match carries a status, only an active match may be written to.
+      if (
+        typeof matchData.status === "string" &&
+        matchData.status !== "active"
+      ) {
+        return res
+          .status(403)
+          .json({ error: "This conversation is no longer active." });
+      }
+
       const sanitizedContent = content ? validateMessageContent(content) : null;
 
+      // CHAT-BE-003: write fromUserId / toUserId / visibleTo alongside the
+      // legacy senderId so the onMessageCreated moderation+notification trigger
+      // (which early-returns without fromUserId/toUserId) and the per-user
+      // retention model (driven by visibleTo) both apply to REST-sent messages,
+      // exactly as they do for messages written directly via the SDK.
       const messageRef = await db
         .collection("matches")
         .doc(conversationId)
         .collection("messages")
         .add({
           senderId: req.uid,
+          fromUserId: req.uid,
+          toUserId: otherUserId,
           content: sanitizedContent || null,
           type: type || "text",
           mediaUrl: media_url || null,
           createdAt: serverTimestamp(),
+          isRead: false,
+          visibleTo: participants,
           reactions: [],
         });
 
@@ -11314,6 +11515,11 @@ app.post(
         success: true,
       });
     } catch (err) {
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
       console.error("Send message error:", err);
       return res.status(500).json({ error: "Failed to send message" });
     }
@@ -11390,6 +11596,9 @@ app.post(
     try {
       const { conversationId } = req.params;
 
+      // CHAT-BE-001: only a participant may mark a conversation as read.
+      await ensureUserInMatch(conversationId, req.uid!);
+
       // Update read status
       await db
         .collection("matches")
@@ -11400,6 +11609,11 @@ app.post(
 
       res.json({ success: true });
     } catch (err) {
+      if (isHttpsError(err)) {
+        return res
+          .status(httpStatusFromHttpsErrorCode(err.code))
+          .json({ error: err.message, code: err.code });
+      }
       console.error("Mark read error:", err);
       return res.status(500).json({ error: "Failed to mark as read" });
     }
@@ -12524,6 +12738,68 @@ app.get(
 const DELETION_GRACE_PERIOD_DAYS = 14;
 
 /**
+ * Membership fields a match document may use across the codebase. Account
+ * deletion must query all of them — matches are created with `users`/`userIds`,
+ * so querying only `participants` would leave a deleted user's matches and chat
+ * history behind.
+ */
+const MATCH_MEMBERSHIP_FIELDS = ["users", "userIds", "participants"] as const;
+
+/**
+ * Top-level relation collections (equality-keyed by user id) that an account
+ * deletion must scrub. Outgoing records are the user's own personal data;
+ * inbound like/swipe pointers are removed to avoid orphaned references. Inbound
+ * blocks/reports ABOUT the user are intentionally omitted so abuse history
+ * survives the deletion.
+ */
+function userRelationDeletionTargets(): Array<{
+  collection: string;
+  field: string;
+  label: string;
+}> {
+  return [
+    { collection: "likes", field: "fromUserId", label: "likes(fromUserId)" },
+    { collection: "swipes", field: "swiperId", label: "swipes(swiperId)" },
+    { collection: "blocks", field: "blockerId", label: "blocks(blockerId)" },
+    { collection: "reports", field: "reporterId", label: "reports(reporterId)" },
+    { collection: "likes", field: "toUserId", label: "likes(toUserId)" },
+    { collection: "swipes", field: "targetId", label: "swipes(targetId)" },
+  ];
+}
+
+/**
+ * Delete every document matched by [query] in paginated batches, recording the
+ * outcome into [deleted]/[errors]. Firestore batches cap at 500 ops, so this
+ * pages until the query is drained.
+ */
+async function deleteDocsByQuery(
+  query: FirebaseFirestore.Query,
+  label: string,
+  deleted: string[],
+  errors: string[],
+): Promise<void> {
+  try {
+    let total = 0;
+    for (;;) {
+      const snap = await query.limit(400).get();
+      if (snap.empty) break;
+      const batch = db.batch();
+      snap.docs.forEach((doc) => batch.delete(doc.ref));
+      await batch.commit();
+      total += snap.size;
+      if (snap.size < 400) break;
+    }
+    if (total > 0) {
+      deleted.push(`${label} (${total} docs)`);
+    }
+  } catch (error) {
+    errors.push(
+      `${label}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+}
+
+/**
  * Helper: Cascading deletion of all user data across Firestore, RTDB, Storage, and Auth.
  * This is the nuclear option — permanently removes all traces of a user.
  */
@@ -12534,14 +12810,26 @@ async function cascadeDeleteUserData(uid: string): Promise<{
   const deleted: string[] = [];
   const errors: string[] = [];
 
-  // 1. Delete user's matches and related subcollections
+  // 1. Delete user's matches and related subcollections. Matches are keyed by
+  // one of several membership fields across the codebase, so query all of them
+  // and dedupe by document id before deleting.
   try {
-    const matchesSnapshot = await db
-      .collection("matches")
-      .where("participants", "array-contains", uid)
-      .get();
+    const matchSnapshots = await Promise.all(
+      MATCH_MEMBERSHIP_FIELDS.map((field) =>
+        db.collection("matches").where(field, "array-contains", uid).get(),
+      ),
+    );
+    const matchDocs = new Map<
+      string,
+      FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>
+    >();
+    for (const snap of matchSnapshots) {
+      for (const doc of snap.docs) {
+        matchDocs.set(doc.id, doc);
+      }
+    }
 
-    for (const matchDoc of matchesSnapshot.docs) {
+    for (const matchDoc of matchDocs.values()) {
       // Delete messages subcollection
       const messagesSnapshot = await matchDoc.ref
         .collection("messages")
@@ -12613,6 +12901,18 @@ async function cascadeDeleteUserData(uid: string): Promise<{
   } catch (error) {
     errors.push(
       `message_requests: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  // 3b. Scrub the user's footprint in top-level relation collections (likes,
+  // swipes, blocks, reports). These are equality-keyed by user id and are not
+  // stored under users/{uid}, so the subcollection cleanup above misses them.
+  for (const target of userRelationDeletionTargets()) {
+    await deleteDocsByQuery(
+      db.collection(target.collection).where(target.field, "==", uid),
+      target.label,
+      deleted,
+      errors,
     );
   }
 
@@ -13218,7 +13518,7 @@ export const processDataExportRequest = functions.firestore
         body: "Tap to download your export package.",
         data: {
           type: "data_export_ready",
-          route: "/settings/account-actions",
+          targetRoute: "/settings/account-actions",
           requestId,
         },
       });

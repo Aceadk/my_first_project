@@ -265,8 +265,15 @@ class InputSanitizer {
   }
 
   /// Strip HTML tags from input.
+  ///
+  /// Removes complete tags and a trailing unterminated tag start (e.g.
+  /// `hi <img src=x onerror=...`) that a renderer could still parse once more
+  /// markup follows. The letter/`/` guard preserves benign `<` usage such as
+  /// `3 < 5` or the `<3` emoticon.
   static String _stripHtmlTags(String input) {
-    return input.replaceAll(RegExp(r'<[^>]*>'), '');
+    return input
+        .replaceAll(RegExp(r'<[^>]*>'), '')
+        .replaceAll(RegExp(r'<\/?[a-zA-Z][^>]*$'), '');
   }
 
   /// Escape HTML entities to prevent XSS.

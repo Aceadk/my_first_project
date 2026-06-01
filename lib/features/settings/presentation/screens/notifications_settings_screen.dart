@@ -90,12 +90,12 @@ class NotificationsSettingsScreen extends StatelessWidget {
                       trailing: Switch(
                         value: notifState.push,
                         onChanged: (value) async {
-                          await notifier.togglePush(value);
+                          final enabled = await notifier.togglePush(value);
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                value
+                                enabled
                                     ? l10n.settingsNotificationsPushEnabled
                                     : l10n.settingsNotificationsPushDisabled,
                               ),

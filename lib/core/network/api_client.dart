@@ -69,6 +69,16 @@ class ApiClient {
   String? _cachedAppVersion;
   String? _cachedPlatform;
 
+  /// In-flight token refresh shared across concurrent 401 responses so the
+  /// refresh token is only consumed once per expiry instead of every request
+  /// triggering its own refresh ("refresh storm").
+  Future<String?>? _inFlightRefresh;
+
+  /// Whether [onAuthError] has already been signalled for the current expiry.
+  /// Reset once a request succeeds or a refresh yields a fresh token so a later
+  /// expiry can route the user to re-auth again.
+  bool _authErrorNotified = false;
+
   // ═══════════════════════════════════════════════════════════════════════════
   // INTERCEPTORS
   // ═══════════════════════════════════════════════════════════════════════════
@@ -459,22 +469,28 @@ class ApiClient {
           apiResponse = await interceptor.onResponse(apiResponse);
         }
 
-        // On 401, attempt token refresh before calling onAuthError
+        // On 401, attempt a single silent token refresh before surfacing the
+        // auth failure. Concurrent 401s share one in-flight refresh so the
+        // refresh token is consumed only once, and each request retries at most
+        // once (guarded by [hasAttemptedTokenRefresh]) — no duplicate retries.
         if (apiResponse.statusCode == 401 &&
             requiresAuth &&
             tokenRefreshProvider != null &&
             !hasAttemptedTokenRefresh) {
           hasAttemptedTokenRefresh = true;
           try {
-            final newToken = await tokenRefreshProvider!();
-            if (newToken != null) {
-              // Retry the request with the refreshed token
+            final newToken = await _refreshAuthToken();
+            if (newToken != null && newToken.isNotEmpty) {
+              // Refresh succeeded — auth is healthy again; retry once with the
+              // refreshed token.
+              _authErrorNotified = false;
               continue;
             }
           } catch (e) {
             AppLogger.error('ApiClient: Token refresh failed - $e');
           }
-          // Refresh failed or returned null — fall through to normal 401 handling
+          // Refresh failed or returned null — fall through to 401 handling,
+          // which routes the user to re-auth via onAuthError.
         }
 
         // Handle response
@@ -548,6 +564,37 @@ class ApiClient {
     return headers;
   }
 
+  /// Refresh the auth token, coalescing concurrent refresh attempts into a
+  /// single call. Multiple requests that fail with 401 at the same time await
+  /// the same refresh instead of each rotating the refresh token, which avoids
+  /// refresh-token races that would otherwise force-log-out the user.
+  Future<String?> _refreshAuthToken() {
+    final provider = tokenRefreshProvider;
+    if (provider == null) {
+      return Future<String?>.value(null);
+    }
+    return _inFlightRefresh ??= _runRefresh(provider);
+  }
+
+  Future<String?> _runRefresh(Future<String?> Function() provider) async {
+    try {
+      return await provider();
+    } finally {
+      _inFlightRefresh = null;
+    }
+  }
+
+  /// Route the user to re-authentication exactly once per expiry. A burst of
+  /// requests that all fail with 401 after a failed refresh should trigger the
+  /// logout/re-auth handler only once, not once per request.
+  void _notifyAuthError() {
+    if (_authErrorNotified) {
+      return;
+    }
+    _authErrorNotified = true;
+    onAuthError?.call();
+  }
+
   ApiResult<T> _handleResponse<T>(
     ApiResponse response,
     T Function(dynamic)? parser,
@@ -557,6 +604,9 @@ class ApiClient {
 
     // Handle status codes
     if (response.statusCode >= 200 && response.statusCode < 300) {
+      // A successful response means auth is healthy again; allow a future
+      // expiry to route the user to re-auth.
+      _authErrorNotified = false;
       // Success
       try {
         if (response.body.isEmpty) {
@@ -600,7 +650,7 @@ class ApiClient {
           ApiError.badRequest(message ?? 'Bad request', errorCode),
         );
       case 401:
-        onAuthError?.call();
+        _notifyAuthError();
         return ApiResult.failure(
           ApiError.unauthorized(message ?? 'Unauthorized', errorCode),
         );

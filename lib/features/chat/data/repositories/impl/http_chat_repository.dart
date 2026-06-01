@@ -33,6 +33,7 @@ class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
     String currentUserId = '',
     WebSocketConnection? webSocket,
     ChatTransportAdapter? transportAdapter,
+    Duration typingReceiveTtl = const Duration(seconds: 6),
   }) : assert(
          transportAdapter != null || apiClient != null,
          'Either transportAdapter or apiClient must be provided.',
@@ -44,6 +45,7 @@ class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
              webSocket: webSocket,
            ),
        _currentUserId = currentUserId,
+       _typingReceiveTtl = typingReceiveTtl,
        _circuitBreaker = CircuitBreakerRegistry.instance.get('chat') {
     // CHAT-005: Wire WebSocket listener for real-time message delivery
     _webSocketSubscription = _transportAdapter.realtimeMessageStream.listen(
@@ -82,6 +84,14 @@ class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
   /// Presence polling interval.
   /// 30 seconds is sufficient for online status which changes infrequently.
   static const _presencePollingInterval = Duration(seconds: 30);
+
+  /// CHAT-RT-002: receiver-side typing TTL. The WebSocket carries no per-event
+  /// expiry, so if a peer stops typing without emitting `is_typing:false`
+  /// (closed tab, crash, frozen background timer) the indicator would linger.
+  /// We auto-clear it if no refresh arrives within this window (mirrors the
+  /// Firestore repository's 5s freshness check, with margin for jitter).
+  /// Injectable so tests can exercise the TTL without real-time delays.
+  final Duration _typingReceiveTtl;
 
   // Stream controllers for real-time data
   final Map<String, StreamController<List<Message>>> _messageControllers = {};
@@ -905,11 +915,7 @@ class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
       final userId = data['user_id'] as String?;
       final isTyping = data['is_typing'] as bool? ?? false;
       if (matchId != null && userId != null) {
-        final current = <String>{};
-        if (isTyping) {
-          current.add(userId);
-        }
-        _typingControllers[matchId]?.add(current);
+        _emitTypingWithTtl(matchId, userId, isTyping);
       }
     } else if (type == 'presence') {
       final userId = data['user_id'] as String?;
@@ -923,6 +929,25 @@ class HttpChatRepository with WidgetsBindingObserver implements ChatRepository {
       if (matchId != null) {
         _fetchMessages(matchId);
       }
+    }
+  }
+
+  /// Emits the typing set for [matchId] and arms a TTL so a `typing:true` that
+  /// is never followed by `typing:false` self-clears after [_typingReceiveTtl].
+  void _emitTypingWithTtl(String matchId, String userId, bool isTyping) {
+    final ttlKey = 'typing_ttl_$matchId';
+    _lifecycleTimers.cancel(ttlKey);
+
+    final current = <String>{};
+    if (isTyping) {
+      current.add(userId);
+    }
+    _typingControllers[matchId]?.add(current);
+
+    if (isTyping) {
+      _lifecycleTimers.startOneShot(ttlKey, _typingReceiveTtl, () {
+        _typingControllers[matchId]?.add(<String>{});
+      });
     }
   }
 

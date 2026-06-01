@@ -22,6 +22,8 @@ void main() {
     setUp(() {
       SharedPreferences.setMockInitialValues({});
       service.clearTestOverrides();
+      service.authorizationStatusOverride = () async =>
+          AuthorizationStatus.authorized;
     });
 
     tearDown(() {
@@ -305,17 +307,52 @@ void main() {
       'initialize executes all setup stages in order via overrides',
       () async {
         final calls = <String>[];
-        service.requestPermissionOverride = () async => calls.add('permission');
         service.initializeLocalNotificationsOverride = () async =>
             calls.add('local');
         service.createNotificationChannelOverride = () async =>
             calls.add('channel');
         service.setupMessageHandlersOverride = () => calls.add('handlers');
-        service.printFcmTokenOverride = () async => calls.add('token');
 
         await service.initialize();
 
-        expect(calls, ['permission', 'local', 'channel', 'handlers', 'token']);
+        expect(calls, ['local', 'channel', 'handlers']);
+      },
+    );
+
+    test(
+      'requestPermissionForCurrentUser registers only when granted',
+      () async {
+        final saved = <String>[];
+        service.setCurrentUserIdForTest('user-permission');
+        service.requestPermissionOverride = () async =>
+            AuthorizationStatus.authorized;
+        service.authorizationStatusOverride = () async =>
+            AuthorizationStatus.authorized;
+        service.tokenProviderOverride = () async => 'tok-permission';
+        service.tokenRefreshOverride = const Stream<String>.empty();
+        service.saveTokenOverride = (userId, token) async =>
+            saved.add('$userId:$token');
+
+        final granted = await service.requestPermissionForCurrentUser();
+
+        expect(granted, isTrue);
+        expect(saved, contains('user-permission:tok-permission'));
+      },
+    );
+
+    test(
+      'requestPermissionForCurrentUser keeps push disabled when denied',
+      () async {
+        var saved = false;
+        service.setCurrentUserIdForTest('user-denied');
+        service.requestPermissionOverride = () async =>
+            AuthorizationStatus.denied;
+        service.saveTokenOverride = (userId, token) async => saved = true;
+
+        final granted = await service.requestPermissionForCurrentUser();
+
+        expect(granted, isFalse);
+        expect(saved, isFalse);
       },
     );
 
@@ -385,6 +422,21 @@ void main() {
 
       expect(saved, isFalse);
     });
+
+    test(
+      'registerForUser skips token persistence before permission grant',
+      () async {
+        var saved = false;
+        service.authorizationStatusOverride = () async =>
+            AuthorizationStatus.notDetermined;
+        service.tokenProviderOverride = () async => 'tok-before-permission';
+        service.saveTokenOverride = (userId, token) async => saved = true;
+
+        await service.registerForUser('user-before-permission');
+
+        expect(saved, isFalse);
+      },
+    );
 
     test(
       'registerForUser falls back to Firestore token persistence path',

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:crushhour/core/utils/date_time_formatter.dart';
 import 'package:crushhour/features/settings/presentation/bloc/safety_cubit.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:crushhour/features/safety/data/models/date_plan.dart';
@@ -148,8 +149,14 @@ class _SafetyScreenState extends State<SafetyScreen> {
         await _datePlanService.triggerEmergencyAlert(planId);
         if (mounted) {
           messenger.showSnackBar(
-            const SnackBar(
-              content: Text('Emergency alert sent to all contacts!'),
+            SnackBar(
+              // success/mint needs a dark foreground for legible text (9.72:1).
+              content: Text(
+                'Emergency alert sent to all contacts!',
+                style: TextStyle(
+                  color: DsAccessibility.accessibleTextColor(DsColors.success),
+                ),
+              ),
               backgroundColor: DsColors.success,
             ),
           );
@@ -269,6 +276,14 @@ class _SafetyScreenState extends State<SafetyScreen> {
                       removeLabel: 'Unmute calls',
                     ),
                     const SizedBox(height: 16),
+                    _ReportHistorySection(
+                      reportedUsers: state.reportedUsers,
+                      profileCache: state.profileCache,
+                      isLoading: state.isLoadingProfiles,
+                      onGuidelinesTap: () =>
+                          context.push(CrushRoutes.safetyGuidelines),
+                    ),
+                    const SizedBox(height: 16),
                     Card(
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -378,6 +393,130 @@ class _SafetyScreenState extends State<SafetyScreen> {
       );
       messenger.showSnackBar(const SnackBar(content: Text('Appeal submitted')));
     }
+  }
+}
+
+class _ReportHistorySection extends StatelessWidget {
+  const _ReportHistorySection({
+    required this.reportedUsers,
+    required this.profileCache,
+    required this.onGuidelinesTap,
+    this.isLoading = false,
+  });
+
+  final Map<String, DateTime> reportedUsers;
+  final Map<String, SafetyProfileInfo> profileCache;
+  final VoidCallback onGuidelinesTap;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final entries = reportedUsers.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text('Report history', style: theme.textTheme.titleMedium),
+                if (isLoading) ...[
+                  const SizedBox(width: 8),
+                  const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Reports you submit stay private. Reported profiles are hidden '
+              'from discovery for 10 days while our safety team reviews them.',
+              style: TextStyle(
+                color: isDark
+                    ? DsColors.textMutedDark
+                    : DsColors.textMutedLight,
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (entries.isEmpty)
+              Text(
+                'No recent reports.',
+                style: TextStyle(
+                  color: isDark
+                      ? DsColors.textMutedDark
+                      : DsColors.textMutedLight,
+                ),
+              )
+            else
+              ...entries.map((entry) {
+                final profile = profileCache[entry.key];
+                final locale = Localizations.localeOf(context).toLanguageTag();
+                final reportedAt = DateTimeFormatter.formatDate(
+                  entry.value,
+                  locale: locale,
+                );
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: _ReportAvatar(profile: profile),
+                  title: Text(
+                    profile?.name ?? 'User',
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text('Reported $reportedAt'),
+                  trailing: const Icon(Icons.lock_outline, size: 18),
+                );
+              }),
+            TextButton.icon(
+              onPressed: onGuidelinesTap,
+              icon: const Icon(Icons.policy_outlined),
+              label: const Text('Review reporting rules'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ReportAvatar extends StatelessWidget {
+  const _ReportAvatar({required this.profile});
+
+  final SafetyProfileInfo? profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final avatarFill = isDark ? DsColors.surfaceDark : DsColors.surfaceLight;
+    if (profile?.photoUrl != null) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: avatarFill,
+        child: ClipOval(
+          child: CachedImage(
+            imageUrl: profile!.photoUrl!,
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    }
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: avatarFill,
+      child: Icon(
+        Icons.flag_outlined,
+        color: isDark ? DsColors.textMutedDark : DsColors.textMutedLight,
+      ),
+    );
   }
 }
 

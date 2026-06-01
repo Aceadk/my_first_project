@@ -23,6 +23,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../widgets/profile_media_picker.dart';
+import '../widgets/profile_adaptive_layout.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -580,6 +581,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         final textScale = MediaQuery.textScalerOf(
                           context,
                         ).scale(1);
+                        final layoutMetrics =
+                            ProfileAdaptiveLayoutMetrics.fromWidth(
+                              width: constraints.maxWidth,
+                              textScale: textScale,
+                            );
                         final stableViewportHeight = MediaQuery.sizeOf(
                           context,
                         ).height;
@@ -614,6 +620,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                               isDark,
                                               state,
                                               saving,
+                                              layoutMetrics,
                                             ),
                                           ),
                                           _buildBottomButton(
@@ -646,6 +653,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                                               isDark,
                                               state,
                                               saving,
+                                              layoutMetrics,
                                             ),
                                           ),
                                         ),
@@ -701,55 +709,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     bool isDark,
     ProfileState state,
     bool saving,
+    ProfileAdaptiveLayoutMetrics layoutMetrics,
   ) {
     final l10n = AppLocalizations.of(context);
 
-    return Column(
+    final introAndMedia = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Optional notice
-        Semantics(
-          container: true,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: DsColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: DsColors.primary.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Row(
-              children: [
-                const ExcludeSemantics(
-                  child: Icon(
-                    Icons.info_outline_rounded,
-                    color: DsColors.primary,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    l10n.onboardingProfileAllFieldsOptional,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: DsColors.primary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        _buildProfileSetupNotice(context),
         DsGap.lg,
-        // Basic Info Summary (from previous step)
         _buildBasicInfoSummary(context, isDark, state),
         DsGap.xl,
-        // Username Section
         _buildUsernameSection(context, isDark, state),
         DsGap.xl,
-        // Photos Section
         _buildSectionHeader(
           context,
           isDark,
@@ -771,7 +743,21 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           },
         ),
         DsGap.xl,
-        // Bio Section
+        _buildSectionHeader(
+          context,
+          isDark,
+          l10n.onboardingProfileLookingForTitle,
+          l10n.onboardingProfileLookingForSubtitle,
+          Icons.search_rounded,
+        ),
+        DsGap.md,
+        _buildLookingForPicker(context, isDark, state),
+      ],
+    );
+
+    final detailSections = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         _buildSectionHeader(
           context,
           isDark,
@@ -787,18 +773,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           maxLength: 500,
         ),
         DsGap.xl,
-        // Looking For Section
-        _buildSectionHeader(
-          context,
-          isDark,
-          l10n.onboardingProfileLookingForTitle,
-          l10n.onboardingProfileLookingForSubtitle,
-          Icons.search_rounded,
-        ),
-        DsGap.md,
-        _buildLookingForPicker(context, isDark, state),
-        DsGap.xl,
-        // Location Section
         _buildSectionHeader(
           context,
           isDark,
@@ -827,7 +801,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ],
         ),
         DsGap.xl,
-        // Work & Education
         _buildSectionHeader(
           context,
           isDark,
@@ -854,7 +827,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           prefixIcon: Icons.school_rounded,
         ),
         DsGap.xl,
-        // Interests
         _buildSectionHeader(
           context,
           isDark,
@@ -865,7 +837,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         DsGap.md,
         _buildInterestsGrid(context, isDark),
         DsGap.xl,
-        // Favourites
         _buildSectionHeader(
           context,
           isDark,
@@ -877,6 +848,58 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         _buildFavouritesSection(context, isDark),
         DsGap.xxl,
       ],
+    );
+
+    if (!layoutMetrics.useTwoColumnSetup) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [introAndMedia, DsGap.xl, detailSections],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: layoutMetrics.sidePanelWidth, child: introAndMedia),
+        SizedBox(width: layoutMetrics.columnGap),
+        Expanded(child: detailSections),
+      ],
+    );
+  }
+
+  Widget _buildProfileSetupNotice(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      container: true,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: DsColors.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: DsColors.primary.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            const ExcludeSemantics(
+              child: Icon(
+                Icons.info_outline_rounded,
+                color: DsColors.primary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                l10n.onboardingProfileAllFieldsOptional,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: DsColors.primary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

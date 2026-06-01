@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/extensions/localization_extension.dart';
+import 'package:crushhour/core/routing/crush_routes.dart';
+import 'package:crushhour/core/services/consent_service.dart';
+import 'package:crushhour/core/utils/date_time_formatter.dart';
 import 'package:crushhour/features/settings/presentation/bloc/privacy_settings_cubit.dart';
 import 'package:crushhour/data/models/privacy_settings.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
 import 'package:crushhour/design_system/tokens/colors.dart';
 import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
+import 'package:go_router/go_router.dart';
 
 class PrivacySettingsScreen extends StatelessWidget {
   const PrivacySettingsScreen({super.key});
@@ -142,6 +146,10 @@ class PrivacySettingsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                    ),
+                    const Padding(
+                      padding: DsEdgeInsets.horizontalLg,
+                      child: _PrivacyRightsSummary(),
                     ),
 
                     // Name Visibility Section
@@ -478,6 +486,69 @@ class PrivacySettingsScreen extends StatelessWidget {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _PrivacyRightsSummary extends StatelessWidget {
+  const _PrivacyRightsSummary();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return FutureBuilder<String?>(
+      future: ConsentService.instance.getConsentTimestamp(),
+      builder: (context, snapshot) {
+        final timestamp = snapshot.data;
+        final acceptedAt = timestamp == null
+            ? null
+            : DateTime.tryParse(timestamp)?.toLocal();
+        final locale = Localizations.localeOf(context).toLanguageTag();
+        final consentStatus = acceptedAt == null
+            ? 'Consent not recorded on this device'
+            : 'Consent accepted ${DateTimeFormatter.formatDate(acceptedAt, locale: locale)}';
+
+        return Material(
+          color: isDark ? DsColors.surfaceDark : DsColors.surfaceLight,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: isDark ? DsColors.borderDark : DsColors.borderLight,
+            ),
+          ),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: const Text('Privacy rights & consent'),
+                subtitle: Text(consentStatus),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.download_outlined),
+                title: const Text('Data export & deletion'),
+                subtitle: const Text(
+                  'Request a data export or schedule account deletion from Account Actions.',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(CrushRoutes.accountSettings),
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.article_outlined),
+                title: const Text('Privacy Policy'),
+                subtitle: const Text(
+                  'Review the current policy, data categories, and rights request instructions.',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(CrushRoutes.privacyPolicy),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

@@ -831,11 +831,9 @@ class OtherUserProfileScreen extends StatelessWidget {
       if (!context.mounted) return;
 
       if (match != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("It's a match with ${profile.publicDisplayName}!"),
-            backgroundColor: DsColors.success,
-          ),
+        showSuccessSnackBar(
+          context,
+          "It's a match with ${profile.publicDisplayName}!",
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

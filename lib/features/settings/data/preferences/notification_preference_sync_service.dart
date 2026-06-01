@@ -172,10 +172,14 @@ class NotificationPreferenceSyncService {
       DateTime updatedAt,
     )?
     pushRemoteSnapshot,
+    required Future<bool> Function()? requestPushPermission,
+    required Future<void> Function()? disablePush,
     required DateTime Function() now,
   }) : _preferences = preferences,
        _fetchRemoteSnapshot = fetchRemoteSnapshot,
        _pushRemoteSnapshot = pushRemoteSnapshot,
+       _requestPushPermission = requestPushPermission,
+       _disablePush = disablePush,
        _now = now;
 
   factory NotificationPreferenceSyncService.localOnly({
@@ -186,6 +190,8 @@ class NotificationPreferenceSyncService {
       preferences: preferences,
       fetchRemoteSnapshot: null,
       pushRemoteSnapshot: null,
+      requestPushPermission: null,
+      disablePush: null,
       now: now ?? DateTime.now,
     );
   }
@@ -211,6 +217,8 @@ class NotificationPreferenceSyncService {
           clientUpdatedAt: updatedAt,
         );
       },
+      requestPushPermission: pushService.requestPermissionForCurrentUser,
+      disablePush: pushService.disablePushForCurrentUser,
       now: now ?? DateTime.now,
     );
   }
@@ -224,12 +232,16 @@ class NotificationPreferenceSyncService {
       DateTime updatedAt,
     )?
     pushRemoteSnapshot,
+    Future<bool> Function()? requestPushPermission,
+    Future<void> Function()? disablePush,
     DateTime Function()? now,
   }) {
     return NotificationPreferenceSyncService._(
       preferences: preferences,
       fetchRemoteSnapshot: fetchRemoteSnapshot,
       pushRemoteSnapshot: pushRemoteSnapshot,
+      requestPushPermission: requestPushPermission,
+      disablePush: disablePush,
       now: now ?? DateTime.now,
     );
   }
@@ -243,6 +255,8 @@ class NotificationPreferenceSyncService {
     DateTime updatedAt,
   )?
   _pushRemoteSnapshot;
+  final Future<bool> Function()? _requestPushPermission;
+  final Future<void> Function()? _disablePush;
   final DateTime Function() _now;
 
   static const _pushKey = 'notifications_push';
@@ -371,6 +385,18 @@ class NotificationPreferenceSyncService {
         // Local preference update should not fail if remote sync fails.
       }
     }
+  }
+
+  Future<bool> requestPushPermissionForCurrentUser() async {
+    final requestPushPermission = _requestPushPermission;
+    if (requestPushPermission == null) return true;
+    return requestPushPermission();
+  }
+
+  Future<void> disablePushForCurrentUser() async {
+    final disablePush = _disablePush;
+    if (disablePush == null) return;
+    await disablePush();
   }
 
   Future<void> _persistLocal({

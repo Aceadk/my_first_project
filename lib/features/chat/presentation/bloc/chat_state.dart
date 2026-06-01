@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:crushhour/data/models/message.dart';
+import 'package:crushhour/features/chat/domain/usecases/message_reconciler.dart';
 
 enum SendStatus { idle, sendingText, uploadingAttachment }
 
@@ -64,13 +65,13 @@ class ChatState extends Equatable {
        typingUserIds = Set<String>.unmodifiable(typingUserIds),
        failedMessages = Map<String, Message>.unmodifiable(failedMessages);
 
-  /// Combined list of messages including failed ones for display.
-  List<Message> get allMessages {
-    if (failedMessages.isEmpty) return messages;
-    final combined = [...messages, ...failedMessages.values];
-    combined.sort((a, b) => a.sentAt.compareTo(b.sentAt));
-    return combined;
-  }
+  /// Combined list of messages including optimistic/failed ones for display,
+  /// de-duplicated against their confirmed server copies and deterministically
+  /// ordered (CHAT-RT-001).
+  List<Message> get allMessages => MessageReconciler.combineForDisplay(
+    confirmed: messages,
+    pending: failedMessages,
+  );
 
   ChatState copyWith({
     List<Message>? messages,

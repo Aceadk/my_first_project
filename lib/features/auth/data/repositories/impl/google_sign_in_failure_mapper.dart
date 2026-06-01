@@ -2,6 +2,8 @@ import 'package:crushhour/core/errors/auth_failures.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'provider_firebase_auth_failure_mapper.dart';
+
 const String _googleIosConfigMessage =
     'Google Sign-In could not complete on iOS. Check that Google Sign-In is enabled in Firebase Auth and that the iOS Google client configuration matches your app bundle and URL scheme.';
 const String _googleSimulatorKeychainMessage =
@@ -81,38 +83,14 @@ AuthFailure mapGoogleSignInFailure(Object error) {
   }
 
   if (error is fb.FirebaseAuthException) {
-    switch (error.code) {
-      case 'account-exists-with-different-credential':
-        return AuthFailure(
-          AuthFailureType.emailAlreadyInUse,
-          message:
-              'An account already exists with the same email but a different sign-in method.',
-          cause: error,
-        );
-      case 'operation-not-allowed':
-        return AuthFailure(
-          AuthFailureType.unsupportedProvider,
-          message: 'Google Sign-In is not enabled for this project yet.',
-          cause: error,
-        );
-      case 'invalid-credential':
-        return AuthFailure(
-          AuthFailureType.invalidCredentials,
-          message: 'Google Sign-In credentials are invalid or expired.',
-          cause: error,
-        );
-      case 'too-many-requests':
-        return AuthFailure(
-          AuthFailureType.rateLimited,
-          message: AuthFailureType.rateLimited.defaultMessage,
-          cause: error,
-        );
-      case 'network-request-failed':
-        return AuthFailure(
-          AuthFailureType.network,
-          message: AuthFailureType.network.defaultMessage,
-          cause: error,
-        );
+    final mapped = mapProviderFirebaseAuthFailure(
+      error,
+      providerLabel: 'Google Sign-In',
+      invalidCredentialMessage:
+          'Google Sign-In credentials are invalid or expired.',
+    );
+    if (mapped != null) {
+      return mapped;
     }
   }
 

@@ -85,6 +85,28 @@ void main() {
       );
     });
 
+    test('rejects certificates for non-pinned hosts (honors OS rejection)', () {
+      // badCertificateCallback only fires after the platform already rejected
+      // the cert; for a non-pinned host we must not override that to accept.
+      final cert = _FakeX509Certificate(derBytes: [1, 2, 3]);
+      expect(
+        CertificatePinning.validateCertificateForTesting(
+          cert,
+          'firebasestorage.googleapis.com',
+          443,
+        ),
+        isFalse,
+      );
+      expect(
+        CertificatePinning.validateCertificateForTesting(
+          cert,
+          'api.crushhour.app',
+          443,
+        ),
+        isFalse,
+      );
+    });
+
     test(
       'validateHost returns structured error for unreachable endpoint',
       () async {

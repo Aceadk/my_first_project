@@ -121,98 +121,102 @@ class _ExploreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final photoUrl = profile.displayPhotoUrl;
 
+    // Single merged button node: the label already describes the card and the
+    // tap opens the full profile (which carries the like/pass actions), so the
+    // decorative photo/text/badge below are excluded from semantics to avoid a
+    // noisy, duplicated reading.
     return Semantics(
       label:
           '${profile.name}, ${profile.age}'
           '${profile.distanceDisplay != null ? ', ${profile.distanceDisplay}' : ''}',
       button: true,
-      child: Semantics(
-        button: true,
-        child: GestureDetector(
-          onTap: onTap,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(DsRadius.lg),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                // Profile photo
-                if (photoUrl != null)
-                  CachedNetworkImage(imageUrl: photoUrl, fit: BoxFit.cover)
-                else
-                  Container(
-                    color: DsColors.ink200,
-                    child: const Icon(
-                      Icons.person,
-                      size: 48,
-                      color: DsColors.ink400,
-                    ),
-                  ),
-
-                // Gradient overlay at bottom
-                PositionedDirectional(
-                  bottom: 0,
-                  start: 0,
-                  end: 0,
-                  child: Container(
-                    padding: const EdgeInsetsDirectional.fromSTEB(
-                      DsSpacing.sm,
-                      DsSpacing.xxxl,
-                      DsSpacing.sm,
-                      DsSpacing.sm,
-                    ),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0x00000000), Color(0xCC000000)],
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${profile.name}, ${profile.age}',
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (profile.distanceDisplay != null)
-                          Text(
-                            profile.distanceDisplay!,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: Colors.white70),
-                            maxLines: 1,
-                          ),
-                      ],
-                    ),
+      excludeSemantics: true,
+      hint: 'Opens full profile with like and pass actions',
+      onTap: onTap,
+      child: GestureDetector(
+        onTap: onTap,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(DsRadius.lg),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Profile photo
+              if (photoUrl != null)
+                CachedNetworkImage(imageUrl: photoUrl, fit: BoxFit.cover)
+              else
+                Container(
+                  color: DsColors.ink200,
+                  child: const Icon(
+                    Icons.person,
+                    size: 48,
+                    color: DsColors.ink400,
                   ),
                 ),
 
-                // Verification badge
-                if (profile.isVerified)
-                  PositionedDirectional(
-                    top: DsSpacing.sm,
-                    end: DsSpacing.sm,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: DsColors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.verified,
-                        size: 16,
-                        color: Colors.white,
-                      ),
+              // Gradient overlay at bottom
+              PositionedDirectional(
+                bottom: 0,
+                start: 0,
+                end: 0,
+                child: Container(
+                  padding: const EdgeInsetsDirectional.fromSTEB(
+                    DsSpacing.sm,
+                    DsSpacing.xxxl,
+                    DsSpacing.sm,
+                    DsSpacing.sm,
+                  ),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x00000000), Color(0xCC000000)],
                     ),
                   ),
-              ],
-            ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${profile.name}, ${profile.age}',
+                        style: Theme.of(context).textTheme.titleSmall
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (profile.distanceDisplay != null)
+                        Text(
+                          profile.distanceDisplay!,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.white70),
+                          maxLines: 1,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Verification badge
+              if (profile.isVerified)
+                PositionedDirectional(
+                  top: DsSpacing.sm,
+                  end: DsSpacing.sm,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: DsColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.verified,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

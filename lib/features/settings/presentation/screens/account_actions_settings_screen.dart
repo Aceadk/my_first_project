@@ -305,14 +305,15 @@ class _AccountActionsSettingsScreenState
                         DsGap.md,
                         Padding(
                           padding: DsEdgeInsets.horizontalLg,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: DsColors.error.withValues(alpha: 0.05),
+                          child: Material(
+                            color: DsColors.error.withValues(alpha: 0.05),
+                            shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
+                              side: BorderSide(
                                 color: DsColors.error.withValues(alpha: 0.2),
                               ),
                             ),
+                            clipBehavior: Clip.antiAlias,
                             child: Column(
                               children: [
                                 MergeSemantics(

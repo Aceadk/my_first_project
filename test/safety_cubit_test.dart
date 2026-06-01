@@ -23,6 +23,7 @@ void main() {
     late _StubDiscoveryRepository discoveryRepo;
     late SafetyCubit cubit;
     late StubAnalyticsService analytics;
+    late List<Map<String, Object?>> notificationSyncCalls;
 
     setUp(() async {
       analytics = StubAnalyticsService();
@@ -31,10 +32,14 @@ void main() {
       prefs = await SharedPreferences.getInstance();
       chatRepo = _StubChatRepository();
       discoveryRepo = _StubDiscoveryRepository();
+      notificationSyncCalls = <Map<String, Object?>>[];
       cubit = SafetyCubit(
         preferences: prefs,
         chatRepository: chatRepo,
         discoveryRepository: discoveryRepo,
+        notificationPreferenceSync: (preferences) async {
+          notificationSyncCalls.add(Map<String, Object?>.from(preferences));
+        },
       );
     });
 
@@ -53,6 +58,9 @@ void main() {
         preferences: prefs,
         chatRepository: chatRepo,
         discoveryRepository: discoveryRepo,
+        notificationPreferenceSync: (preferences) async {
+          notificationSyncCalls.add(Map<String, Object?>.from(preferences));
+        },
       );
     }
 
@@ -203,6 +211,10 @@ void main() {
         prefs.getStringList('safety_muted_calls'),
         isNot(contains('target')),
       );
+      expect(notificationSyncCalls.last, {
+        'mutedMessages': <String>[],
+        'mutedCalls': <String>[],
+      });
     });
 
     test(
@@ -210,7 +222,6 @@ void main() {
       () async {
         final recent = DateTime.now().subtract(const Duration(days: 2));
         final stale = DateTime.now().subtract(const Duration(days: 12));
-        final recentDateOnly = recent.toIso8601String().split('T').first;
         final staleDateOnly = stale.toIso8601String().split('T').first;
 
         await recreateCubitWithPrefs({
@@ -218,7 +229,7 @@ void main() {
           'safety_muted_messages': ['muted-message-user'],
           'safety_muted_calls': ['muted-call-user'],
           'safety_reported_users': [
-            'recent-user:$recentDateOnly',
+            'recent-user:${recent.toIso8601String()}',
             'stale-user:$staleDateOnly',
             'invalid-format',
             'bad-time:not-a-date',
@@ -239,10 +250,12 @@ void main() {
     test(
       'loadProfilesForSafetyUsers fetches uncached users and uses placeholders',
       () async {
+        final reportedAt = DateTime.now().toIso8601String();
         await recreateCubitWithPrefs({
           'safety_blocked': ['found-user', 'missing-user'],
           'safety_muted_messages': ['error-user'],
           'safety_muted_calls': ['found-user'],
+          'safety_reported_users': ['reported-user:$reportedAt'],
         });
 
         discoveryRepo.profilesById['found-user'] = _profile(
@@ -250,12 +263,16 @@ void main() {
           name: 'Found User',
           photoUrls: const ['https://example.com/p.jpg'],
         );
+        discoveryRepo.profilesById['reported-user'] = _profile(
+          id: 'reported-user',
+          name: 'Reported User',
+        );
         discoveryRepo.throwForIds.add('error-user');
 
         await cubit.loadProfilesForSafetyUsers();
 
         expect(cubit.state.isLoadingProfiles, isFalse);
-        expect(discoveryRepo.fetchProfileCalls.toSet().length, 3);
+        expect(discoveryRepo.fetchProfileCalls.toSet().length, 4);
         expect(cubit.getProfileInfo('found-user')?.name, 'Found User');
         expect(
           cubit.getProfileInfo('found-user')?.photoUrl,
@@ -263,10 +280,11 @@ void main() {
         );
         expect(cubit.getProfileInfo('missing-user')?.name, 'User missing-user');
         expect(cubit.getProfileInfo('error-user')?.name, 'User error-user');
+        expect(cubit.getProfileInfo('reported-user')?.name, 'Reported User');
         expect(cubit.getProfileInfo('unknown'), isNull);
 
         await cubit.loadProfilesForSafetyUsers();
-        expect(discoveryRepo.fetchProfileCalls.toSet().length, 3);
+        expect(discoveryRepo.fetchProfileCalls.toSet().length, 4);
       },
     );
   });

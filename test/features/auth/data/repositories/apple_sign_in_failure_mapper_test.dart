@@ -85,5 +85,50 @@ void main() {
         'Apple Sign-In is not enabled for this project yet.',
       );
     });
+
+    test('maps account-exists-with-different-credential to emailAlreadyInUse',
+        () {
+      final failure = mapAppleSignInFailure(
+        fb.FirebaseAuthException(
+          code: 'account-exists-with-different-credential',
+          message: 'Account exists.',
+        ),
+      );
+
+      expect(failure.type, AuthFailureType.emailAlreadyInUse);
+      expect(failure.message, contains('different sign-in method'));
+    });
+
+    test('maps invalid-credential and missing-or-invalid-nonce to retry', () {
+      for (final code in const <String>[
+        'invalid-credential',
+        'missing-or-invalid-nonce',
+      ]) {
+        final failure = mapAppleSignInFailure(
+          fb.FirebaseAuthException(code: code, message: 'bad nonce'),
+        );
+
+        expect(failure.type, AuthFailureType.invalidCredentials);
+        expect(
+          failure.message,
+          'Apple Sign-In credentials were rejected. Please try again.',
+        );
+      }
+    });
+
+    test('maps too-many-requests and network-request-failed', () {
+      final rateLimited = mapAppleSignInFailure(
+        fb.FirebaseAuthException(code: 'too-many-requests', message: 'slow'),
+      );
+      expect(rateLimited.type, AuthFailureType.rateLimited);
+
+      final network = mapAppleSignInFailure(
+        fb.FirebaseAuthException(
+          code: 'network-request-failed',
+          message: 'offline',
+        ),
+      );
+      expect(network.type, AuthFailureType.network);
+    });
   });
 }

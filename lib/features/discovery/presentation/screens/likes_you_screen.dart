@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:crushhour/core/routing/premium_cta_helper.dart';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/design_system/tokens/blur.dart';
@@ -349,11 +350,9 @@ class _LikesYouScreenState extends State<LikesYouScreen> {
 
       if (match != null && mounted) {
         // It's a match! Show celebration
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("It's a match with ${profile.publicDisplayName}!"),
-            backgroundColor: DsColors.success,
-          ),
+        showSuccessSnackBar(
+          context,
+          "It's a match with ${profile.publicDisplayName}!",
         );
       }
 

@@ -1,6 +1,7 @@
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 
 import 'chat_state.dart' show ChatState;
 
@@ -283,4 +284,18 @@ class ChatE2eeToggled extends ChatEvent {
 
   @override
   List<Object?> get props => [enabled];
+}
+
+/// App lifecycle transition while a conversation is open (CHAT-RT-002).
+///
+/// Backgrounding must clear the user's own outgoing typing indicator (so the
+/// peer does not see a stale "typing…" once the debounce timer is frozen by the
+/// OS) and mark them offline; foregrounding restores presence.
+class ChatAppLifecycleChanged extends ChatEvent {
+  final AppLifecycleState lifecycleState;
+
+  ChatAppLifecycleChanged(this.lifecycleState);
+
+  @override
+  List<Object?> get props => [lifecycleState];
 }

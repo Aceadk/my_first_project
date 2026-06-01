@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:crushhour/core/services/analytics_service.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/message.dart';
@@ -720,6 +721,64 @@ void main() {
         },
       );
     });
+
+    group('App lifecycle (CHAT-RT-002)', () {
+      test(
+        'backgrounding clears typing and presence; resume restores presence',
+        () async {
+          final chatRepo = _FakeChatRepository();
+          final authRepo = _FakeAuthRepository();
+          addTearDown(authRepo.dispose);
+          final bloc = ChatBloc(
+            chatRepository: chatRepo,
+            subscriptionRepository: _FakeSubscriptionRepository(
+              SubscriptionTier.free,
+            ),
+            authRepository: authRepo,
+          );
+
+          bloc.add(ChatOpened('match-1', 'user-1', 'user-2'));
+          await Future.delayed(const Duration(milliseconds: 150));
+          // Ignore the setPresence(true) emitted while opening.
+          chatRepo.typingValues.clear();
+          chatRepo.presenceValues.clear();
+
+          bloc.didChangeAppLifecycleState(AppLifecycleState.paused);
+          await Future.delayed(const Duration(milliseconds: 60));
+          expect(chatRepo.typingValues, contains(false));
+          expect(chatRepo.presenceValues.last, isFalse);
+
+          bloc.didChangeAppLifecycleState(AppLifecycleState.resumed);
+          await Future.delayed(const Duration(milliseconds: 60));
+          expect(chatRepo.presenceValues.last, isTrue);
+
+          await bloc.close();
+        },
+      );
+
+      test('lifecycle change with no active conversation is a no-op', () async {
+        final chatRepo = _FakeChatRepository();
+        final authRepo = _FakeAuthRepository();
+        addTearDown(authRepo.dispose);
+        final bloc = ChatBloc(
+          chatRepository: chatRepo,
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionTier.free,
+          ),
+          authRepository: authRepo,
+        );
+
+        // No ChatOpened -> no active session, so lifecycle events do nothing.
+        bloc.didChangeAppLifecycleState(AppLifecycleState.paused);
+        bloc.didChangeAppLifecycleState(AppLifecycleState.resumed);
+        await Future.delayed(const Duration(milliseconds: 60));
+
+        expect(chatRepo.typingValues, isEmpty);
+        expect(chatRepo.presenceValues, isEmpty);
+
+        await bloc.close();
+      });
+    });
   });
 }
 
@@ -776,6 +835,10 @@ class _FakeChatRepository implements ChatRepository {
   final List<Message> sent = [];
   int uploads = 0;
   int typingCalls = 0;
+  // CHAT-RT-002: record the actual isTyping / presence values for lifecycle
+  // assertions (additive — existing tests only read the counters above).
+  final List<bool> typingValues = [];
+  final List<bool> presenceValues = [];
   int unsendCalls = 0;
   int editCalls = 0;
   int unmatchCalls = 0;
@@ -811,6 +874,7 @@ class _FakeChatRepository implements ChatRepository {
     required bool isTyping,
   }) async {
     typingCalls++;
+    typingValues.add(isTyping);
   }
 
   @override
@@ -823,7 +887,9 @@ class _FakeChatRepository implements ChatRepository {
   Future<void> setPresence({
     required String userId,
     required bool isOnline,
-  }) async {}
+  }) async {
+    presenceValues.add(isOnline);
+  }
 
   @override
   Stream<bool> watchMediaSendingEnabled(String matchId) {

@@ -60,6 +60,48 @@ describe('callables auth/args', () => {
     }
   });
 
+  it('requestAccountDeletion requires auth before scheduling deletion', async () => {
+    const wrapped = functionsTest.wrap(functions.requestAccountDeletion);
+    try {
+      await wrapped({ reason: 'privacy' }, { auth: null });
+      throw new Error('Expected unauthenticated error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('unauthenticated');
+    }
+  });
+
+  it('requestDataExport requires auth before creating an export job', async () => {
+    const wrapped = functionsTest.wrap(functions.requestDataExport);
+    try {
+      await wrapped({}, { auth: null });
+      throw new Error('Expected unauthenticated error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('unauthenticated');
+    }
+  });
+
+  it('requestDataExport requires verified email for password users', async () => {
+    const wrapped = functionsTest.wrap(functions.requestDataExport);
+    try {
+      await wrapped({}, {
+        auth: {
+          uid: 'user-1',
+          token: {
+            email: 'user@example.com',
+            email_verified: false,
+            firebase: { sign_in_provider: 'password' },
+          },
+        },
+      });
+      throw new Error('Expected permission-denied error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('permission-denied');
+    }
+  });
+
   it('verifyPurchaseReceipt requires auth', async () => {
     const wrapped = functionsTest.wrap(functions.verifyPurchaseReceipt);
     try {

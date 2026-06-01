@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
@@ -29,7 +30,7 @@ enum _ChatSubscriptionKey {
 /// - [ChatSessionCubit]: unmatch, E2EE toggle, other-user photo
 /// - [MessageHandlingBloc]: messages, send/receive/edit/unsend/delete,
 ///   reactions, pagination, retry
-class ChatBloc extends Bloc<ChatEvent, ChatState> {
+class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
   final ChatRepository chatRepository;
   final SubscriptionRepository subscriptionRepository;
   final AuthRepository authRepository;
@@ -42,6 +43,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // ---- Managed stream subscriptions ----
   final Map<_ChatSubscriptionKey, StreamSubscription<dynamic>>
   _managedSubscriptions = <_ChatSubscriptionKey, StreamSubscription<dynamic>>{};
+
+  // ---- Active conversation (for lifecycle-driven typing/presence) ----
+  String? _activeMatchId;
+  String? _activeUserId;
+  bool _lifecycleObserverRegistered = false;
 
   ChatBloc({
     required this.chatRepository,
@@ -98,6 +104,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatMessageDiscardRequested>(_onMessageDiscardRequested);
     on<ChatResetRequested>(_onResetRequested);
     on<ChatE2eeToggled>(_onE2eeToggled);
+    on<ChatAppLifecycleChanged>(_onAppLifecycleChanged);
 
     // Subscribe to auth state changes to reset on logout.
     _setManagedSubscription<Object?>(
@@ -105,6 +112,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       authRepository.authStateChanges(),
       _onAuthUserChanged,
     );
+
+    // CHAT-RT-002: observe app lifecycle so backgrounding clears the outgoing
+    // typing indicator and presence. Guarded so the BLoC can still be built in
+    // environments without an initialized binding (e.g. isolated unit tests).
+    try {
+      WidgetsBinding.instance.addObserver(this);
+      _lifecycleObserverRegistered = true;
+    } catch (e) {
+      AppLogger.debug('ChatBloc: lifecycle observer unavailable: $e');
+    }
   }
 
   // =========================================================================
@@ -162,6 +179,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   // =========================================================================
 
   Future<void> _onChatOpened(ChatOpened event, Emitter<ChatState> emit) async {
+    // Record the active conversation for lifecycle-driven typing/presence.
+    _activeMatchId = event.matchId;
+    _activeUserId = event.currentUserId;
+
     // Reset realtime state
     _realtimeCubit.reset();
     _realtimeCubit.updateMediaEnabled(true);
@@ -216,6 +237,63 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
     await _cancelRealtimeSubscriptions();
     _messageBloc.cancelSubscriptions();
+
+    _activeMatchId = null;
+    _activeUserId = null;
+  }
+
+  // ---- App lifecycle -> clear outgoing typing + toggle presence ----
+
+  Future<void> _onAppLifecycleChanged(
+    ChatAppLifecycleChanged event,
+    Emitter<ChatState> emit,
+  ) async {
+    final matchId = _activeMatchId;
+    final userId = _activeUserId;
+    // No active conversation: nothing to clean up.
+    if (matchId == null || userId == null) return;
+
+    switch (event.lifecycleState) {
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        // Clear our own typing indicator so the peer doesn't see a stale
+        // "typing…" once the OS freezes the debounce timer, and go offline.
+        await Result.guard(
+          () => chatRepository.setTyping(
+            matchId: matchId,
+            userId: userId,
+            isTyping: false,
+          ),
+          logLabel: 'ChatRepository.setTyping (background)',
+          fallbackError: 'Could not update typing status.',
+        );
+        await Result.guard(
+          () => chatRepository.setPresence(userId: userId, isOnline: false),
+          logLabel: 'ChatRepository.setPresence (background)',
+          fallbackError: 'Could not update presence.',
+        );
+        break;
+      case AppLifecycleState.resumed:
+        // Coming back to the foreground: mark online again.
+        await Result.guard(
+          () => chatRepository.setPresence(userId: userId, isOnline: true),
+          logLabel: 'ChatRepository.setPresence (foreground)',
+          fallbackError: 'Could not update presence.',
+        );
+        break;
+      case AppLifecycleState.inactive:
+        // Transient (e.g. notification shade / app switcher peek). Ignore to
+        // avoid flapping presence/typing on momentary interruptions.
+        break;
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!isClosed) {
+      add(ChatAppLifecycleChanged(state));
+    }
   }
 
   // ---- Message events -> MessageHandlingBloc ----
@@ -437,6 +515,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     AppLogger.debug('ChatBloc: Resetting chat state on logout');
     await _cancelRealtimeSubscriptions();
 
+    _activeMatchId = null;
+    _activeUserId = null;
     _realtimeCubit.reset();
     _sessionCubit.reset();
     _messageBloc.add(MsgResetRequested());
@@ -552,6 +632,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
   @override
   Future<void> close() async {
+    if (_lifecycleObserverRegistered) {
+      try {
+        WidgetsBinding.instance.removeObserver(this);
+      } catch (e) {
+        AppLogger.error('ChatBloc: Error removing lifecycle observer: $e');
+      }
+      _lifecycleObserverRegistered = false;
+    }
+
     await _cancelAllManagedSubscriptions();
 
     // Close sub-BLoCs with error isolation

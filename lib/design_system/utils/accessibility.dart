@@ -44,8 +44,15 @@ class DsAccessibility {
   }
 
   /// Get an accessible text color (black or white) for a given background.
+  ///
+  /// Picks whichever of black/white yields the higher contrast ratio instead of
+  /// a fixed luminance cutoff. A 0.5 cutoff mis-picks white for saturated
+  /// mid-tone tokens such as the success/mint color (luminance ~0.44), which
+  /// only reaches 2.16:1 against white but 9.72:1 against black.
   static Color accessibleTextColor(Color background) {
-    return background.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    final onBlack = contrastRatio(Colors.black, background);
+    final onWhite = contrastRatio(Colors.white, background);
+    return onBlack >= onWhite ? Colors.black : Colors.white;
   }
 
   // ==========================================================================

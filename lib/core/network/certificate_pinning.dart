@@ -109,14 +109,20 @@ class CertificatePinning {
   }
 
   /// Validates the server certificate against pinned fingerprints.
+  ///
+  /// This is installed as [HttpClient.badCertificateCallback], which only fires
+  /// when the platform trust store has already rejected the certificate.
   static bool _validateCertificate(
     X509Certificate cert,
     String host,
     int port,
   ) {
-    // Skip pinning for non-pinned hosts
+    // For non-pinned hosts we have no override to apply, so honor the platform
+    // rejection. Returning true here would blanket-accept any invalid
+    // certificate for every non-pinned host whenever the pinned client is
+    // active, defeating TLS validation.
     if (!_isPinnedHost(host)) {
-      return true;
+      return false;
     }
 
     // Get the certificate fingerprint
@@ -164,6 +170,15 @@ class CertificatePinning {
   @visibleForTesting
   static bool isPinnedHostForTesting(String host) {
     return _isPinnedHost(host);
+  }
+
+  @visibleForTesting
+  static bool validateCertificateForTesting(
+    X509Certificate cert,
+    String host,
+    int port,
+  ) {
+    return _validateCertificate(cert, host, port);
   }
 
   /// Gets the expected fingerprints for a host.

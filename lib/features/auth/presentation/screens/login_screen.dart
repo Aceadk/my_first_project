@@ -161,6 +161,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           suffixIcon: _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          suffixSemanticLabel: _obscurePassword
+                              ? context.l10n.a11yShowPassword
+                              : context.l10n.a11yHidePassword,
                           onSuffixTap: () => setState(
                             () => _obscurePassword = !_obscurePassword,
                           ),

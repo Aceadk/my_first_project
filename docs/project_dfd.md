@@ -1,6 +1,6 @@
 # Data Flow Diagram (DFD) — CrushHour Dating App
 
-*Last updated: 2026-04-21*
+*Last updated: 2026-05-30*
 
 ---
 
@@ -22,7 +22,7 @@ The highest-level view showing the system as a single process with all external 
 ```mermaid
 flowchart TB
     subgraph External Entities
-        U[("👤 Mobile User<br/>(iOS/Android)")]
+        U[("👤 User<br/>(iOS/Android/Web)")]
         FB[("🔥 Firebase<br/>Services")]
         ST[("💳 Stripe<br/>Payments")]
         AG[("📹 Agora<br/>Video SDK")]
@@ -61,11 +61,19 @@ Call-signaling callable exports now route through the same shared callable App
 Check/error-normalization helper as the rest of the backend callable surface,
 instead of maintaining a separate signaling-specific wrapper.
 
+### Notification Parity Note (2026-05-30)
+
+Mobile and web push share contextual permission timing, canonical
+`notificationPrefs`, FCM token storage under `/users/{uid}/fcmTokens/{token}`,
+and allowlisted notification tap routing. Backend send filters re-check current
+preferences, muted sender/caller lists, and direct block relationships before
+delivery; safety alerts remain deliverable.
+
 ### External Entity Descriptions
 
 | Entity | Type | Description |
 |--------|------|-------------|
-| Mobile User | Human | iOS/Android app user performing dating activities |
+| User | Human | iOS/Android/web user performing dating activities |
 | Firebase Services | System | Authentication, Firestore DB, Cloud Storage, FCM, Cloud Functions |
 | Stripe | System | Payment processing for subscriptions |
 | Agora | System | Real-time video/audio calling SDK |
@@ -518,6 +526,8 @@ flowchart TB
         P5_4["5.4<br/>Send<br/>Push"]
         P5_5["5.5<br/>Send<br/>Email"]
         P5_6["5.6<br/>Check<br/>Preferences"]
+        P5_7["5.7<br/>Manage FCM<br/>Token"]
+        P5_8["5.8<br/>Resolve Tap<br/>Route"]
     end
 
     subgraph "Data Stores"
@@ -533,10 +543,14 @@ flowchart TB
     P5_6 <--> DS_PREFS
     P5_6 -->|"Push Enabled"| P5_4
     P5_6 -->|"Email Enabled"| P5_5
+    U -->|"Permission<br/>Grant/Revoke"| P5_7
+    P5_7 <--> DS_FCM
 
     P5_4 <--> DS_FCM
     P5_4 -->|"FCM Message"| FCM
-    FCM -->|"Push"| U
+    FCM -->|"Push / Web Push"| U
+    U -->|"Notification Tap"| P5_8
+    P5_8 -->|"Allowlisted Route<br/>or Fallback"| U
 
     P5_5 -->|"Email"| RS
     RS -->|"Delivery"| U
@@ -994,6 +1008,18 @@ flowchart TB
 | notificationPrefs.email | boolean | Email enabled |
 | notificationPrefs.sound | boolean | Sound enabled |
 | notificationPrefs.vibration | boolean | Vibration enabled |
+| notificationPrefs.matches | boolean | Match notifications enabled |
+| notificationPrefs.messages | boolean | Message notifications enabled |
+| notificationPrefs.likes | boolean | Like notifications enabled |
+| notificationPrefs.profileViews | boolean | Profile-view notifications enabled |
+| notificationPrefs.promotions | boolean | Promotions and weekly-picks notifications enabled |
+| notificationPrefs.subscriptions | boolean | Subscription notifications enabled |
+| notificationPrefs.safetyAlerts | boolean | Safety alerts; backend keeps deliverable |
+| notificationPrefs.quietHoursEnabled | boolean | Quiet-hours suppression enabled |
+| notificationPrefs.quietHoursStart | number | Local quiet-hours start hour |
+| notificationPrefs.quietHoursEnd | number | Local quiet-hours end hour |
+| notificationPrefs.mutedMessages | string[] | Sender IDs suppressed for message pushes |
+| notificationPrefs.mutedCalls | string[] | Caller IDs suppressed for call pushes |
 | createdAt | timestamp | Account creation |
 | updatedAt | timestamp | Last update |
 
@@ -1088,7 +1114,7 @@ flowchart TB
 | D8 | `/message_requests/{id}` | Pre-match message requests | Participants only |
 | D4 | `/likes/{id}` | Like records | Server managed |
 | D4.1 | `/like_limits/{uid}` | Daily like limits | Server only |
-| D5.1 | `/users/{uid}/fcmTokens/{token}` | FCM tokens | Owner only |
+| D5.1 | `/users/{uid}/fcmTokens/{token}` | FCM tokens (`platform`: iOS/Android/web) | Owner only |
 | D6 | `/subscriptions/{uid}` | Subscription status | Owner + server |
 | D6.1 | `/checkout_sessions/{id}` | Checkout tracking | Server only |
 | D7 | `/reports/{id}` | User reports | Reporter + admin |

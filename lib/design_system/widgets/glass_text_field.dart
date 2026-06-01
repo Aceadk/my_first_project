@@ -37,6 +37,7 @@ class GlassTextField extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.onSuffixTap,
+    this.suffixSemanticLabel,
     this.obscureText = false,
     this.keyboardType,
     this.textInputAction,
@@ -64,6 +65,10 @@ class GlassTextField extends StatefulWidget {
   final IconData? prefixIcon;
   final IconData? suffixIcon;
   final VoidCallback? onSuffixTap;
+
+  /// Screen-reader label for the tappable suffix icon (e.g. "Show password").
+  /// Required for the suffix to pass the labeled-tap-target guideline.
+  final String? suffixSemanticLabel;
   final bool obscureText;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
@@ -210,6 +215,7 @@ class _GlassTextFieldState extends State<GlassTextField> {
                   suffixIcon: widget.suffixIcon != null
                       ? Semantics(
                           button: true,
+                          label: widget.suffixSemanticLabel,
                           child: GestureDetector(
                             onTap: widget.onSuffixTap,
                             child: Icon(

@@ -7,6 +7,7 @@ import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/data/models/subscription.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
+import 'package:crushhour/features/chat/domain/usecases/message_reconciler.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,13 +51,13 @@ class MessageHandlingState extends Equatable {
     this.errorMessage,
   });
 
-  /// Combined list of messages including failed ones for display.
-  List<Message> get allMessages {
-    if (failedMessages.isEmpty) return messages;
-    final combined = [...messages, ...failedMessages.values];
-    combined.sort((a, b) => a.sentAt.compareTo(b.sentAt));
-    return combined;
-  }
+  /// Combined list of messages including optimistic/failed ones for display,
+  /// de-duplicated against their confirmed server copies and deterministically
+  /// ordered (CHAT-RT-001).
+  List<Message> get allMessages => MessageReconciler.combineForDisplay(
+    confirmed: messages,
+    pending: failedMessages,
+  );
 
   MessageHandlingState copyWith({
     List<Message>? messages,
@@ -821,16 +822,20 @@ class MessageHandlingBloc
     if (result.isSuccess && result.data != null) {
       final paginated = result.data!;
       final decrypted = await _maybeDecryptMessages(paginated.items);
-      var allMessages = [...decrypted, ...state.messages];
-
-      // Trim newest messages if exceeding memory cap (user is scrolling up)
-      if (allMessages.length > _maxMessagesInMemory) {
-        allMessages = allMessages.sublist(0, _maxMessagesInMemory);
-      }
+      // Merge older history into the existing window (dedupe + order), then
+      // evict the newest beyond the cap: the user is scrolling up, so the
+      // freshly-loaded older context is what must stay resident.
+      final merged = MessageReconciler.capKeepingOldest(
+        MessageReconciler.mergeServerMessages(
+          existing: state.messages,
+          incoming: decrypted,
+        ),
+        _maxMessagesInMemory,
+      );
 
       emit(
         state.copyWith(
-          messages: allMessages,
+          messages: merged,
           isLoadingMore: false,
           hasMoreMessages: paginated.hasMore,
         ),
@@ -858,16 +863,18 @@ class MessageHandlingBloc
     if (uniqueNewMessages.isEmpty) return;
 
     final decryptedNewMessages = await _maybeDecryptMessages(uniqueNewMessages);
-    var allMessages = [...state.messages, ...decryptedNewMessages];
+    // Merge (dedupe by id + restore chronological order even when a late
+    // message arrives out of sequence), then evict the oldest beyond the cap
+    // since the user is anchored at the newest end of the conversation.
+    final merged = MessageReconciler.capKeepingNewest(
+      MessageReconciler.mergeServerMessages(
+        existing: state.messages,
+        incoming: decryptedNewMessages,
+      ),
+      _maxMessagesInMemory,
+    );
 
-    // Trim oldest messages if exceeding memory cap
-    if (allMessages.length > _maxMessagesInMemory) {
-      allMessages = allMessages.sublist(
-        allMessages.length - _maxMessagesInMemory,
-      );
-    }
-
-    emit(state.copyWith(messages: allMessages));
+    emit(state.copyWith(messages: merged));
   }
 
   // ---- Legacy Messages Updated ----
@@ -878,34 +885,21 @@ class MessageHandlingBloc
   ) async {
     final decryptedMessages = await _maybeDecryptMessages(event.messages);
 
-    // Remove optimistic messages that now have real counterparts from server
-    final updatedFailedMessages = Map<String, Message>.from(
-      state.failedMessages,
+    // The legacy stream delivers the full authoritative snapshot; order it
+    // deterministically and drop any optimistic message whose server copy has
+    // now landed (matched by id or content signature within the window).
+    final ordered = MessageReconciler.mergeServerMessages(
+      existing: const [],
+      incoming: decryptedMessages,
     );
-    final serverMessageSignatures = decryptedMessages
-        .map((m) => '${m.fromUserId}_${m.content}_${m.type.name}')
-        .toSet();
-
-    updatedFailedMessages.removeWhere((tempId, optimisticMsg) {
-      final signature =
-          '${optimisticMsg.fromUserId}_${optimisticMsg.content}_${optimisticMsg.type.name}';
-      if (serverMessageSignatures.contains(signature)) {
-        final matchingServerMsg = decryptedMessages.firstWhere(
-          (m) => '${m.fromUserId}_${m.content}_${m.type.name}' == signature,
-          orElse: () => optimisticMsg,
-        );
-        final timeDiff = matchingServerMsg.sentAt
-            .difference(optimisticMsg.sentAt)
-            .inSeconds
-            .abs();
-        return timeDiff < 30;
-      }
-      return false;
-    });
+    final updatedFailedMessages = MessageReconciler.prunePending(
+      pending: state.failedMessages,
+      confirmed: ordered,
+    );
 
     emit(
       state.copyWith(
-        messages: decryptedMessages,
+        messages: ordered,
         canUnsend: event.tier.hasPremium,
         canEdit: event.tier.hasPremium,
         canSeeReadReceipts: event.tier.hasPremium,

@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crushhour/core/app_logger.dart';
-import 'package:crushhour/core/security/secure_logger.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -89,7 +88,10 @@ class PushNotificationService {
   saveNotificationPrefsOverride;
 
   @visibleForTesting
-  Future<void> Function()? requestPermissionOverride;
+  Future<AuthorizationStatus> Function()? requestPermissionOverride;
+
+  @visibleForTesting
+  Future<AuthorizationStatus> Function()? authorizationStatusOverride;
 
   @visibleForTesting
   Future<void> Function()? initializeLocalNotificationsOverride;
@@ -99,9 +101,6 @@ class PushNotificationService {
 
   @visibleForTesting
   void Function()? setupMessageHandlersOverride;
-
-  @visibleForTesting
-  Future<void> Function()? printFcmTokenOverride;
 
   @visibleForTesting
   Future<void> Function(String topic)? subscribeToTopicOverride;
@@ -128,13 +127,6 @@ class PushNotificationService {
 
   /// Initialize the notification service
   Future<void> initialize() async {
-    // Request permission
-    if (requestPermissionOverride != null) {
-      await requestPermissionOverride!();
-    } else {
-      await _requestPermission();
-    }
-
     // Initialize local notifications
     if (initializeLocalNotificationsOverride != null) {
       await initializeLocalNotificationsOverride!();
@@ -155,13 +147,6 @@ class PushNotificationService {
     } else {
       _setupMessageHandlers();
     }
-
-    // Get and print FCM token (for testing)
-    if (printFcmTokenOverride != null) {
-      await printFcmTokenOverride!();
-    } else {
-      await _printFCMToken();
-    }
   }
 
   @visibleForTesting
@@ -174,10 +159,10 @@ class PushNotificationService {
     deleteTokenOverride = null;
     saveNotificationPrefsOverride = null;
     requestPermissionOverride = null;
+    authorizationStatusOverride = null;
     initializeLocalNotificationsOverride = null;
     createNotificationChannelOverride = null;
     setupMessageHandlersOverride = null;
-    printFcmTokenOverride = null;
     subscribeToTopicOverride = null;
     unsubscribeFromTopicOverride = null;
     cancelNotificationOverride = null;
@@ -220,7 +205,11 @@ class PushNotificationService {
   }
 
   /// Request notification permissions
-  Future<void> _requestPermission() async {
+  Future<AuthorizationStatus> requestNotificationPermission() async {
+    if (requestPermissionOverride != null) {
+      return requestPermissionOverride!();
+    }
+
     final settings = await _messaging.requestPermission(
       alert: true,
       announcement: false,
@@ -232,6 +221,32 @@ class PushNotificationService {
     );
 
     AppLogger.debug('Notification permission: ${settings.authorizationStatus}');
+    return settings.authorizationStatus;
+  }
+
+  Future<AuthorizationStatus> _getAuthorizationStatus() async {
+    if (authorizationStatusOverride != null) {
+      return authorizationStatusOverride!();
+    }
+
+    final settings = await _messaging.getNotificationSettings();
+    return settings.authorizationStatus;
+  }
+
+  bool _canRegisterForPush(AuthorizationStatus status) {
+    return status == AuthorizationStatus.authorized ||
+        status == AuthorizationStatus.provisional;
+  }
+
+  Future<bool> requestPermissionForCurrentUser() async {
+    final status = await requestNotificationPermission();
+    if (!_canRegisterForPush(status)) return false;
+
+    final userId = _currentUserId;
+    if (userId != null) {
+      await registerForUser(userId);
+    }
+    return true;
   }
 
   /// Initialize flutter_local_notifications
@@ -241,9 +256,9 @@ class PushNotificationService {
     );
 
     const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
     );
 
     const initSettings = InitializationSettings(
@@ -285,7 +300,9 @@ class PushNotificationService {
     AppLogger.debug('Foreground message: ${message.messageId}');
 
     // NOTIF-002: Suppress notifications sent by the current user
-    final senderId = message.data['senderId'] as String?;
+    final senderId =
+        message.data['senderId'] as String? ??
+        message.data['fromUserId'] as String?;
     if (senderId != null && senderId == _currentUserId) {
       AppLogger.debug('Suppressed self-notification from $senderId');
       return;
@@ -482,17 +499,20 @@ class PushNotificationService {
     return await _messaging.getToken();
   }
 
-  /// Print FCM token for testing (redacted for security)
-  Future<void> _printFCMToken() async {
-    final token = await getToken();
-    // SECURITY: Never log full FCM tokens - use SecureLogger
-    SecureLogger.logToken(type: 'FCM', token: token);
-  }
-
   /// Register FCM token for a user (call after login).
   /// Also stores the device's timezone for smart notification scheduling.
   Future<void> registerForUser(String userId) async {
     _currentUserId = userId;
+    await _saveTimezone(userId);
+
+    final status = await _getAuthorizationStatus();
+    if (!_canRegisterForPush(status)) {
+      await _tokenRefreshSub?.cancel();
+      _tokenRefreshSub = null;
+      AppLogger.debug('Push token registration skipped: $status');
+      return;
+    }
+
     final token = await getToken();
     if (token != null) {
       if (saveTokenOverride != null) {
@@ -501,9 +521,6 @@ class PushNotificationService {
         await _saveTokenToFirestore(userId, token);
       }
     }
-
-    // Store user's timezone for smart scheduling (quiet hours)
-    _saveTimezone(userId);
 
     // NOTIF-001: Cancel previous token-refresh listener before creating new one
     await _tokenRefreshSub?.cancel();
@@ -518,6 +535,24 @@ class PushNotificationService {
         }
       }
     });
+  }
+
+  /// Disable push delivery for the current signed-in user without clearing auth
+  /// state. Server-side preferences suppress delivery, and this removes the
+  /// local token from the user's token set as a lifecycle cleanup.
+  Future<void> disablePushForCurrentUser() async {
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = null;
+
+    final userId = _currentUserId;
+    final token = await getToken();
+    if (userId == null || token == null) return;
+
+    if (deleteTokenOverride != null) {
+      await deleteTokenOverride!(userId, token);
+    } else {
+      await _deleteTokenFromFirestore(userId, token);
+    }
   }
 
   /// Save the device's local timezone to the user's Firestore document.
@@ -634,7 +669,8 @@ class PushNotificationService {
         await saveNotificationPrefsOverride!(userId, prefs);
       } else {
         await _firestore.collection('users').doc(userId).set({
-          'notificationPrefs': prefs,
+          for (final entry in prefs.entries)
+            'notificationPrefs.${entry.key}': entry.value,
           'notificationPrefsUpdatedAt': FieldValue.serverTimestamp(),
           'notificationPrefsUpdatedAtMs': updatedAt.millisecondsSinceEpoch,
         }, SetOptions(merge: true));

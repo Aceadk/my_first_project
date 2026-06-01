@@ -105,12 +105,20 @@ class NotificationSettingsCubit extends Cubit<NotificationSettingsState> {
 
   final NotificationPreferenceSyncService _syncService;
 
-  Future<void> togglePush(bool value) async {
+  Future<bool> togglePush(bool value) async {
+    var enabled = value;
+    if (value) {
+      enabled = await _syncService.requestPushPermissionForCurrentUser();
+    } else {
+      await _syncService.disablePushForCurrentUser();
+    }
+
     await AnalyticsService.instance.logNotificationSettingsChanged(
       type: 'push',
-      enabled: value,
+      enabled: enabled,
     );
-    await _update(state.copyWith(push: value));
+    await _update(state.copyWith(push: enabled));
+    return enabled;
   }
 
   Future<void> toggleEmail(bool value) async {

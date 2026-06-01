@@ -1,6 +1,6 @@
 # Project Flowchart — CrushHour Dating App
 
-*Last updated: 2026-04-21*
+*Last updated: 2026-05-30*
 
 ---
 
@@ -197,7 +197,7 @@ flowchart TD
   S1 --> S1a[Hide Profile]
   S1 --> S1b[Incognito Mode]
 
-  S2 --> S2a[Push Notifications]
+  S2 --> S2a[Push Notifications<br/>Request permission on enable]
   S2 --> S2b[Email Notifications]
   S2 --> S2c[Sound]
   S2 --> S2d[Vibration]
@@ -215,6 +215,29 @@ flowchart TD
   S8 --> S8a[Blocked Users]
   S8 --> S8b[Report User]
 ```
+
+---
+
+## 6.1) Notification Permission + Tap Routing Flow
+
+```mermaid
+flowchart TD
+  U[User opens notification settings] --> T{Enable push?}
+  T -->|Yes| P[Request OS/browser permission]
+  P -->|Granted| R[Register FCM token]
+  P -->|Denied / unsupported| OFF[Keep push disabled]
+  T -->|No| D[Delete current FCM token]
+  R --> PREF[Write notificationPrefs]
+  D --> PREF
+  N[Notification tap] --> RES[Resolve allowlisted route]
+  RES -->|Known route/type| DEST[Open target screen]
+  RES -->|Malformed/external| NC[Notification center]
+```
+
+Notification permission prompts are contextual: app startup configures handlers
+only, while mobile/web token registration happens after permission is already
+granted or after an explicit settings action. Notification taps route through an
+allowlist and fall back to the notification center for malformed payloads.
 
 ---
 
@@ -477,6 +500,7 @@ lib/features/
 - **Safety** route is accessible from all onboarding stages (special exception)
 - The router enforces auth state and onboarding status to prevent accessing protected routes when incomplete
 - **Password change** triggers email notification to user for security
+- **2026-05-30 Notification parity:** Mobile and web push now share contextual permission timing, canonical `notificationPrefs`, allowlisted notification tap routing, and FCM token lifecycle handling. Browser push is registered through the web service worker only after permission is granted.
 - **2026-03-08 Settings Refactor (Preference Sync):** Notification preference writes/hydration are centralized in `NotificationPreferenceSyncService` + `PreferenceSyncEngine` (timestamp-aware local/remote merge), and UI handlers no longer perform direct remote sync writes.
 - **2026-02-23 Web update**: Discovery now includes profile stories with upload from Discover, story tray preview, card story badges, and full-screen story viewer with view tracking.
 - **2026-03-08 Discovery Refactor**: `StoryUpdate` event contract moved to `domain/repositories/story_repository.dart`, removing domain-layer dependency on discovery data services.
