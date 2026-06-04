@@ -6048,6 +6048,48 @@ class AppLocalizationsYue extends AppLocalizations {
   String get callHistory => 'Call History';
 
   @override
+  String get callPipFloatingWindow => 'Floating call window';
+
+  @override
+  String get callPipClose => 'Close floating call window';
+
+  @override
+  String get callPipTapToReturn => 'Tap to return';
+
+  @override
+  String get callPipActiveCall => 'Active call';
+
+  @override
+  String get callIncomingUnknownCaller => 'Unknown caller';
+
+  @override
+  String get callIncomingVideoTitle => 'Incoming video call';
+
+  @override
+  String get callIncomingAudioTitle => 'Incoming audio call';
+
+  @override
+  String callIncomingAutoDismiss(int seconds) {
+    return 'Auto-dismisses in ${seconds}s';
+  }
+
+  @override
+  String get callIncomingChooseAnswer => 'Choose how to answer this call';
+
+  @override
+  String get callIncomingSwipeToAnswer =>
+      'Swipe to answer or use quick actions';
+
+  @override
+  String get callDecline => 'Decline';
+
+  @override
+  String get callAnswerAudio => 'Audio';
+
+  @override
+  String get callSlideToAnswer => 'Slide to answer';
+
+  @override
   String get unableToLoadMoreCall => 'Unable to load more call history.';
 
   @override

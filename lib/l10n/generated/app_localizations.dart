@@ -11369,6 +11369,84 @@ abstract class AppLocalizations {
   /// **'Call History'**
   String get callHistory;
 
+  /// No description provided for @callPipFloatingWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'Floating call window'**
+  String get callPipFloatingWindow;
+
+  /// No description provided for @callPipClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close floating call window'**
+  String get callPipClose;
+
+  /// No description provided for @callPipTapToReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to return'**
+  String get callPipTapToReturn;
+
+  /// No description provided for @callPipActiveCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Active call'**
+  String get callPipActiveCall;
+
+  /// No description provided for @callIncomingUnknownCaller.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown caller'**
+  String get callIncomingUnknownCaller;
+
+  /// No description provided for @callIncomingVideoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming video call'**
+  String get callIncomingVideoTitle;
+
+  /// No description provided for @callIncomingAudioTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming audio call'**
+  String get callIncomingAudioTitle;
+
+  /// No description provided for @callIncomingAutoDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-dismisses in {seconds}s'**
+  String callIncomingAutoDismiss(int seconds);
+
+  /// No description provided for @callIncomingChooseAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose how to answer this call'**
+  String get callIncomingChooseAnswer;
+
+  /// No description provided for @callIncomingSwipeToAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe to answer or use quick actions'**
+  String get callIncomingSwipeToAnswer;
+
+  /// No description provided for @callDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get callDecline;
+
+  /// No description provided for @callAnswerAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get callAnswerAudio;
+
+  /// No description provided for @callSlideToAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide to answer'**
+  String get callSlideToAnswer;
+
   /// No description provided for @unableToLoadMoreCall.
   ///
   /// In en, this message translates to:

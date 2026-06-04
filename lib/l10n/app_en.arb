@@ -2467,6 +2467,26 @@
   },
   "retry": "Retry",
   "callHistory": "Call History",
+  "callPipFloatingWindow": "Floating call window",
+  "callPipClose": "Close floating call window",
+  "callPipTapToReturn": "Tap to return",
+  "callPipActiveCall": "Active call",
+  "callIncomingUnknownCaller": "Unknown caller",
+  "callIncomingVideoTitle": "Incoming video call",
+  "callIncomingAudioTitle": "Incoming audio call",
+  "callIncomingAutoDismiss": "Auto-dismisses in {seconds}s",
+  "@callIncomingAutoDismiss": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "callIncomingChooseAnswer": "Choose how to answer this call",
+  "callIncomingSwipeToAnswer": "Swipe to answer or use quick actions",
+  "callDecline": "Decline",
+  "callAnswerAudio": "Audio",
+  "callSlideToAnswer": "Slide to answer",
   "unableToLoadMoreCall": "Unable to load more call history.",
   "submit": "Submit",
   "cancel": "Cancel",

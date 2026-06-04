@@ -5,6 +5,7 @@ import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -106,8 +107,9 @@ class _PipVideoOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Semantics(
-      label: 'Floating call window',
+      label: l10n.callPipFloatingWindow,
       button: true,
       child: GestureDetector(
         onPanUpdate: (details) => onDragDelta(details.delta),
@@ -174,7 +176,7 @@ class _PipVideoOverlay extends StatelessWidget {
                     end: 4,
                     child: IconButton(
                       visualDensity: VisualDensity.compact,
-                      tooltip: 'Close floating call window',
+                      tooltip: l10n.callPipClose,
                       onPressed: onClose,
                       icon: const Icon(
                         Icons.close,
@@ -190,9 +192,9 @@ class _PipVideoOverlay extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Tap to return',
-                          style: TextStyle(
+                        Text(
+                          l10n.callPipTapToReturn,
+                          style: const TextStyle(
                             color: DsColors.surfaceLight,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -202,7 +204,7 @@ class _PipVideoOverlay extends StatelessWidget {
                         Text(
                           args.matchName?.trim().isNotEmpty == true
                               ? args.matchName!.trim()
-                              : 'Active call',
+                              : l10n.callPipActiveCall,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(

@@ -6,6 +6,7 @@ import 'package:crushhour/features/calls/domain/models/call.dart';
 import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/features/calls/presentation/screens/call_screen.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -199,11 +200,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final call = _incomingCall ?? widget.incomingCall;
     final isVideoCall = call.type == CallType.video;
     final callerName = call.callerName?.trim().isNotEmpty == true
         ? call.callerName!.trim()
-        : 'Unknown caller';
+        : l10n.callIncomingUnknownCaller;
     final callerPhoto = call.callerPhotoUrl;
 
     return Scaffold(
@@ -215,7 +217,9 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
             children: [
               const SizedBox(height: 12),
               Text(
-                isVideoCall ? 'Incoming video call' : 'Incoming audio call',
+                isVideoCall
+                    ? l10n.callIncomingVideoTitle
+                    : l10n.callIncomingAudioTitle,
                 style: TextStyle(
                   color: DsColors.surfaceLight.withValues(alpha: 0.85),
                   fontSize: 16,
@@ -224,7 +228,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
               ),
               const SizedBox(height: 8),
               Text(
-                'Auto-dismisses in ${_secondsRemaining.clamp(0, 999)}s',
+                l10n.callIncomingAutoDismiss(_secondsRemaining.clamp(0, 999)),
                 key: const Key('incoming_timeout_text'),
                 style: TextStyle(
                   color: DsColors.surfaceLight.withValues(alpha: 0.65),
@@ -288,8 +292,8 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
               const SizedBox(height: 10),
               Text(
                 isVideoCall
-                    ? 'Choose how to answer this call'
-                    : 'Swipe to answer or use quick actions',
+                    ? l10n.callIncomingChooseAnswer
+                    : l10n.callIncomingSwipeToAnswer,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: DsColors.surfaceLight.withValues(alpha: 0.72),
@@ -306,7 +310,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                 children: [
                   _buildActionButton(
                     key: const Key('incoming_decline_button'),
-                    label: 'Decline',
+                    label: l10n.callDecline,
                     icon: Icons.call_end_rounded,
                     background: DsColors.error,
                     onPressed: _decline,
@@ -314,7 +318,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                   const SizedBox(width: 12),
                   _buildActionButton(
                     key: const Key('incoming_accept_audio_button'),
-                    label: 'Audio',
+                    label: l10n.callAnswerAudio,
                     icon: Icons.call_rounded,
                     background: DsColors.success,
                     onPressed: () => _accept(CallType.audio),
@@ -323,7 +327,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
                     const SizedBox(width: 12),
                     _buildActionButton(
                       key: const Key('incoming_accept_video_button'),
-                      label: 'Video',
+                      label: l10n.wordVideo,
                       icon: Icons.videocam_rounded,
                       background: DsColors.primary,
                       onPressed: () => _accept(CallType.video),
@@ -365,7 +369,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen>
             children: [
               Center(
                 child: Text(
-                  'Slide to answer',
+                  AppLocalizations.of(context).callSlideToAnswer,
                   style: TextStyle(
                     color: DsColors.surfaceLight.withValues(alpha: 0.8),
                     fontSize: 14,
