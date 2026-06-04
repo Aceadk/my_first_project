@@ -1373,6 +1373,24 @@ abstract class AppLocalizations {
   /// **'Privacy Policy'**
   String get authPrivacyPolicy;
 
+  /// No description provided for @authVerifyPasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Password'**
+  String get authVerifyPasswordTitle;
+
+  /// No description provided for @subscriptionPaywallTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Premium'**
+  String get subscriptionPaywallTitle;
+
+  /// No description provided for @subscriptionCancelSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel subscription'**
+  String get subscriptionCancelSubscription;
+
   /// No description provided for @authDevLogin.
   ///
   /// In en, this message translates to:
@@ -4066,6 +4084,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Step {current} of {total}'**
   String onboardingStep(int current, int total);
+
+  /// No description provided for @onboardingProgressNextStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {step}'**
+  String onboardingProgressNextStep(String step);
+
+  /// No description provided for @onboardingProgressAlmostDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost done'**
+  String get onboardingProgressAlmostDone;
+
+  /// No description provided for @onboardingProgressSkipStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip this step'**
+  String get onboardingProgressSkipStep;
+
+  /// No description provided for @onboardingStepWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get onboardingStepWelcome;
+
+  /// No description provided for @onboardingStepVerifyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify phone'**
+  String get onboardingStepVerifyPhone;
+
+  /// No description provided for @onboardingStepEnterCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code'**
+  String get onboardingStepEnterCode;
+
+  /// No description provided for @onboardingStepBasicInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic info'**
+  String get onboardingStepBasicInfo;
+
+  /// No description provided for @onboardingStepVerifyId.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify ID'**
+  String get onboardingStepVerifyId;
+
+  /// No description provided for @onboardingStepProfileSetup.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile setup'**
+  String get onboardingStepProfileSetup;
+
+  /// No description provided for @commonPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get commonPrevious;
 
   /// No description provided for @onboardingWhatsYourName.
   ///

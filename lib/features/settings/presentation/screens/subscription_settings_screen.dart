@@ -24,7 +24,9 @@ class SubscriptionSettingsScreen extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage subscription')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).settingsManageSubscription),
+      ),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -439,7 +441,9 @@ class _ManageSection extends StatelessWidget {
               key: const Key('subscription_management_cancel_button'),
               onPressed: onCancelSubscription,
               icon: const Icon(Icons.open_in_new),
-              label: const Text('Cancel subscription'),
+              label: Text(
+                AppLocalizations.of(context).subscriptionCancelSubscription,
+              ),
             ),
             DsGap.sm,
             FilledButton.icon(

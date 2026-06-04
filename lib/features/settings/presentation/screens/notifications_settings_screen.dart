@@ -393,11 +393,16 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: trailing,
+    // Merge label + subtitle + control into one semantics node so a screen
+    // reader announces e.g. "Push notifications, …, on, switch" as a single
+    // labeled control instead of an unlabeled bare switch (SET-UI-002).
+    return MergeSemantics(
+      child: ListTile(
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: trailing,
+      ),
     );
   }
 }

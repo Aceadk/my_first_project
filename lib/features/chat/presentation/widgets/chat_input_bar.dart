@@ -14,6 +14,7 @@ import 'package:crushhour/design_system/tokens/spacing_widgets.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
+import 'package:crushhour/features/chat/presentation/widgets/chat_composer_keyboard.dart';
 import 'package:crushhour/features/chat/presentation/widgets/voice_note_recorder.dart';
 import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/shared/dto/message.dart';
@@ -156,16 +157,28 @@ class ChatInputBarState extends State<ChatInputBar>
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is KeyDownEvent || event is KeyRepeatEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.enter) {
-        final isShiftPressed = HardwareKeyboard.instance.isShiftPressed;
-        if (!isShiftPressed) {
-          _sendMessage();
-          return KeyEventResult.handled;
-        }
-      }
+    final isEnter =
+        event.logicalKey == LogicalKeyboardKey.enter ||
+        event.logicalKey == LogicalKeyboardKey.numpadEnter;
+    if (!isEnter) return KeyEventResult.ignored;
+
+    final action = ChatComposerKeyboard.actionForEnter(
+      isKeyDown: event is KeyDownEvent,
+      isKeyRepeat: event is KeyRepeatEvent,
+      isShiftPressed: HardwareKeyboard.instance.isShiftPressed,
+    );
+    switch (action) {
+      case ChatComposerKeyAction.send:
+        _sendMessage();
+        return KeyEventResult.handled;
+      case ChatComposerKeyAction.insertNewline:
+        // Let the text field insert the line break itself.
+        return KeyEventResult.ignored;
+      case ChatComposerKeyAction.ignore:
+        // Consume repeat/up of a plain Enter so no stray newline is inserted
+        // and a held Enter cannot spam-send.
+        return KeyEventResult.handled;
     }
-    return KeyEventResult.ignored;
   }
 
   void _sendMessage() async {
@@ -235,7 +248,10 @@ class ChatInputBarState extends State<ChatInputBar>
             children: [
               ListTile(
                 leading: Icon(Icons.photo_rounded, color: iconColor),
-                title: Text('Photo', style: TextStyle(color: titleColor)),
+                title: Text(
+                  AppLocalizations.of(context).wordPhoto,
+                  style: TextStyle(color: titleColor),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pickAndSendImage(canMessage, completeness);
@@ -243,7 +259,10 @@ class ChatInputBarState extends State<ChatInputBar>
               ),
               ListTile(
                 leading: Icon(Icons.videocam_rounded, color: iconColor),
-                title: Text('Video', style: TextStyle(color: titleColor)),
+                title: Text(
+                  AppLocalizations.of(context).wordVideo,
+                  style: TextStyle(color: titleColor),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pickAndSendVideo(canMessage, completeness);

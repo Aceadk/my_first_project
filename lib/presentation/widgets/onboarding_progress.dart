@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/design_system/design_system.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 
 /// Shared onboarding progress indicator used across splash/auth/setup screens.
 ///
@@ -26,42 +28,70 @@ class OnboardingProgress extends StatelessWidget {
   /// Only used when [showSkip] is true.
   final VoidCallback? onSkip;
 
-  static const List<String> onboardingSteps = [
-    'Welcome',
-    'Verify phone',
-    'Enter code',
-    'Basic info',
-    'Verify ID',
-    'Profile setup',
-  ];
+  /// Number of onboarding steps; labels are resolved per-locale in [build].
+  static const int stepCount = 6;
+
+  /// Localized label for the step at [index].
+  static String _stepLabel(AppLocalizations l10n, int index) {
+    switch (index) {
+      case 0:
+        return l10n.onboardingStepWelcome;
+      case 1:
+        return l10n.onboardingStepVerifyPhone;
+      case 2:
+        return l10n.onboardingStepEnterCode;
+      case 3:
+        return l10n.onboardingStepBasicInfo;
+      case 4:
+        return l10n.onboardingStepVerifyId;
+      default:
+        return l10n.onboardingStepProfileSetup;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
-    final total = onboardingSteps.length;
+    final l10n = context.l10n;
+    const total = stepCount;
     final clampedStep = currentStep.clamp(0, total - 1);
     final progress = (clampedStep + 1) / total;
-    final stepLabel = onboardingSteps[clampedStep];
+    final stepLabel = _stepLabel(l10n, clampedStep);
     final nextLabel = clampedStep + 1 < total
-        ? 'Next: ${onboardingSteps[clampedStep + 1]}'
-        : 'Almost done';
+        ? l10n.onboardingProgressNextStep(_stepLabel(l10n, clampedStep + 1))
+        : l10n.onboardingProgressAlmostDone;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text(
-              'Step ${clampedStep + 1} of $total',
-              style: theme.textTheme.labelLarge,
+            // Counter + step name as a single ellipsizable rich text so a long
+            // step name or large text scale can't overflow the header row; the
+            // Expanded also keeps "Skip" pinned to the trailing edge
+            // (ONBOARD-UI-003).
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${l10n.onboardingStep(clampedStep + 1, total)}  ',
+                      style: theme.textTheme.labelLarge,
+                    ),
+                    TextSpan(
+                      text: stepLabel,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            const SizedBox(width: DsSpacing.sm),
-            Expanded(child: Text(stepLabel, style: theme.textTheme.bodyMedium)),
             if (showSkip && onSkip != null)
               Semantics(
                 button: true,
-                label: 'Skip this step',
+                label: l10n.onboardingProgressSkipStep,
                 child: Semantics(
                   button: true,
                   child: GestureDetector(
@@ -72,7 +102,7 @@ class OnboardingProgress extends StatelessWidget {
                         vertical: DsSpacing.xs,
                       ),
                       child: Text(
-                        'Skip',
+                        l10n.commonSkip,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: DsColors.primary,
                           fontWeight: FontWeight.w600,

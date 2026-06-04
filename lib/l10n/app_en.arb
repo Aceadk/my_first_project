@@ -273,6 +273,9 @@
   "authAgreeToTerms": "By continuing, you agree to our Terms of Service and Privacy Policy",
   "authTermsOfService": "Terms of Service",
   "authPrivacyPolicy": "Privacy Policy",
+  "authVerifyPasswordTitle": "Verify Password",
+  "subscriptionPaywallTitle": "Get Premium",
+  "subscriptionCancelSubscription": "Cancel subscription",
   "authDevLogin": "Dev Login",
   "authUsePhoneInstead": "Use phone instead",
   "authUseEmailInstead": "Use email instead",
@@ -997,6 +1000,23 @@
       }
     }
   },
+  "onboardingProgressNextStep": "Next: {step}",
+  "@onboardingProgressNextStep": {
+    "placeholders": {
+      "step": {
+        "type": "String"
+      }
+    }
+  },
+  "onboardingProgressAlmostDone": "Almost done",
+  "onboardingProgressSkipStep": "Skip this step",
+  "onboardingStepWelcome": "Welcome",
+  "onboardingStepVerifyPhone": "Verify phone",
+  "onboardingStepEnterCode": "Enter code",
+  "onboardingStepBasicInfo": "Basic info",
+  "onboardingStepVerifyId": "Verify ID",
+  "onboardingStepProfileSetup": "Profile setup",
+  "commonPrevious": "Previous",
   "onboardingWhatsYourName": "What's your name?",
   "onboardingWhenBirthday": "When's your birthday?",
   "onboardingSelectGender": "Select your gender",

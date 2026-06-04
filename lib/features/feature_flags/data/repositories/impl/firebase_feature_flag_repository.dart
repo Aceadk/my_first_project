@@ -15,6 +15,7 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
 
   final FirebaseRemoteConfig _remoteConfig;
   final _flagsController = StreamController<FeatureFlags>.broadcast();
+  StreamSubscription<RemoteConfigUpdate>? _configUpdatesSub;
 
   FeatureFlags _currentFlags = FeatureFlags.defaults;
   DateTime? _lastFetchTime;
@@ -40,8 +41,10 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
       // Fetch and activate on startup
       await fetchAndActivate();
 
-      // Listen for real-time updates (if available)
-      _remoteConfig.onConfigUpdated.listen((event) async {
+      // Listen for real-time updates (if available). Stored so it can be
+      // cancelled in dispose() — otherwise it outlives the repository and
+      // fires _updateFlags() after _flagsController is closed.
+      _configUpdatesSub = _remoteConfig.onConfigUpdated.listen((event) async {
         AppLogger.debug('Remote Config updated, activating...');
         await _remoteConfig.activate();
         _updateFlags();
@@ -111,7 +114,10 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
     }
 
     _currentFlags = FeatureFlags.fromMap(map);
-    _flagsController.add(_currentFlags);
+    // Guard against a late config-update callback racing past dispose().
+    if (!_flagsController.isClosed) {
+      _flagsController.add(_currentFlags);
+    }
   }
 
   @override
@@ -196,6 +202,8 @@ class FirebaseFeatureFlagRepository implements FeatureFlagRepository {
   bool get isInitialized => _isInitialized;
 
   void dispose() {
+    _configUpdatesSub?.cancel();
+    _configUpdatesSub = null;
     _flagsController.close();
   }
 }

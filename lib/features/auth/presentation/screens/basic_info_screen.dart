@@ -28,6 +28,10 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
   final _usernameController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
+  // Focus nodes so the soft-keyboard "next" action advances through the text
+  // fields in order (username → first name → last name) (ONBOARD-UI-002).
+  final _firstNameFocus = FocusNode();
+  final _lastNameFocus = FocusNode();
   DateTime? _dateOfBirth;
   String _gender = 'female';
   String? _orientation;
@@ -71,6 +75,8 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
     _usernameController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _firstNameFocus.dispose();
+    _lastNameFocus.dispose();
     super.dispose();
   }
 
@@ -301,6 +307,11 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                               errorText: _usernameErrorText(),
                                               helperText: _usernameHelperText(),
                                               onChanged: _onUsernameChanged,
+                                              textInputAction:
+                                                  TextInputAction.next,
+                                              onSubmitted: (_) =>
+                                                  _firstNameFocus
+                                                      .requestFocus(),
                                             ),
                                           ),
                                           DsGap.lg,
@@ -320,10 +331,17 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                                 .onboardingBasicInfoFirstNameHint,
                                             child: GlassTextField(
                                               controller: _firstNameController,
+                                              focusNode: _firstNameFocus,
                                               hintText: l10n
                                                   .onboardingBasicInfoFirstNameHint,
                                               prefixIcon:
                                                   Icons.person_outline_rounded,
+                                              textCapitalization:
+                                                  TextCapitalization.words,
+                                              textInputAction:
+                                                  TextInputAction.next,
+                                              onSubmitted: (_) =>
+                                                  _lastNameFocus.requestFocus(),
                                               onChanged: (_) => setState(() {}),
                                             ),
                                           ),
@@ -344,9 +362,14 @@ class _BasicInfoScreenState extends State<BasicInfoScreen> {
                                                 .onboardingBasicInfoLastNameHint,
                                             child: GlassTextField(
                                               controller: _lastNameController,
+                                              focusNode: _lastNameFocus,
                                               hintText: l10n
                                                   .onboardingBasicInfoLastNameHint,
                                               prefixIcon: Icons.badge_outlined,
+                                              textCapitalization:
+                                                  TextCapitalization.words,
+                                              textInputAction:
+                                                  TextInputAction.done,
                                               onChanged: (_) => setState(() {}),
                                             ),
                                           ),

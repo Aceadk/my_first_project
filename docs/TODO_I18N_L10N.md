@@ -12,18 +12,18 @@
 - Description: Audit the remaining hardcoded strings and move them into localization resources with stable keys.
 - Acceptance Criteria: critical flows have no hardcoded user-facing copy outside approved exception lists.
 - Testing: localization extraction audit and targeted UI spot checks.
-- Status: open
+- Status: in progress (2026-06-04). Localized onboarding progress/nav widgets + 6 more critical-flow files (phone_protection, change_email, subscription_settings, paywall, chat_input_bar, privacy_settings) via reused + 3 new `app_en.arb` keys; verified by existing tests. **Still open/tracked:** `safety_screen.dart` (~16 strings across ~8 sub-widgets — the remaining hardcoded critical screen), some `calls` strings, likely-legacy `presentation/screens/home/settings_screen.dart`, and the `hardcoded_strings.txt` long tail; legal screens are long-form English (candidate exception list). Report: `docs/reports/i18n_l10n_audit_2026-06-04.md`.
 
 ### I18N-002 - Verify RTL, locale formatting, and text expansion resilience
 - Files: localized strings, date/number formatters, mirrored layouts
 - Description: Ensure RTL layouts, locale-aware formatters, and long translations do not break major screens.
 - Acceptance Criteria: RTL and long-string hotspots are tested and tracked; locale formatting is consistent.
 - Testing: widget/manual checks with Arabic/Hebrew and long-language pseudolocales.
-- Status: open
+- Status: done (2026-06-04). Verified RTL-aware layout: 0 non-directional `EdgeInsets.only(left/right)` in features/presentation vs 108 `EdgeInsetsDirectional` + 130 `AlignmentDirectional`; `intl` `DateFormat` used with active locale; `ar`/`ur` + `en_XA` pseudolocale supported. Added an RTL + 2×-scale regression test for the shared onboarding header. Manual Arabic/Hebrew sweep of major screens remains a release-gate item. Report: `docs/reports/i18n_l10n_audit_2026-06-04.md`.
 
 ### I18N-003 - Audit pluralization and embedded-text asset risks
 - Files: localization resources, UI copy, icons/images with embedded text
 - Description: Validate plural rules and ensure visual assets do not contain language-specific baked-in text.
 - Acceptance Criteria: plural-sensitive flows use proper localization APIs; embedded-text assets are removed or tracked.
 - Testing: localization QA and asset review.
-- Status: open
+- Status: done (2026-06-04). Verified pluralization uses proper ICU `{count, plural, …}` syntax (16 plural keys: time-ago, unread counts, …), not concatenation; one naive count string (`daily_likes_service` "$remaining likes") folded into the I18N-001 backlog. Embedded-text assets limited to the brand wordmark/app icon (acceptable exception) — no localizable baked-in text. Report: `docs/reports/i18n_l10n_audit_2026-06-04.md`.

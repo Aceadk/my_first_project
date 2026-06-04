@@ -77,6 +77,171 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #300 — Crush Web and Mobile Alignment Audit
+**Date:** 2026-06-03
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+User asked to look up `crush-web` and `my_first_project`, check everything that needs to be aligned across both projects, compare all files, and create a proper plan for what needs to be done.
+
+**Developer Intent Analysis:**
+- Primary goal: audit the Flutter/mobile/backend repository and the separate web monorepo for product, architecture, API, data, UX, branding, and deployment alignment gaps.
+- Secondary goal: compare complete repository inventories while avoiding accidental edits to active dirty work.
+- Implicit requirements: ground the plan in local files that exist today, identify priority/risk order, and produce an actionable alignment plan rather than broad guesses.
+- Quality expectations: use targeted scans, preserve repository boundaries, update required collaboration docs, and verify the documentation workflow guard.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Produce a concrete cross-repository alignment plan for `my_first_project` and `crush-web`.
+- **Scope:** inventory non-ignored files in both repositories; compare configs, Firebase/backend contracts, Firestore/storage usage, routing/deep links, auth/session flows, profile/onboarding, discovery, matching/chat/realtime, notifications, safety/settings, subscriptions, branding/assets, testing, deployment, and docs.
+- **Constraints:** planning/audit only unless a critical documentation workflow update is required; do not modify application code; do not revert unrelated dirty changes; use local repository evidence and note unknowns explicitly.
+- **Expected Outcome:** a documented alignment plan with priorities, affected areas, recommended sequence, verification approach, and follow-up implementation tasks.
+
+**Status Updates:**
+- Received/In Progress: Required collaboration docs read; repository locations and current dirty states checked.
+- In Progress: Built complete non-ignored file inventories for both repos and compared configs, routes, backend contracts, Firestore/Storage paths, CI, docs, branding, and feature surfaces.
+- Completed: Wrote the cross-repo alignment plan and updated the risk register with the newly confirmed web/mobile contract drift risk.
+
+**Outcome:**
+- Files changed:
+  - `docs/reports/crush_web_mobile_alignment_plan_2026-06-03.md` — new cross-repo alignment findings and phased implementation plan.
+  - `docs/risk_notes.md` — added R-065 for Crush web/mobile backend contract drift.
+  - `docs/ai_workboard.md` — logged and closed the alignment audit task.
+  - `docs/Developer_agent_chat.md` — logged original request, refined prompt, status, and outcome.
+- Result: Produced a proper plan grounded in local repository inventories and targeted source/config comparisons; no application code was changed.
+- Verification: `scripts/check_ai_docs_sync.sh --files docs/Developer_agent_chat.md docs/ai_workboard.md docs/risk_notes.md docs/reports/crush_web_mobile_alignment_plan_2026-06-03.md` passed.
+- Next step: Start with the P0 backend contract matrix and web match/chat migration decision before UI polish.
+
+
+### Task #299 — Replace App Logo Everywhere
+**Date:** 2026-06-02
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+User asked to replace the logo everywhere in the app using the supplied logo image, including mobile app icon, iPad, web app, and every place an app logo is needed, with alignment and blending handled correctly.
+
+**Developer Intent Analysis:**
+- Primary goal: regenerate all branded logo/icon assets from the supplied artwork.
+- Secondary goal: cover platform-specific launcher/PWA/splash assets, not only in-app images.
+- Implicit requirements: preserve exact logo artwork, align/crop safely across mobile, iPad, and web icon masks, and avoid disturbing unrelated active work.
+- Quality expectations: use the actual source image bytes, verify generated assets, and update required workflow docs.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Replace app logo and launcher/web/splash artwork across Flutter mobile/iPad/web surfaces using the supplied logo.
+- **Scope:** inspect `assets/icons`, platform launcher/splash folders, web favicon/PWA icons, `pubspec.yaml` launcher icon config, and the icon generator.
+- **Constraints:** do not overwrite unrelated dirty chat UI changes; do not approximate the logo from a visual description; require the exact source image file for generation.
+- **Expected Outcome:** exact generated assets land for app icon, adaptive icon, iOS/iPad icon set, web favicon/PWA icons, launch/splash imagery, and any runtime app logo assets.
+
+**Status Updates:**
+- **Received:** User supplied a logo image in chat and requested replacement across mobile, iPad, and web.
+- **In Progress:** Inspected the existing icon and splash pipeline, then confirmed the source assets now exist under `assets/icons/`.
+- **In Progress:** Reworked the generator, regenerated platform icon/launch outputs, and wired the Flutter splash route to the supplied `splash_screen.png`.
+- **Completed:** Verified the generator, splash route, web debug build, Android debug build, and served web icon/splash assets locally.
+
+**Outcome:**
+- **Files changed:**
+  - `assets/icons/app_icon.png`, `assets/icons/app_icon_foreground.png`, `assets/icons/launch_wordmark.png`, `assets/icons/splash_screen.png`, `assets/icons/README.md`
+  - Android launcher/adaptive icon PNGs, `android/app/src/main/res/drawable/launch_wordmark.png`, `android/app/src/main/res/values/colors.xml`
+  - iOS/iPad `AppIcon.appiconset`, `LaunchImage.imageset`, `LaunchBackground.colorset`, and `LaunchScreen.storyboard`
+  - `web/favicon.png`, `web/icons/*`, `web/index.html`, `web/manifest.json`
+  - macOS app icon PNGs and `windows/runner/resources/app_icon.ico`
+  - `lib/features/auth/presentation/screens/splash_screen.dart`, `pubspec.yaml`, `tool/generate_app_icons.dart`
+  - `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:**
+  - Replaced generated launcher/app icon assets across Android, iOS/iPad, web/PWA, macOS, and Windows from the supplied artwork.
+  - Replaced the in-app Flutter splash mark with the supplied `splash_screen.png`, using dark responsive full-screen presentation on mobile and contained layout on wide tablet/web screens.
+  - Updated native launch images and launch/theme colors to blend against `#0D0E12`; sanitized the supplied wordmark's baked checkerboard into transparency for native launch outputs.
+  - Kept unrelated dirty chat UI, backend, Firestore, and docs work untouched.
+- **Verification:**
+  - `dart run tool/generate_app_icons.dart`
+  - `dart run flutter_launcher_icons`
+  - `flutter pub get`
+  - `dart analyze tool/generate_app_icons.dart`
+  - `flutter analyze lib/features/auth/presentation/screens/splash_screen.dart`
+  - `flutter test test/router_create_router_test.dart --plain-name "splash route renders splash screen for unknown auth state"` (passed)
+  - `flutter build web --debug` (passed)
+  - `flutter build apk --debug` (passed)
+  - `flutter build ios --simulator --debug --no-pub` was attempted as an extra iOS/iPad build check, but was interrupted after `1951.1s` while compiling native pods; no logo/splash asset-specific Xcode error was observed before interruption.
+  - `curl -I http://127.0.0.1:8787/`, `curl -I http://127.0.0.1:8787/icons/Icon-512.png`, `curl -I http://127.0.0.1:8787/favicon.png`, and `curl -I http://127.0.0.1:8787/assets/assets/icons/splash_screen.png` (all returned 200)
+- **Next Step:** Visually inspect the built web app at `http://127.0.0.1:8787/`; run a physical iOS/iPad install when ready to see the updated home-screen icon on device.
+
+### Task #298 — Force Physical iPhone Deployment Recovery
+**Date:** 2026-06-01
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+Developer asked to do everything necessary to install the app on the connected iPhone, including checking Mac blockers, code signing, capabilities, and making necessary adjustments anywhere needed.
+
+**Developer Intent Analysis:**
+- Primary goal: get the app installed and launched on the connected physical iPhone, not just diagnose.
+- Secondary goals: audit and fix Mac-side blockers, Xcode signing, bundle identifiers, entitlements, capabilities, and stale CoreDevice state.
+- Implicit requirements: avoid reverting unrelated dirty chat/UI changes, document the workflow, and only change iOS project settings if they are actually preventing deployment.
+- Quality expectations: be aggressive about recoverable local tooling problems while still distinguishing code/project issues from Apple device tunnel failures.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Recover the iPhone deployment path and install/launch the Flutter app on the connected iPhone.
+- **Scope:** Flutter/Xcode/CoreDevice/macOS device services, stale `xcdevice`/Flutter daemon state, iOS signing/capabilities/build settings, Profile-mode build/install/launch, and required workflow docs.
+- **Constraints:** preserve unrelated source changes; do not make speculative signing/capability changes without confirming current settings; avoid destructive Git operations; use non-interactive system recovery where possible.
+- **Expected Outcome:** app installed and launched on the connected iPhone, or the final blocker proven to be a protected macOS/iPhone tunnel issue that cannot be resolved from this shell without admin/physical state change.
+
+**Status Updates:**
+- **Received:** Continuing from Task #297, where `iPhoneeeee` paired successfully but CoreDevice reported `tunnelState: disconnected`.
+- **In Progress:** Auditing Mac-side device services, stale Flutter/Xcode observers, signing/capabilities, and build settings before retrying deployment.
+- **In Progress:** Cleared stale Flutter daemon / `xcdevice observe` processes from earlier deployment attempts, rechecked CoreDevice, and confirmed `iPhoneeeee` recovered to `tunnelState: connected`, `ddiServicesAvailable: true`, `developerModeStatus: enabled`, and wired transport.
+- **In Progress:** Verified Xcode 26.0.1 signing inputs: automatic signing, valid Apple Development identities, team `6792W23U3C`, Profile bundle identifier `com.gyanendra.myfirstproject`, and the existing Runner entitlements.
+- **Completed:** Ran `flutter run --profile --no-resident -d 00008120-0019181C3A00C01E --device-timeout 120`; Xcode built successfully, Flutter installed and launched the app, and a direct `devicectl` launch confirmed the installed bundle opens on the iPhone.
+
+**Outcome:**
+- Files changed:
+  - `docs/Developer_agent_chat.md` — logged the physical iPhone deployment recovery workflow and final result.
+  - `docs/ai_workboard.md` — recorded the completed deployment task and verification.
+  - `docs/risk_notes.md` — recorded the Firebase App Check API disabled runtime finding from the iPhone launch logs.
+- Result: `Crush` is installed on `iPhoneeeee` as `com.gyanendra.myfirstproject` version `1.0.0` build `1`, and `xcrun devicectl device process launch --device 00008120-0019181C3A00C01E --terminate-existing --timeout 45 com.gyanendra.myfirstproject` launched it successfully.
+- Verification:
+  - `flutter devices` listed `iPhoneeeee (mobile) • 00008120-0019181C3A00C01E • ios • iOS 26.5 23F77`.
+  - `xcrun devicectl device info details --device 00008120-0019181C3A00C01E --timeout 20` reported `pairingState: paired`, `transportType: wired`, `tunnelState: connected`, `ddiServicesAvailable: true`, and `developerModeStatus: enabled`.
+  - `flutter run --profile --no-resident -d 00008120-0019181C3A00C01E --device-timeout 120` completed with Xcode build done in `2103.4s` and install/launch in `75.3s`.
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 45` listed `Crush        com.gyanendra.myfirstproject   1.0.0     1`.
+  - Explicit `devicectl` launch of `com.gyanendra.myfirstproject` exited successfully.
+- Notes: no iOS signing or capability files required changes. Launch logs repeatedly reported Firebase App Check API HTTP 403 `SERVICE_DISABLED` for project `72015170328`; this is a backend/Firebase console configuration issue, not a device deployment blocker.
+
+### Task #297 — Deploy App To Physical iPhone
+**Date:** 2026-06-01
+**Agent:** Codex
+**Status:** Blocked
+
+**Original Request:**
+Developer asked to deploy the app to iPhone.
+
+**Developer Intent Analysis:**
+- Primary goal: install and launch the current Flutter app on the connected physical iPhone.
+- Secondary goal: reuse the known iPhone deployment path and recover device pairing if needed.
+- Implicit requirements: avoid app-code changes, keep the phone deployment diagnostics precise, and update workflow docs even if the blocker is external to the codebase.
+- Quality expectations: identify whether the blocker is project build/signing or Apple device/CoreDevice state, and provide concrete recovery steps.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Deploy the current Flutter app to the connected iPhone, expected to be `iPhoneeeee` (`00008120-0019181C3A00C01E`), and launch it if the device tunnel is healthy.
+- **Scope:** Flutter device discovery, Xcode/CoreDevice destination state, CLI pairing recovery, and a Profile-mode `flutter run` attempt.
+- **Constraints:** do not modify app code; do not rerun indefinite builds when the iPhone is not a valid destination; preserve the existing GitHub-published source state.
+- **Expected Outcome:** app launched on the iPhone, or the remaining blocker documented with the exact device-side/admin recovery needed.
+
+**Status Updates:**
+- **Received:** Started from the existing `iPhoneeeee` deployment history and checked current Flutter/Xcode device visibility.
+- **In Progress:** `flutter devices` initially listed only macOS and Chrome; `iPhoneeeee` was reported as unpaired.
+- **In Progress:** Re-paired `iPhoneeeee` successfully via `xcrun devicectl manage pair`; Flutter then listed `iPhoneeeee` as a connected iOS target.
+- **Blocked:** Profile-mode `flutter run` could not progress to build/install because `xcdevice list --timeout 120` hung and CoreDevice reported the iPhone developer tunnel disconnected.
+
+**Outcome:**
+- **Result:** App was not deployed. The project did not reach a Flutter/Xcode build failure; the blocker is Apple CoreDevice/RemotePairing tunnel state for the physical iPhone.
+- **Evidence:**
+  - `flutter devices` after pairing showed `iPhoneeeee (mobile) • 00008120-0019181C3A00C01E • ios • iOS 26.5 23F77`.
+  - `xcrun devicectl device info details --device 00008120-0019181C3A00C01E --timeout 30` reported `pairingState: paired`, `transportType: wired`, but `tunnelState: disconnected` and `ddiServicesAvailable: false`.
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 45` failed with `com.apple.dt.RemotePairingError error 4`.
+  - Unpair/re-pair succeeded, but the tunnel remained disconnected.
+- **Next Step:** On the physical setup, keep `iPhoneeeee` unlocked and awake, reconnect the cable or switch USB port/cable, accept any Trust prompt, then reboot the iPhone if the tunnel remains disconnected. If still blocked, restart the Mac or restart protected USB/CoreDevice state with admin privileges (`sudo launchctl kickstart -k system/com.apple.usbmuxd`) before rerunning `flutter run --profile --no-resident -d 00008120-0019181C3A00C01E --device-timeout 120`.
+
 ### Task #296 — Profile Frontend Adaptive Layout, Media UX, and Completion Guidance
 **Date:** 2026-05-30
 **Agent:** Codex
@@ -16299,3 +16464,193 @@ The run completed pod install and Xcode build, then failed with:
   - `flutter test test/features/auth test/features/chat test/features/discovery test/features/profile test/features/settings test/onboarding_google_button_layout_test.dart` (pass)
   - Pre-existing unrelated failure confirmed (with changes stashed) in `test/router_create_router_test.dart` (`PaywallScreen` missing `SubscriptionBloc` provider in the harness).
 - **Next Step:** Manual VoiceOver (iOS) + TalkBack (Android) journey passes, physical external-keyboard navigation, and an on-device visible-focus/contrast visual sweep.
+
+### Task #286 — Normalize TODO Status Vocabulary (`completed` → `done`)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Stop the backlog scanner from mislabeling finished modules as "Incomplete." Some `docs/TODO_*.md` files marked finished tasks `Status: completed` while the rest use `Status: done`; the scanner only recognized `done`/`open`, so `completed` modules were falsely flagged (e.g. `PROF-FE-001`–`003`, which are committed with passing tests).
+- **Scope:** `Status:` lines only, across the 7 TODO files that used `completed`: `TODO_API_ARCHITECTURE.md`, `TODO_AUTH_SECURITY.md`, `TODO_ACCOUNT_MGMT.md`, `TODO_NOTIFICATIONS.md`, `TODO_PROFILE_FRONTEND.md`, `TODO_SECURITY_BACKEND.md`, `TODO_SECURITY_FRONTEND.md`.
+- **Constraints:** change only the leading status token (`completed` → `done`), preserve trailing dates and evidence prose, do not touch task content or any application code.
+- **Expected Outcome:** all finished TODO items use a single `done` terminal token; docs-sync check passes.
+
+**Status Updates:**
+- **Received:** After confirming `PROF-FE-001`–`003` were already completed/committed (the source "Incomplete" list was stale), user approved normalizing the status vocabulary.
+- **In Progress:** Inventoried 22 `- Status: completed` lines across 7 files and rewrote the token to `done`.
+- **Completed:** All `completed` status tokens normalized to `done`; no application code changed.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_API_ARCHITECTURE.md`, `docs/TODO_AUTH_SECURITY.md`, `docs/TODO_ACCOUNT_MGMT.md`, `docs/TODO_NOTIFICATIONS.md`, `docs/TODO_PROFILE_FRONTEND.md`, `docs/TODO_SECURITY_BACKEND.md`, `docs/TODO_SECURITY_FRONTEND.md`
+  - `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** 22 status lines normalized (`completed[ date]` → `done[ date]`); zero remaining `Status: completed` in `docs/TODO_*.md`. Underlying task work and evidence were already complete and committed — this is a documentation-consistency fix only.
+- **Verification:**
+  - `grep -rnE "^- Status: completed" docs/TODO_*.md` → none.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- **Next Step:** Optionally teach the backlog scanner to accept multiple terminal tokens, or keep `done` as the single canonical one; the genuinely-`open` modules (iPad compliance, settings UI, state management, refactor docs) remain the real next targets.
+
+### Task #287 — Complete State Management TODO (STATE-001 to STATE-003)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close the fully-open `docs/TODO_STATE_MANAGEMENT.md` (P1): audit stale-state invalidation across navigation/resume, stream/controller/timer disposal and leaks, and optimistic-update/rollback consistency; fix real issues and document the standing policy.
+- **Scope:** all 31 blocs/cubits, long-lived services/repositories, StatefulWidget controllers, the app-root lifecycle handler, and the discovery/chat optimistic flows.
+- **Constraints:** fix only real issues, add a regression test using the project's hand-written-fake convention (no mockito codegen), don't disturb unrelated WIP, and be honest about what stays a manual device pass.
+- **Expected Outcome:** real leaks fixed + tested green, disposal/optimistic policies documented, TODO marked done with an evidence report.
+
+**Status Updates:**
+- **Received:** User asked to start working on undone/uncompleted TODOs; selected State Management (P1) as the focus.
+- **In Progress:** Programmatic disposal sweep (listen-vs-cancel, controllers-vs-dispose) surfaced one real leak; audited resume/lifecycle owners and the optimistic/rollback flows.
+- **Completed:** Fixed the feature-flag repository disposal bug with a new test; documented stale-state invalidation paths, the disposal policy, and optimistic-rollback semantics; marked STATE-001/002/003 done.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/feature_flags/data/repositories/impl/firebase_feature_flag_repository.dart`
+  - `test/features/feature_flags/firebase_feature_flag_repository_disposal_test.dart`
+  - `docs/TODO_STATE_MANAGEMENT.md`, `docs/reports/state_management_audit_2026-06-03.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:**
+  - STATE-002: fixed `FirebaseFeatureFlagRepository` (uncancelled `onConfigUpdated` subscription + `add()` to a closed controller after `dispose()` → `StateError`); stored+cancelled the subscription and guarded the publish with `isClosed`. Verified the rest of the layer (31 blocs/cubits, widget controllers, owned services) tears down correctly; documented a 5-point disposal policy.
+  - STATE-001: documented the owning invalidation path per surface (global debounced resume refresh in `app.dart`, chat lifecycle re-sync, auth verification re-check, discovery location/deck refresh); no load-once hotspot on core journeys.
+  - STATE-003: documented and verified the consistent optimistic pattern (capture → optimistic emit → rollback + feedback) across discovery's 3 swipe handlers and chat's failed-message retry/discard; settings/profile/subscription intentionally load-then-confirm.
+- **Verification:**
+  - `flutter analyze` on changed files (clean)
+  - `flutter test test/features/feature_flags/firebase_feature_flag_repository_disposal_test.dart test/feature_flags_test.dart` (32 pass: 3 new + 29 existing)
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed
+- **Next Step:** Manual on-device resume/navigation stale-state spot-checks remain a release-gate item.
+
+### Task #288 — Complete Settings UI TODO (SET-UI-001 to SET-UI-003)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close the fully-open `docs/TODO_SETTINGS_UI.md` (P1): audit settings content width/navigation on large screens, accessibility of toggles/forms/destructive actions, and loading/empty/error consistency; fix real issues.
+- **Scope:** the 13 settings screens under `lib/features/settings/presentation/screens/` and their cubits.
+- **Constraints:** fix only real issues, prefer the minimal accessible fix without churning call sites, add regression coverage, and be honest about what stays a manual screen-reader pass.
+- **Expected Outcome:** real issues fixed + tested green; width and loading/error verified; TODO marked done with an evidence report.
+
+**Status Updates:**
+- **Received:** User said continue; moved to Settings UI (P1) as the next fully-open module.
+- **In Progress:** Inventoried width strategy (all 13 use `contentMaxWidth`), loading/error per screen, and toggle labeling; found 3 screens with bare unlabeled switches.
+- **Completed:** Wrapped the three tile builders in `MergeSemantics` with a new semantics test; verified width + loading/error already consistent; marked SET-UI-001/002/003 done.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/settings/presentation/screens/privacy_settings_screen.dart`, `lib/features/settings/presentation/screens/notifications_settings_screen.dart`, `lib/features/settings/presentation/screens/account_security_settings_screen.dart`
+  - `test/features/settings/presentation/screens/settings_toggle_semantics_test.dart`
+  - `docs/TODO_SETTINGS_UI.md`, `docs/reports/settings_ui_audit_2026-06-04.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:**
+  - SET-UI-001: verified all 13 settings screens cap content via `DsBreakpoints.contentMaxWidth` and navigate through the adaptive shell — no change needed.
+  - SET-UI-002: fixed bare unlabeled `Switch`-in-`ListTile.trailing` in privacy/notifications/account_security by merging label+control semantics; destructive flows (multi-step type-to-confirm + password account delete) verified clear/reversible.
+  - SET-UI-003: verified network-bound screens surface loading/error/retry and preference screens are local-first (optimistic + best-effort sync) — consistent by design.
+- **Verification:**
+  - `flutter analyze` on changed files (clean)
+  - `flutter test` new semantics test + 3 localization suites (5 pass, no regressions)
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed
+- **Next Step:** Manual VoiceOver/TalkBack sweep of settings toggles remains a release-gate item.
+
+### Task #289 — Complete Onboarding UI TODO (ONBOARD-UI-001 to ONBOARD-UI-003)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close the fully-open `docs/TODO_ONBOARDING_UI.md` (P1): audit onboarding large-screen layout, keyboard/focus/external input, and large-text/RTL/localization resilience; fix real issues.
+- **Scope:** onboarding step flow + shared `onboarding_progress`/`onboarding_nav_buttons` widgets over `AuthScaffold`.
+- **Constraints:** fix real issues with regression tests, keep changes minimal, defer true localization to the I18N task, be honest about manual device passes.
+- **Expected Outcome:** real issues fixed + tested green; width verified; TODO marked done with an evidence report.
+
+**Status Updates:**
+- **Received:** User said next; moved to Onboarding UI (P1).
+- **In Progress:** Verified width via `AuthScaffold`; found basic_info fields lacked soft-keyboard chaining and the progress header overflowed at 2x text scale.
+- **Completed:** Added focus chaining + overflow fix with two new tests; marked ONBOARD-UI-001/002/003 done.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/features/auth/presentation/screens/basic_info_screen.dart`, `lib/presentation/widgets/onboarding_progress.dart`
+  - `test/features/auth/presentation/screens/basic_info_screen_focus_test.dart`, `test/presentation/widgets/onboarding_progress_text_scale_test.dart`
+  - `docs/TODO_ONBOARDING_UI.md`, `docs/reports/onboarding_ui_audit_2026-06-04.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:**
+  - ONBOARD-UI-001: verified onboarding steps cap/center content via `AuthScaffold` + `ConstrainedBox` — no change needed.
+  - ONBOARD-UI-002: fixed basic_info field traversal (FocusNodes + `next`→`next`→`done`, word capitalization, disposed nodes).
+  - ONBOARD-UI-003: fixed `OnboardingProgress` header overflow at 2x (merged counter+name into `Text.rich`/`Expanded`/ellipsis); flagged hardcoded English labels for the I18N task.
+- **Verification:**
+  - `flutter analyze` on changed files (clean)
+  - `flutter test` 2 new + 3 existing suites (13 pass; the text-scale test fails pre-fix, passes post-fix)
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed
+- **Next Step:** Manual hardware-keyboard + RTL + 200% text sweep of onboarding remains a release-gate item.
+
+### Task #290 — Complete Onboarding Flow TODO (ONBOARD-001 to ONBOARD-003)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close the fully-open `docs/TODO_ONBOARDING_FLOW.md` (P1): audit onboarding resume/interruption recovery, permission ordering/rationale, and age/terms/completion gating; fix real issues with coverage.
+- **Scope:** `route_redirect.dart`, `AppStatePreserver`, `CrushUser` completion getters, the `basic_info` age gate, permission rationale flow.
+- **Constraints:** fix only real issues, prefer minimal defense-in-depth, add regression coverage for validation rules, be honest about manual first-run passes.
+- **Expected Outcome:** real issues fixed + tested green; resume/permission flows verified; TODO marked done with an evidence report.
+
+**Status Updates:**
+- **Received:** User said continue; moved to Onboarding Flow (P1).
+- **In Progress:** Verified the pure deterministic redirect (resume/no-loop covered by 11 redirect tests), contextual permission ordering with rationale, and the 18+ input gate; found `hasCompletedBasicInfo` accepted any `age > 0`.
+- **Completed:** Hardened the completion rule to `age >= minAge` with a regression test; marked ONBOARD-001/002/003 done.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/shared/dto/user.dart`, `test/user_model_hotspot_test.dart`
+  - `docs/TODO_ONBOARDING_FLOW.md`, `docs/reports/onboarding_flow_audit_2026-06-04.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:**
+  - ONBOARD-001: verified deterministic resume (gate order is a set of fixed points; no strand/loop) via existing redirect tests + `AppStatePreserver` — no change needed.
+  - ONBOARD-002: verified contextual/sequenced permissions (location rationale before prompt; push via settings toggle, not cold start) — no change needed.
+  - ONBOARD-003: verified 18+ input gate; hardened `hasCompletedBasicInfo` to require `age >= ValidationConstants.minAge` (defense-in-depth) with an underage unit test.
+- **Verification:**
+  - `flutter analyze` on changed files (clean)
+  - `flutter test` user model + router redirect + stub profile repo + e2e onboarding (all pass)
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed
+- **Next Step:** Manual first-run permission ordering on physical iOS/Android/web remains a release-gate item.
+
+### Task #291 — Work Internationalization TODO (I18N-001 to I18N-003)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Work `docs/TODO_I18N_L10N.md` (P1): remove remaining hardcoded user-facing strings, verify RTL/locale-formatting/text-expansion, and audit pluralization + embedded-text assets.
+- **Scope:** l10n setup, onboarding widgets, directional layout usage, `intl` formatters, ICU plurals, assets.
+- **Constraints:** add ARB keys to the template only (English fallback for untranslated locales), fix real issues with regression tests, and be honest that the full hardcoded-string backlog can't be cleared in one pass.
+- **Expected Outcome:** RTL/plurals verified + tested; the flagged onboarding strings localized; an honest status with the remaining backlog tracked.
+
+**Status Updates:**
+- **Received:** User said next; moved to I18N/L10N (P1).
+- **In Progress:** Mapped the 22-locale setup; localized the onboarding widgets flagged in the prior task; audited RTL/formatting/plurals/assets.
+- **Completed (partial, honestly):** I18N-002 and I18N-003 verified + tested and marked done; I18N-001 localized the onboarding slice but left the broad backlog open/tracked.
+
+**Outcome:**
+- **Files changed:**
+  - `lib/l10n/app_en.arb` (+ regenerated `lib/l10n/generated/**`)
+  - `lib/presentation/widgets/onboarding_progress.dart`, `lib/presentation/widgets/onboarding_nav_buttons.dart`
+  - `test/presentation/widgets/onboarding_progress_text_scale_test.dart`
+  - `docs/TODO_I18N_L10N.md`, `docs/reports/i18n_l10n_audit_2026-06-04.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:**
+  - I18N-001 (in progress): onboarding progress/nav widgets localized via new `app_en.arb` keys; ~38 critical-flow `Text` literals + `hardcoded_strings.txt` backlog remain tracked — not falsely closed.
+  - I18N-002 (done): RTL-aware layout verified (0 non-directional left/right insets vs 238 directional usages), `intl` formatters, RTL+2x regression test added.
+  - I18N-003 (done): ICU plurals verified (16 keys); embedded text limited to brand wordmark; one naive count string tracked.
+- **Verification:**
+  - `flutter analyze` changed files + generated l10n (clean)
+  - `flutter test` onboarding text-scale/RTL + basic-info focus + terms responsive (pass)
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed
+- **Next Step:** Systematic hardcoded-string extraction to finish I18N-001; manual Arabic/Hebrew RTL sweep.
+- **Follow-up (2026-06-04):** Localized 6 more critical-flow files — `phone_protection_screen`, `change_email_screen`, `subscription_settings_screen`, `paywall_screen` (also added l10n access), `chat_input_bar`, `privacy_settings_screen` — reusing existing keys plus 3 new (`authVerifyPasswordTitle`, `subscriptionPaywallTitle`, `subscriptionCancelSubscription`). `flutter analyze` clean; privacy/subscription/toggle tests pass. I18N-001 remains in progress: `safety_screen.dart` (~16 strings across ~8 sub-widgets) is the last hardcoded critical screen, plus some `calls` strings and the `hardcoded_strings.txt` long tail.
+
+### Task #292 — Complete Dependency Audit TODO (CLEAN-DEP-001 to CLEAN-DEP-003)
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Close `docs/TODO_CLEANUP_DEPENDENCIES.md` (P1): build a dependency inventory with purpose/risk, triage stale/deprecated packages, and document license + vulnerability posture.
+- **Scope:** `pubspec.yaml`, `functions/package.json`, `crush-web` manifests.
+- **Constraints:** document + triage only; do NOT mutate dependencies or run automated fixers; be precise about owners and blockers.
+- **Expected Outcome:** a grouped inventory, prioritized upgrade plan with blockers, and a vuln/license posture with remediation — all in an evidence report.
+
+**Status Updates:**
+- **Received:** User said next; moved to Dependency Audit (P1, last open P1).
+- **In Progress:** Inventoried all manifests; ran `flutter pub outdated`, `npm outdated`, `npm audit`.
+- **Completed:** Documented inventory + triage + vuln/license posture; marked CLEAN-DEP-001/002/003 done. Flagged a security concern with `npm audit fix` proposing unfamiliar packages.
+
+**Outcome:**
+- **Files changed:**
+  - `docs/TODO_CLEANUP_DEPENDENCIES.md`, `docs/reports/dependency_audit_2026-06-04.md`, `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+  - (no dependency manifests/lockfiles modified)
+- **Result:**
+  - CLEAN-DEP-001: grouped inventory (mobile 52/21, functions 12/11, web) with purpose/risk/owner; flagged `any`-pinned dev platform-interface deps and absence of `dependency_overrides`.
+  - CLEAN-DEP-002: prioritized safe minors vs breaking majors; blockers = deprecated multer v1, agora-access-token, `image` held at 4.8.0.
+  - CLEAN-DEP-003: 29 npm vulns (1 critical/8 high, all transitive via google-cloud/firebase) with a manual remediation path; **flagged not to run `npm audit fix`** (proposed adding unfamiliar packages); permissive licenses, SBOM tracked.
+- **Verification:**
+  - `flutter pub outdated` / `npm outdated` / `npm audit` captured; nothing mutated.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- **Next Step:** Execute remediation (firebase minor bumps + re-audit; multer v2) separately with smoke tests; generate license SBOM.

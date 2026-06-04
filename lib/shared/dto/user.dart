@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:crushhour/core/constants/validation_constants.dart';
+
 import 'profile.dart';
 import 'subscription.dart';
 
@@ -63,11 +65,17 @@ class CrushUser extends Equatable {
 
   bool get canChat => isIdVerified;
 
-  /// Check if user has completed basic info (name, age, gender) OR skipped it
+  /// Check if user has completed basic info (name, age, gender) OR skipped it.
+  ///
+  /// Requires a legal-minimum age (not merely `age > 0`) so an underage age that
+  /// reached the profile via legacy data, the API, or a bug cannot satisfy the
+  /// onboarding gate — defense-in-depth behind the basic-info input gate, which
+  /// already blocks under-[ValidationConstants.minAge] dates (ONBOARD-003).
   bool get hasCompletedBasicInfo {
     if (hasSkippedBasicInfo) return true;
     if (profile == null) return false;
-    return profile!.age > 0 && profile!.gender.isNotEmpty;
+    return profile!.age >= ValidationConstants.minAge &&
+        profile!.gender.isNotEmpty;
   }
 
   /// Check if user has completed profile setup (at least one photo) OR skipped it

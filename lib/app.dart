@@ -39,6 +39,7 @@ import 'core/routing/notification_routes.dart';
 import 'core/services/app_state_preserver.dart';
 import 'core/services/location_service.dart';
 import 'core/theme.dart';
+import 'core/ui/app_scroll_behavior.dart';
 import 'design_system/tokens/typography.dart';
 import 'design_system/utils/accessibility.dart' show DsTextScaleCap;
 
@@ -553,6 +554,9 @@ class _RouterHostState extends State<_RouterHost> with WidgetsBindingObserver {
                     themeMode: materialMode,
                     themeAnimationDuration: themeAnimationDuration,
                     themeAnimationCurve: Curves.easeInOutCubic,
+                    // Enable click-and-drag scrolling for mouse/stylus users on
+                    // web, desktop, and pointer-equipped tablets (RESP-003).
+                    scrollBehavior: const AppScrollBehavior(),
                     routerConfig: _router,
                     builder: (context, child) {
                       // Bound dynamic-type scaling so very large system text

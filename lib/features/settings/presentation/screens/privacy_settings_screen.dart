@@ -537,7 +537,7 @@ class _PrivacyRightsSummary extends StatelessWidget {
               const Divider(height: 1),
               ListTile(
                 leading: const Icon(Icons.article_outlined),
-                title: const Text('Privacy Policy'),
+                title: Text(context.l10n.authPrivacyPolicy),
                 subtitle: const Text(
                   'Review the current policy, data categories, and rights request instructions.',
                 ),
@@ -628,47 +628,52 @@ class _PrivacyTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isSensitive && value ? DsColors.warning : null,
-      ),
-      title: Row(
-        children: [
-          Text(title),
-          if (isSensitive) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: DsColors.warning.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                context.l10n.settingsPrivacySensitiveBadge,
-                style: const TextStyle(
-                  fontSize: 10,
-                  color: DsColors.warning,
-                  fontWeight: FontWeight.bold,
+    // Merge label + subtitle + switch into one semantics node so a screen
+    // reader announces e.g. "Show first name, …, on, switch" as a single
+    // labeled control instead of an unlabeled bare switch (SET-UI-002).
+    return MergeSemantics(
+      child: ListTile(
+        leading: Icon(
+          icon,
+          color: isSensitive && value ? DsColors.warning : null,
+        ),
+        title: Row(
+          children: [
+            Text(title),
+            if (isSensitive) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: DsColors.warning.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  context.l10n.settingsPrivacySensitiveBadge,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: DsColors.warning,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
-        ],
-      ),
-      subtitle: Text(subtitle),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeTrackColor: isSensitive
-            ? DsColors.warning.withValues(alpha: 0.5)
-            : DsColors.primary.withValues(alpha: 0.5),
-        thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return isSensitive ? DsColors.warning : DsColors.primary;
-          }
-          return null;
-        }),
+        ),
+        subtitle: Text(subtitle),
+        trailing: Switch(
+          value: value,
+          onChanged: onChanged,
+          activeTrackColor: isSensitive
+              ? DsColors.warning.withValues(alpha: 0.5)
+              : DsColors.primary.withValues(alpha: 0.5),
+          thumbColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return isSensitive ? DsColors.warning : DsColors.primary;
+            }
+            return null;
+          }),
+        ),
       ),
     );
   }

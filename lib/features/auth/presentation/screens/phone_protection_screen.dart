@@ -371,7 +371,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: const Text('Verify Password'),
+            title: Text(AppLocalizations.of(context).authVerifyPasswordTitle),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -427,7 +427,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Verify'),
+                    : Text(AppLocalizations.of(context).authVerify),
               ),
             ],
           );
@@ -585,7 +585,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: const Text('Verify Password'),
+            title: Text(AppLocalizations.of(context).authVerifyPasswordTitle),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -641,7 +641,7 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Verify'),
+                    : Text(AppLocalizations.of(context).authVerify),
               ),
             ],
           );

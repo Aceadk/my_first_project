@@ -20,6 +20,8 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
+| T-2026-06-03-CRUSH-WEB-MOBILE-ALIGNMENT | 2026-06-03 | Compare `crush-web` and `my_first_project` alignment | Completed | Start with the P0 backend contract matrix and web match/chat migration decision. |
+| T-2026-06-02-APP-LOGO-REPLACEMENT | 2026-06-02 | Replace app logo/icon assets | Completed | Use `http://127.0.0.1:8787/` to inspect the built web app while the local static server is running. |
 | T-2026-05-19-IOS-DEPLOY-IPHONE | 2026-05-19 | Deploy app to iPhone | Completed | `Crush` is installed and running on `iPhoneeeee` as `com.gyanendra.myfirstproject`; use Profile/release for direct phone launches. |
 | T-2026-02-06-01 | 2026-02-06 | Post-Blaze Firebase setup                  | In Progress | Initialize Firebase Storage in console, then run `firebase deploy --only storage`.                 |
 | T-2026-02-01-03 | 2026-02-01 | Integration test failures (l10n + auth UI) | In Progress | Re-run `flutter test integration_test/app_test.dart` with a longer timeout/device stability check. |
@@ -52,6 +54,230 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 | T-2026-02-19-ONBOARD005 | 2026-02-19 | Deck tutorial overlay added with one-time persistence + a11y support.         | `flutter analyze` clean.                                      |
 
 ## Unified Task Log
+
+### T-2026-06-04-CLEANUP-DEPENDENCIES
+- Date: 2026-06-04
+- Owner: Claude
+- Status: Completed
+- Goal: Close `CLEAN-DEP-001`–`CLEAN-DEP-003` in `docs/TODO_CLEANUP_DEPENDENCIES.md` (P1) — dependency inventory, stale/deprecated triage, and license/vulnerability posture.
+- Scope: `pubspec.yaml`, `functions/package.json`, `crush-web` manifests. Document + triage only; no dependency mutated.
+- Key Changes:
+  - Added [`dependency_audit_2026-06-04.md`](/Users/ace/my_first_project/docs/reports/dependency_audit_2026-06-04.md) (grouped inventory + prioritized upgrades + vuln/license posture); marked CLEAN-DEP-001/002/003 done.
+- Decisions/Handoffs:
+  - `npm audit` reports 29 vulns (1 critical `protobufjs`, 8 high), all transitive via `@google-cloud`/`firebase-admin`/`firebase-functions` — remediate by bumping firebase-admin→13.10.0 + firebase-functions→7.2.5 then re-audit.
+  - **Do NOT run `npm audit fix`:** its dry-run proposed adding unfamiliar packages (`xml-naming`, `@nodable/entities`, …) — pin patched versions manually and review the lockfile diff.
+  - Deprecated: `multer` v1 → v2, `agora-access-token` → `agora-token`. Mobile majors (app_links/package_info_plus/share_plus/just_audio/FLN) scheduled individually. Licenses permissive; SBOM generation tracked for store sign-off.
+- Verification:
+  - `flutter pub outdated`, `npm outdated`, `npm audit` run and captured; no manifests/lockfiles modified.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: Execute the prioritized remediation (firebase minor bumps + re-audit; multer v2) as a separate change with smoke tests; generate the license SBOM.
+
+### T-2026-06-04-I18N-L10N
+- Date: 2026-06-04
+- Owner: Claude
+- Status: In Progress (I18N-002/003 done; I18N-001 partial)
+- Goal: Work `I18N-001`–`I18N-003` in `docs/TODO_I18N_L10N.md` (P1) — remove hardcoded strings, verify RTL/formatting/expansion, audit pluralization/embedded-text assets.
+- Scope: l10n setup (`app_en.arb` template, 22 locales, English fallback), onboarding widgets, directional layout usage, `intl` formatters, ICU plurals, assets.
+- Key Changes:
+  - Localized [`onboarding_progress.dart`](/Users/ace/my_first_project/lib/presentation/widgets/onboarding_progress.dart) and [`onboarding_nav_buttons.dart`](/Users/ace/my_first_project/lib/presentation/widgets/onboarding_nav_buttons.dart) via new `app_en.arb` keys (regenerated `lib/l10n/generated/**`).
+  - Added an RTL + 2×-scale regression case to [`onboarding_progress_text_scale_test.dart`](/Users/ace/my_first_project/test/presentation/widgets/onboarding_progress_text_scale_test.dart).
+  - Added [`i18n_l10n_audit_2026-06-04.md`](/Users/ace/my_first_project/docs/reports/i18n_l10n_audit_2026-06-04.md).
+- Decisions/Handoffs:
+  - **I18N-002 done:** RTL is pervasively handled (directional insets/alignment; 0 non-directional `EdgeInsets.only(left/right)`), `intl` formatters locale-aware. **I18N-003 done:** ICU plurals used; embedded text limited to brand wordmark.
+  - **I18N-001 NOT closed (honest):** onboarding localized as a slice, but ~38 critical-flow `Text` literals + `hardcoded_strings.txt` backlog remain. Marked `in progress`, not done. Legal screens are candidate approved-exception copy.
+- Verification:
+  - `flutter analyze` on changed files + generated localizations — clean.
+  - `flutter test` (onboarding text-scale/RTL, basic-info focus, terms responsive) — all pass.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: Systematic hardcoded-string extraction to finish I18N-001; manual Arabic/Hebrew RTL sweep.
+- Follow-up (2026-06-04): Localized 6 more critical-flow files (phone_protection, change_email, subscription_settings, paywall, chat_input_bar, privacy_settings) via reused + 3 new keys (`authVerifyPasswordTitle`, `subscriptionPaywallTitle`, `subscriptionCancelSubscription`); analyze clean + privacy/subscription/toggle tests pass. I18N-001 still in progress — remaining hardcoded critical screen is `safety_screen.dart` (~16 strings across ~8 sub-widgets), plus some `calls` strings and the long tail.
+
+### T-2026-06-04-ONBOARDING-FLOW
+- Date: 2026-06-04
+- Owner: Claude
+- Status: Completed
+- Goal: Close `ONBOARD-001`–`ONBOARD-003` in `docs/TODO_ONBOARDING_FLOW.md` (P1) — audit onboarding resume/interruption recovery, permission ordering/rationale, and age/terms/completion gating; fix real issues.
+- Scope: `route_redirect.dart` resolver, `AppStatePreserver`, `CrushUser` completion getters, the `basic_info` age gate, and the permission rationale flow.
+- Key Changes:
+  - Hardened [`user.dart`](/Users/ace/my_first_project/lib/shared/dto/user.dart) `hasCompletedBasicInfo` to require `age >= ValidationConstants.minAge` (was `age > 0`) — defense-in-depth so an underage age can't satisfy the onboarding gate behind the input-level 18+ block.
+  - Added an underage regression case to [`user_model_hotspot_test.dart`](/Users/ace/my_first_project/test/user_model_hotspot_test.dart).
+  - Added [`onboarding_flow_audit_2026-06-04.md`](/Users/ace/my_first_project/docs/reports/onboarding_flow_audit_2026-06-04.md); marked ONBOARD-001/002/003 done.
+- Decisions/Handoffs:
+  - ONBOARD-001 (resume determinism) and ONBOARD-002 (permission ordering) were already satisfied — verified, not changed. Resume/no-loop is covered by the existing 11-case `router_redirect_test`.
+  - The age gate is enforced at input (picker `lastDate` + submit gate); the getter hardening is the missing defense-in-depth layer. A server-side age check would be the next layer (backend scope).
+- Verification:
+  - `flutter analyze` on changed files — clean.
+  - `flutter test` (user model, router redirect, stub profile repo, e2e onboarding) — all pass; no regressions from the completion-rule change.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: Manual first-run permission ordering on physical iOS/Android/web remains a release-gate item; `I18N_L10N`, `CLEANUP_DEPENDENCIES` remain open P1 targets.
+
+### T-2026-06-04-ONBOARDING-UI
+- Date: 2026-06-04
+- Owner: Claude
+- Status: Completed
+- Goal: Close `ONBOARD-UI-001`–`ONBOARD-UI-003` in `docs/TODO_ONBOARDING_UI.md` (P1) — audit onboarding large-screen layout, keyboard/focus, and large-text/RTL/localization resilience; fix real issues.
+- Scope: onboarding step flow (terms/basic-info/profile-setup/email-verify, phone/OTP) and shared `onboarding_progress.dart` / `onboarding_nav_buttons.dart` on top of `AuthScaffold`.
+- Key Changes:
+  - Fixed soft-keyboard field chaining in [`basic_info_screen.dart`](/Users/ace/my_first_project/lib/features/auth/presentation/screens/basic_info_screen.dart): FocusNodes + `next`→`next`→`done` + word capitalization on names.
+  - Fixed large-text overflow in [`onboarding_progress.dart`](/Users/ace/my_first_project/lib/presentation/widgets/onboarding_progress.dart): counter+step name merged into one `Text.rich`/`Expanded` with ellipsis.
+  - Added [`onboarding_progress_text_scale_test.dart`](/Users/ace/my_first_project/test/presentation/widgets/onboarding_progress_text_scale_test.dart) and [`basic_info_screen_focus_test.dart`](/Users/ace/my_first_project/test/features/auth/presentation/screens/basic_info_screen_focus_test.dart).
+  - Added [`onboarding_ui_audit_2026-06-04.md`](/Users/ace/my_first_project/docs/reports/onboarding_ui_audit_2026-06-04.md); marked ONBOARD-UI-001/002/003 done.
+- Decisions/Handoffs:
+  - ONBOARD-UI-001 (width) was already satisfied by `AuthScaffold` — verified, not changed.
+  - Hardcoded English step/nav labels in `OnboardingProgress`/`OnboardingNavButtons` are an `I18N_L10N` task, not a layout fix; the overflow fix is forward-compatible with longer translations.
+- Verification:
+  - `flutter analyze` on changed files — clean.
+  - `flutter test` (2 new + onboarding google-button layout + profile-setup keyboard + terms responsive) — 13 pass, no regressions. The text-scale test failed pre-fix (37–166px overflow) and passes post-fix.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: Manual hardware-keyboard + RTL + on-device 200% text sweep of the onboarding flow remains a release-gate item; `ONBOARDING_FLOW`, `I18N_L10N` remain open P1 targets.
+
+### T-2026-06-04-SETTINGS-UI
+- Date: 2026-06-04
+- Owner: Claude
+- Status: Completed
+- Goal: Close `SET-UI-001`–`SET-UI-003` in `docs/TODO_SETTINGS_UI.md` (P1) — audit settings content width/navigation on large screens, toggle/form/destructive accessibility, and loading/error consistency; fix real issues.
+- Scope: the 13 settings screens under `lib/features/settings/presentation/screens/` and their cubits.
+- Key Changes:
+  - Fixed unlabeled toggles in [`privacy_settings_screen.dart`](/Users/ace/my_first_project/lib/features/settings/presentation/screens/privacy_settings_screen.dart), [`notifications_settings_screen.dart`](/Users/ace/my_first_project/lib/features/settings/presentation/screens/notifications_settings_screen.dart), and [`account_security_settings_screen.dart`](/Users/ace/my_first_project/lib/features/settings/presentation/screens/account_security_settings_screen.dart): wrapped the tile builders in `MergeSemantics` so a bare `Switch` in `ListTile.trailing` is announced with its label.
+  - Added [`settings_toggle_semantics_test.dart`](/Users/ace/my_first_project/test/features/settings/presentation/screens/settings_toggle_semantics_test.dart).
+  - Added [`settings_ui_audit_2026-06-04.md`](/Users/ace/my_first_project/docs/reports/settings_ui_audit_2026-06-04.md); marked SET-UI-001/002/003 done.
+- Decisions/Handoffs:
+  - SET-UI-001 (width) and SET-UI-003 (loading/error) were already satisfied — verified, not changed. Preference screens are local-first by design (no loading/error surface needed).
+  - `MergeSemantics` chosen over a `SwitchListTile` rewrite as the minimal, no-call-site-churn accessible-labeling fix.
+- Verification:
+  - `flutter analyze` on changed files — clean.
+  - `flutter test` (new semantics test + privacy/notifications/account-security localization suites) — 5 pass, no regressions.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: Manual VoiceOver/TalkBack sweep of settings toggles remains a release-gate item; genuinely-`open` P1 modules (onboarding flow/UI, i18n) remain next targets.
+
+### T-2026-06-03-STATE-MANAGEMENT
+- Date: 2026-06-03
+- Owner: Claude
+- Status: Completed
+- Goal: Close `STATE-001`–`STATE-003` in `docs/TODO_STATE_MANAGEMENT.md` — audit stale-state invalidation, stream/controller/timer disposal, and optimistic-update/rollback consistency; fix real leaks; document the standing policy.
+- Scope: all 31 blocs/cubits, long-lived services/repositories, StatefulWidget controllers, the app-root lifecycle handler, and the discovery/chat optimistic flows.
+- Key Changes:
+  - Fixed a real disposal bug in [`firebase_feature_flag_repository.dart`](/Users/ace/my_first_project/lib/features/feature_flags/data/repositories/impl/firebase_feature_flag_repository.dart): stored + cancelled the `onConfigUpdated` subscription and guarded `_flagsController.add` with `isClosed` (was leaking the subscription and could `add()` to a closed controller after `dispose()` → `StateError`).
+  - Added [`firebase_feature_flag_repository_disposal_test.dart`](/Users/ace/my_first_project/test/features/feature_flags/firebase_feature_flag_repository_disposal_test.dart) (hand-written `Fake`, no codegen — matches project convention).
+  - Added [`state_management_audit_2026-06-03.md`](/Users/ace/my_first_project/docs/reports/state_management_audit_2026-06-03.md) and marked STATE-001/002/003 done.
+- Decisions/Handoffs:
+  - Recorded a 5-point disposal policy as the standing convention.
+  - App-lifetime singleton broadcast controllers (`AppCheckService`, `CallQualityService`) are acceptable left open (released at process exit); only per-use timers/subscriptions must be cancelled.
+  - Optimistic standard = capture pre-state → optimistic emit → roll back + user feedback on failure (discovery + chat); settings/profile/subscription stay load-then-confirm.
+- Verification:
+  - `flutter analyze` on changed files — clean.
+  - `flutter test .../firebase_feature_flag_repository_disposal_test.dart test/feature_flags_test.dart` — 32 passing (3 new + 29 existing).
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: Manual on-device resume/navigation stale-state spot-checks remain a release-gate item; the genuinely-`open` modules (iPad compliance, settings UI, onboarding, i18n) remain next targets.
+
+### T-2026-06-03-TODO-STATUS-VOCAB-NORMALIZE
+- Date: 2026-06-03
+- Owner: Claude
+- Status: Completed
+- Goal: Eliminate the status-vocabulary mismatch that caused the backlog scanner to mislabel finished modules (those marked `completed`) as "Incomplete", after confirming `PROF-FE-001`–`003` were already done, tested, and committed.
+- Scope: `Status:` lines only in the 7 TODO files that used `completed`: `TODO_API_ARCHITECTURE.md`, `TODO_AUTH_SECURITY.md`, `TODO_ACCOUNT_MGMT.md`, `TODO_NOTIFICATIONS.md`, `TODO_PROFILE_FRONTEND.md`, `TODO_SECURITY_BACKEND.md`, `TODO_SECURITY_FRONTEND.md`. No application code touched.
+- Key Changes:
+  - Normalized 22 `- Status: completed[ date]` lines to `- Status: done[ date]`, preserving trailing dates and evidence prose.
+  - Logged the change here and in [`Developer_agent_chat.md`](/Users/ace/my_first_project/docs/Developer_agent_chat.md) (Task #286).
+- Decisions/Handoffs:
+  - `done` is the single canonical terminal status token for `docs/TODO_*.md`; `completed` is retired.
+  - The genuinely-`open` modules (iPad compliance, settings UI, state management, refactor docs) remain the real next targets.
+- Verification:
+  - `grep -rnE "^- Status: completed" docs/TODO_*.md` returns no matches.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: Optionally update the backlog scanner to treat both `done` and any legacy token as terminal, or rely on the now-consistent `done` token.
+
+### T-2026-06-03-CRUSH-WEB-MOBILE-ALIGNMENT
+- Date: 2026-06-03
+- Owner: Codex
+- Status: Completed
+- Goal: Compare `crush-web` and `my_first_project` across files, contracts, features, branding, deployment, and docs, then produce a prioritized alignment plan.
+- Scope: Complete non-ignored file inventory for both repositories plus targeted comparison of configs, Firebase/backend contracts, Firestore/storage usage, routing/deep links, auth/session, profile/onboarding, discovery, matching/chat/realtime, notifications, safety/settings, subscriptions, branding/assets, testing, deployment, and documentation.
+- Key Changes:
+  - Added [`crush_web_mobile_alignment_plan_2026-06-03.md`](/Users/ace/my_first_project/docs/reports/crush_web_mobile_alignment_plan_2026-06-03.md) with cross-repo findings, P0/P1/P2 gaps, and a phased implementation plan.
+  - Logged R-065 in [`risk_notes.md`](/Users/ace/my_first_project/docs/risk_notes.md) for Crush web/mobile backend contract drift.
+  - Confirmed `crush-web` is clean and `my_first_project` has existing active dirty work; no application code was changed for this audit.
+- Decisions/Handoffs:
+  - Treat `my_first_project/functions`, Firestore/Storage rules, and mobile DTO/schema tests as the backend source of truth until a shared contract package exists.
+  - Prioritize backend/data contract alignment before web UI parity or branding polish.
+  - Keep repo hygiene cleanup, especially tracked `crushhour-recommendation-service/node_modules` and `functions/build`, as a separate explicit task.
+- Verification:
+  - Complete local non-ignored inventories: `my_first_project` 2,868 files, `crush-web` 253 files.
+  - Targeted source/config/doc comparisons for routes, callables, REST endpoints, Firestore/Storage paths, profile schema, CI, domains, and branding assets.
+  - `scripts/check_ai_docs_sync.sh --files docs/Developer_agent_chat.md docs/ai_workboard.md docs/risk_notes.md docs/reports/crush_web_mobile_alignment_plan_2026-06-03.md` passed.
+- Next Step: Create the P0 shared backend contract matrix and decide whether web chat migrates to `matches/{matchId}/messages` or keeps `conversations` with formal migration/rules.
+
+### T-2026-06-02-APP-LOGO-REPLACEMENT
+- Date: 2026-06-02
+- Owner: Codex
+- Status: Completed
+- Goal: Replace the Crush logo everywhere the app needs branded artwork, including launcher/app icons for mobile and iPad, splash/launch artwork, web favicon/PWA icons, and any runtime logo assets.
+- Scope: Existing icon pipeline and assets under `assets/icons/`, Android/iOS/iPad launcher and splash assets, web favicon/PWA assets, macOS/Windows desktop icons if generated by the same project asset pipeline, and required workflow docs.
+- Key Changes:
+  - Regenerated Android launcher/adaptive icons, iOS/iPad `AppIcon.appiconset`, iOS/Android native launch images, web favicon/PWA icons, macOS app icons, and Windows `app_icon.ico` from the supplied logo assets.
+  - Reworked [`tool/generate_app_icons.dart`](/Users/ace/my_first_project/tool/generate_app_icons.dart) so web, desktop, and native launch assets are generated from source images instead of the old text-only "Crush" renderer.
+  - Wired [`splash_screen.dart`](/Users/ace/my_first_project/lib/features/auth/presentation/screens/splash_screen.dart) to display the supplied `assets/icons/splash_screen.png` runtime artwork responsively across phone, iPad/tablet, and web layouts.
+  - Added `assets/icons/splash_screen.png` to the Flutter asset bundle and aligned Android/iOS/web launch/theme backgrounds to the dark brand background `#0D0E12`.
+  - Removed the baked checkerboard from `launch_wordmark.png` during generation by converting pale neutral pixels to transparency before writing native launch outputs.
+- Decisions/Handoffs:
+  - Preserved unrelated dirty chat UI, backend, Firestore, and documentation work already present in the worktree.
+  - Kept `flutter_launcher_icons` as the Android/iOS launcher icon generator and used the local Dart generator for web, desktop, and native launch assets.
+  - Left `docs/risk_notes.md` unchanged because this is a branding asset replacement and does not change architecture, data models, or durable product risk.
+- Verification:
+  - `dart run tool/generate_app_icons.dart`
+  - `dart run flutter_launcher_icons`
+  - `flutter pub get`
+  - `dart analyze tool/generate_app_icons.dart`
+  - `flutter analyze lib/features/auth/presentation/screens/splash_screen.dart`
+  - `flutter test test/router_create_router_test.dart --plain-name "splash route renders splash screen for unknown auth state"`
+  - `flutter build web --debug`
+  - `flutter build apk --debug`
+  - `flutter build ios --simulator --debug --no-pub` was attempted as an extra iOS/iPad build check, but was interrupted after `1951.1s` while compiling native pods; no logo/splash asset-specific Xcode error was observed before interruption.
+  - `curl -I http://127.0.0.1:8787/`, `curl -I http://127.0.0.1:8787/icons/Icon-512.png`, `curl -I http://127.0.0.1:8787/favicon.png`, and `curl -I http://127.0.0.1:8787/assets/assets/icons/splash_screen.png`
+- Next Step: Inspect `http://127.0.0.1:8787/` visually while the static web server is running; run a physical iOS/iPad install when ready to see the new home-screen icon on device.
+
+### T-2026-06-01-DEPLOY-IPHONE-RECOVERY
+- Date: 2026-06-01
+- Owner: Codex
+- Status: Completed
+- Goal: Recover Mac/Xcode/CoreDevice/signing blockers and install the current Flutter app on the connected physical iPhone.
+- Scope: Physical iPhone discovery, stale Apple device services/observers, iOS signing and capabilities, Profile-mode build/install/launch, and workflow documentation.
+- Key Changes:
+  - Cleared stale Flutter daemon / `xcdevice observe` processes from earlier deployment attempts so CoreDevice could recover.
+  - Confirmed `iPhoneeeee` is paired, wired, Developer Mode enabled, DDI services available, and `tunnelState: connected`.
+  - Verified Xcode signing settings without modifying project files: automatic signing, team `6792W23U3C`, Profile bundle identifier `com.gyanendra.myfirstproject`, and existing Runner entitlements.
+  - Built, installed, and launched the app on `iPhoneeeee` with `flutter run --profile --no-resident -d 00008120-0019181C3A00C01E --device-timeout 120`.
+- Decisions/Handoffs:
+  - Preserve unrelated dirty chat UI changes already present in the worktree.
+  - Change iOS signing/capability files only if current settings are confirmed to block deployment.
+  - Leave signing/capability files unchanged because the successful Profile deploy proved current settings are usable for this device.
+  - Runtime follow-up: iPhone launch logs show Firebase App Check API HTTP 403 `SERVICE_DISABLED` for project `72015170328`; enable `firebaseappcheck.googleapis.com` in the Firebase/Google Cloud project before relying on App Check.
+- Verification:
+  - `flutter devices` listed `iPhoneeeee (mobile) • 00008120-0019181C3A00C01E • ios • iOS 26.5 23F77`.
+  - `xcrun devicectl device info details --device 00008120-0019181C3A00C01E --timeout 20` reported paired/wired/connected with DDI services available and Developer Mode enabled.
+  - `flutter run --profile --no-resident -d 00008120-0019181C3A00C01E --device-timeout 120` completed: Xcode build `2103.4s`, install/launch `75.3s`.
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 45` listed `Crush` as `com.gyanendra.myfirstproject` version `1.0.0` build `1`.
+  - `xcrun devicectl device process launch --device 00008120-0019181C3A00C01E --terminate-existing --timeout 45 com.gyanendra.myfirstproject` launched successfully.
+- Next Step: Keep the current cable/device trust path stable for future runs; enable the Firebase App Check API for project `72015170328` to clear the runtime App Check 403s.
+
+### T-2026-06-01-DEPLOY-IPHONE
+- Date: 2026-06-01
+- Owner: Codex
+- Status: Blocked
+- Goal: Deploy and launch the current Flutter app on the connected physical iPhone `iPhoneeeee` (`00008120-0019181C3A00C01E`).
+- Scope: Flutter/Xcode/CoreDevice device discovery, CLI pairing recovery, and Profile-mode `flutter run`; no app-code changes.
+- Key Changes:
+  - No app-code changes.
+  - Re-paired `iPhoneeeee` successfully with `xcrun devicectl manage pair` after Flutter initially reported it as unpaired.
+  - Verified Flutter could list `iPhoneeeee` after pairing.
+- Decisions/Handoffs:
+  - Stopped the silent Profile-mode `flutter run` attempts once it was clear they were blocked before Xcode build by Apple device discovery/tunnel state.
+  - Do not keep retrying app builds until CoreDevice reports `tunnelState: connected` and `ddiServicesAvailable: true`.
+- Verification:
+  - `flutter devices` showed `iPhoneeeee (mobile) • 00008120-0019181C3A00C01E • ios • iOS 26.5 23F77` after pairing.
+  - `xcrun devicectl device info details --device 00008120-0019181C3A00C01E --timeout 30` still reported `tunnelState: disconnected` and `ddiServicesAvailable: false`.
+  - `xcrun devicectl device info apps --device 00008120-0019181C3A00C01E --timeout 45` failed with `com.apple.dt.RemotePairingError error 4`.
+- Next Step: Physically recover the CoreDevice tunnel: keep the iPhone unlocked, reconnect/switch cable or port, accept Trust prompts, reboot the iPhone if needed, and if still blocked restart protected USB/CoreDevice state with admin privileges (`sudo launchctl kickstart -k system/com.apple.usbmuxd`) or reboot the Mac before retrying `flutter run --profile --no-resident -d 00008120-0019181C3A00C01E --device-timeout 120`.
 
 ### T-2026-05-30-PROFILE-FRONTEND-TODOS
 - Date: 2026-05-30

@@ -712,23 +712,28 @@ class _SecurityTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
+    // Merge label + subtitle + control into one semantics node so a screen
+    // reader announces the toggle/row with its label (SET-UI-002). Tappable
+    // ListTiles already merge; this also covers the switch-trailing rows.
+    return MergeSemantics(
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: iconColor, size: 22),
         ),
-        child: Icon(icon, color: iconColor, size: 22),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing:
+            trailing ??
+            (locked
+                ? const Icon(Icons.lock_outline, color: DsColors.success)
+                : const Icon(Icons.chevron_right)),
+        onTap: onTap,
       ),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing:
-          trailing ??
-          (locked
-              ? const Icon(Icons.lock_outline, color: DsColors.success)
-              : const Icon(Icons.chevron_right)),
-      onTap: onTap,
     );
   }
 }

@@ -59,6 +59,26 @@ void main() {
     );
 
     test(
+      'an underage profile age does not satisfy the basic-info gate (ONBOARD-003)',
+      () {
+        final underage = _buildUser(
+          hasAcceptedTerms: true,
+          profile: _buildProfile(age: 16),
+        );
+        // age >= 18 is required, not merely age > 0, so an underage age cannot
+        // be treated as "completed onboarding".
+        expect(underage.hasCompletedBasicInfo, isFalse);
+        expect(underage.isOnboardingComplete, isFalse);
+
+        final justAdult = _buildUser(
+          hasAcceptedTerms: true,
+          profile: _buildProfile(age: 18),
+        );
+        expect(justAdult.hasCompletedBasicInfo, isTrue);
+      },
+    );
+
+    test(
       'copyWith preserves fields by default and can explicitly clear nullable values',
       () {
         final original = _buildUser(

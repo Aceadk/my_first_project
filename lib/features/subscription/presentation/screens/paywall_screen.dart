@@ -1,4 +1,5 @@
 import 'package:crushhour/config/billing_config.dart';
+import 'package:crushhour/core/extensions/localization_extension.dart';
 import 'package:crushhour/core/routing/crush_routes.dart';
 import 'package:crushhour/core/ui/snackbar_utils.dart';
 import 'package:crushhour/design_system/tokens/breakpoints.dart';
@@ -79,7 +80,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Get Premium')),
+      appBar: AppBar(title: Text(context.l10n.subscriptionPaywallTitle)),
       body: BlocConsumer<SubscriptionBloc, SubscriptionState>(
         listenWhen: (previous, current) {
           return previous.isCheckoutInProgress !=
@@ -472,13 +473,13 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           key: const Key('paywall_terms_button'),
                           onPressed: () =>
                               context.push(CrushRoutes.termsOfService),
-                          child: const Text('Terms of Service'),
+                          child: Text(context.l10n.authTermsOfService),
                         ),
                         TextButton(
                           key: const Key('paywall_privacy_button'),
                           onPressed: () =>
                               context.push(CrushRoutes.privacyPolicy),
-                          child: const Text('Privacy Policy'),
+                          child: Text(context.l10n.authPrivacyPolicy),
                         ),
                       ],
                     ),

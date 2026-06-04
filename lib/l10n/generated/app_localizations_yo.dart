@@ -678,6 +678,15 @@ class AppLocalizationsYo extends AppLocalizations {
   String get authPrivacyPolicy => 'Ilana Aṣiri';
 
   @override
+  String get authVerifyPasswordTitle => 'Verify Password';
+
+  @override
+  String get subscriptionPaywallTitle => 'Get Premium';
+
+  @override
+  String get subscriptionCancelSubscription => 'Cancel subscription';
+
+  @override
   String get authDevLogin => 'Wọle Olupilẹṣẹ';
 
   @override
@@ -2194,6 +2203,38 @@ class AppLocalizationsYo extends AppLocalizations {
   String onboardingStep(int current, int total) {
     return 'Igbesẹ $current ti $total';
   }
+
+  @override
+  String onboardingProgressNextStep(String step) {
+    return 'Next: $step';
+  }
+
+  @override
+  String get onboardingProgressAlmostDone => 'Almost done';
+
+  @override
+  String get onboardingProgressSkipStep => 'Skip this step';
+
+  @override
+  String get onboardingStepWelcome => 'Welcome';
+
+  @override
+  String get onboardingStepVerifyPhone => 'Verify phone';
+
+  @override
+  String get onboardingStepEnterCode => 'Enter code';
+
+  @override
+  String get onboardingStepBasicInfo => 'Basic info';
+
+  @override
+  String get onboardingStepVerifyId => 'Verify ID';
+
+  @override
+  String get onboardingStepProfileSetup => 'Profile setup';
+
+  @override
+  String get commonPrevious => 'Previous';
 
   @override
   String get onboardingWhatsYourName => 'Kini orukọ rẹ?';

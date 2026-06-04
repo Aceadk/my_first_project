@@ -658,6 +658,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get authPrivacyPolicy => '개인정보 처리방침';
 
   @override
+  String get authVerifyPasswordTitle => 'Verify Password';
+
+  @override
+  String get subscriptionPaywallTitle => 'Get Premium';
+
+  @override
+  String get subscriptionCancelSubscription => 'Cancel subscription';
+
+  @override
   String get authDevLogin => '개발자 로그인';
 
   @override
@@ -2170,6 +2179,38 @@ class AppLocalizationsKo extends AppLocalizations {
   String onboardingStep(int current, int total) {
     return '$current/$total단계';
   }
+
+  @override
+  String onboardingProgressNextStep(String step) {
+    return 'Next: $step';
+  }
+
+  @override
+  String get onboardingProgressAlmostDone => 'Almost done';
+
+  @override
+  String get onboardingProgressSkipStep => 'Skip this step';
+
+  @override
+  String get onboardingStepWelcome => 'Welcome';
+
+  @override
+  String get onboardingStepVerifyPhone => 'Verify phone';
+
+  @override
+  String get onboardingStepEnterCode => 'Enter code';
+
+  @override
+  String get onboardingStepBasicInfo => 'Basic info';
+
+  @override
+  String get onboardingStepVerifyId => 'Verify ID';
+
+  @override
+  String get onboardingStepProfileSetup => 'Profile setup';
+
+  @override
+  String get commonPrevious => 'Previous';
 
   @override
   String get onboardingWhatsYourName => '이름이 무엇인가요?';
