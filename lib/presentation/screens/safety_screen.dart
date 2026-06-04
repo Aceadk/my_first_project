@@ -10,6 +10,7 @@ import 'package:crushhour/features/safety/data/services/date_plan_service.dart';
 import 'package:crushhour/shared/widgets/cached_image.dart';
 import 'package:crushhour/design_system/design_system.dart';
 import 'package:crushhour/core/validators.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import '../../core/router.dart';
 import '../../core/ui/snackbar_utils.dart';
 
@@ -69,12 +70,15 @@ class _SafetyScreenState extends State<SafetyScreen> {
       if (mounted) {
         showSuccessSnackBar(
           context,
-          'Checked in safely! Your contacts have been notified.',
+          AppLocalizations.of(context).safetyCheckedInSuccess,
         );
       }
     } catch (e) {
       if (mounted) {
-        showErrorSnackBar(context, 'Could not check in. Please try again.');
+        showErrorSnackBar(
+          context,
+          AppLocalizations.of(context).safetyCheckInFailed,
+        );
       }
     }
   }
@@ -85,12 +89,15 @@ class _SafetyScreenState extends State<SafetyScreen> {
       if (mounted) {
         showSuccessSnackBar(
           context,
-          'Date started! Your contacts have been notified.',
+          AppLocalizations.of(context).safetyDateStartedSuccess,
         );
       }
     } catch (e) {
       if (mounted) {
-        showErrorSnackBar(context, 'Could not start date. Please try again.');
+        showErrorSnackBar(
+          context,
+          AppLocalizations.of(context).safetyDateStartFailed,
+        );
       }
     }
   }
@@ -101,44 +108,44 @@ class _SafetyScreenState extends State<SafetyScreen> {
       if (mounted) {
         showSuccessSnackBar(
           context,
-          'Date ended safely! Your contacts have been notified.',
+          AppLocalizations.of(context).safetyDateEndedSuccess,
         );
       }
     } catch (e) {
       if (mounted) {
-        showErrorSnackBar(context, 'Could not end date. Please try again.');
+        showErrorSnackBar(
+          context,
+          AppLocalizations.of(context).safetyDateEndFailed,
+        );
       }
     }
   }
 
   Future<void> _triggerEmergency(BuildContext context, String planId) async {
+    final l10n = AppLocalizations.of(context);
     // Capture messenger before async gap
     final messenger = ScaffoldMessenger.of(context);
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: DsColors.error),
-            SizedBox(width: 8),
-            Text('Emergency Alert'),
+            const Icon(Icons.warning_amber_rounded, color: DsColors.error),
+            const SizedBox(width: 8),
+            Text(l10n.safetyEmergencyAlertTitle),
           ],
         ),
-        content: const Text(
-          'This will immediately notify all your emergency contacts with your location. '
-          'Only use this if you feel unsafe.\n\n'
-          'Are you sure you want to send an emergency alert?',
-        ),
+        content: Text(l10n.safetyEmergencyAlertBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: DsColors.error),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Send Alert'),
+            child: Text(l10n.safetySendAlert),
           ),
         ],
       ),
@@ -152,7 +159,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
             SnackBar(
               // success/mint needs a dark foreground for legible text (9.72:1).
               content: Text(
-                'Emergency alert sent to all contacts!',
+                l10n.safetyEmergencyAlertSent,
                 style: TextStyle(
                   color: DsAccessibility.accessibleTextColor(DsColors.success),
                 ),
@@ -164,10 +171,8 @@ class _SafetyScreenState extends State<SafetyScreen> {
       } catch (e) {
         if (mounted) {
           messenger.showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Could not send alert. Please call emergency services directly.',
-              ),
+            SnackBar(
+              content: Text(l10n.safetyEmergencyAlertFailed),
               backgroundColor: DsColors.error,
             ),
           );
@@ -178,7 +183,10 @@ class _SafetyScreenState extends State<SafetyScreen> {
 
   void _showCreateDatePlanSheet(BuildContext context, String? userId) {
     if (userId == null) {
-      showErrorSnackBar(context, 'Please sign in to create a date plan.');
+      showErrorSnackBar(
+        context,
+        AppLocalizations.of(context).safetySignInToCreatePlan,
+      );
       return;
     }
 
@@ -193,7 +201,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
           _loadDatePlans();
           showSuccessSnackBar(
             context,
-            'Date plan created! We emailed your contact.',
+            AppLocalizations.of(context).safetyDatePlanCreated,
           );
         },
       ),
@@ -202,11 +210,12 @@ class _SafetyScreenState extends State<SafetyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final currentUserId = context.select<AuthBloc, String?>(
       (bloc) => bloc.state.user?.id,
     );
     return Scaffold(
-      appBar: AppBar(title: const Text('Safety & blocking')),
+      appBar: AppBar(title: Text(l10n.safetyTitle)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -242,38 +251,36 @@ class _SafetyScreenState extends State<SafetyScreen> {
                     ),
                     const SizedBox(height: 16),
                     _Section(
-                      title: 'Blocked users',
-                      emptyText:
-                          "People you block can't see your profile, message, or call you.",
+                      title: l10n.safetyBlockedUsers,
+                      emptyText: l10n.safetyBlockedUsersEmpty,
                       items: state.blockedUsers.toList(),
                       profileCache: state.profileCache,
                       isLoading: state.isLoadingProfiles,
                       onRemove: (userId) =>
                           _unblock(context, cubit, currentUserId, userId),
-                      removeLabel: 'Unblock',
+                      removeLabel: l10n.safetyUnblock,
                     ),
                     const SizedBox(height: 16),
                     _Section(
-                      title: 'Muted messages',
-                      emptyText:
-                          'Mute message alerts for someone without blocking them.',
+                      title: l10n.safetyMutedMessages,
+                      emptyText: l10n.safetyMutedMessagesEmpty,
                       items: state.mutedMessages.toList(),
                       profileCache: state.profileCache,
                       isLoading: state.isLoadingProfiles,
                       onRemove: (userId) =>
                           cubit.toggleMuteMessages(userId, mute: false),
-                      removeLabel: 'Unmute messages',
+                      removeLabel: l10n.safetyUnmuteMessages,
                     ),
                     const SizedBox(height: 16),
                     _Section(
-                      title: 'Muted calls',
-                      emptyText: 'Silence call alerts from selected people.',
+                      title: l10n.safetyMutedCalls,
+                      emptyText: l10n.safetyMutedCallsEmpty,
                       items: state.mutedCalls.toList(),
                       profileCache: state.profileCache,
                       isLoading: state.isLoadingProfiles,
                       onRemove: (userId) =>
                           cubit.toggleMuteCalls(userId, mute: false),
-                      removeLabel: 'Unmute calls',
+                      removeLabel: l10n.safetyUnmuteCalls,
                     ),
                     const SizedBox(height: 16),
                     _ReportHistorySection(
@@ -290,24 +297,21 @@ class _SafetyScreenState extends State<SafetyScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Need to report someone?',
-                              style: TextStyle(
+                            Text(
+                              l10n.safetyNeedToReport,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Open their profile or chat, choose Report, and pick a reason. '
-                              'We review reports to keep the community safe.',
-                            ),
+                            Text(l10n.safetyReportInstructions),
                             TextButton.icon(
                               onPressed: () {
                                 context.push(CrushRoutes.safetyGuidelines);
                               },
                               icon: const Icon(Icons.policy),
-                              label: const Text('Read community guidelines'),
+                              label: Text(l10n.safetyReadCommunityGuidelines),
                             ),
                             const SizedBox(height: 8),
                             TextButton.icon(
@@ -319,7 +323,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
                                       currentUserId,
                                     ),
                               icon: const Icon(Icons.gavel_outlined),
-                              label: const Text('Submit an appeal'),
+                              label: Text(l10n.safetySubmitAppeal),
                             ),
                           ],
                         ),
@@ -342,7 +346,10 @@ class _SafetyScreenState extends State<SafetyScreen> {
     String userId,
   ) async {
     if (currentUserId == null) {
-      showErrorSnackBar(context, 'Sign in again to manage safety actions.');
+      showErrorSnackBar(
+        context,
+        AppLocalizations.of(context).safetySignInToManage,
+      );
       return;
     }
     await cubit.toggleBlock(userId, block: false, currentUserId: currentUserId);
@@ -353,26 +360,25 @@ class _SafetyScreenState extends State<SafetyScreen> {
     SafetyCubit cubit,
     String currentUserId,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final controller = TextEditingController();
     final submitted = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Appeal a safety action'),
+        title: Text(l10n.safetyAppealDialogTitle),
         content: TextField(
           controller: controller,
           maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: 'Share why you are appealing',
-          ),
+          decoration: InputDecoration(hintText: l10n.safetyAppealHint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(l10n.commonCancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Submit'),
+            child: Text(l10n.commonSubmit),
           ),
         ],
       ),
@@ -382,7 +388,7 @@ class _SafetyScreenState extends State<SafetyScreen> {
     if (submitted == true) {
       final reason = controller.text.trim();
       if (reason.isEmpty) {
-        showErrorSnackBar(context, 'Please add details for your appeal.');
+        showErrorSnackBar(context, l10n.safetyAppealDetailsRequired);
         return;
       }
       final messenger = ScaffoldMessenger.of(context);
@@ -391,7 +397,9 @@ class _SafetyScreenState extends State<SafetyScreen> {
         reason: reason,
         targetType: 'account',
       );
-      messenger.showSnackBar(const SnackBar(content: Text('Appeal submitted')));
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.safetyAppealSubmitted)),
+      );
     }
   }
 }
@@ -412,6 +420,7 @@ class _ReportHistorySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final entries = reportedUsers.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
@@ -424,7 +433,7 @@ class _ReportHistorySection extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('Report history', style: theme.textTheme.titleMedium),
+                Text(l10n.safetyReportHistory, style: theme.textTheme.titleMedium),
                 if (isLoading) ...[
                   const SizedBox(width: 8),
                   const SizedBox(
@@ -437,8 +446,7 @@ class _ReportHistorySection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Reports you submit stay private. Reported profiles are hidden '
-              'from discovery for 10 days while our safety team reviews them.',
+              l10n.safetyReportHistoryDesc,
               style: TextStyle(
                 color: isDark
                     ? DsColors.textMutedDark
@@ -448,7 +456,7 @@ class _ReportHistorySection extends StatelessWidget {
             const SizedBox(height: 8),
             if (entries.isEmpty)
               Text(
-                'No recent reports.',
+                l10n.safetyNoRecentReports,
                 style: TextStyle(
                   color: isDark
                       ? DsColors.textMutedDark
@@ -467,17 +475,17 @@ class _ReportHistorySection extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: _ReportAvatar(profile: profile),
                   title: Text(
-                    profile?.name ?? 'User',
+                    profile?.name ?? l10n.safetyUnknownUser,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
-                  subtitle: Text('Reported $reportedAt'),
+                  subtitle: Text(l10n.safetyReportedOn(reportedAt)),
                   trailing: const Icon(Icons.lock_outline, size: 18),
                 );
               }),
             TextButton.icon(
               onPressed: onGuidelinesTap,
               icon: const Icon(Icons.policy_outlined),
-              label: const Text('Review reporting rules'),
+              label: Text(l10n.safetyReviewReportingRules),
             ),
           ],
         ),
@@ -525,42 +533,42 @@ class _SafetyEducationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.shield_outlined, color: DsColors.success),
-                SizedBox(width: 8),
+                const Icon(Icons.shield_outlined, color: DsColors.success),
+                const SizedBox(width: 8),
                 Text(
-                  'Stay safe while you connect',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  l10n.safetyEducationTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            const _SafetyTip(
+            _SafetyTip(
               icon: Icons.place_outlined,
-              text:
-                  'Plan first meetups in busy public places and share details with a friend.',
+              text: l10n.safetyTipMeetPublic,
             ),
-            const _SafetyTip(
+            _SafetyTip(
               icon: Icons.lock_outline,
-              text:
-                  'Keep chats in Crush until you trust someone. Never send money or codes.',
+              text: l10n.safetyTipKeepInApp,
             ),
-            const _SafetyTip(
+            _SafetyTip(
               icon: Icons.verified_user_outlined,
-              text:
-                  'Look for verification badges and report profiles that feel fake or pushy.',
+              text: l10n.safetyTipVerify,
             ),
-            const _SafetyTip(
+            _SafetyTip(
               icon: Icons.flag_outlined,
-              text:
-                  'Use block or report if anyone crosses a boundary. We act on reports to protect the community.',
+              text: l10n.safetyTipBlockReport,
             ),
             const SizedBox(height: 8),
             TextButton.icon(
@@ -568,7 +576,7 @@ class _SafetyEducationCard extends StatelessWidget {
                 context.push(CrushRoutes.safetyGuidelines);
               },
               icon: const Icon(Icons.menu_book_outlined),
-              label: const Text('Review safety & community guidelines'),
+              label: Text(l10n.safetyReviewGuidelines),
             ),
           ],
         ),
@@ -664,7 +672,7 @@ class _Section extends StatelessWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: _buildAvatar(context, profile),
                   title: Text(
-                    profile?.name ?? 'User',
+                    profile?.name ?? AppLocalizations.of(context).safetyUnknownUser,
                     style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                   subtitle: Text(
@@ -739,6 +747,7 @@ class _DatePlansSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return GlassCard(
       child: Padding(
@@ -761,10 +770,13 @@ class _DatePlansSection extends StatelessWidget {
                   ),
                 ),
                 DsGap.mdH,
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Date Plans',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    l10n.safetyDatePlansTitle,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 if (isLoading)
@@ -777,7 +789,7 @@ class _DatePlansSection extends StatelessWidget {
             ),
             DsGap.md,
             Text(
-              'Share your date details with trusted contacts who can check on you.',
+              l10n.safetyDatePlansDesc,
               style: TextStyle(
                 color: isDark
                     ? DsColors.textMutedDark
@@ -804,12 +816,12 @@ class _DatePlansSection extends StatelessWidget {
                 width: double.infinity,
                 child: GlassOutlinedButton(
                   onPressed: onCreatePlan,
-                  child: const Row(
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add, size: 18),
-                      SizedBox(width: 8),
-                      Text('Plan Another Date'),
+                      const Icon(Icons.add, size: 18),
+                      const SizedBox(width: 8),
+                      Text(l10n.safetyPlanAnotherDate),
                     ],
                   ),
                 ),
@@ -829,6 +841,7 @@ class _EmptyDatePlans extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Container(
@@ -837,19 +850,26 @@ class _EmptyDatePlans extends StatelessWidget {
             color: DsColors.primary.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Column(
+          child: Column(
             children: [
-              Icon(Icons.favorite_border, size: 48, color: DsColors.primary),
+              const Icon(
+                Icons.favorite_border,
+                size: 48,
+                color: DsColors.primary,
+              ),
               DsGap.md,
               Text(
-                'No active date plans',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                l10n.safetyNoActiveDatePlans,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
               ),
               DsGap.sm,
               Text(
-                'Create a plan before meeting someone and share it with a trusted friend or family member.',
+                l10n.safetyNoActiveDatePlansDesc,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 13),
               ),
             ],
           ),
@@ -859,12 +879,12 @@ class _EmptyDatePlans extends StatelessWidget {
           width: double.infinity,
           child: GlassPrimaryButton(
             onPressed: onCreatePlan,
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.add, size: 18),
-                SizedBox(width: 8),
-                Text('Create Date Plan'),
+                const Icon(Icons.add, size: 18),
+                const SizedBox(width: 8),
+                Text(l10n.safetyCreateDatePlan),
               ],
             ),
           ),
@@ -892,6 +912,7 @@ class _DatePlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final isOngoing = plan.status == DatePlanStatus.ongoing;
     final isScheduled = plan.status == DatePlanStatus.scheduled;
     final mutedFill = isDark ? DsColors.ink600 : DsColors.ink100;
@@ -934,7 +955,7 @@ class _DatePlanCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Date with ${plan.matchName}',
+                      l10n.safetyDateWith(plan.matchName),
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -992,7 +1013,7 @@ class _DatePlanCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Shared with ${plan.sharedWith.length} contact${plan.sharedWith.length > 1 ? 's' : ''}',
+                  l10n.safetySharedWithContacts(plan.sharedWith.length),
                   style: TextStyle(
                     fontSize: 12,
                     color: isDark
@@ -1012,7 +1033,7 @@ class _DatePlanCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onStartDate,
                     icon: const Icon(Icons.play_arrow, size: 18),
-                    label: const Text('Start Date'),
+                    label: Text(l10n.safetyStartDate),
                   ),
                 ),
               ],
@@ -1028,7 +1049,9 @@ class _DatePlanCard extends StatelessWidget {
                       size: 18,
                     ),
                     label: Text(
-                      plan.hasCheckedIn ? 'Checked In' : 'Check In Safe',
+                      plan.hasCheckedIn
+                          ? l10n.safetyCheckedIn
+                          : l10n.safetyCheckInSafe,
                     ),
                     style: FilledButton.styleFrom(
                       backgroundColor: plan.hasCheckedIn
@@ -1042,7 +1065,7 @@ class _DatePlanCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: onEndDate,
                     icon: const Icon(Icons.check_circle_outline, size: 18),
-                    label: const Text('End Safely'),
+                    label: Text(l10n.safetyEndSafely),
                   ),
                 ),
               ],
@@ -1057,9 +1080,9 @@ class _DatePlanCard extends StatelessWidget {
                   size: 18,
                   color: DsColors.error,
                 ),
-                label: const Text(
-                  'Emergency Alert',
-                  style: TextStyle(color: DsColors.error),
+                label: Text(
+                  l10n.safetyEmergencyAlertTitle,
+                  style: const TextStyle(color: DsColors.error),
                 ),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: DsColors.error),
@@ -1081,13 +1104,14 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final muted = isDark ? DsColors.ink300 : DsColors.ink300;
     final (color, label) = switch (status) {
-      DatePlanStatus.scheduled => (DsColors.info, 'Scheduled'),
-      DatePlanStatus.ongoing => (DsColors.success, 'Ongoing'),
-      DatePlanStatus.completed => (muted, 'Completed'),
-      DatePlanStatus.cancelled => (muted, 'Cancelled'),
-      DatePlanStatus.emergency => (DsColors.error, 'Emergency'),
+      DatePlanStatus.scheduled => (DsColors.info, l10n.safetyStatusScheduled),
+      DatePlanStatus.ongoing => (DsColors.success, l10n.safetyStatusOngoing),
+      DatePlanStatus.completed => (muted, l10n.safetyStatusCompleted),
+      DatePlanStatus.cancelled => (muted, l10n.safetyStatusCancelled),
+      DatePlanStatus.emergency => (DsColors.error, l10n.safetyStatusEmergency),
     };
 
     return Container(
@@ -1147,6 +1171,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
@@ -1172,13 +1197,13 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
               ),
             ),
             DsGap.lg,
-            const Text(
-              'Create Date Plan',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              l10n.safetyCreateDatePlan,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             DsGap.sm,
             Text(
-              'Share your date details with someone you trust.',
+              l10n.safetyCreateDatePlanDesc,
               style: TextStyle(
                 color: isDark
                     ? DsColors.textMutedDark
@@ -1189,8 +1214,8 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             // Match name
             GlassTextField(
               controller: _matchNameController,
-              label: 'Who are you meeting?',
-              hintText: 'Their name',
+              label: l10n.safetyWhoMeeting,
+              hintText: l10n.safetyTheirNameHint,
               prefixIcon: Icons.person_outline,
             ),
             DsGap.lg,
@@ -1219,19 +1244,19 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             // Location
             GlassTextField(
               controller: _locationController,
-              label: 'Where?',
-              hintText: 'Location name or address',
+              label: l10n.safetyWhereLabel,
+              hintText: l10n.safetyLocationHint,
               prefixIcon: Icons.place_outlined,
             ),
             DsGap.xl,
             // Emergency contact section
-            const Text(
-              'Emergency Contact',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            Text(
+              l10n.safetyEmergencyContact,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             DsGap.sm,
             Text(
-              'This person will be notified of your date details and can check on you.',
+              l10n.safetyEmergencyContactDesc,
               style: TextStyle(
                 fontSize: 13,
                 color: isDark
@@ -1242,15 +1267,15 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             DsGap.md,
             GlassTextField(
               controller: _contactNameController,
-              label: 'Contact name',
-              hintText: 'Mom, Best friend, etc.',
+              label: l10n.safetyContactName,
+              hintText: l10n.safetyContactNameHint,
               prefixIcon: Icons.person,
             ),
             DsGap.md,
             GlassTextField(
               controller: _contactEmailController,
-              label: 'Contact email',
-              hintText: 'example@email.com',
+              label: l10n.safetyContactEmail,
+              hintText: l10n.safetyContactEmailHint,
               prefixIcon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
             ),
@@ -1258,8 +1283,8 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
             // Notes (optional)
             GlassTextField(
               controller: _notesController,
-              label: 'Notes (optional)',
-              hintText: 'Any additional details...',
+              label: l10n.safetyNotesLabel,
+              hintText: l10n.safetyNotesHint,
               prefixIcon: Icons.note_outlined,
             ),
             if (_error != null) ...[
@@ -1275,7 +1300,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
               child: GlassPrimaryButton(
                 onPressed: _isLoading ? null : _createPlan,
                 isLoading: _isLoading,
-                child: const Text('Create Plan'),
+                child: Text(l10n.safetyCreatePlan),
               ),
             ),
             DsGap.md,
@@ -1308,23 +1333,24 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
   }
 
   Future<void> _createPlan() async {
+    final l10n = AppLocalizations.of(context);
     // Validate
     if (_matchNameController.text.trim().isEmpty) {
-      setState(() => _error = 'Please enter who you are meeting');
+      setState(() => _error = l10n.safetyErrorEnterMatch);
       return;
     }
     if (_locationController.text.trim().isEmpty) {
-      setState(() => _error = 'Please enter a location');
+      setState(() => _error = l10n.safetyErrorEnterLocation);
       return;
     }
     final contactName = _contactNameController.text.trim();
     final contactEmail = _contactEmailController.text.trim();
     if (contactName.isEmpty || contactEmail.isEmpty) {
-      setState(() => _error = 'Please add an emergency contact with email');
+      setState(() => _error = l10n.safetyErrorAddContact);
       return;
     }
     if (!looksLikeEmail(contactEmail)) {
-      setState(() => _error = 'Please enter a valid contact email');
+      setState(() => _error = l10n.safetyErrorValidEmail);
       return;
     }
 
@@ -1370,9 +1396,7 @@ class _CreateDatePlanSheetState extends State<_CreateDatePlanSheet> {
           : rawMessage;
       setState(() {
         _isLoading = false;
-        _error = cleaned.isNotEmpty
-            ? cleaned
-            : 'Could not create plan. Please try again.';
+        _error = cleaned.isNotEmpty ? cleaned : l10n.safetyCreatePlanFailed;
       });
     }
   }

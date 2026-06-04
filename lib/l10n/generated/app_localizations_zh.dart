@@ -2965,6 +2965,282 @@ class AppLocalizationsZh extends AppLocalizations {
   String get safetyReported => '举报已提交';
 
   @override
+  String get safetyTitle => 'Safety & blocking';
+
+  @override
+  String get safetyEmergencyAlertTitle => 'Emergency Alert';
+
+  @override
+  String get safetyEmergencyAlertBody =>
+      'This will immediately notify all your emergency contacts with your location. Only use this if you feel unsafe.\n\nAre you sure you want to send an emergency alert?';
+
+  @override
+  String get safetySendAlert => 'Send Alert';
+
+  @override
+  String get safetyEmergencyAlertSent =>
+      'Emergency alert sent to all contacts!';
+
+  @override
+  String get safetyEmergencyAlertFailed =>
+      'Could not send alert. Please call emergency services directly.';
+
+  @override
+  String get safetyCheckedInSuccess =>
+      'Checked in safely! Your contacts have been notified.';
+
+  @override
+  String get safetyCheckInFailed => 'Could not check in. Please try again.';
+
+  @override
+  String get safetyDateStartedSuccess =>
+      'Date started! Your contacts have been notified.';
+
+  @override
+  String get safetyDateStartFailed => 'Could not start date. Please try again.';
+
+  @override
+  String get safetyDateEndedSuccess =>
+      'Date ended safely! Your contacts have been notified.';
+
+  @override
+  String get safetyDateEndFailed => 'Could not end date. Please try again.';
+
+  @override
+  String get safetySignInToCreatePlan =>
+      'Please sign in to create a date plan.';
+
+  @override
+  String get safetyDatePlanCreated =>
+      'Date plan created! We emailed your contact.';
+
+  @override
+  String get safetySignInToManage => 'Sign in again to manage safety actions.';
+
+  @override
+  String get safetyBlockedUsers => 'Blocked users';
+
+  @override
+  String get safetyBlockedUsersEmpty =>
+      'People you block can\'t see your profile, message, or call you.';
+
+  @override
+  String get safetyUnblock => 'Unblock';
+
+  @override
+  String get safetyMutedMessages => 'Muted messages';
+
+  @override
+  String get safetyMutedMessagesEmpty =>
+      'Mute message alerts for someone without blocking them.';
+
+  @override
+  String get safetyUnmuteMessages => 'Unmute messages';
+
+  @override
+  String get safetyMutedCalls => 'Muted calls';
+
+  @override
+  String get safetyMutedCallsEmpty =>
+      'Silence call alerts from selected people.';
+
+  @override
+  String get safetyUnmuteCalls => 'Unmute calls';
+
+  @override
+  String get safetyNeedToReport => 'Need to report someone?';
+
+  @override
+  String get safetyReportInstructions =>
+      'Open their profile or chat, choose Report, and pick a reason. We review reports to keep the community safe.';
+
+  @override
+  String get safetyReadCommunityGuidelines => 'Read community guidelines';
+
+  @override
+  String get safetySubmitAppeal => 'Submit an appeal';
+
+  @override
+  String get safetyAppealDialogTitle => 'Appeal a safety action';
+
+  @override
+  String get safetyAppealHint => 'Share why you are appealing';
+
+  @override
+  String get safetyAppealDetailsRequired =>
+      'Please add details for your appeal.';
+
+  @override
+  String get safetyAppealSubmitted => 'Appeal submitted';
+
+  @override
+  String get safetyReportHistory => 'Report history';
+
+  @override
+  String get safetyReportHistoryDesc =>
+      'Reports you submit stay private. Reported profiles are hidden from discovery for 10 days while our safety team reviews them.';
+
+  @override
+  String get safetyNoRecentReports => 'No recent reports.';
+
+  @override
+  String safetyReportedOn(String date) {
+    return 'Reported $date';
+  }
+
+  @override
+  String get safetyReviewReportingRules => 'Review reporting rules';
+
+  @override
+  String get safetyUnknownUser => 'User';
+
+  @override
+  String get safetyEducationTitle => 'Stay safe while you connect';
+
+  @override
+  String get safetyTipMeetPublic =>
+      'Plan first meetups in busy public places and share details with a friend.';
+
+  @override
+  String get safetyTipKeepInApp =>
+      'Keep chats in Crush until you trust someone. Never send money or codes.';
+
+  @override
+  String get safetyTipVerify =>
+      'Look for verification badges and report profiles that feel fake or pushy.';
+
+  @override
+  String get safetyTipBlockReport =>
+      'Use block or report if anyone crosses a boundary. We act on reports to protect the community.';
+
+  @override
+  String get safetyReviewGuidelines => 'Review safety & community guidelines';
+
+  @override
+  String get safetyDatePlansTitle => 'Date Plans';
+
+  @override
+  String get safetyDatePlansDesc =>
+      'Share your date details with trusted contacts who can check on you.';
+
+  @override
+  String get safetyPlanAnotherDate => 'Plan Another Date';
+
+  @override
+  String get safetyNoActiveDatePlans => 'No active date plans';
+
+  @override
+  String get safetyNoActiveDatePlansDesc =>
+      'Create a plan before meeting someone and share it with a trusted friend or family member.';
+
+  @override
+  String get safetyCreateDatePlan => 'Create Date Plan';
+
+  @override
+  String safetyDateWith(String name) {
+    return 'Date with $name';
+  }
+
+  @override
+  String safetySharedWithContacts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Shared with $count contacts',
+      one: 'Shared with 1 contact',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get safetyStartDate => 'Start Date';
+
+  @override
+  String get safetyCheckedIn => 'Checked In';
+
+  @override
+  String get safetyCheckInSafe => 'Check In Safe';
+
+  @override
+  String get safetyEndSafely => 'End Safely';
+
+  @override
+  String get safetyStatusScheduled => 'Scheduled';
+
+  @override
+  String get safetyStatusOngoing => 'Ongoing';
+
+  @override
+  String get safetyStatusCompleted => 'Completed';
+
+  @override
+  String get safetyStatusCancelled => 'Cancelled';
+
+  @override
+  String get safetyStatusEmergency => 'Emergency';
+
+  @override
+  String get safetyCreateDatePlanDesc =>
+      'Share your date details with someone you trust.';
+
+  @override
+  String get safetyWhoMeeting => 'Who are you meeting?';
+
+  @override
+  String get safetyTheirNameHint => 'Their name';
+
+  @override
+  String get safetyWhereLabel => 'Where?';
+
+  @override
+  String get safetyLocationHint => 'Location name or address';
+
+  @override
+  String get safetyEmergencyContact => 'Emergency Contact';
+
+  @override
+  String get safetyEmergencyContactDesc =>
+      'This person will be notified of your date details and can check on you.';
+
+  @override
+  String get safetyContactName => 'Contact name';
+
+  @override
+  String get safetyContactNameHint => 'Mom, Best friend, etc.';
+
+  @override
+  String get safetyContactEmail => 'Contact email';
+
+  @override
+  String get safetyContactEmailHint => 'example@email.com';
+
+  @override
+  String get safetyNotesLabel => 'Notes (optional)';
+
+  @override
+  String get safetyNotesHint => 'Any additional details...';
+
+  @override
+  String get safetyCreatePlan => 'Create Plan';
+
+  @override
+  String get safetyErrorEnterMatch => 'Please enter who you are meeting';
+
+  @override
+  String get safetyErrorEnterLocation => 'Please enter a location';
+
+  @override
+  String get safetyErrorAddContact =>
+      'Please add an emergency contact with email';
+
+  @override
+  String get safetyErrorValidEmail => 'Please enter a valid contact email';
+
+  @override
+  String get safetyCreatePlanFailed =>
+      'Could not create plan. Please try again.';
+
+  @override
   String get safetyBlocked => '用户已屏蔽';
 
   @override

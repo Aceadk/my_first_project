@@ -12,7 +12,7 @@
 - Description: Audit the remaining hardcoded strings and move them into localization resources with stable keys.
 - Acceptance Criteria: critical flows have no hardcoded user-facing copy outside approved exception lists.
 - Testing: localization extraction audit and targeted UI spot checks.
-- Status: in progress (2026-06-04). Localized onboarding progress/nav widgets + 6 more critical-flow files (phone_protection, change_email, subscription_settings, paywall, chat_input_bar, privacy_settings) via reused + 3 new `app_en.arb` keys; verified by existing tests. **Still open/tracked:** `safety_screen.dart` (~16 strings across ~8 sub-widgets — the remaining hardcoded critical screen), some `calls` strings, likely-legacy `presentation/screens/home/settings_screen.dart`, and the `hardcoded_strings.txt` long tail; legal screens are long-form English (candidate exception list). Report: `docs/reports/i18n_l10n_audit_2026-06-04.md`.
+- Status: in progress (2026-06-04). Localized onboarding progress/nav widgets, 6 critical-flow files (phone_protection, change_email, subscription_settings, paywall, chat_input_bar, privacy_settings), and **fully localized `safety_screen.dart`** (~78 strings incl. a `{count, plural}` + `{name}`/`{date}` placeholders; zero hardcoded strings remain — verified by `safety_l10n_keys_test.dart`). **Still open/tracked:** `calls` screen strings, likely-legacy `presentation/screens/home/settings_screen.dart`, and the `hardcoded_strings.txt` long tail; legal screens are long-form English (candidate exception list). Report: `docs/reports/i18n_l10n_audit_2026-06-04.md`.
 
 ### I18N-002 - Verify RTL, locale formatting, and text expansion resilience
 - Files: localized strings, date/number formatters, mirrored layouts

@@ -5429,6 +5429,486 @@ abstract class AppLocalizations {
   /// **'Report submitted'**
   String get safetyReported;
 
+  /// No description provided for @safetyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety & blocking'**
+  String get safetyTitle;
+
+  /// No description provided for @safetyEmergencyAlertTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Alert'**
+  String get safetyEmergencyAlertTitle;
+
+  /// No description provided for @safetyEmergencyAlertBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will immediately notify all your emergency contacts with your location. Only use this if you feel unsafe.\n\nAre you sure you want to send an emergency alert?'**
+  String get safetyEmergencyAlertBody;
+
+  /// No description provided for @safetySendAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Alert'**
+  String get safetySendAlert;
+
+  /// No description provided for @safetyEmergencyAlertSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency alert sent to all contacts!'**
+  String get safetyEmergencyAlertSent;
+
+  /// No description provided for @safetyEmergencyAlertFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send alert. Please call emergency services directly.'**
+  String get safetyEmergencyAlertFailed;
+
+  /// No description provided for @safetyCheckedInSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in safely! Your contacts have been notified.'**
+  String get safetyCheckedInSuccess;
+
+  /// No description provided for @safetyCheckInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check in. Please try again.'**
+  String get safetyCheckInFailed;
+
+  /// No description provided for @safetyDateStartedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Date started! Your contacts have been notified.'**
+  String get safetyDateStartedSuccess;
+
+  /// No description provided for @safetyDateStartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start date. Please try again.'**
+  String get safetyDateStartFailed;
+
+  /// No description provided for @safetyDateEndedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Date ended safely! Your contacts have been notified.'**
+  String get safetyDateEndedSuccess;
+
+  /// No description provided for @safetyDateEndFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not end date. Please try again.'**
+  String get safetyDateEndFailed;
+
+  /// No description provided for @safetySignInToCreatePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Please sign in to create a date plan.'**
+  String get safetySignInToCreatePlan;
+
+  /// No description provided for @safetyDatePlanCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Date plan created! We emailed your contact.'**
+  String get safetyDatePlanCreated;
+
+  /// No description provided for @safetySignInToManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in again to manage safety actions.'**
+  String get safetySignInToManage;
+
+  /// No description provided for @safetyBlockedUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocked users'**
+  String get safetyBlockedUsers;
+
+  /// No description provided for @safetyBlockedUsersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'People you block can\'t see your profile, message, or call you.'**
+  String get safetyBlockedUsersEmpty;
+
+  /// No description provided for @safetyUnblock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unblock'**
+  String get safetyUnblock;
+
+  /// No description provided for @safetyMutedMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted messages'**
+  String get safetyMutedMessages;
+
+  /// No description provided for @safetyMutedMessagesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Mute message alerts for someone without blocking them.'**
+  String get safetyMutedMessagesEmpty;
+
+  /// No description provided for @safetyUnmuteMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute messages'**
+  String get safetyUnmuteMessages;
+
+  /// No description provided for @safetyMutedCalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Muted calls'**
+  String get safetyMutedCalls;
+
+  /// No description provided for @safetyMutedCallsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Silence call alerts from selected people.'**
+  String get safetyMutedCallsEmpty;
+
+  /// No description provided for @safetyUnmuteCalls.
+  ///
+  /// In en, this message translates to:
+  /// **'Unmute calls'**
+  String get safetyUnmuteCalls;
+
+  /// No description provided for @safetyNeedToReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Need to report someone?'**
+  String get safetyNeedToReport;
+
+  /// No description provided for @safetyReportInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Open their profile or chat, choose Report, and pick a reason. We review reports to keep the community safe.'**
+  String get safetyReportInstructions;
+
+  /// No description provided for @safetyReadCommunityGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'Read community guidelines'**
+  String get safetyReadCommunityGuidelines;
+
+  /// No description provided for @safetySubmitAppeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit an appeal'**
+  String get safetySubmitAppeal;
+
+  /// No description provided for @safetyAppealDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal a safety action'**
+  String get safetyAppealDialogTitle;
+
+  /// No description provided for @safetyAppealHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Share why you are appealing'**
+  String get safetyAppealHint;
+
+  /// No description provided for @safetyAppealDetailsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add details for your appeal.'**
+  String get safetyAppealDetailsRequired;
+
+  /// No description provided for @safetyAppealSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal submitted'**
+  String get safetyAppealSubmitted;
+
+  /// No description provided for @safetyReportHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Report history'**
+  String get safetyReportHistory;
+
+  /// No description provided for @safetyReportHistoryDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports you submit stay private. Reported profiles are hidden from discovery for 10 days while our safety team reviews them.'**
+  String get safetyReportHistoryDesc;
+
+  /// No description provided for @safetyNoRecentReports.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent reports.'**
+  String get safetyNoRecentReports;
+
+  /// No description provided for @safetyReportedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported {date}'**
+  String safetyReportedOn(String date);
+
+  /// No description provided for @safetyReviewReportingRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Review reporting rules'**
+  String get safetyReviewReportingRules;
+
+  /// No description provided for @safetyUnknownUser.
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get safetyUnknownUser;
+
+  /// No description provided for @safetyEducationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay safe while you connect'**
+  String get safetyEducationTitle;
+
+  /// No description provided for @safetyTipMeetPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan first meetups in busy public places and share details with a friend.'**
+  String get safetyTipMeetPublic;
+
+  /// No description provided for @safetyTipKeepInApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep chats in Crush until you trust someone. Never send money or codes.'**
+  String get safetyTipKeepInApp;
+
+  /// No description provided for @safetyTipVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Look for verification badges and report profiles that feel fake or pushy.'**
+  String get safetyTipVerify;
+
+  /// No description provided for @safetyTipBlockReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Use block or report if anyone crosses a boundary. We act on reports to protect the community.'**
+  String get safetyTipBlockReport;
+
+  /// No description provided for @safetyReviewGuidelines.
+  ///
+  /// In en, this message translates to:
+  /// **'Review safety & community guidelines'**
+  String get safetyReviewGuidelines;
+
+  /// No description provided for @safetyDatePlansTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Plans'**
+  String get safetyDatePlansTitle;
+
+  /// No description provided for @safetyDatePlansDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your date details with trusted contacts who can check on you.'**
+  String get safetyDatePlansDesc;
+
+  /// No description provided for @safetyPlanAnotherDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan Another Date'**
+  String get safetyPlanAnotherDate;
+
+  /// No description provided for @safetyNoActiveDatePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'No active date plans'**
+  String get safetyNoActiveDatePlans;
+
+  /// No description provided for @safetyNoActiveDatePlansDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a plan before meeting someone and share it with a trusted friend or family member.'**
+  String get safetyNoActiveDatePlansDesc;
+
+  /// No description provided for @safetyCreateDatePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Date Plan'**
+  String get safetyCreateDatePlan;
+
+  /// No description provided for @safetyDateWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Date with {name}'**
+  String safetyDateWith(String name);
+
+  /// No description provided for @safetySharedWithContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Shared with 1 contact} other{Shared with {count} contacts}}'**
+  String safetySharedWithContacts(int count);
+
+  /// No description provided for @safetyStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get safetyStartDate;
+
+  /// No description provided for @safetyCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked In'**
+  String get safetyCheckedIn;
+
+  /// No description provided for @safetyCheckInSafe.
+  ///
+  /// In en, this message translates to:
+  /// **'Check In Safe'**
+  String get safetyCheckInSafe;
+
+  /// No description provided for @safetyEndSafely.
+  ///
+  /// In en, this message translates to:
+  /// **'End Safely'**
+  String get safetyEndSafely;
+
+  /// No description provided for @safetyStatusScheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled'**
+  String get safetyStatusScheduled;
+
+  /// No description provided for @safetyStatusOngoing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get safetyStatusOngoing;
+
+  /// No description provided for @safetyStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get safetyStatusCompleted;
+
+  /// No description provided for @safetyStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get safetyStatusCancelled;
+
+  /// No description provided for @safetyStatusEmergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get safetyStatusEmergency;
+
+  /// No description provided for @safetyCreateDatePlanDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your date details with someone you trust.'**
+  String get safetyCreateDatePlanDesc;
+
+  /// No description provided for @safetyWhoMeeting.
+  ///
+  /// In en, this message translates to:
+  /// **'Who are you meeting?'**
+  String get safetyWhoMeeting;
+
+  /// No description provided for @safetyTheirNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Their name'**
+  String get safetyTheirNameHint;
+
+  /// No description provided for @safetyWhereLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Where?'**
+  String get safetyWhereLabel;
+
+  /// No description provided for @safetyLocationHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Location name or address'**
+  String get safetyLocationHint;
+
+  /// No description provided for @safetyEmergencyContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency Contact'**
+  String get safetyEmergencyContact;
+
+  /// No description provided for @safetyEmergencyContactDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'This person will be notified of your date details and can check on you.'**
+  String get safetyEmergencyContactDesc;
+
+  /// No description provided for @safetyContactName.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact name'**
+  String get safetyContactName;
+
+  /// No description provided for @safetyContactNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mom, Best friend, etc.'**
+  String get safetyContactNameHint;
+
+  /// No description provided for @safetyContactEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact email'**
+  String get safetyContactEmail;
+
+  /// No description provided for @safetyContactEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'example@email.com'**
+  String get safetyContactEmailHint;
+
+  /// No description provided for @safetyNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes (optional)'**
+  String get safetyNotesLabel;
+
+  /// No description provided for @safetyNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Any additional details...'**
+  String get safetyNotesHint;
+
+  /// No description provided for @safetyCreatePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Plan'**
+  String get safetyCreatePlan;
+
+  /// No description provided for @safetyErrorEnterMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter who you are meeting'**
+  String get safetyErrorEnterMatch;
+
+  /// No description provided for @safetyErrorEnterLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a location'**
+  String get safetyErrorEnterLocation;
+
+  /// No description provided for @safetyErrorAddContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add an emergency contact with email'**
+  String get safetyErrorAddContact;
+
+  /// No description provided for @safetyErrorValidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid contact email'**
+  String get safetyErrorValidEmail;
+
+  /// No description provided for @safetyCreatePlanFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create plan. Please try again.'**
+  String get safetyCreatePlanFailed;
+
   /// No description provided for @safetyBlocked.
   ///
   /// In en, this message translates to:

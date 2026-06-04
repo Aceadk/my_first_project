@@ -91,6 +91,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
 - Next Step: Systematic hardcoded-string extraction to finish I18N-001; manual Arabic/Hebrew RTL sweep.
 - Follow-up (2026-06-04): Localized 6 more critical-flow files (phone_protection, change_email, subscription_settings, paywall, chat_input_bar, privacy_settings) via reused + 3 new keys (`authVerifyPasswordTitle`, `subscriptionPaywallTitle`, `subscriptionCancelSubscription`); analyze clean + privacy/subscription/toggle tests pass. I18N-001 still in progress — remaining hardcoded critical screen is `safety_screen.dart` (~16 strings across ~8 sub-widgets), plus some `calls` strings and the long tail.
+- Follow-up 2 (2026-06-04): **Fully localized `safety_screen.dart`** — it was essentially unlocalized (~78 user-facing strings: snackbars, dialogs, safety-tips card, date-plan cards, status badges, create-plan form + validation). Added ~78 `app_en.arb` keys (reused commonCancel/commonSubmit) incl. a `{count, plural}` and `{name}`/`{date}` placeholders; regenerated locales (English fallback). Zero hardcoded strings remain (source re-scan); `flutter analyze` clean; new `test/features/safety/safety_l10n_keys_test.dart` (plural/placeholder/fallback) passes. I18N-001 narrowed to `calls` strings + legacy home settings + the long tail.
 
 ### T-2026-06-04-ONBOARDING-FLOW
 - Date: 2026-06-04
