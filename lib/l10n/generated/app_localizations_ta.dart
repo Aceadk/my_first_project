@@ -6152,6 +6152,111 @@ class AppLocalizationsTa extends AppLocalizations {
   String get callSlideToAnswer => 'Slide to answer';
 
   @override
+  String get callPermissionVideoRequired =>
+      'Camera and microphone permission is required for video calls';
+
+  @override
+  String get callPermissionAudioRequired =>
+      'Microphone permission is required for calls';
+
+  @override
+  String get callCouldNotStart => 'Could not start call';
+
+  @override
+  String get callError => 'Call error';
+
+  @override
+  String get callMinimize => 'Minimize call';
+
+  @override
+  String get callUnknownName => 'Unknown';
+
+  @override
+  String get callSpeaker => 'Speaker';
+
+  @override
+  String get callFlipCamera => 'Flip';
+
+  @override
+  String get callEndCall => 'End call';
+
+  @override
+  String get callYouLabel => 'You';
+
+  @override
+  String get callReconnecting => 'Reconnecting';
+
+  @override
+  String get callStatusReconnecting => 'Reconnecting...';
+
+  @override
+  String get callStatusInitiating => 'Initiating...';
+
+  @override
+  String get callStatusRinging => 'Ringing...';
+
+  @override
+  String get callStatusIncoming => 'Incoming call...';
+
+  @override
+  String get callStatusConnecting => 'Connecting...';
+
+  @override
+  String get callVideoCall => 'Video Call';
+
+  @override
+  String get callVoiceCall => 'Voice Call';
+
+  @override
+  String get callEnded => 'Call ended';
+
+  @override
+  String get callHistoryLoginRequired =>
+      'You must be logged in to view call history.';
+
+  @override
+  String get callHistoryLoadError => 'Unable to load call history right now.';
+
+  @override
+  String get callHistoryToday => 'Today';
+
+  @override
+  String get callHistoryYesterday => 'Yesterday';
+
+  @override
+  String get callHistoryThisWeek => 'This Week';
+
+  @override
+  String get callHistoryEarlier => 'Earlier';
+
+  @override
+  String get callHistoryEmptyTitle => 'No calls yet';
+
+  @override
+  String get callHistoryEmptyDesc =>
+      'Your completed and missed calls will appear here.';
+
+  @override
+  String callHistoryDuration(String duration) {
+    return 'Duration $duration';
+  }
+
+  @override
+  String get callHistoryStatusRinging => 'Ringing';
+
+  @override
+  String get callHistoryStatusCompleted => 'Completed';
+
+  @override
+  String get callHistoryStatusMissed => 'Missed call';
+
+  @override
+  String get callHistoryStatusDeclined => 'Declined';
+
+  @override
+  String get callHistoryStatusFailed => 'Failed';
+
+  @override
   String get unableToLoadMoreCall => 'Unable to load more call history.';
 
   @override

@@ -11447,6 +11447,204 @@ abstract class AppLocalizations {
   /// **'Slide to answer'**
   String get callSlideToAnswer;
 
+  /// No description provided for @callPermissionVideoRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera and microphone permission is required for video calls'**
+  String get callPermissionVideoRequired;
+
+  /// No description provided for @callPermissionAudioRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Microphone permission is required for calls'**
+  String get callPermissionAudioRequired;
+
+  /// No description provided for @callCouldNotStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start call'**
+  String get callCouldNotStart;
+
+  /// No description provided for @callError.
+  ///
+  /// In en, this message translates to:
+  /// **'Call error'**
+  String get callError;
+
+  /// No description provided for @callMinimize.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimize call'**
+  String get callMinimize;
+
+  /// No description provided for @callUnknownName.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get callUnknownName;
+
+  /// No description provided for @callSpeaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaker'**
+  String get callSpeaker;
+
+  /// No description provided for @callFlipCamera.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip'**
+  String get callFlipCamera;
+
+  /// No description provided for @callEndCall.
+  ///
+  /// In en, this message translates to:
+  /// **'End call'**
+  String get callEndCall;
+
+  /// No description provided for @callYouLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get callYouLabel;
+
+  /// No description provided for @callReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting'**
+  String get callReconnecting;
+
+  /// No description provided for @callStatusReconnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting...'**
+  String get callStatusReconnecting;
+
+  /// No description provided for @callStatusInitiating.
+  ///
+  /// In en, this message translates to:
+  /// **'Initiating...'**
+  String get callStatusInitiating;
+
+  /// No description provided for @callStatusRinging.
+  ///
+  /// In en, this message translates to:
+  /// **'Ringing...'**
+  String get callStatusRinging;
+
+  /// No description provided for @callStatusIncoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming call...'**
+  String get callStatusIncoming;
+
+  /// No description provided for @callStatusConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get callStatusConnecting;
+
+  /// No description provided for @callVideoCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Video Call'**
+  String get callVideoCall;
+
+  /// No description provided for @callVoiceCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice Call'**
+  String get callVoiceCall;
+
+  /// No description provided for @callEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Call ended'**
+  String get callEnded;
+
+  /// No description provided for @callHistoryLoginRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'You must be logged in to view call history.'**
+  String get callHistoryLoginRequired;
+
+  /// No description provided for @callHistoryLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load call history right now.'**
+  String get callHistoryLoadError;
+
+  /// No description provided for @callHistoryToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get callHistoryToday;
+
+  /// No description provided for @callHistoryYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get callHistoryYesterday;
+
+  /// No description provided for @callHistoryThisWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get callHistoryThisWeek;
+
+  /// No description provided for @callHistoryEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Earlier'**
+  String get callHistoryEarlier;
+
+  /// No description provided for @callHistoryEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No calls yet'**
+  String get callHistoryEmptyTitle;
+
+  /// No description provided for @callHistoryEmptyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your completed and missed calls will appear here.'**
+  String get callHistoryEmptyDesc;
+
+  /// No description provided for @callHistoryDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration {duration}'**
+  String callHistoryDuration(String duration);
+
+  /// No description provided for @callHistoryStatusRinging.
+  ///
+  /// In en, this message translates to:
+  /// **'Ringing'**
+  String get callHistoryStatusRinging;
+
+  /// No description provided for @callHistoryStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get callHistoryStatusCompleted;
+
+  /// No description provided for @callHistoryStatusMissed.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed call'**
+  String get callHistoryStatusMissed;
+
+  /// No description provided for @callHistoryStatusDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined'**
+  String get callHistoryStatusDeclined;
+
+  /// No description provided for @callHistoryStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get callHistoryStatusFailed;
+
   /// No description provided for @unableToLoadMoreCall.
   ///
   /// In en, this message translates to:

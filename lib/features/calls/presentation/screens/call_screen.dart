@@ -285,13 +285,14 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _initiateCall() async {
+    final l10n = AppLocalizations.of(context);
     try {
       final hasCallPermissions = await _ensureCallPermissions();
       if (!hasCallPermissions) {
         throw Exception(
           widget.isVideoCall
-              ? 'Camera and microphone permission is required for video calls'
-              : 'Microphone permission is required for calls',
+              ? l10n.callPermissionVideoRequired
+              : l10n.callPermissionAudioRequired,
         );
       }
       if (!mounted) return;
@@ -323,7 +324,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         DsHaptics.error();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not start call: $e'),
+            content: Text('${l10n.callCouldNotStart}: $e'),
             backgroundColor: DsColors.error,
           ),
         );
@@ -372,7 +373,9 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
             DsHaptics.error();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.errorMessage ?? 'Call error'),
+                content: Text(
+                  state.errorMessage ?? AppLocalizations.of(context).callError,
+                ),
                 backgroundColor: DsColors.error,
               ),
             );
@@ -456,7 +459,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 top: MediaQuery.of(context).padding.top + 14,
                 start: 12,
                 child: IconButton(
-                  tooltip: 'Minimize call',
+                  tooltip: AppLocalizations.of(context).callMinimize,
                   onPressed: _minimizeToPiP,
                   icon: const Icon(
                     Icons.picture_in_picture_alt_outlined,
@@ -527,7 +530,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildCallInfo() {
-    final name = widget.matchName ?? 'Unknown';
+    final name = widget.matchName ?? AppLocalizations.of(context).callUnknownName;
     final status = _getStatusText();
     final isConnecting =
         _uiState == CallUIState.outgoing || _uiState == CallUIState.connecting;
@@ -708,6 +711,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildCallControls() {
+    final l10n = AppLocalizations.of(context);
     final isMuted = _callService.isMuted;
     final isSpeakerOn = _callService.isSpeakerOn;
     final isVideoEnabled = _callService.isVideoEnabled;
@@ -734,7 +738,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                 children: [
                   _GlassControlButton(
                     icon: isMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-                    label: isMuted ? 'Unmute' : 'Mute',
+                    label: isMuted ? l10n.commonUnmute : l10n.commonMute,
                     onPressed: () {
                       DsHaptics.light();
                       _callService.toggleMute();
@@ -748,7 +752,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                     icon: isSpeakerOn
                         ? Icons.volume_up_rounded
                         : Icons.volume_down_rounded,
-                    label: 'Speaker',
+                    label: l10n.callSpeaker,
                     onPressed: () {
                       DsHaptics.light();
                       _callService.toggleSpeaker();
@@ -762,7 +766,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                       icon: isVideoEnabled
                           ? Icons.videocam_rounded
                           : Icons.videocam_off_rounded,
-                      label: 'Video',
+                      label: l10n.wordVideo,
                       onPressed: () {
                         DsHaptics.light();
                         _callService.toggleVideo();
@@ -773,7 +777,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                     const SizedBox(width: 20),
                     _GlassControlButton(
                       icon: Icons.flip_camera_ios_rounded,
-                      label: 'Flip',
+                      label: l10n.callFlipCamera,
                       onPressed: () {
                         DsHaptics.light();
                         _callService.switchCamera();
@@ -790,7 +794,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         // End call button
         Semantics(
           button: true,
-          label: 'End call',
+          label: l10n.callEndCall,
           enabled: true,
           child: Semantics(
             button: true,
@@ -825,7 +829,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 12),
         Text(
-          'End Call',
+          l10n.callEndCall,
           style: TextStyle(
             color: DsColors.surfaceLight.withValues(alpha: 0.7),
             fontSize: 14,
@@ -866,7 +870,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'You',
+                    AppLocalizations.of(context).callYouLabel,
                     style: TextStyle(
                       color: DsColors.surfaceLight.withValues(alpha: 0.7),
                       fontSize: 13,
@@ -884,7 +888,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
 
   Widget _buildConnectionIndicator() {
     final indicatorLabel = _isReconnecting
-        ? 'Reconnecting'
+        ? AppLocalizations.of(context).callReconnecting
         : (_qualityState?.badgeLabel ?? 'HD');
     final indicatorColor = _connectionIndicatorColor();
 
@@ -926,22 +930,23 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   String _getStatusText() {
-    if (_isReconnecting) return 'Reconnecting...';
+    final l10n = AppLocalizations.of(context);
+    if (_isReconnecting) return l10n.callStatusReconnecting;
 
     switch (_uiState) {
       case CallUIState.idle:
-        return 'Initiating...';
+        return l10n.callStatusInitiating;
       case CallUIState.outgoing:
-        return 'Ringing...';
+        return l10n.callStatusRinging;
       case CallUIState.incoming:
-        return 'Incoming call...';
+        return l10n.callStatusIncoming;
       case CallUIState.connecting:
-        return 'Connecting...';
+        return l10n.callStatusConnecting;
       case CallUIState.connected:
-        return widget.isVideoCall ? 'Video Call' : 'Voice Call';
+        return widget.isVideoCall ? l10n.callVideoCall : l10n.callVoiceCall;
       case CallUIState.ended:
         final reason = _currentCall?.endReason;
-        return reason?.displayText ?? 'Call ended';
+        return reason?.displayText ?? l10n.callEnded;
     }
   }
 

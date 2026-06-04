@@ -74,12 +74,13 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   }
 
   Future<void> _loadInitial() async {
+    final l10n = AppLocalizations.of(context);
     final userId = _userId;
     if (userId == null || userId.isEmpty) {
       setState(() {
         _isLoading = false;
         _hasMore = false;
-        _error = 'You must be logged in to view call history.';
+        _error = l10n.callHistoryLoginRequired;
       });
       return;
     }
@@ -100,7 +101,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
       _maybePrefetchMore();
     } catch (_) {
       setState(() {
-        _error = 'Unable to load call history right now.';
+        _error = l10n.callHistoryLoadError;
       });
     } finally {
       if (mounted) {
@@ -166,7 +167,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
     });
   }
 
-  List<Object> _groupCalls(List<Call> calls) {
+  List<Object> _groupCalls(List<Call> calls, AppLocalizations l10n) {
     final now = DateTime.now();
     final todayStart = DateTime(now.year, now.month, now.day);
     final yesterdayStart = todayStart.subtract(const Duration(days: 1));
@@ -192,19 +193,19 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
 
     final grouped = <Object>[];
     if (today.isNotEmpty) {
-      grouped.add(const _HistoryHeader('Today'));
+      grouped.add(_HistoryHeader(l10n.callHistoryToday));
       grouped.addAll(today.map((c) => _HistoryItem(c)));
     }
     if (yesterday.isNotEmpty) {
-      grouped.add(const _HistoryHeader('Yesterday'));
+      grouped.add(_HistoryHeader(l10n.callHistoryYesterday));
       grouped.addAll(yesterday.map((c) => _HistoryItem(c)));
     }
     if (thisWeek.isNotEmpty) {
-      grouped.add(const _HistoryHeader('This Week'));
+      grouped.add(_HistoryHeader(l10n.callHistoryThisWeek));
       grouped.addAll(thisWeek.map((c) => _HistoryItem(c)));
     }
     if (earlier.isNotEmpty) {
-      grouped.add(const _HistoryHeader('Earlier'));
+      grouped.add(_HistoryHeader(l10n.callHistoryEarlier));
       grouped.addAll(earlier.map((c) => _HistoryItem(c)));
     }
     return grouped;
@@ -228,6 +229,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   }
 
   Widget _buildBody() {
+    final l10n = AppLocalizations.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -260,21 +262,24 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
         onRefresh: _refresh,
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
-          children: const [
-            SizedBox(height: 180),
-            Icon(Icons.call_outlined, size: 64, color: DsColors.ink500),
-            SizedBox(height: 16),
+          children: [
+            const SizedBox(height: 180),
+            const Icon(Icons.call_outlined, size: 64, color: DsColors.ink500),
+            const SizedBox(height: 16),
             Center(
               child: Text(
-                'No calls yet',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                l10n.callHistoryEmptyTitle,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Center(
               child: Text(
-                'Your completed and missed calls will appear here.',
-                style: TextStyle(color: DsColors.ink500),
+                l10n.callHistoryEmptyDesc,
+                style: const TextStyle(color: DsColors.ink500),
               ),
             ),
           ],
@@ -282,7 +287,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
       );
     }
 
-    final grouped = _groupCalls(_calls);
+    final grouped = _groupCalls(_calls, l10n);
     final itemCount = grouped.length + (_isLoadingMore ? 1 : 0);
 
     return RefreshIndicator(
@@ -345,11 +350,13 @@ class _CallTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = call.receiverName ?? call.callerName ?? 'Unknown';
+    final l10n = AppLocalizations.of(context);
+    final title =
+        call.receiverName ?? call.callerName ?? l10n.callUnknownName;
     final subtitleParts = <String>[
-      _isMissed ? 'Missed call' : _statusLabel(call),
+      _isMissed ? l10n.callHistoryStatusMissed : _statusLabel(call, l10n),
       if (call.duration != null && call.duration! > 0)
-        'Duration ${call.durationDisplay}',
+        l10n.callHistoryDuration(call.durationDisplay),
     ];
 
     return ListTile(
@@ -386,20 +393,20 @@ class _CallTile extends StatelessWidget {
     );
   }
 
-  String _statusLabel(Call call) {
+  String _statusLabel(Call call, AppLocalizations l10n) {
     switch (call.status) {
       case CallStatus.initiating:
       case CallStatus.ringing:
-        return 'Ringing';
+        return l10n.callHistoryStatusRinging;
       case CallStatus.ongoing:
       case CallStatus.ended:
-        return 'Completed';
+        return l10n.callHistoryStatusCompleted;
       case CallStatus.missed:
-        return 'Missed call';
+        return l10n.callHistoryStatusMissed;
       case CallStatus.declined:
-        return 'Declined';
+        return l10n.callHistoryStatusDeclined;
       case CallStatus.failed:
-        return 'Failed';
+        return l10n.callHistoryStatusFailed;
     }
   }
 

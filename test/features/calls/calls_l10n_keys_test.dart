@@ -27,6 +27,21 @@ void main() {
     expect(en.callPipActiveCall, isNotEmpty);
   });
 
+  test('in-call + status labels are non-empty', () {
+    expect(en.callSpeaker, isNotEmpty);
+    expect(en.callEndCall, isNotEmpty);
+    expect(en.callStatusRinging, isNotEmpty);
+    expect(en.callVoiceCall, isNotEmpty);
+    expect(en.callPermissionAudioRequired, isNotEmpty);
+  });
+
+  test('call-history labels + duration placeholder', () {
+    expect(en.callHistoryToday, isNotEmpty);
+    expect(en.callHistoryStatusMissed, isNotEmpty);
+    expect(en.callHistoryEmptyTitle, isNotEmpty);
+    expect(en.callHistoryDuration('1:23'), contains('1:23'));
+  });
+
   test('untranslated locale falls back to English for new call keys', () async {
     final fr = await AppLocalizations.delegate.load(const Locale('fr'));
     expect(fr.callDecline, en.callDecline);
