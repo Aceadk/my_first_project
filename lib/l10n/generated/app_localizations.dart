@@ -1577,6 +1577,78 @@ abstract class AppLocalizations {
   /// **'Device verified.'**
   String get authDeviceVerified;
 
+  /// No description provided for @authOtpCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code we sent'**
+  String get authOtpCaption;
+
+  /// No description provided for @authOtpSentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'OTP sent to {phone}'**
+  String authOtpSentTo(String phone);
+
+  /// No description provided for @authEnterOtp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter OTP'**
+  String get authEnterOtp;
+
+  /// No description provided for @authEnterCodeFromSms.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code from your SMS.'**
+  String get authEnterCodeFromSms;
+
+  /// No description provided for @authEnterCodeToContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code to continue.'**
+  String get authEnterCodeToContinue;
+
+  /// No description provided for @authEnterCodeVerifyPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the code to verify your phone'**
+  String get authEnterCodeVerifyPhone;
+
+  /// No description provided for @authCodeShouldBe6Digits.
+  ///
+  /// In en, this message translates to:
+  /// **'The code should be 6 digits'**
+  String get authCodeShouldBe6Digits;
+
+  /// No description provided for @authEnterEmailOrUsername.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your email or username'**
+  String get authEnterEmailOrUsername;
+
+  /// No description provided for @authUsernameMustBe320.
+  ///
+  /// In en, this message translates to:
+  /// **'Username must be 3-20 characters'**
+  String get authUsernameMustBe320;
+
+  /// No description provided for @authEnterYourPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your password'**
+  String get authEnterYourPassword;
+
+  /// No description provided for @authAppleSignInFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Sign-In failed. Please try again.'**
+  String get authAppleSignInFailed;
+
+  /// No description provided for @wordOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get wordOr;
+
   /// No description provided for @subscriptionPaywallTitle.
   ///
   /// In en, this message translates to:

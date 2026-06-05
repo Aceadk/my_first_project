@@ -44,6 +44,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final currentPhone =
         context.select<AuthBloc, String?>(
           (bloc) => bloc.state.phoneInProgress,
@@ -51,7 +52,7 @@ class _OtpScreenState extends State<OtpScreen> {
         widget.phoneNumber;
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context).verifyOtp)),
+      appBar: AppBar(title: Text(l10n.verifyOtp)),
       body: LayoutBuilder(
         builder: (context, constraints) => Center(
           child: ConstrainedBox(
@@ -73,21 +74,21 @@ class _OtpScreenState extends State<OtpScreen> {
                 builder: (context, state) {
                   return Column(
                     children: [
-                      const OnboardingProgress(
+                      OnboardingProgress(
                         currentStep: 2,
-                        caption: 'Enter the 6-digit code we sent',
+                        caption: l10n.authOtpCaption,
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        'OTP sent to $currentPhone',
+                        l10n.authOtpSentTo(currentPhone),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       TextField(
                         controller: _otpController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Enter OTP',
-                          helperText: 'Enter the 6-digit code from your SMS.',
+                          labelText: l10n.authEnterOtp,
+                          helperText: l10n.authEnterCodeFromSms,
                           errorText: _otpErrorText(),
                         ),
                         onTap: () => _markOtpTouched(),
@@ -110,7 +111,7 @@ class _OtpScreenState extends State<OtpScreen> {
                                 if (otpDigits.length != 6) {
                                   showErrorSnackBar(
                                     context,
-                                    'Enter the 6-digit code to continue.',
+                                    l10n.authEnterCodeToContinue,
                                   );
                                   return;
                                 }
@@ -122,7 +123,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       ),
                       Semantics(
                         button: true,
-                        label: 'Resend code',
+                        label: l10n.resendCode,
                         child: GlassSmallButton(
                           onPressed: state.isLoading
                               ? null
@@ -153,12 +154,13 @@ class _OtpScreenState extends State<OtpScreen> {
 
   String? _otpErrorText() {
     if (!_otpTouched) return null;
+    final l10n = AppLocalizations.of(context);
     final otpDigits = _digitsOnly(_otpController.text);
     if (otpDigits.isEmpty) {
-      return 'Enter the code to verify your phone';
+      return l10n.authEnterCodeVerifyPhone;
     }
     if (otpDigits.length != 6) {
-      return 'The code should be 6 digits';
+      return l10n.authCodeShouldBe6Digits;
     }
     return null;
   }

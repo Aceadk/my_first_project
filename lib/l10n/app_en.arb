@@ -314,6 +314,25 @@
   "authEnterUsernameOrEmail": "Enter your username or email",
   "authCodeOnTheWayAccount": "If an account exists, a 6-digit code is on the way.",
   "authDeviceVerified": "Device verified.",
+  "authOtpCaption": "Enter the 6-digit code we sent",
+  "authOtpSentTo": "OTP sent to {phone}",
+  "@authOtpSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
+  "authEnterOtp": "Enter OTP",
+  "authEnterCodeFromSms": "Enter the 6-digit code from your SMS.",
+  "authEnterCodeToContinue": "Enter the 6-digit code to continue.",
+  "authEnterCodeVerifyPhone": "Enter the code to verify your phone",
+  "authCodeShouldBe6Digits": "The code should be 6 digits",
+  "authEnterEmailOrUsername": "Please enter your email or username",
+  "authUsernameMustBe320": "Username must be 3-20 characters",
+  "authEnterYourPassword": "Please enter your password",
+  "authAppleSignInFailed": "Apple Sign-In failed. Please try again.",
+  "wordOr": "or",
   "subscriptionPaywallTitle": "Get Premium",
   "subscriptionCancelSubscription": "Cancel subscription",
   "authDevLogin": "Dev Login",

@@ -225,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Padding(
                               padding: DsEdgeInsets.horizontalLg,
                               child: Text(
-                                'or',
+                                context.l10n.wordOr,
                                 style: TextStyle(
                                   color: isDark
                                       ? DsColors.textMutedDark
@@ -424,27 +424,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   String? _validateIdentifier({required bool supportsUsernameLogin}) {
+    final l10n = context.l10n;
     final identifier = _identifierController.text.trim();
     if (identifier.isEmpty) {
       return supportsUsernameLogin
-          ? 'Please enter your email or username'
-          : 'Please enter your email address';
+          ? l10n.authEnterEmailOrUsername
+          : l10n.authEnterEmailAddress;
     }
     if (!supportsUsernameLogin) {
       if (!looksLikeEmail(identifier)) {
-        return 'Please enter a valid email address';
+        return l10n.errorInvalidEmail;
       }
       return null;
     }
     if (identifier.contains('@')) {
       if (!looksLikeEmail(identifier)) {
-        return 'Please enter a valid email address';
+        return l10n.errorInvalidEmail;
       }
       return null;
     }
     final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(identifier);
     if (!valid) {
-      return 'Username must be 3-20 characters';
+      return l10n.authUsernameMustBe320;
     }
     return null;
   }
@@ -452,12 +453,13 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _validatePassword() {
     final password = _passwordController.text;
     if (password.isEmpty) {
-      return 'Please enter your password';
+      return context.l10n.authEnterYourPassword;
     }
     return null;
   }
 
   Future<void> _submit() async {
+    final l10n = context.l10n;
     final authFlowUseCases = _authFlowUseCases();
     final supportsUsernameLogin = authFlowUseCases.supportsUsernameLogin;
     final identifierError = _validateIdentifier(
@@ -493,7 +495,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Login failed.');
+      showErrorSnackBar(context, result.errorMessage ?? l10n.errorLoginFailed);
       return;
     }
 
@@ -510,6 +512,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithGoogle() async {
     if (_isGoogleLoading) return;
 
+    final l10n = context.l10n;
     setState(() => _isGoogleLoading = true);
     final result = await _authFlowUseCases().signInWithGoogle();
 
@@ -519,7 +522,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!result.isSuccess) {
       showErrorSnackBar(
         context,
-        result.errorMessage ?? 'Google Sign-In failed. Please try again.',
+        result.errorMessage ?? l10n.onboardingSignUpGoogleSignInFailed,
       );
       return;
     }
@@ -537,6 +540,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithApple() async {
     if (_isAppleLoading) return;
 
+    final l10n = context.l10n;
     setState(() => _isAppleLoading = true);
     final result = await _authFlowUseCases().signInWithApple();
 
@@ -546,7 +550,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!result.isSuccess) {
       showErrorSnackBar(
         context,
-        result.errorMessage ?? 'Apple Sign-In failed. Please try again.',
+        result.errorMessage ?? l10n.authAppleSignInFailed,
       );
       return;
     }

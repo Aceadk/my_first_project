@@ -816,6 +816,44 @@ class AppLocalizationsEs extends AppLocalizations {
   String get authDeviceVerified => 'Device verified.';
 
   @override
+  String get authOtpCaption => 'Enter the 6-digit code we sent';
+
+  @override
+  String authOtpSentTo(String phone) {
+    return 'OTP sent to $phone';
+  }
+
+  @override
+  String get authEnterOtp => 'Enter OTP';
+
+  @override
+  String get authEnterCodeFromSms => 'Enter the 6-digit code from your SMS.';
+
+  @override
+  String get authEnterCodeToContinue => 'Enter the 6-digit code to continue.';
+
+  @override
+  String get authEnterCodeVerifyPhone => 'Enter the code to verify your phone';
+
+  @override
+  String get authCodeShouldBe6Digits => 'The code should be 6 digits';
+
+  @override
+  String get authEnterEmailOrUsername => 'Please enter your email or username';
+
+  @override
+  String get authUsernameMustBe320 => 'Username must be 3-20 characters';
+
+  @override
+  String get authEnterYourPassword => 'Please enter your password';
+
+  @override
+  String get authAppleSignInFailed => 'Apple Sign-In failed. Please try again.';
+
+  @override
+  String get wordOr => 'or';
+
+  @override
   String get subscriptionPaywallTitle => 'Get Premium';
 
   @override
