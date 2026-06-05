@@ -274,6 +274,29 @@
   "authTermsOfService": "Terms of Service",
   "authPrivacyPolicy": "Privacy Policy",
   "authVerifyPasswordTitle": "Verify Password",
+  "authChangeEmailTitle": "Change email",
+  "authChangeEmailIntro": "Use a new email to keep your account recoverable.",
+  "authCurrentEmailLabel": "Current email: {email}",
+  "@authCurrentEmailLabel": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authNewEmailAddress": "New email address",
+  "authCodeWillBeSentToEmail": "We will send a 6-digit code to this email.",
+  "authEnterCodeFromEmail": "Enter the 6-digit code from your email.",
+  "authUseCodeFromEmail": "Use the 6-digit code from your email",
+  "authEnterEmailAddress": "Enter your email address",
+  "authVerifyCode": "Verify code",
+  "authEnterCurrentPasswordPrompt": "Please enter your current password to continue.",
+  "authCouldNotSendCode": "Could not send code. Please try again.",
+  "authRequestFailed": "Request failed.",
+  "authCodeOnTheWayEmail": "If that email is reachable, a 6-digit code is on the way.",
+  "authInvalidOrExpiredCode": "Invalid or expired code. Please try again.",
+  "authVerificationFailed": "Verification failed.",
+  "authEmailUpdated": "Email updated.",
   "subscriptionPaywallTitle": "Get Premium",
   "subscriptionCancelSubscription": "Cancel subscription",
   "authDevLogin": "Dev Login",

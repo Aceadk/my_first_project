@@ -36,13 +36,14 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final user = context.select<AuthBloc, CrushUser?>(
       (bloc) => bloc.state.user,
     );
     final currentEmail = user?.email;
 
     return AuthScaffold(
-      title: 'Change email',
+      title: l10n.authChangeEmailTitle,
       child: Center(
         child: ConstrainedBox(
           key: authUtilityContentConstraintKey,
@@ -53,13 +54,13 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Use a new email to keep your account recoverable.',
+                l10n.authChangeEmailIntro,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
               if (currentEmail != null && currentEmail.isNotEmpty) ...[
                 Text(
-                  'Current email: $currentEmail',
+                  l10n.authCurrentEmailLabel(currentEmail),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
@@ -68,8 +69,8 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'New email address',
-                  helperText: 'We will send a 6-digit code to this email.',
+                  labelText: l10n.authNewEmailAddress,
+                  helperText: l10n.authCodeWillBeSentToEmail,
                   errorText: _emailErrorText(),
                 ),
                 onTap: () => _markEmailTouched(),
@@ -81,8 +82,8 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
                   controller: _otpController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Verification code',
-                    helperText: 'Enter the 6-digit code from your email.',
+                    labelText: l10n.authVerificationCode,
+                    helperText: l10n.authEnterCodeFromEmail,
                     errorText: _otpErrorText(),
                   ),
                   onTap: () => _markOtpTouched(),
@@ -91,7 +92,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
               ],
               const SizedBox(height: 16),
               PrimaryButton(
-                label: _otpSent ? 'Verify code' : 'Send code',
+                label: _otpSent ? l10n.authVerifyCode : l10n.authSendCode,
                 loading: _isLoading,
                 onPressed: _isLoading
                     ? null
@@ -135,24 +136,26 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
 
   String? _emailErrorText() {
     if (!_emailTouched) return null;
+    final l10n = AppLocalizations.of(context);
     final email = normalizeEmail(_emailController.text);
     if (email.isEmpty) {
-      return 'Enter your email address';
+      return l10n.authEnterEmailAddress;
     }
     if (!looksLikeEmail(email)) {
-      return 'Enter a valid email address';
+      return l10n.errorInvalidEmail;
     }
     return null;
   }
 
   String? _otpErrorText() {
     if (!_otpTouched) return null;
+    final l10n = AppLocalizations.of(context);
     final otp = _otpController.text.trim();
     if (otp.isEmpty) {
-      return 'Enter the 6-digit code';
+      return l10n.authEnterCodeHint;
     }
     if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
-      return 'Use the 6-digit code from your email';
+      return l10n.authUseCodeFromEmail;
     }
     return null;
   }
@@ -182,14 +185,14 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Please enter your current password to continue.'),
+                Text(AppLocalizations.of(context).authEnterCurrentPasswordPrompt),
                 const SizedBox(height: 16),
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Current Password',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).authCurrentPassword,
+                    border: const OutlineInputBorder(),
                   ),
                   enabled: !isVerifying,
                 ),
@@ -254,7 +257,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
         email: email,
       ),
       logLabel: 'AuthRepository.requestEmailOtp',
-      fallbackError: 'Could not send code. Please try again.',
+      fallbackError: AppLocalizations.of(context).authCouldNotSendCode,
     );
 
     if (!mounted) return;
@@ -262,7 +265,10 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isLoading = false;
     });
     if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Request failed.');
+      showErrorSnackBar(
+        context,
+        result.errorMessage ?? AppLocalizations.of(context).authRequestFailed,
+      );
       return;
     }
     setState(() {
@@ -271,7 +277,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
     });
     showSuccessSnackBar(
       context,
-      'If that email is reachable, a 6-digit code is on the way.',
+      AppLocalizations.of(context).authCodeOnTheWayEmail,
     );
   }
 
@@ -297,7 +303,7 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
         newEmail: email,
       ),
       logLabel: 'AuthRepository.verifyEmailOtp',
-      fallbackError: 'Invalid or expired code. Please try again.',
+      fallbackError: AppLocalizations.of(context).authInvalidOrExpiredCode,
     );
 
     if (!mounted) return;
@@ -305,13 +311,17 @@ class _ChangeEmailScreenState extends State<ChangeEmailScreen> {
       _isLoading = false;
     });
     if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Verification failed.');
+      showErrorSnackBar(
+        context,
+        result.errorMessage ??
+            AppLocalizations.of(context).authVerificationFailed,
+      );
       return;
     }
     setState(() {
       _otpSent = false;
       _otpController.clear();
     });
-    showSuccessSnackBar(context, 'Email updated.');
+    showSuccessSnackBar(context, AppLocalizations.of(context).authEmailUpdated);
   }
 }

@@ -1379,6 +1379,102 @@ abstract class AppLocalizations {
   /// **'Verify Password'**
   String get authVerifyPasswordTitle;
 
+  /// No description provided for @authChangeEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change email'**
+  String get authChangeEmailTitle;
+
+  /// No description provided for @authChangeEmailIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a new email to keep your account recoverable.'**
+  String get authChangeEmailIntro;
+
+  /// No description provided for @authCurrentEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current email: {email}'**
+  String authCurrentEmailLabel(String email);
+
+  /// No description provided for @authNewEmailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'New email address'**
+  String get authNewEmailAddress;
+
+  /// No description provided for @authCodeWillBeSentToEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'We will send a 6-digit code to this email.'**
+  String get authCodeWillBeSentToEmail;
+
+  /// No description provided for @authEnterCodeFromEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 6-digit code from your email.'**
+  String get authEnterCodeFromEmail;
+
+  /// No description provided for @authUseCodeFromEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the 6-digit code from your email'**
+  String get authUseCodeFromEmail;
+
+  /// No description provided for @authEnterEmailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address'**
+  String get authEnterEmailAddress;
+
+  /// No description provided for @authVerifyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify code'**
+  String get authVerifyCode;
+
+  /// No description provided for @authEnterCurrentPasswordPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your current password to continue.'**
+  String get authEnterCurrentPasswordPrompt;
+
+  /// No description provided for @authCouldNotSendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not send code. Please try again.'**
+  String get authCouldNotSendCode;
+
+  /// No description provided for @authRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Request failed.'**
+  String get authRequestFailed;
+
+  /// No description provided for @authCodeOnTheWayEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'If that email is reachable, a 6-digit code is on the way.'**
+  String get authCodeOnTheWayEmail;
+
+  /// No description provided for @authInvalidOrExpiredCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired code. Please try again.'**
+  String get authInvalidOrExpiredCode;
+
+  /// No description provided for @authVerificationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification failed.'**
+  String get authVerificationFailed;
+
+  /// No description provided for @authEmailUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Email updated.'**
+  String get authEmailUpdated;
+
   /// No description provided for @subscriptionPaywallTitle.
   ///
   /// In en, this message translates to:

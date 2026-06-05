@@ -684,6 +684,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authVerifyPasswordTitle => 'Verify Password';
 
   @override
+  String get authChangeEmailTitle => 'Change email';
+
+  @override
+  String get authChangeEmailIntro =>
+      'Use a new email to keep your account recoverable.';
+
+  @override
+  String authCurrentEmailLabel(String email) {
+    return 'Current email: $email';
+  }
+
+  @override
+  String get authNewEmailAddress => 'New email address';
+
+  @override
+  String get authCodeWillBeSentToEmail =>
+      'We will send a 6-digit code to this email.';
+
+  @override
+  String get authEnterCodeFromEmail =>
+      'Enter the 6-digit code from your email.';
+
+  @override
+  String get authUseCodeFromEmail => 'Use the 6-digit code from your email';
+
+  @override
+  String get authEnterEmailAddress => 'Enter your email address';
+
+  @override
+  String get authVerifyCode => 'Verify code';
+
+  @override
+  String get authEnterCurrentPasswordPrompt =>
+      'Please enter your current password to continue.';
+
+  @override
+  String get authCouldNotSendCode => 'Could not send code. Please try again.';
+
+  @override
+  String get authRequestFailed => 'Request failed.';
+
+  @override
+  String get authCodeOnTheWayEmail =>
+      'If that email is reachable, a 6-digit code is on the way.';
+
+  @override
+  String get authInvalidOrExpiredCode =>
+      'Invalid or expired code. Please try again.';
+
+  @override
+  String get authVerificationFailed => 'Verification failed.';
+
+  @override
+  String get authEmailUpdated => 'Email updated.';
+
+  @override
   String get subscriptionPaywallTitle => 'Get Premium';
 
   @override

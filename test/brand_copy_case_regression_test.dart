@@ -54,8 +54,6 @@ void main() {
             'Upgrade to Crush Plus to see who likes you and match instantly!',
         'lib/features/chat/presentation/screens/matches_screen.dart':
             'See likes first, Passport to any city, and unlimited likes to help you match faster.',
-        'lib/presentation/screens/home/settings_screen.dart':
-            'Upgrade to Crush Plus',
         'lib/features/discovery/presentation/widgets/welcome_tutorial_overlay.dart':
             'Welcome to Crush!',
         'lib/features/settings/presentation/screens/appearance_settings_screen.dart':
