@@ -20,7 +20,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| T-2026-06-05-PUSH-GITHUB | 2026-06-05 | Push complete local state to GitHub | In Progress | Commit all in-scope files, push `codex/publish-auth-startup-hardening`, then update PR/docs completion. |
+| T-2026-06-05-PUSH-GITHUB | 2026-06-05 | Push complete local state to GitHub | Completed | Review draft PR #1 at `https://github.com/Aceadk/my_first_project/pull/1`. |
 | T-2026-06-03-CRUSH-WEB-MOBILE-ALIGNMENT | 2026-06-03 | Compare `crush-web` and `my_first_project` alignment | Completed | Start with the P0 backend contract matrix and web match/chat migration decision. |
 | T-2026-06-02-APP-LOGO-REPLACEMENT | 2026-06-02 | Replace app logo/icon assets | Completed | Use `http://127.0.0.1:8787/` to inspect the built web app while the local static server is running. |
 | T-2026-05-19-IOS-DEPLOY-IPHONE | 2026-05-19 | Deploy app to iPhone | Completed | `Crush` is installed and running on `iPhoneeeee` as `com.gyanendra.myfirstproject`; use Profile/release for direct phone launches. |
@@ -59,11 +59,13 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 ### T-2026-06-05-PUSH-GITHUB
 - Date: 2026-06-05
 - Owner: Codex
-- Status: In Progress
+- Status: Completed
 - Goal: Push the complete current local state of `my_first_project` to GitHub, including the six local commits already ahead of origin and all modified/untracked files in the working tree.
 - Scope: Current branch `codex/publish-auth-startup-hardening`, all tracked/untracked project changes, the existing draft PR #1, and required workflow docs. User's "push everything" request is treated as explicit full-worktree scope confirmation.
 - Key Changes:
-  - Added publish-task tracking to [`Developer_agent_chat.md`](/Users/ace/my_first_project/docs/Developer_agent_chat.md) and this workboard before staging the publish snapshot.
+  - Staged and committed the full local dirty snapshot as `c6228d0` (`publish current app updates`), including platform logo/splash assets, chat UI/realtime work, API/image optimizer tests, Functions backup/account-deletion updates, Firestore indexes, reports/runbooks, and workflow docs.
+  - Pushed branch `codex/publish-auth-startup-hardening` to `origin`; existing draft PR #1 remains the review surface.
+  - Added publish-task tracking and closeout to [`Developer_agent_chat.md`](/Users/ace/my_first_project/docs/Developer_agent_chat.md) and this workboard.
 - Decisions/Handoffs:
   - Stay on `codex/publish-auth-startup-hardening`; do not create a new branch because this branch already has an open draft PR.
   - Leave `docs/risk_notes.md` risk content unchanged for this task unless the existing dirty change set itself already changed it; the publish operation adds no new product or architecture risk.
@@ -74,8 +76,9 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `npm --prefix functions run build` passed.
   - `npx mocha --exit test/accountDeletionMap.test.js` passed: 8 tests.
   - `git diff --check` passed.
+  - `scripts/check_ai_docs_sync.sh` passed before staging the publish snapshot and again for the completion docs.
   - `flutter build web --debug` was attempted but terminated after a long silent compile stall; no build error was emitted before termination.
-- Next Step: Run docs sync, commit the full snapshot, push to origin, then update this task and PR metadata with final GitHub details.
+- Next Step: Review draft PR #1 at `https://github.com/Aceadk/my_first_project/pull/1`; rerun a web build in a fresh shell if web artifact verification is needed.
 
 ### T-2026-06-04-CLEANUP-DEPENDENCIES
 - Date: 2026-06-04
