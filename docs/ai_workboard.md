@@ -20,6 +20,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
+| T-2026-06-05-ANDROID-BUILTIN-KOTLIN | 2026-06-05 | Migrate Android app away from explicit Kotlin Gradle Plugin | Completed | Track upstream plugin KGP migration risk in R-066. |
 | T-2026-06-05-PUSH-GITHUB | 2026-06-05 | Push complete local state to GitHub | Completed | Review draft PR #1 at `https://github.com/Aceadk/my_first_project/pull/1`. |
 | T-2026-06-03-CRUSH-WEB-MOBILE-ALIGNMENT | 2026-06-03 | Compare `crush-web` and `my_first_project` alignment | Completed | Start with the P0 backend contract matrix and web match/chat migration decision. |
 | T-2026-06-02-APP-LOGO-REPLACEMENT | 2026-06-02 | Replace app logo/icon assets | Completed | Use `http://127.0.0.1:8787/` to inspect the built web app while the local static server is running. |
@@ -55,6 +56,28 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 | T-2026-02-19-ONBOARD005 | 2026-02-19 | Deck tutorial overlay added with one-time persistence + a11y support.         | `flutter analyze` clean.                                      |
 
 ## Unified Task Log
+
+### T-2026-06-05-ANDROID-BUILTIN-KOTLIN
+- Date: 2026-06-05
+- Owner: Codex
+- Status: Completed
+- Goal: Address Flutter 3.44's Android warning that the app and some plugins apply the Kotlin Gradle Plugin (KGP), which Flutter says will fail in a future release.
+- Scope: App-owned Android Gradle files, targeted warning-related Flutter plugin dependency updates if build evidence supports them, and required workflow docs.
+- Key Changes:
+  - Migrated [`android/app/build.gradle.kts`](/Users/ace/my_first_project/android/app/build.gradle.kts): removed app-owned `id("kotlin-android")`, removed `kotlinOptions`, and added `kotlin.compilerOptions` targeting JVM 17.
+  - Refreshed warning-related dependency resolutions in [`pubspec.lock`](/Users/ace/my_first_project/pubspec.lock), which removed KGP warnings for `google_sign_in_android`, `shared_preferences_android`, and `video_player_android`.
+  - Refreshed generated desktop plugin registrants after the dependency changes.
+  - Recorded residual upstream plugin risk as R-066 in [`risk_notes.md`](/Users/ace/my_first_project/docs/risk_notes.md).
+- Decisions/Handoffs:
+  - Use Flutter's official built-in Kotlin migration guide: remove app-owned `kotlin-android`/`org.jetbrains.kotlin.android` usage and `kotlinOptions`, add `kotlin.compilerOptions`, then validate with an Android build.
+  - Kept `android.builtInKotlin=false` and `android.newDsl=false` in `gradle.properties`; Flutter's current 3.44 template/migrator still adds those compatibility flags while projects and plugins migrate.
+  - Tried major upgrades for `package_info_plus`, `record`, and `share_plus`; backed them out because `record_android` 2.0.1 and `share_plus` 13.1.0 failed native Android compilation, and `package_info_plus` 10 conflicts with the buildable `share_plus` 10 line through `win32`.
+- Verification:
+  - `flutter analyze lib test tool/generate_app_icons.dart` passed.
+  - `git diff --check` passed.
+  - `flutter build apk --debug` passed after `flutter clean`, `flutter pub get`, and removal of the stale ignored Android `GeneratedPluginRegistrant.java` artifact.
+  - Focused tests passed: `test/voice_recorder_service_test.dart`, `test/data_export_test.dart`, `test/subscription_settings_screen_test.dart`, `test/in_app_review_service_test.dart`.
+- Next Step: Monitor upstream releases for remaining plugin-owned KGP warnings, then upgrade when their Android builds are migrated and compile cleanly.
 
 ### T-2026-06-05-PUSH-GITHUB
 - Date: 2026-06-05

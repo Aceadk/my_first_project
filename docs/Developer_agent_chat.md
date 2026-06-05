@@ -77,6 +77,41 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #302 — Android Built-In Kotlin Migration Warning
+**Date:** 2026-06-05
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+User pasted Flutter's Android Kotlin Gradle Plugin future-build-failure warning for `android/app/build.gradle.kts` and multiple Flutter plugins, then asked to do what is needed.
+
+**Developer Intent Analysis:**
+- Primary goal: remove or reduce the Flutter 3.44 Android warning about explicit Kotlin Gradle Plugin usage so future Android builds remain compatible.
+- Secondary goal: update relevant Flutter plugin versions where safe if newer packages address built-in Kotlin compatibility.
+- Implicit requirements: follow Flutter's current official migration guide, avoid broad dependency churn unless required by build evidence, validate with Android build tooling, and update the required AI workflow docs.
+- Quality expectations: make focused Gradle edits, preserve existing local commits, avoid reverting unrelated work, document any residual plugin-owned warnings honestly, and run the mandatory docs sync guard.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Migrate the Flutter Android app module away from explicit KGP usage and validate the Android build after the migration.
+- **Scope:** `android/app/build.gradle.kts`, Android Gradle migration flags if build evidence requires them, targeted `pubspec.yaml` / `pubspec.lock` updates for warning-related plugins, and required workflow docs.
+- **Constraints:** use Flutter's official built-in Kotlin migration guide as the source of truth; do not perform a blanket major dependency upgrade without a build-driven reason; do not alter unrelated iOS/web/app code; preserve the two local commits currently ahead of origin.
+- **Expected Outcome:** app-side KGP warning is resolved, Android debug build succeeds, remaining plugin warnings are either eliminated through safe upgrades or documented as upstream plugin work.
+
+**Status Updates:**
+- Received: Read required AI workflow docs and inspected current Git state.
+- In Progress: Verified Flutter 3.44 official guidance: remove the app's `kotlin-android`/`org.jetbrains.kotlin.android` plugin and `kotlinOptions`, add `kotlin.compilerOptions`, and validate with `flutter run` or `flutter build apk`.
+- In Progress: Confirmed `android/app/build.gradle.kts` applies `id("kotlin-android")` and uses `kotlinOptions`; `android/gradle.properties` contains Flutter migrator opt-out flags; plugin warnings are separate from app-owned KGP usage.
+- Completed: Removed app-owned explicit KGP application and old `kotlinOptions`, added `kotlin.compilerOptions`, upgraded warning-related packages within safe constraints, and verified Android debug build.
+
+**Outcome:**
+- Files changed:
+  - `android/app/build.gradle.kts` — removed `id("kotlin-android")`, removed legacy `kotlinOptions`, added `kotlin.compilerOptions` with JVM 17.
+  - `pubspec.lock` plus generated desktop plugin registrants — refreshed warning-related dependency resolutions (`google_sign_in_android`, `shared_preferences_android`, `video_player_android`, FlutterFire minors, etc.).
+  - `docs/Developer_agent_chat.md`, `docs/ai_workboard.md`, `docs/risk_notes.md` — task closeout and residual plugin risk.
+- Result: App-owned KGP warning is fixed. Android debug build succeeds after `flutter clean`, `flutter pub get`, and removal of the stale ignored Android `GeneratedPluginRegistrant.java` artifact.
+- Verification: `flutter analyze lib test tool/generate_app_icons.dart`, `git diff --check`, `flutter build apk --debug`, and focused tests (`voice_recorder_service`, `data_export`, `subscription_settings_screen`, `in_app_review_service`) passed.
+- Notes: Remaining warning is upstream plugin-owned for `cloud_functions`, `firebase_analytics`, `firebase_app_check`, `firebase_database`, `firebase_performance`, `firebase_remote_config`, `firebase_storage`, `in_app_review`, `package_info_plus`, `record_android`, `share_plus`, and `sign_in_with_apple`. Tried latest major lines for `record`/`share_plus`/`package_info_plus`; `record_android` 2.0.1 and `share_plus` 13.1.0 failed native Android compilation, so those majors were backed out and recorded as residual risk.
+
 ### Task #301 — Push Everything To GitHub
 **Date:** 2026-06-05
 **Agent:** Codex (GPT-5)

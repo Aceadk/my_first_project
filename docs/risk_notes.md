@@ -44,6 +44,41 @@ Reference: `docs/reports/crush_web_mobile_alignment_plan_2026-06-03.md`
 
 ---
 
+### R-066 — Upstream Flutter plugins still apply Kotlin Gradle Plugin
+
+Category: Android build/tooling compatibility
+
+Description:
+The app-owned Android Gradle file has been migrated away from explicit Kotlin Gradle Plugin usage for Flutter 3.44 built-in Kotlin compatibility. A residual Flutter warning remains because several third-party plugins still apply KGP internally: `cloud_functions`, `firebase_analytics`, `firebase_app_check`, `firebase_database`, `firebase_performance`, `firebase_remote_config`, `firebase_storage`, `in_app_review`, `package_info_plus`, `record_android`, `share_plus`, and `sign_in_with_apple`.
+
+Impact: Medium
+
+Likelihood: Medium until upstream packages migrate; current Flutter 3.44 builds still pass via temporary compatibility support.
+
+Affected Areas:
+
+- `android/app/build.gradle.kts`
+- `pubspec.yaml`
+- `pubspec.lock`
+- Android CI/release builds on future Flutter/AGP versions
+
+Mitigation Plan:
+
+- Keep the app-owned Gradle migration in place: no explicit app `kotlin-android` plugin and no legacy `kotlinOptions`.
+- Monitor plugin changelogs for built-in Kotlin migration support.
+- Re-test targeted upgrades before accepting plugin major versions; `record_android` 2.0.1 and `share_plus` 13.1.0 failed native Android compilation locally on 2026-06-05 and were backed out.
+- Re-run `flutter clean && flutter pub get && flutter build apk --debug` after dependency upgrades to catch stale generated Android registrants and native plugin compile failures.
+
+Status: Open
+
+Owner: AI
+
+Last Reviewed: 2026-06-05
+
+Reference: `docs/ai_workboard.md#t-2026-06-05-android-builtin-kotlin`
+
+---
+
 ### R-001 — Firebase Storage upload failures in debug mode (was R-002)
 
 Category: Backend dependencies
