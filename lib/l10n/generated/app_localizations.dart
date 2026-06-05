@@ -1475,6 +1475,108 @@ abstract class AppLocalizations {
   /// **'Email updated.'**
   String get authEmailUpdated;
 
+  /// No description provided for @authEmailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get authEmailAddress;
+
+  /// No description provided for @authEmailProtectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Email protection'**
+  String get authEmailProtectionTitle;
+
+  /// No description provided for @authEmailProtectionIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Add and verify an email to protect your account and enable recovery.'**
+  String get authEmailProtectionIntro;
+
+  /// No description provided for @authEmailVerifiedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Email Verified'**
+  String get authEmailVerifiedBadge;
+
+  /// No description provided for @authEmailAlreadyVerifiedLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email is already verified. You cannot make any changes to this email address.'**
+  String get authEmailAlreadyVerifiedLocked;
+
+  /// No description provided for @authWantDifferentEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Want to use a different email?'**
+  String get authWantDifferentEmail;
+
+  /// No description provided for @authDifferentEmailInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'To use a different email address, you will need to delete this account and create a new one with the new email.'**
+  String get authDifferentEmailInstructions;
+
+  /// No description provided for @authGoToAccountSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Account Settings'**
+  String get authGoToAccountSettings;
+
+  /// No description provided for @authStatusNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Status: not verified'**
+  String get authStatusNotVerified;
+
+  /// No description provided for @authEmailAlreadyRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'This email is already registered to another account. Please use a different email address.'**
+  String get authEmailAlreadyRegistered;
+
+  /// No description provided for @authNewDeviceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New device check'**
+  String get authNewDeviceTitle;
+
+  /// No description provided for @authNewDeviceIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify a new device before continuing.'**
+  String get authNewDeviceIntro;
+
+  /// No description provided for @authCodeWillBeSentToEmailOnFile.
+  ///
+  /// In en, this message translates to:
+  /// **'We will send a 6-digit code to the email on file.'**
+  String get authCodeWillBeSentToEmailOnFile;
+
+  /// No description provided for @authVerifyDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify device'**
+  String get authVerifyDevice;
+
+  /// No description provided for @authEnterUsernameOrEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your username or email'**
+  String get authEnterUsernameOrEmail;
+
+  /// No description provided for @authCodeOnTheWayAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'If an account exists, a 6-digit code is on the way.'**
+  String get authCodeOnTheWayAccount;
+
+  /// No description provided for @authDeviceVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Device verified.'**
+  String get authDeviceVerified;
+
   /// No description provided for @subscriptionPaywallTitle.
   ///
   /// In en, this message translates to:

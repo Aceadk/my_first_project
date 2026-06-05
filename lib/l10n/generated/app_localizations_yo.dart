@@ -737,6 +737,63 @@ class AppLocalizationsYo extends AppLocalizations {
   String get authEmailUpdated => 'Email updated.';
 
   @override
+  String get authEmailAddress => 'Email address';
+
+  @override
+  String get authEmailProtectionTitle => 'Email protection';
+
+  @override
+  String get authEmailProtectionIntro =>
+      'Add and verify an email to protect your account and enable recovery.';
+
+  @override
+  String get authEmailVerifiedBadge => 'Email Verified';
+
+  @override
+  String get authEmailAlreadyVerifiedLocked =>
+      'Your email is already verified. You cannot make any changes to this email address.';
+
+  @override
+  String get authWantDifferentEmail => 'Want to use a different email?';
+
+  @override
+  String get authDifferentEmailInstructions =>
+      'To use a different email address, you will need to delete this account and create a new one with the new email.';
+
+  @override
+  String get authGoToAccountSettings => 'Go to Account Settings';
+
+  @override
+  String get authStatusNotVerified => 'Status: not verified';
+
+  @override
+  String get authEmailAlreadyRegistered =>
+      'This email is already registered to another account. Please use a different email address.';
+
+  @override
+  String get authNewDeviceTitle => 'New device check';
+
+  @override
+  String get authNewDeviceIntro => 'Verify a new device before continuing.';
+
+  @override
+  String get authCodeWillBeSentToEmailOnFile =>
+      'We will send a 6-digit code to the email on file.';
+
+  @override
+  String get authVerifyDevice => 'Verify device';
+
+  @override
+  String get authEnterUsernameOrEmail => 'Enter your username or email';
+
+  @override
+  String get authCodeOnTheWayAccount =>
+      'If an account exists, a 6-digit code is on the way.';
+
+  @override
+  String get authDeviceVerified => 'Device verified.';
+
+  @override
   String get subscriptionPaywallTitle => 'Get Premium';
 
   @override

@@ -34,8 +34,9 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AuthScaffold(
-      title: 'New device check',
+      title: l10n.authNewDeviceTitle,
       child: Center(
         child: ConstrainedBox(
           key: authUtilityContentConstraintKey,
@@ -46,7 +47,7 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Verify a new device before continuing.',
+                l10n.authNewDeviceIntro,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
@@ -54,9 +55,8 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
                 controller: _identifierController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Username or email',
-                  helperText:
-                      'We will send a 6-digit code to the email on file.',
+                  labelText: l10n.authEmailOrUsername,
+                  helperText: l10n.authCodeWillBeSentToEmailOnFile,
                   errorText: _identifierErrorText(),
                 ),
                 onTap: () => _markIdentifierTouched(),
@@ -68,8 +68,8 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
                   controller: _otpController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Verification code',
-                    helperText: 'Enter the 6-digit code from your email.',
+                    labelText: l10n.authVerificationCode,
+                    helperText: l10n.authEnterCodeFromEmail,
                     errorText: _otpErrorText(),
                   ),
                   onTap: () => _markOtpTouched(),
@@ -78,7 +78,7 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
               ],
               const SizedBox(height: 16),
               PrimaryButton(
-                label: _otpSent ? 'Verify device' : 'Send code',
+                label: _otpSent ? l10n.authVerifyDevice : l10n.authSendCode,
                 loading: _isLoading,
                 onPressed: _isLoading
                     ? null
@@ -122,36 +122,39 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
 
   String? _identifierErrorText() {
     if (!_identifierTouched) return null;
+    final l10n = AppLocalizations.of(context);
     final identifier = _identifierController.text.trim();
     if (identifier.isEmpty) {
-      return 'Enter your username or email';
+      return l10n.authEnterUsernameOrEmail;
     }
     if (identifier.contains('@')) {
       if (!looksLikeEmail(identifier)) {
-        return 'Enter a valid email address';
+        return l10n.errorInvalidEmail;
       }
       return null;
     }
     final valid = RegExp(r'^[a-zA-Z0-9_]{3,20}$').hasMatch(identifier);
     if (!valid) {
-      return 'Use 3-20 letters, numbers, or underscore';
+      return l10n.onboardingBasicInfoUsernameFormatError;
     }
     return null;
   }
 
   String? _otpErrorText() {
     if (!_otpTouched) return null;
+    final l10n = AppLocalizations.of(context);
     final otp = _otpController.text.trim();
     if (otp.isEmpty) {
-      return 'Enter the 6-digit code';
+      return l10n.authEnterCodeHint;
     }
     if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
-      return 'Use the 6-digit code from your email';
+      return l10n.authUseCodeFromEmail;
     }
     return null;
   }
 
   Future<void> _requestOtp() async {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _identifierTouched = true;
     });
@@ -173,7 +176,7 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
         purpose: EmailOtpPurpose.newDevice,
       ),
       logLabel: 'AuthRepository.requestEmailOtp',
-      fallbackError: 'Could not send code. Please try again.',
+      fallbackError: l10n.authCouldNotSendCode,
     );
 
     if (!mounted) return;
@@ -181,20 +184,18 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
       _isLoading = false;
     });
     if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Request failed.');
+      showErrorSnackBar(context, result.errorMessage ?? l10n.authRequestFailed);
       return;
     }
     setState(() {
       _otpSent = true;
       _sentIdentifier = identifier;
     });
-    showSuccessSnackBar(
-      context,
-      'If an account exists, a 6-digit code is on the way.',
-    );
+    showSuccessSnackBar(context, l10n.authCodeOnTheWayAccount);
   }
 
   Future<void> _verifyOtp() async {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _otpTouched = true;
     });
@@ -218,7 +219,7 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
         purpose: EmailOtpPurpose.newDevice,
       ),
       logLabel: 'AuthRepository.verifyEmailOtp',
-      fallbackError: 'Invalid or expired code. Please try again.',
+      fallbackError: l10n.authInvalidOrExpiredCode,
     );
 
     if (!mounted) return;
@@ -226,13 +227,13 @@ class _NewDeviceScreenState extends State<NewDeviceScreen> {
       _isLoading = false;
     });
     if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Verification failed.');
+      showErrorSnackBar(context, result.errorMessage ?? l10n.authVerificationFailed);
       return;
     }
     setState(() {
       _otpSent = false;
       _otpController.clear();
     });
-    showSuccessSnackBar(context, 'Device verified.');
+    showSuccessSnackBar(context, l10n.authDeviceVerified);
   }
 }

@@ -41,6 +41,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final user = context.select<AuthBloc, CrushUser?>(
       (bloc) => bloc.state.user,
     );
@@ -50,7 +51,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
     // If email is already verified, show locked state
     if (emailVerified && currentEmail != null && currentEmail.isNotEmpty) {
       return AuthScaffold(
-        title: 'Email protection',
+        title: l10n.authEmailProtectionTitle,
         child: Center(
           child: ConstrainedBox(
             key: authUtilityContentConstraintKey,
@@ -86,7 +87,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Email Verified',
+                        l10n.authEmailVerifiedBadge,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: DsColors.success,
@@ -121,7 +122,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Your email is already verified. You cannot make any changes to this email address.',
+                          l10n.authEmailAlreadyVerifiedLocked,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ),
@@ -151,7 +152,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            'Want to use a different email?',
+                            l10n.authWantDifferentEmail,
                             style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   fontWeight: FontWeight.w600,
@@ -162,7 +163,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'To use a different email address, you will need to delete this account and create a new one with the new email.',
+                        l10n.authDifferentEmailInstructions,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: DsColors.warning,
                         ),
@@ -176,9 +177,9 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
-                          'Go to Account Settings',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.authGoToAccountSettings,
+                          style: const TextStyle(
                             color: DsColors.warning,
                             fontWeight: FontWeight.w600,
                             decoration: TextDecoration.underline,
@@ -197,7 +198,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
 
     // Normal flow for unverified or no email
     return AuthScaffold(
-      title: 'Email protection',
+      title: l10n.authEmailProtectionTitle,
       child: Center(
         child: ConstrainedBox(
           key: authUtilityContentConstraintKey,
@@ -208,18 +209,18 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Add and verify an email to protect your account and enable recovery.',
+                l10n.authEmailProtectionIntro,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
               if (currentEmail != null && currentEmail.isNotEmpty) ...[
                 Text(
-                  'Current email: $currentEmail',
+                  l10n.authCurrentEmailLabel(currentEmail),
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Status: not verified',
+                  l10n.authStatusNotVerified,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 16),
@@ -228,8 +229,8 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
-                  labelText: 'Email address',
-                  helperText: 'We will send a 6-digit code to this email.',
+                  labelText: l10n.authEmailAddress,
+                  helperText: l10n.authCodeWillBeSentToEmail,
                   errorText: _emailErrorText(),
                 ),
                 onTap: () => _markEmailTouched(),
@@ -241,8 +242,8 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
                   controller: _otpController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Verification code',
-                    helperText: 'Enter the 6-digit code from your email.',
+                    labelText: l10n.authVerificationCode,
+                    helperText: l10n.authEnterCodeFromEmail,
                     errorText: _otpErrorText(),
                   ),
                   onTap: () => _markOtpTouched(),
@@ -251,7 +252,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
               ],
               const SizedBox(height: 16),
               PrimaryButton(
-                label: _otpSent ? 'Verify code' : 'Send code',
+                label: _otpSent ? l10n.authVerifyCode : l10n.authSendCode,
                 loading: _isLoading,
                 onPressed: _isLoading
                     ? null
@@ -295,29 +296,32 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
 
   String? _emailErrorText() {
     if (!_emailTouched) return null;
+    final l10n = AppLocalizations.of(context);
     final email = normalizeEmail(_emailController.text);
     if (email.isEmpty) {
-      return 'Enter your email address';
+      return l10n.authEnterEmailAddress;
     }
     if (!looksLikeEmail(email)) {
-      return 'Enter a valid email address';
+      return l10n.errorInvalidEmail;
     }
     return null;
   }
 
   String? _otpErrorText() {
     if (!_otpTouched) return null;
+    final l10n = AppLocalizations.of(context);
     final otp = _otpController.text.trim();
     if (otp.isEmpty) {
-      return 'Enter the 6-digit code';
+      return l10n.authEnterCodeHint;
     }
     if (!RegExp(r'^[0-9]{6}$').hasMatch(otp)) {
-      return 'Use the 6-digit code from your email';
+      return l10n.authUseCodeFromEmail;
     }
     return null;
   }
 
   Future<void> _requestOtp() async {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _emailTouched = true;
     });
@@ -340,10 +344,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
       setState(() {
         _isLoading = false;
       });
-      showErrorSnackBar(
-        context,
-        'This email is already registered to another account. Please use a different email address.',
-      );
+      showErrorSnackBar(context, l10n.authEmailAlreadyRegistered);
       return;
     }
 
@@ -354,7 +355,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
         email: email,
       ),
       logLabel: 'AuthRepository.requestEmailOtp',
-      fallbackError: 'Could not send code. Please try again.',
+      fallbackError: l10n.authCouldNotSendCode,
     );
 
     if (!mounted) return;
@@ -362,20 +363,18 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
       _isLoading = false;
     });
     if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Request failed.');
+      showErrorSnackBar(context, result.errorMessage ?? l10n.authRequestFailed);
       return;
     }
     setState(() {
       _otpSent = true;
       _sentEmail = email;
     });
-    showSuccessSnackBar(
-      context,
-      'If that email is reachable, a 6-digit code is on the way.',
-    );
+    showSuccessSnackBar(context, l10n.authCodeOnTheWayEmail);
   }
 
   Future<void> _verifyOtp() async {
+    final l10n = AppLocalizations.of(context);
     setState(() {
       _otpTouched = true;
     });
@@ -397,7 +396,7 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
         newEmail: email,
       ),
       logLabel: 'AuthRepository.verifyEmailOtp',
-      fallbackError: 'Invalid or expired code. Please try again.',
+      fallbackError: l10n.authInvalidOrExpiredCode,
     );
 
     if (!mounted) return;
@@ -405,14 +404,14 @@ class _EmailProtectionScreenState extends State<EmailProtectionScreen> {
       _isLoading = false;
     });
     if (!result.isSuccess) {
-      showErrorSnackBar(context, result.errorMessage ?? 'Verification failed.');
+      showErrorSnackBar(context, result.errorMessage ?? l10n.authVerificationFailed);
       return;
     }
     setState(() {
       _otpSent = false;
       _otpController.clear();
     });
-    showSuccessSnackBar(context, 'Email verified.');
+    showSuccessSnackBar(context, l10n.authEmailVerified);
     if (widget.redirectOnSuccess && mounted) {
       context.go(CrushRoutes.home);
     }
