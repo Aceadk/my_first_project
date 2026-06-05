@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:crushhour/core/network/api_client.dart';
 import 'package:crushhour/core/network/api_version.dart';
@@ -698,6 +699,41 @@ void main() {
 
       expect(processedRequest, same(request));
       expect(processedResponse, same(response));
+    });
+  });
+
+  group('ApiClient.retryBackoffDelay (ERR-003)', () {
+    const base = Duration(seconds: 1);
+
+    test('grows exponentially and stays within the ±20% jitter band', () {
+      final rng = Random(42);
+      for (var attempt = 1; attempt <= 4; attempt++) {
+        final expected = base.inMilliseconds * (1 << (attempt - 1));
+        final lo = (expected * 0.8).floor();
+        final hi = (expected * 1.2).ceil();
+        final delay = ApiClient.retryBackoffDelay(
+          base,
+          attempt,
+          random: rng,
+        );
+        expect(delay.inMilliseconds, inInclusiveRange(lo, hi));
+      }
+    });
+
+    test('applies jitter (not a fixed exponential value)', () {
+      // With jitter, repeated draws should not all equal the bare exponential.
+      final values = <int>{
+        for (var i = 0; i < 12; i++)
+          ApiClient.retryBackoffDelay(base, 3, random: Random(i)).inMilliseconds,
+      };
+      expect(values.length, greaterThan(1));
+    });
+
+    test('zero base delay yields zero (no jitter division by zero)', () {
+      expect(
+        ApiClient.retryBackoffDelay(Duration.zero, 2, random: Random(1)),
+        Duration.zero,
+      );
     });
   });
 }

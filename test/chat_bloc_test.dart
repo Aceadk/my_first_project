@@ -779,6 +779,56 @@ void main() {
         await bloc.close();
       });
     });
+
+    group('Presence heartbeat (REAL-001)', () {
+      test('heartbeat tick refreshes presence (online) while chat open',
+          () async {
+        final chatRepo = _FakeChatRepository();
+        final authRepo = _FakeAuthRepository();
+        addTearDown(authRepo.dispose);
+        final bloc = ChatBloc(
+          chatRepository: chatRepo,
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionTier.free,
+          ),
+          authRepository: authRepo,
+        );
+
+        bloc.add(ChatOpened('match-1', 'user-1', 'user-2'));
+        await Future.delayed(const Duration(milliseconds: 150));
+        chatRepo.presenceValues.clear();
+
+        // Simulate the periodic timer firing.
+        bloc.add(ChatPresenceHeartbeatTick());
+        await Future.delayed(const Duration(milliseconds: 60));
+
+        // A heartbeat only ever re-asserts online (keeps lastSeen fresh).
+        expect(chatRepo.presenceValues, contains(true));
+        expect(chatRepo.presenceValues.every((v) => v == true), isTrue);
+
+        await bloc.close();
+      });
+
+      test('heartbeat tick is a no-op when no conversation is open', () async {
+        final chatRepo = _FakeChatRepository();
+        final authRepo = _FakeAuthRepository();
+        addTearDown(authRepo.dispose);
+        final bloc = ChatBloc(
+          chatRepository: chatRepo,
+          subscriptionRepository: _FakeSubscriptionRepository(
+            SubscriptionTier.free,
+          ),
+          authRepository: authRepo,
+        );
+
+        bloc.add(ChatPresenceHeartbeatTick());
+        await Future.delayed(const Duration(milliseconds: 60));
+
+        expect(chatRepo.presenceValues, isEmpty);
+
+        await bloc.close();
+      });
+    });
   });
 }
 

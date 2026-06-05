@@ -1,6 +1,6 @@
 # Project ER Diagram — CrushHour Dating App
 
-*Last updated: 2026-05-30*
+*Last updated: 2026-06-02*
 
 ---
 
@@ -1285,86 +1285,75 @@ erDiagram
 
 ## 5) Indexing Strategy
 
-### 5.1 Composite Indexes Required
+> Source of truth: [`firestore.indexes.json`](../firestore.indexes.json). The
+> tables below are regenerated from that file (refreshed 2026-06-02, DB-001).
+> If you add a query that combines an equality/array-contains filter with an
+> `orderBy` or inequality on a different field, add the matching composite index
+> here **and** in `firestore.indexes.json` before deploying.
 
-| Collection | Fields | Query Pattern |
-|------------|--------|---------------|
-| `matches` | userIds (array-contains), status, matchedAt (desc) | Fetch user's matches |
+### 5.1 Composite Indexes (deployed)
+
+| Collection | Fields (in order) | Query Pattern |
+|------------|-------------------|---------------|
+| `users` | preferences.hideFromDiscovery, preferences.incognitoMode, profile.gender, profile.country | Discovery prefilter (nested shape, gendered) |
+| `users` | preferences.hideFromDiscovery, preferences.incognitoMode, profile.country | Discovery prefilter (nested shape, any gender) |
+| `users` | isActive, lastActiveAt (desc) | Active-user sweeps |
+| `users` | onboardingComplete, profileComplete, updatedAt (desc) | Discovery prefilter (flat shape, base) |
+| `users` | onboardingComplete, profileComplete, isVerified, updatedAt (desc) | Discovery prefilter (flat shape, verified) |
+| `users` | onboardingComplete, profileComplete, gender, updatedAt (desc) | Discovery prefilter (flat shape, gendered) |
+| `users` | onboardingComplete, profileComplete, gender, isVerified, updatedAt (desc) | Discovery prefilter (flat shape, gendered + verified) |
+| `users` | gender, age, lastActiveAt (desc) | Discovery prefilter (flat legacy) |
+| `users` | location.geoHash, lastActiveAt (desc) | Geo-bucketed discovery |
+| `users` | isPendingDeletion, deletionScheduledAt | Scheduled account-deletion sweep (DB-002) |
+| `users` | isDeactivated, scheduledDeletionAt | Deactivated 6-month auto-delete sweep (DB-002) |
+| `matches` | userIds (array-contains), matchedAt (desc) | Fetch user's matches |
 | `matches` | userIds (array-contains), lastMessageAt (desc) | Chat list sorted by recent |
-| `messages` | sentAt (asc) | Message history |
-| `messages` | sentAt (desc) | Latest messages first |
+| `messages` | toUserId, isRead | Unread-message lookups |
+| `messages` | visibleTo (array-contains), createdAt (desc) | Retention-scoped message query (see note) |
 | `likes` | toUserId, createdAt (desc) | "Who Liked Me" screen |
 | `likes` | fromUserId, createdAt (desc) | Like history |
-| `reports` | status, createdAt (desc) | Admin moderation queue |
+| `reports` | reporterId, createdAt (desc) | Reporter's own report history |
+| `blocks` | blockerId, blockedId | Block-relationship lookup |
+| `auth_rate_limits` | blockedUntil, windowStart | Auth abuse-window cleanup |
 
-### 5.2 Single Field Indexes
+### 5.2 Single-Field Index Overrides
 
 | Collection | Field | Purpose |
 |------------|-------|---------|
-| `users` | profile.preferences.hideFromDiscovery | Discovery filtering |
-| `users` | profile.latitude | Geo queries |
-| `users` | profile.longitude | Geo queries |
-| `users` | plan | Subscription filtering |
-| `likes` | toUserId | Fast lookup of received likes |
-| `message_requests` | fromUserId | Sent request lookup |
-| `message_requests` | toUserId | Received request lookup |
+| `users` | email | Email lookup / uniqueness checks |
+| `users` | phoneNumber | Phone lookup |
+| `usernames` | uid | Reverse username → uid lookup |
 
-### 5.3 Index Configuration (firestore.indexes.json)
+### 5.3 Known index issues (DB-001, 2026-06-02)
 
-```json
-{
-  "indexes": [
-    {
-      "collectionGroup": "matches",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userIds", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "matchedAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "matches",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "userIds", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "lastMessageAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "messages",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "sentAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "likes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "toUserId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "likes",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "fromUserId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "reports",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
-    }
-  ]
-}
-```
+- **`messages` (visibleTo array-contains, createdAt desc)** references `createdAt`,
+  but message documents are written with `sentAt` (see §3.8 and the `sendMessage`
+  callable) and every client query orders by `sentAt`. No live query matches this
+  index, so it is effectively dead and the `createdAt` field path is wrong. Either
+  correct it to `sentAt` if a server-side retention query is added, or drop it.
+  Left in place pending confirmation that no admin tooling depends on it.
+- The two `users` deletion-sweep indexes (`isPendingDeletion+deletionScheduledAt`,
+  `isDeactivated+scheduledDeletionAt`) were **added on 2026-06-02** — they were
+  missing while `processScheduledAccountDeletions` already issued those equality +
+  inequality queries, so the deletion job had been failing with
+  `FAILED_PRECONDITION` (the error was caught and logged, masking the outage).
+
+### 5.4 Ambiguous / dual-shape fields (DB-001)
+
+- **User document shape** is dual during the web migration: canonical nested
+  `profile.*` vs legacy flat web fields (`displayName`, `photos`, `location`,
+  `interestedIn`, `gender`, `age`, root completion flags). Both shapes are live
+  and both are indexed (note the parallel `profile.gender`/`profile.country` and
+  flat `gender`/`age` composites above). New writes target the nested shape; a
+  server trigger mirrors canonical fields back onto the flat fields for stale web
+  clients.
+- **Match membership** is keyed three ways across the codebase —
+  `users`, `userIds`, `participants` (see `MATCH_MEMBERSHIP_FIELDS`). Security
+  rules and the deployed match composites use `userIds`; signaling/legacy paths
+  read `users`/`participants`. Account deletion deliberately queries all three.
+- **`message_requests` participants** are `fromUserId`/`toUserId` (client +
+  rules), not `senderId`/`recipientId`. The deletion cascade was corrected to
+  match on 2026-06-02 (see DB-002).
 
 ---
 
@@ -1396,83 +1385,29 @@ erDiagram
 
 ### 6.3 Security Rules Code
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(uid) {
-      return isSignedIn() && request.auth.uid == uid;
-    }
-
-    // USERS
-    match /users/{uid} {
-      allow read: if isSignedIn();
-      allow create: if isOwner(uid);
-      allow update: if isOwner(uid)
-        && !request.resource.data.diff(resource.data)
-            .affectedKeys().hasAny(['plan', 'isIdVerified']);
-      allow delete: if false;
-    }
-
-    // SERVER-ONLY COLLECTIONS
-    match /usernames/{username} { allow read, write: if false; }
-    match /auth_email_otps/{otpId} { allow read, write: if false; }
-    match /auth_credentials/{uid} { allow read, write: if false; }
-    match /auth_password_resets/{resetId} { allow read, write: if false; }
-    match /auth_rate_limits/{key} { allow read, write: if false; }
-    match /auth_audit_logs/{logId} { allow read, write: if false; }
-
-    // MATCHES
-    match /matches/{matchId} {
-      allow read: if isSignedIn()
-        && resource.data.userIds.hasAny([request.auth.uid]);
-      allow create, update, delete: if false;
-
-      match /messages/{messageId} {
-        allow read: if isSignedIn()
-          && get(/databases/$(database)/documents/matches/$(matchId))
-              .data.userIds.hasAny([request.auth.uid]);
-        allow create: if isSignedIn()
-          && get(/databases/$(database)/documents/matches/$(matchId))
-              .data.userIds.hasAll([request.auth.uid, request.resource.data.toUserId]);
-        allow update: if isSignedIn()
-          && resource.data.toUserId == request.auth.uid
-          && request.resource.data.diff(resource.data).changedKeys().hasOnly(['isRead']);
-        allow delete: if false;
-      }
-    }
-
-    // LIKES
-    match /likes/{likeId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.fromUserId == request.auth.uid;
-      allow update, delete: if false;
-    }
-
-    // BLOCKS
-    match /blocks/{blockId} {
-      allow read: if false;
-      allow create: if isSignedIn()
-        && request.resource.data.blockerId == request.auth.uid;
-      allow update, delete: if false;
-    }
-
-    // REPORTS
-    match /reports/{reportId} {
-      allow read: if false;
-      allow create: if isSignedIn()
-        && request.resource.data.reporterId == request.auth.uid;
-      allow update, delete: if false;
-    }
-  }
-}
-```
+> Source of truth: [`firestore.rules`](../firestore.rules) (kept byte-identical
+> to [`functions/firestore.rules`](../functions/firestore.rules) by
+> `scripts/check_firestore_rules_sync.sh`). The earlier inline copy here was a
+> heavily simplified snapshot and was removed on 2026-06-02 (DB-001) to avoid
+> drift. The live rules implement substantially more than the matrix above —
+> notably:
+>
+> - **Block relationships** gate reads/writes on `users`, `matches/messages`, and
+>   `message_requests` via `hasBlockRelationship(uid)` (checks both directions in
+>   the `blocks/{blockerId_blockedId}` collection).
+> - **Premium / gender gating**: video messages and call creation require
+>   `isPremium()`; story creation requires `isPremium()` or `isFemale()`;
+>   non-owner presence reads require `isPremium()`.
+> - **Message retention** is enforced by the `visibleTo` array — reads require the
+>   viewer to still be in `visibleTo`, and creates must include both participants.
+> - **Message validation**: allowed `type` enum, `content` ≤ 5000 chars, both
+>   participants `isIdVerified`, sender `isAccountVerified()` (email or phone).
+> - **Profile write guards**: protected fields (`plan`, `isIdVerified`,
+>   `stripeCustomerId`, `stripeSubscriptionId`, `isEmailVerified`, `createdAt`,
+>   `kycVerificationStatus`) are server-only; `photoUrls` ≤ 9, `interests` ≤ 20;
+>   legacy flat profile keys are blocked on client create/update.
+> - Additional collections not in the original snapshot: `message_requests`,
+>   `stories`, `calls`, `presence`.
 
 ---
 
@@ -1606,8 +1541,8 @@ service cloud.firestore {
 | Server-Only Collections | 9 |
 | Nested Documents (Maps) | 6 |
 | Total Fields | 200+ |
-| Composite Indexes | 6 |
-| Single Field Indexes | 5 |
+| Composite Indexes | 20 |
+| Single-Field Index Overrides | 3 |
 
 ---
 
@@ -1639,3 +1574,4 @@ service cloud.firestore {
 - **2026-03-12 Store bootstrap setup:** No schema changes; startup now primes a shared native billing service instance and records the iOS In-App Purchase capability at the Xcode project level.
 - **2026-03-13 Discovery eligibility centralization:** No schema rewrite was introduced, but discovery now treats `users/{uid}` as a dual-shape compatibility source during migration: canonical nested `profile.*` remains the target write model, while legacy flat web fields (`displayName`, `photos`, `location`, `interestedIn`, root completion flags) are normalized into the same discovery snapshot before filtering.
 - **2026-03-13 Discovery legacy-web compatibility:** No new collection was added; a server-side compatibility trigger now mirrors canonical nested discovery fields back onto the existing legacy flat fields in `users/{uid}` so stale Firestore-only web clients keep seeing newly eligible users during rollout.
+- **2026-06-02 Database audit (DB-001/002/003):** Regenerated §5 (Indexing Strategy) from the live `firestore.indexes.json`, replaced the stale inline rules snapshot in §6.3 with a pointer + accurate summary, and corrected index counts. Added two missing `users` composite indexes for the scheduled account-deletion sweeps. Corrected the `message_requests` deletion cascade to query `fromUserId`/`toUserId` (was `senderId`/`recipientId`, matching nothing). Full findings: `docs/reports/database_audit_2026-06-02.md`; backup/restore procedures: `docs/BACKUP_RESTORE_RUNBOOK.md`.

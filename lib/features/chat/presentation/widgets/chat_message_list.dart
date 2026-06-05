@@ -15,6 +15,7 @@ import 'package:crushhour/data/models/message.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_state.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_event.dart';
 import 'package:crushhour/features/chat/presentation/bloc/chat_bloc.dart';
+import 'package:crushhour/features/chat/presentation/widgets/chat_failed_message_actions.dart';
 import 'package:crushhour/features/chat/presentation/widgets/chat_widgets.dart';
 import 'package:crushhour/presentation/widgets/plus_feature_gate.dart';
 import 'package:crushhour/core/utils/date_time_formatter.dart';
@@ -832,111 +833,28 @@ class ChatMessageList extends StatelessWidget {
                                           .toList(),
                                     ),
                                   ),
-                                // Retry / Delete for failed messages
+                                // Retry / Delete for failed messages. The
+                                // "Sending…" state is already rendered by the
+                                // status row above, so it is intentionally not
+                                // repeated here (was previously duplicated).
                                 if (isMe &&
                                     msg.sendStatus == MessageSendStatus.failed)
-                                  Padding(
-                                    padding: const EdgeInsetsDirectional.only(
-                                      start: 12,
-                                      end: 12,
-                                      bottom: 4,
-                                      top: 2,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.error_outline,
-                                          size: 14,
-                                          color: DsColors.error,
+                                  ChatFailedMessageActions(
+                                    onRetry: () {
+                                      context.read<ChatBloc>().add(
+                                        ChatMessageRetryRequested(
+                                          matchId: matchId,
+                                          messageId: msg.id,
                                         ),
-                                        DsGap.xsH,
-                                        const Text(
-                                          'Failed to send',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: DsColors.error,
-                                          ),
+                                      );
+                                    },
+                                    onDiscard: () {
+                                      context.read<ChatBloc>().add(
+                                        ChatMessageDiscardRequested(
+                                          messageId: msg.id,
                                         ),
-                                        DsGap.smH,
-                                        GestureDetector(
-                                          onTap: () {
-                                            context.read<ChatBloc>().add(
-                                              ChatMessageRetryRequested(
-                                                matchId: matchId,
-                                                messageId: msg.id,
-                                              ),
-                                            );
-                                          },
-                                          child: const Text(
-                                            'Retry',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: DsColors.info,
-                                              fontWeight: FontWeight.w600,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ),
-                                        DsGap.smH,
-                                        GestureDetector(
-                                          onTap: () {
-                                            context.read<ChatBloc>().add(
-                                              ChatMessageDiscardRequested(
-                                                messageId: msg.id,
-                                              ),
-                                            );
-                                          },
-                                          child: const Text(
-                                            'Delete',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: DsColors.error,
-                                              fontWeight: FontWeight.w600,
-                                              decoration:
-                                                  TextDecoration.underline,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                // Sending indicator
-                                if (isMe &&
-                                    msg.sendStatus == MessageSendStatus.sending)
-                                  const Padding(
-                                    padding: EdgeInsetsDirectional.only(
-                                      start: 12,
-                                      end: 12,
-                                      bottom: 4,
-                                      top: 2,
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        SizedBox(
-                                          width: DsSizes.iconXs,
-                                          height: DsSizes.iconXs,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 1.5,
-                                            valueColor: AlwaysStoppedAnimation(
-                                              DsColors.ink300,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: DsSpacing.xs + DsSpacing.xxs,
-                                        ),
-                                        Text(
-                                          'Sending...',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: DsColors.ink300,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      );
+                                    },
                                   ),
                               ],
                             ),

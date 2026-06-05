@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter/foundation.dart';
@@ -707,8 +708,27 @@ class ApiClient {
   }
 
   Future<void> _delay(int attempt) {
-    final delay = config.retryDelay * (1 << (attempt - 1));
-    return Future.delayed(delay);
+    return Future.delayed(retryBackoffDelay(config.retryDelay, attempt));
+  }
+
+  /// Exponential backoff for transport retries with ±20% jitter.
+  ///
+  /// Jitter prevents a thundering herd: without it, many clients that failed at
+  /// the same instant (e.g. a brief backend blip) would all retry in lockstep
+  /// and re-stampede the service. Pure + seedable so the schedule is testable.
+  @visibleForTesting
+  static Duration retryBackoffDelay(
+    Duration base,
+    int attempt, {
+    Random? random,
+  }) {
+    final exponential = base.inMilliseconds * (1 << (attempt - 1));
+    final jitterRange = (exponential * 0.2).round();
+    final offset = jitterRange > 0
+        ? (random ?? Random()).nextInt(jitterRange * 2) - jitterRange
+        : 0;
+    final withJitter = (exponential + offset).clamp(0, 1 << 31);
+    return Duration(milliseconds: withJitter);
   }
 
   bool _shouldRetryTransportFailure(HttpMethod method, int attempt) {

@@ -299,3 +299,14 @@ class ChatAppLifecycleChanged extends ChatEvent {
   @override
   List<Object?> get props => [lifecycleState];
 }
+
+/// Periodic heartbeat tick fired while a conversation is open and foregrounded.
+///
+/// Refreshes the current user's `presence/{uid}.lastSeen` so an actively-open
+/// chat keeps a fresh heartbeat. The reader treats a peer as online only when
+/// their heartbeat is fresh, so a crashed/force-killed client (which can never
+/// write `isOnline:false`) decays to offline once the heartbeat stops.
+class ChatPresenceHeartbeatTick extends ChatEvent {
+  @override
+  List<Object?> get props => const [];
+}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Crush app colors -->
-    <color name="launch_background_light">#F8F7FB</color>
+    <color name="launch_background_light">#0D0E12</color>
     <color name="primary">#FF3F7F</color>
     <color name="secondary">#7B6CFF</color>
 	<color name="ic_launcher_background">#0D0E12</color>

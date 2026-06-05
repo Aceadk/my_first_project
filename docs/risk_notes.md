@@ -6,6 +6,44 @@ This document tracks technical, product, security, and architectural risks.
 
 ## Active Risks (Ordered by Severity: Low -> Medium -> High -> Critical)
 
+### R-065 — Crush web/mobile backend contract drift
+
+Category: Cross-platform data/API contracts
+
+Description:
+`crush-web` implements several app flows through direct Firebase SDK reads/writes using web-specific or legacy collection shapes, while `my_first_project` owns the current Cloud Functions REST/callable surface, Firestore rules, Storage rules, and canonical nested user profile schema. Current local rules do not authorize several web shapes such as top-level `conversations`, `typing_indicators`, directional `matches` with `status: mutual`, `user_streaks`, and some web story/promo write paths.
+
+Impact: High
+
+Likelihood: High until web services are migrated or rules/contracts are explicitly updated.
+
+Affected Areas:
+
+- `/Users/ace/crush-web/packages/core/src/services`
+- `/Users/ace/crush-web/apps/web/src/app/(app)`
+- `functions/src/index.ts`
+- `firestore.rules`
+- `storage.rules`
+- `lib/core/network/api_version.dart`
+- `lib/core/schema/user_document_schema.dart`
+
+Mitigation Plan:
+
+- Use `functions/src/index.ts`, Firestore/Storage rules, and mobile DTO/schema tests as the backend source of truth.
+- Create a shared backend contract matrix covering REST endpoints, callables, Firestore collections, Storage paths, route aliases, and notification routes.
+- Move web mutations for discovery, match, chat, safety, subscription, stories, streaks, and promos onto shared backend REST/callable contracts unless a direct client path is explicitly allowed by rules and tests.
+- Add web CI lanes for build, typecheck, Playwright E2E, and contract/schema tests.
+
+Status: Open
+
+Owner: AI
+
+Last Reviewed: 2026-06-03
+
+Reference: `docs/reports/crush_web_mobile_alignment_plan_2026-06-03.md`
+
+---
+
 ### R-001 — Firebase Storage upload failures in debug mode (was R-002)
 
 Category: Backend dependencies
@@ -1088,6 +1126,11 @@ Resolution:
 - ✅ Added `verifyAppCheck()` helper to Cloud Functions
 - ✅ `ENFORCE_APP_CHECK` flag for gradual rollout (currently false for monitoring)
 - ⏳ Enable enforcement after confirming all clients have App Check
+
+Current Finding:
+
+- 2026-06-01 physical iPhone Profile launch for `com.gyanendra.myfirstproject` reported Firebase App Check API HTTP 403 `SERVICE_DISABLED` against project `72015170328` / `crush-265f7`.
+- This does not block app installation, but App Check token exchange will keep failing until `firebaseappcheck.googleapis.com` is enabled in the Firebase/Google Cloud project and propagation completes.
 
 Status: In Progress (monitoring mode)
 

@@ -2,6 +2,19 @@ import 'package:crushhour/features/chat/presentation/screens/chat_list_screen.da
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  group('chatUsesSplitView', () {
+    test('phone widths use single-column push navigation', () {
+      expect(chatUsesSplitView(390), isFalse);
+      expect(chatUsesSplitView(599), isFalse);
+    });
+
+    test('tablet and desktop widths use master-detail split view', () {
+      expect(chatUsesSplitView(600), isTrue);
+      expect(chatUsesSplitView(834), isTrue);
+      expect(chatUsesSplitView(1440), isTrue);
+    });
+  });
+
   group('chatListPaneWidthFor', () {
     test('uses tablet min width floor at the tablet breakpoint', () {
       expect(chatListPaneWidthFor(600), 300);

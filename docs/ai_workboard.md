@@ -20,6 +20,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
+| T-2026-06-05-PUSH-GITHUB | 2026-06-05 | Push complete local state to GitHub | In Progress | Commit all in-scope files, push `codex/publish-auth-startup-hardening`, then update PR/docs completion. |
 | T-2026-06-03-CRUSH-WEB-MOBILE-ALIGNMENT | 2026-06-03 | Compare `crush-web` and `my_first_project` alignment | Completed | Start with the P0 backend contract matrix and web match/chat migration decision. |
 | T-2026-06-02-APP-LOGO-REPLACEMENT | 2026-06-02 | Replace app logo/icon assets | Completed | Use `http://127.0.0.1:8787/` to inspect the built web app while the local static server is running. |
 | T-2026-05-19-IOS-DEPLOY-IPHONE | 2026-05-19 | Deploy app to iPhone | Completed | `Crush` is installed and running on `iPhoneeeee` as `com.gyanendra.myfirstproject`; use Profile/release for direct phone launches. |
@@ -54,6 +55,27 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 | T-2026-02-19-ONBOARD005 | 2026-02-19 | Deck tutorial overlay added with one-time persistence + a11y support.         | `flutter analyze` clean.                                      |
 
 ## Unified Task Log
+
+### T-2026-06-05-PUSH-GITHUB
+- Date: 2026-06-05
+- Owner: Codex
+- Status: In Progress
+- Goal: Push the complete current local state of `my_first_project` to GitHub, including the six local commits already ahead of origin and all modified/untracked files in the working tree.
+- Scope: Current branch `codex/publish-auth-startup-hardening`, all tracked/untracked project changes, the existing draft PR #1, and required workflow docs. User's "push everything" request is treated as explicit full-worktree scope confirmation.
+- Key Changes:
+  - Added publish-task tracking to [`Developer_agent_chat.md`](/Users/ace/my_first_project/docs/Developer_agent_chat.md) and this workboard before staging the publish snapshot.
+- Decisions/Handoffs:
+  - Stay on `codex/publish-auth-startup-hardening`; do not create a new branch because this branch already has an open draft PR.
+  - Leave `docs/risk_notes.md` risk content unchanged for this task unless the existing dirty change set itself already changed it; the publish operation adds no new product or architecture risk.
+- Verification:
+  - `gh --version` and `gh auth status` passed; active account is `Aceadk`.
+  - `flutter analyze lib test tool/generate_app_icons.dart` passed.
+  - Changed-area Flutter tests passed: 96 tests.
+  - `npm --prefix functions run build` passed.
+  - `npx mocha --exit test/accountDeletionMap.test.js` passed: 8 tests.
+  - `git diff --check` passed.
+  - `flutter build web --debug` was attempted but terminated after a long silent compile stall; no build error was emitted before termination.
+- Next Step: Run docs sync, commit the full snapshot, push to origin, then update this task and PR metadata with final GitHub details.
 
 ### T-2026-06-04-CLEANUP-DEPENDENCIES
 - Date: 2026-06-04

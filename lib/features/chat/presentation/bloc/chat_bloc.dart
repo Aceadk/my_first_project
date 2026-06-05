@@ -3,6 +3,7 @@ import 'package:crushhour/core/app_logger.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:crushhour/core/utils/result.dart';
+import 'package:crushhour/core/utils/managed_timer_registry.dart';
 import 'package:crushhour/features/chat/domain/repositories/chat_repository.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
 import 'package:crushhour/features/auth/domain/repositories/auth_repository.dart';
@@ -48,6 +49,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
   String? _activeMatchId;
   String? _activeUserId;
   bool _lifecycleObserverRegistered = false;
+
+  // ---- Presence heartbeat ----
+  // While a chat is open and foregrounded, refresh presence on this interval so
+  // `lastSeen` stays fresh. Must be shorter than
+  // [FirebaseChatRepository.presenceFreshnessWindow] (2 min) with margin for a
+  // missed write, so an actively-open chat never wrongly decays to offline.
+  static const Duration presenceHeartbeatInterval = Duration(seconds: 45);
+  static const String _presenceHeartbeatKey = 'chat_presence_heartbeat';
+  final ManagedTimerRegistry _timers = ManagedTimerRegistry();
 
   ChatBloc({
     required this.chatRepository,
@@ -105,6 +115,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
     on<ChatResetRequested>(_onResetRequested);
     on<ChatE2eeToggled>(_onE2eeToggled);
     on<ChatAppLifecycleChanged>(_onAppLifecycleChanged);
+    on<ChatPresenceHeartbeatTick>(_onPresenceHeartbeatTick);
 
     // Subscribe to auth state changes to reset on logout.
     _setManagedSubscription<Object?>(
@@ -205,6 +216,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
     if (!presenceResult.isSuccess) {
       emit(state.copyWith(errorMessage: presenceResult.errorMessage));
     }
+    _startPresenceHeartbeat();
 
     // Delegate message loading to MessageHandlingBloc
     _messageBloc.add(
@@ -235,6 +247,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
       logLabel: 'ChatRepository.setPresence',
       fallbackError: 'Could not update presence.',
     );
+    _stopPresenceHeartbeat();
     await _cancelRealtimeSubscriptions();
     _messageBloc.cancelSubscriptions();
 
@@ -268,6 +281,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
           logLabel: 'ChatRepository.setTyping (background)',
           fallbackError: 'Could not update typing status.',
         );
+        // Pause the heartbeat so `lastSeen` stops advancing; combined with the
+        // explicit offline write the peer sees us drop immediately, and a later
+        // crash can't resurrect a stale "online" flag.
+        _stopPresenceHeartbeat();
         await Result.guard(
           () => chatRepository.setPresence(userId: userId, isOnline: false),
           logLabel: 'ChatRepository.setPresence (background)',
@@ -275,12 +292,14 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
         );
         break;
       case AppLifecycleState.resumed:
-        // Coming back to the foreground: mark online again.
+        // Coming back to the foreground: mark online again and resume the
+        // heartbeat that keeps `lastSeen` fresh.
         await Result.guard(
           () => chatRepository.setPresence(userId: userId, isOnline: true),
           logLabel: 'ChatRepository.setPresence (foreground)',
           fallbackError: 'Could not update presence.',
         );
+        _startPresenceHeartbeat();
         break;
       case AppLifecycleState.inactive:
         // Transient (e.g. notification shade / app switcher peek). Ignore to
@@ -294,6 +313,37 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
     if (!isClosed) {
       add(ChatAppLifecycleChanged(state));
     }
+  }
+
+  // ---- Presence heartbeat ----
+
+  /// Refresh the current user's presence so `lastSeen` stays fresh while a chat
+  /// is actively open. No-op when there is no active conversation.
+  Future<void> _onPresenceHeartbeatTick(
+    ChatPresenceHeartbeatTick event,
+    Emitter<ChatState> emit,
+  ) async {
+    final userId = _activeUserId;
+    if (userId == null) return;
+    await Result.guard(
+      () => chatRepository.setPresence(userId: userId, isOnline: true),
+      logLabel: 'ChatRepository.setPresence (heartbeat)',
+      fallbackError: 'Could not refresh presence.',
+    );
+  }
+
+  void _startPresenceHeartbeat() {
+    _timers.startPeriodic(_presenceHeartbeatKey, presenceHeartbeatInterval, (
+      _,
+    ) {
+      if (!isClosed) {
+        add(ChatPresenceHeartbeatTick());
+      }
+    });
+  }
+
+  void _stopPresenceHeartbeat() {
+    _timers.cancel(_presenceHeartbeatKey);
   }
 
   // ---- Message events -> MessageHandlingBloc ----
@@ -513,6 +563,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
     Emitter<ChatState> emit,
   ) async {
     AppLogger.debug('ChatBloc: Resetting chat state on logout');
+    _stopPresenceHeartbeat();
     await _cancelRealtimeSubscriptions();
 
     _activeMatchId = null;
@@ -641,6 +692,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> with WidgetsBindingObserver {
       _lifecycleObserverRegistered = false;
     }
 
+    _timers.cancelAll();
     await _cancelAllManagedSubscriptions();
 
     // Close sub-BLoCs with error isolation

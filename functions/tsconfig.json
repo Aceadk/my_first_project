@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "node16",
     "noImplicitReturns": false,
     "noFallthroughCasesInSwitch": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2020",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "sourceMap": true,
     "outDir": "lib",
+    "rootDir": "src",
     "strict": true,
     "skipLibCheck": true
   },

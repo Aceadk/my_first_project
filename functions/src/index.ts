@@ -9232,7 +9232,9 @@ export const __test__helpers = {
   validateProfileName,
   validateBio,
   userRelationDeletionTargets,
+  userStorageDeletionPrefixes,
   matchMembershipFields: () => MATCH_MEMBERSHIP_FIELDS,
+  messageRequestParticipantFields: () => MESSAGE_REQUEST_PARTICIPANT_FIELDS,
   requireAuth,
   requireString,
   optionalString,
@@ -12746,6 +12748,15 @@ const DELETION_GRACE_PERIOD_DAYS = 14;
 const MATCH_MEMBERSHIP_FIELDS = ["users", "userIds", "participants"] as const;
 
 /**
+ * Participant fields a top-level `message_requests` document is keyed by. These
+ * MUST match how the document is written: the mobile client and security rules
+ * store the sender/recipient as `fromUserId`/`toUserId` (NOT
+ * `senderId`/`recipientId`). Account deletion queries both so a deleted user's
+ * pre-match request content and PII are scrubbed regardless of direction.
+ */
+const MESSAGE_REQUEST_PARTICIPANT_FIELDS = ["fromUserId", "toUserId"] as const;
+
+/**
  * Top-level relation collections (equality-keyed by user id) that an account
  * deletion must scrub. Outgoing records are the user's own personal data;
  * inbound like/swipe pointers are removed to avoid orphaned references. Inbound
@@ -12764,6 +12775,29 @@ function userRelationDeletionTargets(): Array<{
     { collection: "reports", field: "reporterId", label: "reports(reporterId)" },
     { collection: "likes", field: "toUserId", label: "likes(toUserId)" },
     { collection: "swipes", field: "targetId", label: "swipes(targetId)" },
+  ];
+}
+
+/**
+ * Cloud Storage prefixes an account deletion must sweep for [uid]. Covers BOTH
+ * the production Firebase-client paths and the legacy REST backend paths so no
+ * user media is orphaned:
+ *   - users/{uid}/...                profile photos, videos, stories, media (prod)
+ *   - verification/{uid}/...         ID verification documents (sensitive PII)
+ *   - photos/{uid}/...               legacy REST profile photos
+ *   - chat_media/{uid}/...           legacy/REST chat media
+ *   - chat_media/{matchId}/{uid}/... chat media this user uploaded (prod)
+ */
+function userStorageDeletionPrefixes(
+  uid: string,
+  matchIds: Iterable<string>,
+): string[] {
+  return [
+    `users/${uid}/`,
+    `verification/${uid}/`,
+    `photos/${uid}/`,
+    `chat_media/${uid}/`,
+    ...[...matchIds].map((matchId) => `chat_media/${matchId}/${uid}/`),
   ];
 }
 
@@ -12809,6 +12843,9 @@ async function cascadeDeleteUserData(uid: string): Promise<{
 }> {
   const deleted: string[] = [];
   const errors: string[] = [];
+  // Match ids this user belonged to, captured so we can also delete the chat
+  // media they uploaded under `chat_media/{matchId}/{uid}/` (step 6).
+  const userMatchIds = new Set<string>();
 
   // 1. Delete user's matches and related subcollections. Matches are keyed by
   // one of several membership fields across the codebase, so query all of them
@@ -12830,6 +12867,7 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     }
 
     for (const matchDoc of matchDocs.values()) {
+      userMatchIds.add(matchDoc.id);
       // Delete messages subcollection
       const messagesSnapshot = await matchDoc.ref
         .collection("messages")
@@ -12882,13 +12920,14 @@ async function cascadeDeleteUserData(uid: string): Promise<{
 
   // 3. Delete message_requests involving this user
   try {
+    const [sentField, receivedField] = MESSAGE_REQUEST_PARTICIPANT_FIELDS;
     const sentRequests = await db
       .collection("message_requests")
-      .where("senderId", "==", uid)
+      .where(sentField, "==", uid)
       .get();
     const receivedRequests = await db
       .collection("message_requests")
-      .where("recipientId", "==", uid)
+      .where(receivedField, "==", uid)
       .get();
     const batch = db.batch();
     sentRequests.docs.forEach((doc) => batch.delete(doc.ref));
@@ -12946,28 +12985,30 @@ async function cascadeDeleteUserData(uid: string): Promise<{
     );
   }
 
-  // 6. Delete Cloud Storage files (profile photos + chat media)
-  try {
-    const bucket = admin.storage().bucket();
-    const [profileFiles] = await bucket.getFiles({ prefix: `photos/${uid}/` });
-    for (const file of profileFiles) {
-      await file.delete();
+  // 6. Delete Cloud Storage files. Cover ALL paths the user's media can live
+  // under, across the production Firebase client and the legacy REST backend:
+  //   - users/{uid}/...           profile photos, videos, stories, media (prod)
+  //   - verification/{uid}/...    ID verification documents (sensitive PII)
+  //   - photos/{uid}/...          legacy REST profile photos
+  //   - chat_media/{uid}/...      legacy/REST chat media
+  //   - chat_media/{matchId}/{uid}/...  chat media this user uploaded (prod)
+  // Each prefix is swept independently so one failure cannot orphan the rest.
+  const bucket = admin.storage().bucket();
+  const storagePrefixes = userStorageDeletionPrefixes(uid, userMatchIds);
+  for (const prefix of storagePrefixes) {
+    try {
+      const [files] = await bucket.getFiles({ prefix });
+      for (const file of files) {
+        await file.delete();
+      }
+      if (files.length > 0) {
+        deleted.push(`storage:${prefix} (${files.length} files)`);
+      }
+    } catch (error) {
+      errors.push(
+        `storage ${prefix}: ${error instanceof Error ? error.message : String(error)}`,
+      );
     }
-    if (profileFiles.length > 0) {
-      deleted.push(`storage:photos/${uid}/ (${profileFiles.length} files)`);
-    }
-
-    const [chatFiles] = await bucket.getFiles({ prefix: `chat_media/${uid}/` });
-    for (const file of chatFiles) {
-      await file.delete();
-    }
-    if (chatFiles.length > 0) {
-      deleted.push(`storage:chat_media/${uid}/ (${chatFiles.length} files)`);
-    }
-  } catch (error) {
-    errors.push(
-      `storage: ${error instanceof Error ? error.message : String(error)}`,
-    );
   }
 
   // 7. Delete RTDB data (presence, typing indicators, etc.)

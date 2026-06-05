@@ -1,173 +1,137 @@
 import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:image/image.dart' as img;
 
-const _size = 1024;
-const _text = 'Crush';
-const _launchWordmarkWidth = 840;
-const _launchWordmarkHeight = 270;
+const _appIconPath = 'assets/icons/app_icon.png';
+const _launchWordmarkPath = 'assets/icons/launch_wordmark.png';
 
-// Brand colors from DsColors
-final _brandPrimary = img.ColorRgba8(0xFF, 0x3F, 0x7F, 0xFF); // #FF3F7F
-final _backgroundDark = img.ColorRgba8(0x0D, 0x0E, 0x12, 0xFF); // #0D0E12
-final _transparent = img.ColorRgba8(0x00, 0x00, 0x00, 0x00);
+const _nativeLaunchBaseWidth = 280;
+const _webIconSizes = <String, int>{
+  'web/favicon.png': 32,
+  'web/icons/Icon-192.png': 192,
+  'web/icons/Icon-512.png': 512,
+  'web/icons/Icon-maskable-192.png': 192,
+  'web/icons/Icon-maskable-512.png': 512,
+};
+const _macIconSizes = <String, int>{
+  'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png': 16,
+  'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png': 32,
+  'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png': 64,
+  'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png': 128,
+  'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png': 256,
+  'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png': 512,
+  'macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png': 1024,
+};
+const _windowsIconSizes = <int>[16, 32, 48, 64, 128, 256];
 
 void main() {
-  _ensureIconDir();
+  final appIcon = _loadImage(_appIconPath);
+  final launchWordmark = _removePaleBackground(_loadImage(_launchWordmarkPath));
 
-  final base =
-      _renderIcon(background: _backgroundDark, textColor: _brandPrimary);
-  File('assets/icons/app_icon.png').writeAsBytesSync(img.encodePng(base));
+  for (final entry in _webIconSizes.entries) {
+    _writeSquarePng(entry.key, appIcon, entry.value);
+  }
 
-  final foreground = _renderIcon(
-    background: _transparent,
-    textColor: _brandPrimary,
-  );
-  File('assets/icons/app_icon_foreground.png')
-      .writeAsBytesSync(img.encodePng(foreground));
+  for (final entry in _macIconSizes.entries) {
+    _writeSquarePng(entry.key, appIcon, entry.value);
+  }
 
-  final wordmark3x = _renderWordmark(
-    width: _launchWordmarkWidth,
-    height: _launchWordmarkHeight,
-    textColor: _brandPrimary,
-  );
-  File('assets/icons/launch_wordmark.png')
-      .writeAsBytesSync(img.encodePng(wordmark3x));
+  _writePng(_launchWordmarkPath, launchWordmark);
+  _writeWindowsIco(appIcon);
+  _writeNativeLaunchImages(launchWordmark);
 
-  final wordmark2x = img.copyResize(
-    wordmark3x,
-    width: (_launchWordmarkWidth * 2 / 3).round(),
-    height: (_launchWordmarkHeight * 2 / 3).round(),
-    interpolation: img.Interpolation.linear,
+  stdout.writeln('Generated web, desktop, and native launch assets.');
+}
+
+img.Image _loadImage(String path) {
+  final file = File(path);
+  if (!file.existsSync()) {
+    throw StateError('Missing image source: $path');
+  }
+
+  final image = img.decodeImage(file.readAsBytesSync());
+  if (image == null) {
+    throw StateError('Could not decode image source: $path');
+  }
+
+  return img.bakeOrientation(image);
+}
+
+img.Image _removePaleBackground(img.Image source) {
+  final transparent = source.convert(numChannels: 4);
+
+  for (final pixel in transparent) {
+    final r = pixel.r.toInt();
+    final g = pixel.g.toInt();
+    final b = pixel.b.toInt();
+    final isPaleNeutral = r >= 232 && g >= 232 && b >= 232;
+
+    if (isPaleNeutral) {
+      pixel.setRgba(r, g, b, 0);
+    }
+  }
+
+  return transparent;
+}
+
+void _writeSquarePng(String path, img.Image source, int size) {
+  final square = img.copyResizeCropSquare(
+    source,
+    size: size,
+    interpolation: img.Interpolation.cubic,
   );
-  final wordmark1x = img.copyResize(
-    wordmark3x,
-    width: (_launchWordmarkWidth / 3).round(),
-    height: (_launchWordmarkHeight / 3).round(),
-    interpolation: img.Interpolation.linear,
-  );
+  _writePng(path, square);
+}
+
+void _writeWindowsIco(img.Image source) {
+  final icons = _windowsIconSizes
+      .map(
+        (size) => img.copyResizeCropSquare(
+          source,
+          size: size,
+          interpolation: img.Interpolation.cubic,
+        ),
+      )
+      .toList(growable: false);
+
+  final file = File('windows/runner/resources/app_icon.ico');
+  file.parent.createSync(recursive: true);
+  file.writeAsBytesSync(img.IcoEncoder().encodeImages(icons));
+}
+
+void _writeNativeLaunchImages(img.Image source) {
+  final scale3x = _resizeByWidth(source, _nativeLaunchBaseWidth * 3);
+  final scale2x = _resizeByWidth(source, _nativeLaunchBaseWidth * 2);
+  final scale1x = _resizeByWidth(source, _nativeLaunchBaseWidth);
 
   _writePng(
     'ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png',
-    wordmark3x,
+    scale3x,
   );
   _writePng(
     'ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png',
-    wordmark2x,
+    scale2x,
   );
   _writePng(
     'ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png',
-    wordmark1x,
+    scale1x,
   );
-
-  _writePng(
-    'android/app/src/main/res/drawable/launch_wordmark.png',
-    wordmark1x,
-  );
+  _writePng('android/app/src/main/res/drawable/launch_wordmark.png', scale1x);
 }
 
-img.Image _renderIcon({
-  required img.Color background,
-  required img.Color textColor,
-}) {
-  final font = img.arial48;
-  final metrics = _measureText(font, _text);
-  final targetWidth = (_size * 0.7).round();
-  final scale = targetWidth / metrics.width;
-  final baseSize = (_size / scale).round();
-
-  final canvas = img.Image(width: baseSize, height: baseSize, numChannels: 4);
-  img.fill(canvas, color: background);
-
-  _drawCenteredText(canvas, _text, textColor, font);
-
+img.Image _resizeByWidth(img.Image source, int width) {
+  final height = math.max(1, (width * source.height / source.width).round());
   return img.copyResize(
-    canvas,
-    width: _size,
-    height: _size,
-    interpolation: img.Interpolation.linear,
-  );
-}
-
-img.Image _renderWordmark({
-  required int width,
-  required int height,
-  required img.Color textColor,
-}) {
-  final font = img.arial48;
-  final metrics = _measureText(font, _text);
-  final targetWidth = (width * 0.8).round();
-  final scale = targetWidth / metrics.width;
-  final baseWidth = (width / scale).round();
-  final baseHeight = (height / scale).round();
-
-  final canvas =
-      img.Image(width: baseWidth, height: baseHeight, numChannels: 4);
-  img.fill(canvas, color: _transparent);
-
-  _drawCenteredText(canvas, _text, textColor, font);
-
-  return img.copyResize(
-    canvas,
+    source,
     width: width,
     height: height,
-    interpolation: img.Interpolation.linear,
+    interpolation: img.Interpolation.cubic,
   );
-}
-
-void _drawCenteredText(
-  img.Image image,
-  String text,
-  img.Color color,
-  img.BitmapFont font,
-) {
-  final metrics = _measureText(font, text);
-  final x = ((image.width - metrics.width) / 2).round();
-  final y = ((image.height - metrics.height) / 2).round();
-
-  img.drawString(
-    image,
-    text,
-    font: font,
-    x: x,
-    y: y,
-    color: color,
-  );
-}
-
-_TextMetrics _measureText(img.BitmapFont font, String text) {
-  var width = 0;
-  var height = 0;
-  for (final code in text.codeUnits) {
-    final ch = font.characters[code];
-    if (ch == null) {
-      width += font.base ~/ 2;
-      continue;
-    }
-    width += ch.xAdvance;
-    final charHeight = ch.height + ch.yOffset;
-    if (charHeight > height) {
-      height = charHeight;
-    }
-  }
-  return _TextMetrics(width: width, height: height);
-}
-
-void _ensureIconDir() {
-  final dir = Directory('assets/icons');
-  if (!dir.existsSync()) {
-    dir.createSync(recursive: true);
-  }
 }
 
 void _writePng(String path, img.Image image) {
   final file = File(path);
   file.parent.createSync(recursive: true);
   file.writeAsBytesSync(img.encodePng(image));
-}
-
-class _TextMetrics {
-  final int width;
-  final int height;
-
-  const _TextMetrics({required this.width, required this.height});
 }

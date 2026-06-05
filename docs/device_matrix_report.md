@@ -38,6 +38,30 @@ They are not formal release sign-off results.
 | Evidence paths for screenshots, recordings, and logs | Yes | Placeholder paths defined for every row |
 | Notes / blocker field | Yes | Final column included in every row |
 
+## iPad & Tablet Evidence Matrix (TEST-006)
+
+Required target classes, orientations, and multitasking modes for the dating-app
+iPad review (see `iPad_Compliance_Report.md`, `TODO_IPAD_COMPLIANCE.md`,
+`TODO_RESPONSIVE_DESIGN.md`). Run each scenario pack and replace `Pending` with
+`Pass` / `Fail` / `Blocked`, attaching the listed evidence. **These rows require a
+human run on high-fidelity simulators or real devices** — they cannot be produced
+by the headless CI lane.
+
+| Run ID | Target class | OS | Orientation | Multitasking | Scenario packs | Result | Evidence | Notes / blocker |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `DM-iPadPro129-portrait` | iPad Pro 12.9" | iPadOS 18.x | Portrait | Full screen | `SMK-001`, `AUTH-001`, `ONB-001`, `CORE-001`, `SET-001` | Pending | `artifacts/device-matrix/ipad/DM-iPadPro129-portrait-*.png` | Largest canvas; check max-width clamps on discovery/chat |
+| `DM-iPadPro129-landscape` | iPad Pro 12.9" | iPadOS 18.x | Landscape | Full screen | `CORE-001`, `SET-001` | Pending | `artifacts/device-matrix/ipad/DM-iPadPro129-landscape-*.png` | Two-pane/wide layouts, no overflow |
+| `DM-iPadPro129-splitview` | iPad Pro 12.9" | iPadOS 18.x | Landscape | Split View (½) | `CORE-001`, `AUTH-001` | Pending | `artifacts/device-matrix/ipad/DM-iPadPro129-splitview-*.png` | Compact-width adaptation while multitasking |
+| `DM-iPadPro129-slideover` | iPad Pro 12.9" | iPadOS 18.x | Portrait | Slide Over | `SMK-001`, `CORE-001` | Pending | `artifacts/device-matrix/ipad/DM-iPadPro129-slideover-*.png` | Narrowest multitasking width |
+| `DM-iPadAir109-portrait` | iPad Air 10.9" | iPadOS 18.x | Portrait | Full screen | `SMK-001`, `ONB-001`, `CORE-001` | Pending | `artifacts/device-matrix/ipad/DM-iPadAir109-portrait-*.png` | Mid-size tablet baseline |
+| `DM-iPadMini-landscape` | iPad mini | iPadOS 18.x | Landscape | Full screen | `CORE-001` | Pending | `artifacts/device-matrix/ipad/DM-iPadMini-landscape-*.png` | Smallest iPad; densest layout |
+| `DM-AndroidTablet-portrait` | Pixel Tablet / large-screen | Android 15 | Portrait | Full screen | `SMK-001`, `CORE-001`, `SET-001` | Pending | `artifacts/device-matrix/android-tablet/DM-AndroidTablet-portrait-*.png` | Android large-screen parity |
+| `DM-AndroidTablet-landscape` | Pixel Tablet / large-screen | Android 15 | Landscape | Split-screen | `CORE-001` | Pending | `artifacts/device-matrix/android-tablet/DM-AndroidTablet-landscape-*.png` | Android split-screen multitasking |
+
+Coverage contract for sign-off: every target class above with both orientations,
+iPad Split View + Slide Over exercised at least once, and any layout blockers
+linked back to `TODO_IPAD_COMPLIANCE.md` / `TODO_RESPONSIVE_DESIGN.md` items.
+
 ## Open Issues
 
 - No blocking issues from the targeted startup guard run.

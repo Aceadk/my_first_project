@@ -155,6 +155,22 @@
         { "fieldPath": "blockedUntil", "order": "ASCENDING" },
         { "fieldPath": "windowStart", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isPendingDeletion", "order": "ASCENDING" },
+        { "fieldPath": "deletionScheduledAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isDeactivated", "order": "ASCENDING" },
+        { "fieldPath": "scheduledDeletionAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": [

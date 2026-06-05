@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -407,21 +408,35 @@ class FirebaseChatRepository implements ChatRepository {
     }
   }
 
+  /// A peer counts as "online" only if they are flagged online AND their
+  /// presence heartbeat is still fresh. The freshness check is applied
+  /// unconditionally: the app has no RTDB `onDisconnect` handler, so a
+  /// force-killed / crashed / network-dropped client never writes
+  /// `isOnline:false` and would otherwise appear online forever. ChatBloc
+  /// refreshes presence on a heartbeat shorter than this window, so an
+  /// actively-open chat never decays to offline.
+  static const Duration presenceFreshnessWindow = Duration(minutes: 2);
+
+  /// Pure presence decision, extracted so the freshness rule is unit-testable
+  /// without a live Firestore. Returns true iff [data] is flagged online and
+  /// its `lastSeen` timestamp is within [presenceFreshnessWindow] of [now].
+  @visibleForTesting
+  static bool isPresenceOnline(Map<String, dynamic>? data, DateTime now) {
+    if (data == null) return false;
+    final isOnline = data['isOnline'] as bool? ?? false;
+    if (!isOnline) return false;
+    final lastSeen = data['lastSeen'];
+    if (lastSeen is! Timestamp) return false;
+    return now.difference(lastSeen.toDate()) < presenceFreshnessWindow;
+  }
+
   @override
   Stream<bool> watchPresence(String userId) {
-    return _firestore.collection('presence').doc(userId).snapshots().map((doc) {
-      if (!doc.exists) return false;
-      final data = doc.data();
-      final isOnline = data?['isOnline'] as bool? ?? false;
-      final lastSeen = data?['lastSeen'] as Timestamp?;
-
-      // Consider online if explicitly online or seen within last 2 minutes
-      if (isOnline) return true;
-      if (lastSeen != null) {
-        return DateTime.now().difference(lastSeen.toDate()).inMinutes < 2;
-      }
-      return false;
-    });
+    return _firestore
+        .collection('presence')
+        .doc(userId)
+        .snapshots()
+        .map((doc) => isPresenceOnline(doc.data(), DateTime.now()));
   }
 
   @override

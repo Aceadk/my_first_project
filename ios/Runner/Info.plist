@@ -45,10 +45,6 @@
 	<string>Crush can help you find friends who are also using the app.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Crush uses Face ID for secure authentication.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Crush needs your location to show you people nearby even when the app is in the background.</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Crush needs your location to suggest people near you when you open the app.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Crush needs your location to show you people nearby and calculate distances.</string>
 	<key>NSMicrophoneUsageDescription</key>

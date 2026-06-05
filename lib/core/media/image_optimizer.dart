@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as img;
 import 'package:crushhour/core/app_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -254,19 +255,28 @@ class ImageOptimizer {
     final picture = recorder.endRecording();
     final resizedImage = await picture.toImage(targetWidth, targetHeight);
 
-    // Encode as PNG (dart:ui only supports PNG natively)
-    // For JPEG, we encode as PNG which is lossless but larger.
-    // The actual JPEG compression happens server-side or via platform channel.
-    // Using PNG here still strips EXIF and applies resize.
-    final byteData = await resizedImage.toByteData(
-      format: ui.ImageByteFormat.png,
+    // dart:ui's toByteData only emits PNG or raw RGBA — it cannot produce JPEG.
+    // Encoding photos as PNG (the previous behaviour) was lossless but typically
+    // 3–5× larger than an equivalent JPEG, so the "optimized" upload could be
+    // bigger than the original and the `quality` knob did nothing. Pull raw RGBA
+    // and re-encode as real JPEG via the `image` package. The full re-encode
+    // still strips EXIF/metadata (privacy), and honours the requested quality.
+    final rgba = await resizedImage.toByteData(
+      format: ui.ImageByteFormat.rawRgba,
     );
     resizedImage.dispose();
 
-    if (byteData == null) {
+    if (rgba == null) {
       throw Exception('Failed to encode image');
     }
 
-    return byteData.buffer.asUint8List();
+    final decoded = img.Image.fromBytes(
+      width: targetWidth,
+      height: targetHeight,
+      bytes: rgba.buffer,
+      numChannels: 4,
+      order: img.ChannelOrder.rgba,
+    );
+    return img.encodeJpg(decoded, quality: quality);
   }
 }

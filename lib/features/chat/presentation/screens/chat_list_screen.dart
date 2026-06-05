@@ -32,6 +32,16 @@ import 'package:go_router/go_router.dart';
 
 import 'chat_screen.dart';
 
+/// Whether the chat list should present a master-detail split view at [width].
+///
+/// Both the layout (`LayoutBuilder` constraints) and the tile tap handler must
+/// derive their navigation model from this single source. Using different width
+/// sources (e.g. `LayoutBuilder` vs `MediaQuery`) lets the two disagree inside
+/// a constrained shell or split-screen multitasking, which would make a tap
+/// either do nothing (detail pane not rendered) or push over the split view.
+@visibleForTesting
+bool chatUsesSplitView(double width) => !DsBreakpoints.isMobile(width);
+
 @visibleForTesting
 double chatListPaneWidthFor(double screenWidth) {
   final fraction = DsBreakpoints.responsiveValue<double>(
@@ -271,20 +281,27 @@ class _ChatListViewState extends State<_ChatListView> {
     );
   }
 
-  void _onChatTileTap(BuildContext context, CrushMatch match) {
-    final screenWidth = MediaQuery.of(context).size.width;
+  void _onChatTileTap(
+    BuildContext context,
+    CrushMatch match, {
+    required bool useSplitView,
+  }) {
     final args = _argsForMatch(match);
 
-    if (DsBreakpoints.isMobile(screenWidth)) {
-      // Phone: push navigation
+    if (!useSplitView) {
+      // Phone / narrow shell: push navigation.
       context.push('/chat/${match.id}', extra: args);
     } else {
-      // iPad/tablet: update detail panel
+      // iPad/tablet split view: update the detail panel.
       setState(() => _selectedChat = args);
     }
   }
 
-  Widget _buildChatList(BuildContext context, MatchesState state) {
+  Widget _buildChatList(
+    BuildContext context,
+    MatchesState state, {
+    required bool useSplitView,
+  }) {
     final requestState = context.watch<MessageRequestsCubit>().state;
     final requestsCount = requestState.requests.length;
     final showSkeleton =
@@ -323,7 +340,8 @@ class _ChatListViewState extends State<_ChatListView> {
             return _ChatTile(
               match: match,
               currentUserId: widget.currentUserId,
-              onTap: () => _onChatTileTap(context, match),
+              onTap: () =>
+                  _onChatTileTap(context, match, useSplitView: useSplitView),
             );
           },
         ),
@@ -337,18 +355,26 @@ class _ChatListViewState extends State<_ChatListView> {
       builder: (context, state) {
         return LayoutBuilder(
           builder: (context, constraints) {
-            // Phone: single column (existing behavior)
-            if (DsBreakpoints.isMobile(constraints.maxWidth)) {
-              return _buildChatList(context, state);
+            // Single source of truth for the navigation model: the layout and
+            // the tile tap handler must agree (see chatUsesSplitView).
+            final useSplitView = chatUsesSplitView(constraints.maxWidth);
+
+            // Phone / narrow shell: single column (push navigation).
+            if (!useSplitView) {
+              return _buildChatList(context, state, useSplitView: false);
             }
 
-            // iPad/tablet: split-view — conversation list (320px) + chat detail
+            // iPad/tablet: split-view — conversation list + chat detail.
             final listPaneWidth = chatListPaneWidthFor(constraints.maxWidth);
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final mutedColor = isDark
+                ? DsColors.textMutedDark
+                : DsColors.textMutedLight;
             return Row(
               children: [
                 SizedBox(
                   width: listPaneWidth,
-                  child: _buildChatList(context, state),
+                  child: _buildChatList(context, state, useSplitView: true),
                 ),
                 const VerticalDivider(width: 1),
                 Expanded(
@@ -364,15 +390,13 @@ class _ChatListViewState extends State<_ChatListView> {
                               Icon(
                                 Icons.chat_bubble_outline_rounded,
                                 size: 64,
-                                color: DsColors.textMutedLight.withValues(
-                                  alpha: 0.5,
-                                ),
+                                color: mutedColor.withValues(alpha: 0.5),
                               ),
                               DsGap.lg,
                               Text(
                                 'Select a conversation',
                                 style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(color: DsColors.textMutedLight),
+                                    ?.copyWith(color: mutedColor),
                               ),
                             ],
                           ),
