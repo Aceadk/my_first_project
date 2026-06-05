@@ -107,8 +107,15 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icons/app_icon.png"
   adaptive_icon_background: "#0D0E12"
+  # Transparent heart-only foreground, pre-sized to the safe zone, so it must be
+  # placed with NO extra inset (the heart already accounts for the safe zone).
   adaptive_icon_foreground: "assets/icons/app_icon_foreground.png"
+  adaptive_icon_foreground_inset: 0
   min_sdk_android: 21
   remove_alpha_ios: true
   web:
     generate: false
+  # NOTE: the legacy square mipmaps (API < 26) are generated from image_path
+  # (app_icon.png), which carries the decorative glow; those mipmaps were
+  # hand-corrected to a clean tile+heart. Re-run with a clean image_path if you
+  # need to regenerate them.
