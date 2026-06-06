@@ -77,6 +77,52 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #321 — P0.3 / WEB-DATA-001: Canonicalize Web Block / Report / Blocked-List
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repos:** my_first_project (backend callable) + crush-web (`codex/auth-storage-cleanup`)
+
+**Original Request:** User: "continue" — proceed with P0.3 (reconcile rejected
+web data paths), starting from the rules-test README follow-up list.
+
+**Developer Intent Analysis:** First concrete P0.3 slice: the web block/report
+feature wrote to paths the canonical rules reject — `users/{uid}/blocked`
+(no rule), a `reports` doc with the wrong field (`reportedUserId` vs canonical
+`reportedId`), and **direct `matches` mutations** (backend-only). Migrate writes
+to the existing backend callables; add a read path since neither the `blocks`
+collection nor a blocked user's profile is client-readable.
+
+**Findings:** The backend callables use `{ blockedId, blockerId? }` (block) and
+`{ reportedId, reason, description?, source?, matchId?, messageId? }` (report) —
+NOT the `targetUserId`/`context` shapes my earlier V2 callable wrappers assumed.
+The `blocks` collection is `allow read: if false`, and a blocker cannot read a
+blocked user's profile (block relationship denies it), so listing blocked users
+needs a backend read.
+
+**Outcome:**
+- Backend (my_first_project): added `getBlockedUsers` callable — admin-reads
+  `blocks where blockerId == uid` and returns enriched `{ id, name, photoUrl,
+  blockedAt }[]` (client can't read blocks or blocked profiles). Auth-required
+  test added (callables.test.js → 14 passing); functions build + lint clean.
+- Web (crush-web):
+  - Fixed `api/callables.ts` shapes: BlockUserRequest `{ blockedId }`,
+    ReportUserRequest `{ reportedId, reason, description?, source?, ... }`; added
+    getBlockedUsers binding + BlockedUser/GetBlockedUsersResponse types.
+  - `services/user.ts`: blockUser/unblockUser/reportUser now call the callables;
+    removed the rejected `users/{uid}/blocked` writes and the illegal `matches`
+    status mutations; getBlockedUsers/isUserBlocked use the backend list.
+  - `message_v2_adapter.ts`: setConversationBlocked uses `{ blockedId }`.
+  - Tests: new user-block-report.test.ts (5) + fixed adapter block assertion;
+    web suite 184 passing; typecheck + lint + build green.
+- **Notes:** Remaining P0.3 paths for follow-up (tracked in firestore-tests
+  README): user_streaks, promoCodes/promoCodeRedemptions, users/{uid}/stories
+  (vs top-level stories), users/{uid}/fcmTokens (both clients use it → needs an
+  owner rule + test), legacy flat profile writes. Each should add a
+  rules-emulator allow/deny test as it lands.
+
+---
+
 ### Task #320 — Phase 3 Step 4: Firestore Rules Emulator Coverage
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)

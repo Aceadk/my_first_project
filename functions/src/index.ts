@@ -7522,6 +7522,48 @@ export const unblockUser = callable<BlockRequest>(async (data, context) => {
   return { ok: true };
 });
 
+// List the caller's blocked users. The `blocks` collection is not
+// client-readable (allow read: if false) and a blocked user's profile is also
+// unreadable by the blocker under the user rules, so the list + display data
+// must be served by this backend (admin) callable.
+export const getBlockedUsers = callable<Record<string, never>>(
+  async (_data, context) => {
+    const blockerId = requireAuth(context, "list blocked users");
+
+    const snapshot = await db
+      .collection("blocks")
+      .where("blockerId", "==", blockerId)
+      .get();
+
+    const blocked = await Promise.all(
+      snapshot.docs.map(async (blockDoc) => {
+        const data = blockDoc.data();
+        const blockedId = (data.blockedId as string) ?? "";
+        let name: string | null = null;
+        let photoUrl: string | null = null;
+        if (blockedId) {
+          try {
+            const user = await getUser(blockedId);
+            const profile = user.profile as ProfileData | null;
+            name = (profile?.name as string | undefined) ?? null;
+            photoUrl = toStringArray(profile?.photoUrls)[0] ?? null;
+          } catch {
+            // Blocked user may have been deleted; return id only.
+          }
+        }
+        return {
+          id: blockedId,
+          name,
+          photoUrl,
+          blockedAt: toIsoString(data.createdAt),
+        };
+      }),
+    );
+
+    return { ok: true, blocked };
+  },
+);
+
 export const appealSafetyAction = callable<AppealRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "submit an appeal");

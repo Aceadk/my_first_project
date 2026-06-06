@@ -145,4 +145,15 @@ describe('callables auth/args', () => {
       expect(err.code).to.equal('invalid-argument');
     }
   });
+
+  it('getBlockedUsers requires auth', async () => {
+    const wrapped = functionsTest.wrap(functions.getBlockedUsers);
+    try {
+      await wrapped({}, { auth: null });
+      throw new Error('Expected unauthenticated error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('unauthenticated');
+    }
+  });
 });
