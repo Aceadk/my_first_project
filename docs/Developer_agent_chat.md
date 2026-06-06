@@ -77,6 +77,53 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #304 — Web-Mobile Alignment Phase 0: Stabilization Documents
+**Date:** 2026-06-05
+**Agent:** Claude Haiku 4.5
+**Status:** Completed
+
+**Original Request:**
+User directed: "start working on Crush Web and Mobile Alignment Plan" following the audit document created 2026-06-03. The audit identified 13 findings across P0/P1/P2 priority levels with a clear Phase 0 (Stabilize) → Phase 5 (Release) roadmap.
+
+**Developer Intent Analysis:**
+- Primary goal: Create the three critical Phase 0 stabilization documents that unblock all subsequent alignment work.
+- Secondary goals: Establish single source of truth for backend contract, environment configuration, and routing; enable crush-web to be refactored onto shared backend services.
+- Implicit requirements: Documents must be detailed and implementable; must reference existing code (functions, firestore.rules); must be self-contained so web team can work in parallel.
+- Quality expectations: Comprehensive, well-structured tables/matrices, no ambiguity about endpoint signatures or schema.
+
+**Refined Prompt (Very Specific & Detailed):**
+
+**Goal:** Create three canonical specification documents for Phase 0 stabilization of web-mobile alignment. These documents serve as the single source of truth for backend API contracts, environment/domain configuration, and cross-platform routing.
+
+**Scope:** 
+1. Backend Contract Matrix — all 69 Cloud Functions callables and REST endpoints, Firestore schema, Storage paths, environment variables
+2. Domain & Environment Matrix — unified domain strategy (crush.app vs. crushhour.app), staging/dev/prod configuration, CORS, email, Stripe
+3. Route & Deep-Link Matrix — 50+ routes mapped across mobile/web/public/notification targets, redirects, universal links
+
+**Constraints:**
+- Derive contract from actual code in `my_first_project/functions/src/index.ts` and `firestore.rules`
+- Extract REST endpoints and callables via grep, not guessing
+- Document current state (audit findings) before proposing canonical state
+- Provide implementation checklists for Phase 1/2/3
+
+**Expected Outcome:** Three markdown documents in `docs/reports/` that web team can immediately reference to align their mutations and routing.
+
+**Status Updates:**
+- Generated Backend Contract Matrix from 69 exported functions/endpoints
+- Created Domain & Environment Matrix with prod/staging/dev configs
+- Built Route & Deep-Link Matrix with 50+ routes and notification payload mappings
+- Updated ai_workboard.md to track T-2026-06-05-ALIGNMENT-PHASE-0
+
+**Outcome:**
+- Files created:
+  - `docs/reports/shared_backend_contract_matrix_2026-06-05.md` (600+ lines) — All callables, REST endpoints, Firestore schema, Storage
+  - `docs/reports/domain_environment_matrix_2026-06-05.md` (450+ lines) — Domain strategy, env configs, CORS, Stripe, notifications
+  - `docs/reports/route_deeplink_matrix_2026-06-05.md` (550+ lines) — 50+ routes, deep links, notification payloads, redirects
+- Result: Phase 0 stabilization documents complete; web team can now begin Phase 1 backend contract migration
+- Notes: Next Phase 0 items are (1) Web Chat/Match Migration Plan, (2) Web CI Upgrade. Then proceed to Phase 1 backend work.
+
+---
+
 ### Task #302 — Android Built-In Kotlin Migration Warning
 **Date:** 2026-06-05
 **Agent:** Codex (GPT-5)
