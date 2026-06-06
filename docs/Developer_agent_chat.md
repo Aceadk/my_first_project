@@ -77,6 +77,51 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #318 — Phase 2 Step 2: Production-Grade Web App Check
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `36ceacc`)
+
+**Original Request:** User pasted Phase 2 Step 2 "Add Web Firebase App Check":
+Enterprise/approved provider, debug tokens only in local dev, required env +
+startup validation, callable/REST clients auto-include tokens, logging for
+missing/invalid/expired tokens, document dev/staging/prod behavior.
+
+**Developer Intent Analysis:** This extends the Gate 0 P0.2 App Check init
+(Task #317, which used reCAPTCHA v3 + ungated debug token) into the
+production-ready form. Key gaps to close: Enterprise provider, dev-only debug
+gating, env validation, and — importantly — REST clients did NOT attach App
+Check tokens (only the callable/Firestore SDKs do so automatically).
+
+**Outcome (crush-web 36ceacc), in packages/core/src/firebase/config.ts:**
+- Provider: default reCAPTCHA Enterprise (ReCaptchaEnterpriseProvider); opt into
+  v3 via NEXT_PUBLIC_FIREBASE_APPCHECK_PROVIDER=recaptcha-v3.
+- Debug tokens honored ONLY in development (resolveAppEnv from
+  NEXT_PUBLIC_APP_ENV → NODE_ENV); set in staging/prod → logged + ignored.
+- validateAppCheckEnv() → {ok,errors,warnings}; init logs errors (staging/prod)
+  vs warnings (dev) for missing key / stray debug token / unknown provider.
+- getAppCheckToken()/getAppCheckHeaders() — fetch + attach token, log
+  missing/invalid/expired (classified from SDK error code/message).
+- REST: discovery deck fetch (services/match.ts) now sends X-Firebase-AppCheck
+  via getAppCheckHeaders(). Confirmed it's the only client→Cloud Functions
+  fetch; /api/* are same-origin Next routes.
+- Docs: AGENTS.md App Check rule + dev/staging/prod behavior table; .env.example
+  adds APPCHECK_PROVIDER + NEXT_PUBLIC_APP_ENV.
+- Tests: app-check.test.ts → 14 cases (provider default/opt-in, auto-refresh,
+  debug gating ×3 envs, validation ×3, idempotency, REST token success/failure/
+  unconfigured). lint/typecheck/test (172)/build green.
+- **Deploy env (per environment):** NEXT_PUBLIC_FIREBASE_APPCHECK_RECAPTCHA_KEY,
+  NEXT_PUBLIC_FIREBASE_APPCHECK_PROVIDER (default enterprise), NEXT_PUBLIC_APP_ENV,
+  optional ..._DEBUG_TOKEN (dev only). Register the Enterprise key + a debug
+  token in the Firebase console.
+- **Notes:** "Staging check that fails when App Check blocks an endpoint"
+  remains an integration/E2E item needing a running env (deferred). The backend
+  already enforces App Check; this makes the web client a correct attesting
+  client end-to-end (callables auto, REST manual).
+
+---
+
 ### Task #317 — Re-Audit Gate 0 (P0.2): Web App Check + CSP
 **Date:** 2026-06-06
 **Agent:** Claude (Opus 4.8)
