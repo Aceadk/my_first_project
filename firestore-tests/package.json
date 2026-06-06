@@ -1,0 +1,15 @@
+{
+  "name": "crushhour-firestore-rules-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Firestore security-rules emulator coverage for web + mobile data paths.",
+  "scripts": {
+    "test": "firebase emulators:exec --project=demo-crush --config=../firebase.json --only firestore \"node ./node_modules/mocha/bin/mocha.js --timeout 30000 *.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "firebase": "^10.14.1",
+    "mocha": "^10.4.0"
+  }
+}

@@ -77,6 +77,48 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #320 — Phase 3 Step 4: Firestore Rules Emulator Coverage
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** my_first_project (branch `codex/publish-auth-startup-hardening`)
+
+**Original Request:** User pasted Phase 3 Step 4 "Build Firestore Rules Emulator
+Coverage": add an emulator test harness; inventory every collection/document
+path (web + mobile); test allowed owner/participant reads/writes; test denied
+unauth/unrelated access; test protected fields can't be client-modified; add the
+suite to CI.
+
+**Outcome (my_first_project):**
+- New `firestore-tests/` harness using `@firebase/rules-unit-testing` + the
+  modular `firebase/firestore` SDK, run via `firebase emulators:exec --only
+  firestore` against the real `../firestore.rules`. `npm test` from the dir.
+- `rules.test.mjs`: **66 tests** across all 14 rule surfaces — users (+ nested
+  profile, legacy-flat rejection, protected fields, array bounds),
+  usernames/auth_* (server-only), matches, matches/messages (participant read,
+  valid create, sender spoof, read-receipt-only update), message_requests,
+  likes, reports, blocks, stories (female/premium gating), calls (premium
+  gating), presence (premium read). Owner/participant allow + unauth/unrelated
+  deny + protected-field immutability throughout.
+- `README.md`: full collection/document **path inventory** with per-path client
+  access, plus the web-only paths the rules currently reject (P0.3 follow-up
+  list: conversations/typing_indicators, users/{uid}/stories, user_streaks,
+  promoCodes, users/{uid}/blocked, users/{uid}/fcmTokens, legacy flat profile).
+- CI: added a `firestore_rules` job to `.github/workflows/ci.yml` (Node 22 +
+  Temurin JDK 21 + firebase-tools + `npm test`).
+- setLogLevel('silent') to suppress expected PERMISSION_DENIED gRPC noise.
+- **Caught a real test bug:** initial "isIdVerified" protected-field test set the
+  same value alice already had, so `diff().affectedKeys()` saw no change and the
+  rule (correctly) allowed it; fixed to flip the value. Reinforces that
+  protected-field tests must mutate the value.
+- Verified locally: 66 passing against the emulator.
+- **Notes:** This directly de-risks P0.3 (reconcile every live web data path with
+  rules) — the harness is where each web-path migration adds an allow/deny test.
+  Next P0.3: migrate the rejected web paths (block/report/story/streak/promo/
+  fcmTokens/legacy-profile) to canonical shapes/commands, adding tests here.
+
+---
+
 ### Task #319 — Phase 2 Step 3: Correct Web CSP And Backend Origins
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)

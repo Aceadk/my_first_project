@@ -112,6 +112,29 @@ jobs:
         run: npm audit --audit-level=high
         continue-on-error: true
 
+  firestore_rules:
+    name: Firestore rules - emulator tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Setup Java (Firestore emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Firebase CLI
+        run: npm i -g firebase-tools
+      - name: Install rules-test dependencies
+        working-directory: firestore-tests
+        run: npm install
+      - name: Run Firestore rules emulator tests
+        working-directory: firestore-tests
+        run: npm test
+
   security:
     name: Security checks
     runs-on: ubuntu-latest
