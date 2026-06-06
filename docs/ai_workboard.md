@@ -20,7 +20,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| T-2026-06-05-ALIGNMENT-PHASE-0 | 2026-06-05 | Web-Mobile Alignment — Phase 0 Stabilization | In Progress | Awaiting decision on web chat/match migration plan (Option B recommended). Then Web CI Upgrade (P1). |
+| T-2026-06-05-ALIGNMENT-PHASE-0 | 2026-06-05 | Web-Mobile Alignment — Phase 0 Stabilization | In Progress | Approved Option B migration plan. Web CI Upgrade plan created. Final Phase 0 task: Repo Hygiene cleanup. |
 | T-2026-06-05-ANDROID-BUILTIN-KOTLIN | 2026-06-05 | Migrate Android app away from explicit Kotlin Gradle Plugin | Completed | Track upstream plugin KGP migration risk in R-066. |
 | T-2026-06-05-PUSH-GITHUB | 2026-06-05 | Push complete local state to GitHub | Completed | Review draft PR #1 at `https://github.com/Aceadk/my_first_project/pull/1`. |
 | T-2026-06-03-CRUSH-WEB-MOBILE-ALIGNMENT | 2026-06-03 | Compare `crush-web` and `my_first_project` alignment | Completed | Start with the P0 backend contract matrix and web match/chat migration decision. |
