@@ -77,6 +77,35 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #312 — Web-Mobile Alignment P2 #12: Docs/Workflow Drift
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `9a84eb3`)
+
+**Original Request:** User: "next" (continue to P2).
+
+**Developer Intent Analysis:** Close P2 #12 — crush-web carried stale Feb-11
+duplicate trackers disconnected from the centralized my_first_project/docs
+workflow. Establish one source of truth and a clear pointer.
+
+**Outcome (crush-web 9a84eb3):**
+- Added `crush-web/AGENTS.md`: declares crush-web as the web half of the
+  two-repo product; points to the canonical task log + workboard in
+  my_first_project/docs; lists the alignment reference docs; codifies the hard
+  rules established this session (backend source of truth + callables;
+  entitlement via canonical `plan`; notification routes via
+  resolveNotificationRoute; brand constants; friendly auth errors); documents
+  local checks + the V2 flag.
+- Removed 3 stale duplicate trackers (verified no inbound references):
+  docs/ai_change_log.md, docs/ai_tasks_board.md, docs/Developer_agent_chat.md.
+- Kept content docs (risk_notes.md, WEBAPP discovery/chat checklist).
+- Notes: Cross-repo work is now tracked solely in my_first_project/docs, with
+  AGENTS.md as the web-side pointer. Avoids the duplicate-checklist anti-pattern
+  the audit warned about.
+
+---
+
 ### Task #311 — Web-Mobile Alignment P1 #6: Auth Error Mapping
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
