@@ -41,6 +41,7 @@ All callables require valid Firebase Auth token and App Check attestation. Reque
 | `swipeLeft` | `{ targetUserId: string }` | `{ ok: true }` | Logs pass only |
 | `sendPreMatchMessageRequest` | `{ targetUserId: string; content: string }` | `{ ok: true; ... }` | Sends pre-match message (3/sender until reply) |
 | `unmatch` | `{ matchId: string }` | `{ ok: true }` | Sets status `unmatched`; notifies other user |
+| `setMatchPinned` | `{ matchId: string; pinned: boolean }` | `{ ok: true }` | Writes per-user `pinnedForUser.{uid}` on the match doc |
 
 ### Chat & Messages
 

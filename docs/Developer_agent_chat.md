@@ -77,6 +77,36 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #314 — Web-Mobile Alignment: Match Pinning Callable (gap closure)
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repos:** my_first_project (`2f9ce89`) + crush-web (`574ee44`)
+
+**Original Request:** User: "continue". Closed the match-pinning gap explicitly
+flagged during Phase 2.0 (the V2 `togglePin` was a no-op — no backend callable).
+
+**Outcome:**
+- Backend (my_first_project 2f9ce89): added `setMatchPinned` callable in
+  functions/src/index.ts, mirroring setTyping — validates auth + matchId, checks
+  membership (ensureUserInMatch), writes `pinnedForUser.{uid}` on the match doc
+  (merge). 2 callable tests (unauth + missing matchId); build clean;
+  callables.test.js 13 passing. Added to the contract matrix.
+- Web (crush-web 574ee44): typed `setMatchPinned` callable wrapper,
+  MatchServiceV2.setPinned(), and matchServiceV2Adapter.togglePinMatch now
+  routes through it (no more no-op). Adapter test asserts the routing. Full web
+  suite green (138); core typecheck + lint clean.
+- Notes: Cross-platform — mobile can use the same callable. The pinnedForUser
+  map already existed on match docs (initialized in swipeRight); this adds the
+  client write path consistent with the rules.
+
+**Status of alignment work:** All P0 (code) + all five P1 (#6–#10) + P2 #12 are
+code-complete; the one known V2 gap (pinning) is now closed. Remaining: P2 #11
+large feature builds (calls/RTC, web I18N, profile/media parity) and operational
+items (Phase 2.5 staging migration + flag flip, E2E/emulator CI lanes).
+
+---
+
 ### Task #313 — Web-Mobile Alignment P1 #10: Web CI Lanes
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)

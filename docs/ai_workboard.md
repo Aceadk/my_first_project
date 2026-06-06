@@ -20,7 +20,8 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| T-2026-06-05-ALIGNMENT-P1-CI | 2026-06-05 | Web-Mobile Alignment — P1 #10 Web CI lanes | Completed | Added typecheck + build lanes to crush-web CI (verified locally). E2E/emulator/docs-sync lanes tracked in CI plan. Next: P2 #11 parity or operational Phase 2.5. |
+| T-2026-06-05-ALIGNMENT-PIN | 2026-06-05 | Web-Mobile Alignment — Match pinning callable | Completed | Added backend setMatchPinned callable + wired web V2 (closes Phase 2.0 gap). Cross-repo, tested. Next: P2 #11 parity (calls/RTC, I18N) or operational Phase 2.5. |
+| T-2026-06-05-ALIGNMENT-P1-CI | 2026-06-05 | Web-Mobile Alignment — P1 #10 Web CI lanes | Completed | Added typecheck + build lanes to crush-web CI (verified locally). E2E/emulator/docs-sync lanes tracked in CI plan. |
 | T-2026-06-05-ALIGNMENT-P2-DOCS | 2026-06-05 | Web-Mobile Alignment — P2 #12 Docs/workflow drift | Completed | Added crush-web AGENTS.md (points to centralized workflow + rules); removed 3 stale duplicate trackers. |
 | T-2026-06-05-ALIGNMENT-P1-AUTH | 2026-06-05 | Web-Mobile Alignment — P1 #6 Auth error mapping | Completed | Shared friendly auth-error mapper (Firebase + callable codes), wired into auth store (21 tests). All 4 P1 findings done. |
 | T-2026-06-05-ALIGNMENT-P1-BRANDING | 2026-06-05 | Web-Mobile Alignment — P1 #9 Branding | Completed | Web favicon/PWA/OG/manifest aligned to mobile brand (#0D0E12 + #FF3F7F heart). |
