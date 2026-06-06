@@ -77,6 +77,48 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #319 — Phase 2 Step 3: Correct Web CSP And Backend Origins
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed (code); staging "Verify" checks deferred (need running env)
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `40ca767`)
+
+**Original Request:** User pasted Phase 2 Step 3 "Correct Web CSP And Backend
+Origins": add Cloud Functions origins to connect-src; allow canonical REST API
+domain after the domain decision; keep CSP environment-specific + restrictive;
+test callables/discovery REST/storage/Stripe/web push under CSP; add automated
+CSP regression tests. Done when staging web can reach every protected backend.
+
+**Developer Intent Analysis:** Extends the Gate 0 P0.2 CSP origin fix
+(Task #317, which added *.cloudfunctions.net + reCAPTCHA). Remaining: environment
+specificity (dev emulator origins), canonical API origin support, web-push
+worker-src, and comprehensive regression tests. The "Verify"/"Done when" items
+are staging integration checks needing a running env.
+
+**Outcome (crush-web 40ca767), in apps/web/src/shared/lib/csp.ts:**
+- connect-src covers all backends: *.cloudfunctions.net (callables + discovery
+  REST), *.googleapis.com (App Check + FCM registration + Storage),
+  firebasestorage.googleapis.com, api.stripe.com, *.firebaseio.com + wss,
+  www.google.com (reCAPTCHA), plus optional canonical API origin.
+- Environment-specific: development adds local emulator origins (http/ws
+  localhost + 127.0.0.1) and webpack unsafe-eval/inline; staging/prod stay
+  strict (nonce script-src, no unsafe-*, no localhost).
+- worker-src 'self' for the firebase-messaging web-push service worker.
+- buildCspHeader now takes { isDevelopment, nonce, apiOrigin } (positional
+  form kept for back-compat); apiOrigin sanitized (https only, slash stripped,
+  injection rejected); middleware passes NEXT_PUBLIC_API_ORIGIN.
+- Tests: csp.test.ts → 15 cases (every backend origin, env behavior, apiOrigin
+  add/sanitize/no-op, back-compat). lint/typecheck/test (179)/build green.
+- Docs: AGENTS.md CSP section; .env.example NEXT_PUBLIC_API_ORIGIN.
+- **Deferred (need running staging):** confirm discovery REST works, callables
+  succeed with valid App Check, calls fail predictably without it, zero console
+  CSP violations. These are the Step 3 "Verify" gates — tracked for the staging
+  pass.
+- **Domain dependency:** the canonical REST API domain is wired but inert until
+  NEXT_PUBLIC_API_ORIGIN is set (pending the domain decision — Gate 0 P0.5).
+
+---
+
 ### Task #318 — Phase 2 Step 2: Production-Grade Web App Check
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)
