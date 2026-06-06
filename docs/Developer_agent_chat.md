@@ -77,6 +77,42 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #306 — Web-Mobile Alignment Phase 1.5: Data Migration Script
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `9bf44a7`)
+
+**Original Request:** User: "next" (proceed to Phase 1.5 data migration).
+
+**Outcome:**
+- Created `apps/web/scripts/migrate-conversations-to-matches.mjs` — a
+  self-contained `firebase-admin` ESM migration script that moves legacy web
+  chat data (`conversations/{id}/messages`) into the canonical
+  `matches/{matchId}/messages` model, reconciling legacy directional match docs
+  to canonical (`userIds` array) matches.
+- Verified-schema field mapping: senderId→fromUserId, derived toUserId,
+  timestamp→sentAt, status==='read'→isRead, reactions[]→{[uid]:emoji},
+  metadata.*Url→mediaUrl, participants→visibleTo.
+- Safety: dry-run default (`--execute` to write), idempotent (skips
+  already-migrated messages, reuses existing canonical match per pair),
+  non-destructive (legacy convos marked archived/migratedToMatchId, not
+  deleted). `--project` and `--limit` flags.
+- Placed under `apps/web/` because ESM ignores NODE_PATH and firebase-admin
+  resolves there via the pnpm workspace symlink. Added pnpm scripts
+  `migrate:conversations` + `migrate:conversations:execute`.
+- Verified `node --check` passes and the script flows arg-parse → admin init →
+  Firestore scan (fails only at credentials in this env, as expected).
+- Runbook added to `web_chat_match_migration_plan_2026-06-05.md` (auth, dry
+  run, execute, verify, prod).
+- Notes: Migration is implemented but NOT yet run (needs staging service
+  account). Next: Phase 2.0 — cut the Zustand stores (`stores/message.ts`,
+  `stores/match.ts`) over to the V2 services so all component consumers
+  (messages/[matchId]/chat-room, discover, matches pages) use the canonical
+  model; then run the migration on staging and validate E2E.
+
+---
+
 ### Task #305 — Web-Mobile Alignment Phase 1.0: V2 Backend-Aligned Services
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8 for implementation)

@@ -440,21 +440,59 @@ async function migrateWebConversations() {
 }
 ```
 
-**Execution:**
+**Execution:** ✅ **Implemented** as
+`crush-web/apps/web/scripts/migrate-conversations-to-matches.mjs`
+(commit on `codex/auth-storage-cleanup`). It is a self-contained
+`firebase-admin` ESM script — dry-run by default, idempotent, and
+non-destructive (legacy conversations are marked `archived`/`migratedToMatchId`,
+never deleted). It lives under `apps/web/` so `firebase-admin` resolves via the
+pnpm workspace symlink.
+
 ```bash
-# Test migration against staging database first
-firebase use crush-265f7-staging
-npm run migrate:web-conversations
+# 0. Auth: point at a service account with Firestore access.
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/staging-sa.json
+#   (or)  export FIREBASE_SERVICE_ACCOUNT="$(cat staging-sa.json)"
 
-# Verify results in Firebase Console:
-# - All conversations/ have archived=true
-# - All messages appear in matches/{matchId}/messages
-# - Message counts match
+cd crush-web/apps/web
 
-# Then run against production (after approval)
-firebase use crush-265f7
-npm run migrate:web-conversations --production
+# 1. DRY RUN against staging — reports what WOULD change, writes nothing.
+pnpm migrate:conversations --project crush-265f7-staging
+#   optionally: --limit 5   (process only the first 5 conversations)
+
+# 2. Review the summary: conversations processed, matches created/reused,
+#    messages migrated, errors. Confirm counts look right.
+
+# 3. EXECUTE against staging.
+pnpm migrate:conversations:execute --project crush-265f7-staging
+
+# 4. Verify in Firebase Console (staging):
+#    - conversations/* have archived=true + migratedToMatchId
+#    - matches/{matchId}/messages contain the migrated docs
+#      (fromUserId/toUserId/sentAt/visibleTo populated)
+#    - message counts match the source
+
+# 5. After verification window, repeat for production (with approval):
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/prod-sa.json
+pnpm migrate:conversations --project crush-265f7            # dry run
+pnpm migrate:conversations:execute --project crush-265f7    # execute
 ```
+
+**Field mapping applied by the script** (verified canonical schema):
+
+| Legacy (conversations) | Canonical (matches/{id}/messages) |
+|------------------------|-----------------------------------|
+| `senderId` | `fromUserId` |
+| *(derived: other participant)* | `toUserId` |
+| `timestamp` | `sentAt` |
+| `status === 'read'` | `isRead: true` |
+| `metadata.{image,video,audio,gif}Url` | `mediaUrl` |
+| `reactions[]` (array) | `reactions: { [uid]: emoji }` |
+| `isDeleted` | `isDeletedForSender` |
+| *(participants)* | `visibleTo: [uidA, uidB]` |
+
+Idempotency: a target message that already exists (same source doc id) is
+skipped; an existing canonical match for the pair is reused rather than
+duplicated. Re-running is safe.
 
 ---
 
