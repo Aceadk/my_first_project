@@ -77,6 +77,45 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #317 — Re-Audit Gate 0 (P0.2): Web App Check + CSP
+**Date:** 2026-06-06
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `c8dd0f4`)
+
+**Original Request:** User: "yes" — proceed with App Check + CSP (re-audit P0.2).
+
+**Developer Intent Analysis:** Production callable/REST paths enforce App Check,
+but the web client never initialized it AND the CSP excluded the Cloud Functions
+origin — so enabling backend calls would fail two ways. Close both, with tests.
+
+**Outcome (crush-web c8dd0f4):**
+- App Check in `packages/core/src/firebase/config.ts`:
+  - `initializeWebAppCheck()` — reCAPTCHA v3 provider, isTokenAutoRefreshEnabled,
+    browser-only, idempotent, with a re-entrancy guard (getFirebaseApp triggers
+    init; init calls getFirebaseApp). No-op + warning when unconfigured so
+    SSR/build/unconfigured envs never throw.
+  - Debug token via NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN (set on self before
+    init) for local/emulator without weakening prod.
+  - getFirebaseApp() triggers init (tokens attach to first request);
+    AuthInitializer also calls it on mount. Exports getFirebaseAppCheck /
+    initializeWebAppCheck / isAppCheckConfigured.
+- CSP extracted to `apps/web/src/shared/lib/csp.ts` (testable) and fixed:
+  connect-src += *.cloudfunctions.net + www.google.com; script-src += www.google.com
+  + www.gstatic.com; frame-src += www.google.com. Prod still omits unsafe-eval/
+  inline.
+- Tests: csp.test.ts (8) + app-check.test.ts (5). lint/typecheck/test (163)/
+  build all green.
+- **New env vars required for deploy:** `NEXT_PUBLIC_FIREBASE_APPCHECK_RECAPTCHA_KEY`
+  (reCAPTCHA v3 site key, per environment) and optional
+  `NEXT_PUBLIC_FIREBASE_APPCHECK_DEBUG_TOKEN` (local/staging). Also register the
+  reCAPTCHA key + (for CI/local) a debug token in the Firebase console.
+- **Notes:** The "staging check that fails when App Check/CSP blocks an endpoint"
+  is an integration/E2E item needing a running env (deferred). Remaining Gate 0:
+  rules-emulator harness, canonical domain/hosting decision, as-built matrices.
+
+---
+
 ### Task #316 — Re-Audit Gate 0: Green, Zero-Warning Web CI Baseline
 **Date:** 2026-06-06
 **Agent:** Claude (Opus 4.8)
