@@ -20,7 +20,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| T-2026-06-05-ALIGNMENT-PHASE-0 | 2026-06-05 | Web-Mobile Alignment — Phase 0 Stabilization | In Progress | Approved Option B migration plan. Web CI Upgrade plan created. Final Phase 0 task: Repo Hygiene cleanup. |
+| T-2026-06-05-ALIGNMENT-PHASE-0 | 2026-06-05 | Web-Mobile Alignment — Phase 0 Stabilization | Completed | All Phase 0 tasks done: 4 spec docs, migration plan (Option B approved), CI plan, repo cleanup. Ready for Phase 0.5 (data audit). |
 | T-2026-06-05-ANDROID-BUILTIN-KOTLIN | 2026-06-05 | Migrate Android app away from explicit Kotlin Gradle Plugin | Completed | Track upstream plugin KGP migration risk in R-066. |
 | T-2026-06-05-PUSH-GITHUB | 2026-06-05 | Push complete local state to GitHub | Completed | Review draft PR #1 at `https://github.com/Aceadk/my_first_project/pull/1`. |
 | T-2026-06-03-CRUSH-WEB-MOBILE-ALIGNMENT | 2026-06-03 | Compare `crush-web` and `my_first_project` alignment | Completed | Start with the P0 backend contract matrix and web match/chat migration decision. |
@@ -45,6 +45,32 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - The canonical backlog entrypoint is `docs/TODO_MASTER_AUDIT_V2_2026-02-20.md`; module-specific `docs/TODO_*.md` files are the active execution surface.
 - `docs/TODO_WEBAPP.md` is a routing board for web-specific open work, not a duplicate checklist.
 - `docs/TODO_SUBSCRIPTION.md` currently has no open items and is retained for historical traceability/reopen use.
+
+## Phase 0: Web-Mobile Alignment Stabilization (2026-06-05)
+
+**Outcome:** All stabilization documents and plans completed. Ready to proceed with Phase 0.5 (data audit) → Phase 1 (backend contract migration).
+
+**Deliverables:**
+1. **Backend Contract Matrix** — 69 callables, 30+ REST endpoints, Firestore schema, Storage paths
+2. **Domain & Environment Matrix** — Canonical domain (crush.app), dev/staging/prod configs, CORS, Stripe
+3. **Route & Deep-Link Matrix** — 50+ routes, deep links, notification payloads, redirects
+4. **Web Chat/Match Migration Plan** — Option B: Migrate web to backend model (5 phases, ~5 weeks)
+5. **Web CI Upgrade Plan** — 5-stage pipeline (lint, build, E2E, contract, docs)
+6. **Repo Hygiene Cleanup** — Removed 1452 tracked node_modules/build files (−230KB)
+
+**Decision Made:**
+- ✅ Web will adopt canonical `matches/{matchId}/messages` schema (Option B)
+- All mutations via backend callables/REST (no direct Firestore writes)
+- Enables Phase 1 backend contract migration work to begin
+
+**Next Tasks:**
+1. Phase 0.5: Data audit checklist (1 week) — Web team
+2. Phase 1.0: New service classes using callables (1 week) — Web team
+3. Phase 1.5: Data migration script + staging test (1 week) — DevOps
+4. Phase 2.0: Component/page updates + dual-write (1 week) — Web team
+5. Phase 2.5: Production cutover (1 week) — DevOps + Web team
+
+---
 
 ## Recent Completed (Highlights)
 

@@ -109,10 +109,13 @@ User directed: "start working on Crush Web and Mobile Alignment Plan" following 
 **Expected Outcome:** Three markdown documents in `docs/reports/` that web team can immediately reference to align their mutations and routing.
 
 **Status Updates:**
-- Generated Backend Contract Matrix from 69 exported functions/endpoints
-- Created Domain & Environment Matrix with prod/staging/dev configs
-- Built Route & Deep-Link Matrix with 50+ routes and notification payload mappings
-- Updated ai_workboard.md to track T-2026-06-05-ALIGNMENT-PHASE-0
+- ✅ Generated Backend Contract Matrix from 69 exported functions/endpoints
+- ✅ Created Domain & Environment Matrix with prod/staging/dev configs
+- ✅ Built Route & Deep-Link Matrix with 50+ routes and notification payload mappings
+- ✅ Created Web Chat/Match Migration Plan with Option B recommendation (5-week timeline)
+- ✅ Created Web CI Upgrade Plan with 5-stage pipeline (lint → build → E2E → contract → docs)
+- ✅ Removed 1452 tracked node_modules + build artifacts (repo hygiene)
+- ✅ Updated ai_workboard.md to track T-2026-06-05-ALIGNMENT-PHASE-0
 
 **Outcome:**
 - Files created:
