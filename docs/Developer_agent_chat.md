@@ -77,6 +77,51 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #309 — Web-Mobile Alignment P1 #7: Subscription/Entitlement Unification
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `c193968`)
+
+**Original Request:** User: "next" (continue with code-actionable P1 findings).
+
+**Developer Intent Analysis:** Close P1 #7 (subscription/entitlement drift).
+Establish one entitlement model and make web read/write the same canonical
+fields as the backend + Firestore rules.
+
+**Findings (verified against functions/src/index.ts + firestore.rules):**
+- Backend source of truth = user doc `plan: 'free'|'plus'` (setUserPlan,
+  purchase validation, Stripe webhook; rules isPremium() → plan == 'plus').
+  Plus `subscriptionExpiresAt`, `subscriptionLifecycle`.
+- Web drift (latent bugs):
+  - UserProfile.isPremium was typed `never` yet ~12 components read it → always
+    falsy → web premium gating broken.
+  - mapUserDocumentToUserProfile read subscriptionTier from a field the backend
+    never writes → everyone 'free'.
+  - match.ts/boost.ts read data.isPremium directly → always false.
+  - Web Stripe webhook wrote isPremium/premiumPlan but NOT canonical `plan` →
+    a web purchase wouldn't grant premium under rules or on mobile.
+
+**Outcome (crush-web c193968):**
+- New `packages/core/src/services/entitlement.ts`:
+  resolveEntitlement/resolvePlan/resolveTier/isPremiumUser. Canonical `plan`
+  first; legacy fallback (subscriptionTier/isPremium). Expiry from
+  subscriptionExpiresAt→premiumExpiresAt→lifecycle.currentPeriodEnd; surfaces
+  status + cancelAtPeriodEnd. Preserves web-only 'platinum' display tier.
+- mapUserDocumentToUserProfile derives subscriptionTier/isPremium/
+  premiumExpiresAt via the resolver.
+- UserProfile.isPremium: never → boolean (derived); match.ts/boost.ts use
+  isPremiumUser(data).
+- Web Stripe webhook writes canonical plan + subscriptionExpiresAt +
+  subscriptionLifecycle on update + delete (legacy fields kept).
+- 15 entitlement tests; full web suite 116 green; core+web typecheck+lint clean.
+- Notes: Two Stripe webhooks now both write canonical `plan` (web API route +
+  backend functions). Longer-term the audit wants ONE entitlement-writing
+  function; for now both are consistent. Follow-up: consider routing web Stripe
+  events through the backend stripeWebhook to fully centralize.
+
+---
+
 ### Task #308 — Web-Mobile Alignment P1 #8: Notification Route Parity
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
