@@ -77,6 +77,41 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #305 — Web-Mobile Alignment Phase 1.0: V2 Backend-Aligned Services
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8 for implementation)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `fbbc495`)
+
+**Original Request:**
+User: "next" (proceed from Phase 0 to Phase 1 implementation of the approved Option B migration).
+
+**Developer Intent Analysis:**
+- Primary goal: Begin actual implementation of Option B — migrate web chat/match from direct Firestore writes to backend callables + canonical schema.
+- Secondary goal: Keep legacy services intact so nothing breaks; additive V2 layer enables gradual cutover.
+- Implicit requirements: Type-safe, lint-clean, tested; map between canonical backend schema and existing web DTOs so component cutover (Phase 2.0) is low-friction.
+- Quality expectations: Contract tests proving mutations route through callables (not Firestore); full existing suite stays green.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Build the V2 service layer in crush-web/packages/core that talks to the backend per the contract matrix.
+- **Scope:** Firebase Functions wiring, typed callable wrappers, MessageServiceV2, MatchServiceV2, contract tests, index exports.
+- **Constraints:** Do not remove legacy message.ts/match.ts; us-central1 region; reuse existing Message/Match types; no real Firebase init in tests.
+- **Expected Outcome:** V2 services exported and tested; web can switch components to them in Phase 2.0.
+
+**Outcome:**
+- Files created (crush-web):
+  - `packages/core/src/api/callables.ts` — typed wrappers for 14 backend callables (swipe, send/edit/unsend/markRead, reactions, typing, presence, block/report, media signed URL) with request/response interfaces mirroring the contract matrix.
+  - `packages/core/src/services/message_v2.ts` — MessageServiceV2: canonical `matches/{matchId}/messages` reads + realtime subscribe; all mutations via callables; backend↔web DTO mapping (isRead/createdAt/visibleTo/reactions-map); typing via callable + match-doc subscription; gif→image, system→text type mapping.
+  - `packages/core/src/services/match_v2.ts` — MatchServiceV2: bidirectional `matches/{matchId}` (userIds array + participants map) reads/subscribe; swipe/unmatch via callables; canonical→viewer-centric Match mapping (active→mutual).
+  - `apps/web/src/lib/__tests__/v2-services-contract.test.ts` — 12 contract tests (callable routing + DTO mapping) using vi.hoisted mocks.
+- Files modified (crush-web):
+  - `packages/core/src/firebase/config.ts` — added getFirebaseFunctions() (us-central1).
+  - `packages/core/src/index.ts` — exported V2 services, callables, and request/response types.
+- Result: Core typecheck + lint clean; full web suite green (59 tests, 12 new). Committed `fbbc495`, pushed to origin/codex/auth-storage-cleanup.
+- Notes: Legacy services untouched (gradual cutover). Next: Phase 1.5 (data migration script conversations/→matches/) and Phase 2.0 (component cutover to V2 + dual-write). Backend assumptions to verify against functions/src/index.ts: swipeRight returns `{ success, match? }`; typing stored on match doc `typing` map; reactions stored as `{ emoji: [uid] }` map.
+
+---
+
 ### Task #304 — Web-Mobile Alignment Phase 0: Stabilization Documents
 **Date:** 2026-06-05
 **Agent:** Claude Haiku 4.5
