@@ -77,6 +77,46 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #308 — Web-Mobile Alignment P1 #8: Notification Route Parity
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `75b140d`)
+
+**Original Request:** User: "continue" (next code-actionable audit finding;
+Phase 2.5 is operational/credential-gated).
+
+**Developer Intent Analysis:** Close P1 #8 (notifications route parity) from the
+alignment audit, building on the Phase 0 Route & Deep-Link Matrix. Ensure every
+notification the backend sends routes the web user to a real page.
+
+**Approach:** Grepped `functions/src/index.ts` + `functions/src/calls/` for every
+`targetRoute` and notification `data.type`, then audited the web
+`resolveNotificationRoute()` against them.
+
+**Findings (gaps):**
+- `/notifications` (sent for match_ended) — not mapped → fell through to type
+  switch.
+- `/settings/subscription` (subscription notifications) — not mapped, not in
+  allowed list → null.
+- `/incoming-call` — not mapped (web has no calling UI).
+
+**Outcome:**
+- `packages/core/src/services/notification.ts` — added explicit mappings
+  (/notifications→/messages, /settings/subscription→/settings/account,
+  /incoming-call→/messages); added allowed settings routes
+  (/settings/{blocked,discovery,incognito}); added type cases (match_ended,
+  call/incoming_call/call_missed).
+- `apps/web/.../notification-route-parity.test.ts` — 27 tests covering every
+  backend targetRoute + type, full-URL host allowlisting, query preservation,
+  and fallbacks.
+- Result: full web suite 101 green; core typecheck + lint clean. Pushed
+  `75b140d`.
+- Notes: All backend-emitted notification routes now land on a real web page.
+  Calls routes fall back to /messages until web calling exists (P2 #11).
+
+---
+
 ### Task #307 — Web-Mobile Alignment Phase 2.0: Store Cutover (flag-gated)
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
