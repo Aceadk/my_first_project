@@ -721,8 +721,24 @@ Once CI is in place, Phase 1 data migration work will:
 
 ---
 
+## Delivery status
+
+| Lane | Status |
+|------|--------|
+| Lint | ✅ pre-existing |
+| Unit tests | ✅ pre-existing |
+| **Type check** (`pnpm typecheck`) | ✅ delivered (crush-web `a823696`) |
+| **Build** (`pnpm build`) | ✅ delivered (crush-web `a823696`, placeholder env) |
+| Playwright E2E + Firestore emulator | ⏳ follow-up (needs emulator/secret setup) |
+| Contract validation tests | ⏳ follow-up |
+| Docs-sync guard | ⏳ follow-up |
+
+The four fast-feedback lanes (lint, typecheck, test, build) now run on every
+push/PR to main. The remaining lanes are operational (emulator + secrets).
+
 ## Revision History
 
 | Date | Changes |
 |------|---------|
 | 2026-06-05 | Initial CI upgrade plan. 5-stage pipeline (lint, build, E2E, contract, docs). Integrated with web migration Phase 1. |
+| 2026-06-05 (rev 2) | Delivered typecheck + build lanes (crush-web `a823696`); both verified locally. E2E/contract/docs-sync remain as operational follow-ups. |

@@ -77,6 +77,38 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #313 — Web-Mobile Alignment P1 #10: Web CI Lanes
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `a823696`)
+
+**Original Request:** User: "continue". Re-checking the audit, P1 #10 (Testing
+and CI uneven) was still open — I'd done P1 #6–#9 but not #10.
+
+**Developer Intent Analysis:** Close P1 #10's fast-feedback gap. crush-web CI
+ran only lint + unit tests (no typecheck, no build), so type errors and build
+breaks slip through. Lower-risk than starting a large i18n/calls feature.
+
+**Outcome (crush-web a823696):**
+- Upgraded `.github/workflows/ci.yml` from 2 → 4 jobs, adding:
+  - **typecheck** — `pnpm typecheck` across @crush/core, @crush/ui, @crush/web
+    (verified locally: 3/3 packages pass, ~15s).
+  - **build** — `pnpm build` (Next.js prod build) with public placeholder
+    NEXT_PUBLIC_* env so it's deterministic in CI (verified locally: build
+    succeeds ~59s, all routes incl. og/icon generators).
+- YAML structure validated; all four lanes (lint, typecheck, test, build) on
+  push/PR to main.
+- Notes: Remaining CI-plan lanes (Playwright E2E + Firestore emulator, contract
+  checks, docs-sync guard) need emulator/secret setup → tracked in
+  web_ci_upgrade_plan_2026-06-05.md as follow-ups (operational).
+
+**Milestone:** All FIVE P1 findings (#6 auth, #7 entitlement, #8 notifications,
+#9 branding, #10 CI fast lanes) + P2 #12 are now code-complete, alongside the
+P0 V2 work (services/migration/cutover, flag-gated).
+
+---
+
 ### Task #312 — Web-Mobile Alignment P2 #12: Docs/Workflow Drift
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
