@@ -107,8 +107,30 @@ User: "next" (proceed from Phase 0 to Phase 1 implementation of the approved Opt
 - Files modified (crush-web):
   - `packages/core/src/firebase/config.ts` — added getFirebaseFunctions() (us-central1).
   - `packages/core/src/index.ts` — exported V2 services, callables, and request/response types.
-- Result: Core typecheck + lint clean; full web suite green (59 tests, 12 new). Committed `fbbc495`, pushed to origin/codex/auth-storage-cleanup.
-- Notes: Legacy services untouched (gradual cutover). Next: Phase 1.5 (data migration script conversations/→matches/) and Phase 2.0 (component cutover to V2 + dual-write). Backend assumptions to verify against functions/src/index.ts: swipeRight returns `{ success, match? }`; typing stored on match doc `typing` map; reactions stored as `{ emoji: [uid] }` map.
+- Result: Core typecheck + lint clean; full web suite green. Committed `fbbc495` (initial), then `c662c38` (contract corrections), pushed to origin/codex/auth-storage-cleanup.
+- Notes: Legacy services untouched (gradual cutover). Next: Phase 1.5 (data migration script conversations/→matches/) and Phase 2.0 (component cutover to V2 + dual-write).
+
+**Follow-up (verification — same day):** Verified ALL callable + Firestore
+shapes directly against `functions/src/index.ts` rather than building Phase
+1.5/2.0 on assumptions. Found the initial V2 layer was wrong in several ways
+and corrected it (`c662c38`):
+- swipeRight: request `{ targetUserId, attachedMessage }`, response
+  `{ matched, matchId? }` (NO match DTO — service now fetches the doc).
+- swipeLeft: `{ targetUserId }`. sendMessage REQUIRES `toUserId` (service
+  resolves it from the match doc when the caller omits it).
+- removeReaction takes no emoji; reactions stored as `{ [uid]: emoji }`
+  (one per user), not `{ emoji: [uid] }`.
+- getChatMediaSignedUrl uses `filePath` (not mediaPath).
+- Backend success envelope is `{ ok: true }`, not `{ success }`.
+- Message fields: `fromUserId`/`toUserId`/`sentAt` (not senderId/createdAt);
+  soft delete via `isDeletedForSender`/`isDeletedForRecipient`.
+- Match fields: `pinnedForUser`/`preMatchRequests` per-uid maps; status
+  `active`|`unmatched` (no participants map, no updatedAt; order by
+  lastMessageAt; per-user unread not on doc → surfaced as 0).
+Also updated `docs/reports/shared_backend_contract_matrix_2026-06-05.md`
+(rev 2) so the matrix matches source. Tests now 15 (all green); full web
+suite 62 green. **Lesson: verify backend shapes from source before building
+client layers — caught a broken foundation early.**
 
 ---
 

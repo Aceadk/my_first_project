@@ -29,30 +29,34 @@ All callables require valid Firebase Auth token and App Check attestation. Reque
 
 ### Discovery & Matching
 
+> **Verified against source 2026-06-05.** Shapes below match
+> `functions/src/index.ts` exactly. Backend success envelope is `{ ok: true }`
+> (NOT `{ success }`). swipeRight does **not** return a match DTO.
+
 | Callable | Request | Response | Notes |
 |----------|---------|----------|-------|
 | `fetchDiscoveryCandidates` | `{ limit?: number; cursor?: string }` | `{ candidates: CandidateDTO[]; cursor?: string }` | Paginated discovery deck |
 | `getMyDiscoveryStatus` | `{}` | `{ isEligible: boolean; reason?: string; stats: DiscoveryStats }` | Checks discovery eligibility |
-| `swipeRight` | `{ candidateId: string; message?: string }` | `{ success: boolean; match?: MatchDTO }` | Swipes right on candidate |
-| `swipeLeft` | `{ candidateId: string }` | `{ success: boolean }` | Swipes left on candidate |
-| `sendPreMatchMessageRequest` | `{ recipientId: string; message: string }` | `{ success: boolean; requestId: string }` | Sends pre-match message |
-| `unmatch` | `{ matchId: string }` | `{ success: boolean }` | Unmatches and clears messages |
+| `swipeRight` | `{ targetUserId: string; attachedMessage?: string }` | `{ matched: boolean; matchId?: string }` | Returns matchId only when mutual; fetch the match doc for full data |
+| `swipeLeft` | `{ targetUserId: string }` | `{ ok: true }` | Logs pass only |
+| `sendPreMatchMessageRequest` | `{ targetUserId: string; content: string }` | `{ ok: true; ... }` | Sends pre-match message (3/sender until reply) |
+| `unmatch` | `{ matchId: string }` | `{ ok: true }` | Sets status `unmatched`; notifies other user |
 
 ### Chat & Messages
 
 | Callable | Request | Response | Notes |
 |----------|---------|----------|-------|
-| `sendMessage` | `{ matchId: string; type: string; content: string; mediaUrl?: string }` | `{ success: boolean; messageId: string; timestamp: number }` | Sends message to match |
-| `unsendMessage` | `{ matchId: string; messageId: string }` | `{ success: boolean }` | Deletes sent message |
-| `editMessage` | `{ matchId: string; messageId: string; content: string }` | `{ success: boolean }` | Edits message content |
-| `markMessagesRead` | `{ matchId: string; upToTimestamp: number }` | `{ success: boolean }` | Marks messages as read in match |
-| `setTyping` | `{ matchId: string; isTyping: boolean }` | `{ success: boolean }` | Sets typing indicator |
-| `setPresenceStatus` | `{ isOnline: boolean }` | `{ success: boolean }` | Sets online/offline status |
-| `addReaction` | `{ matchId: string; messageId: string; emoji: string }` | `{ success: boolean }` | Adds emoji reaction to message |
-| `removeReaction` | `{ matchId: string; messageId: string; emoji: string }` | `{ success: boolean }` | Removes emoji reaction |
-| `updateChatSettings` | `{ extendedRetention: boolean }` | `{ success: boolean }` | Updates user's chat settings |
-| `updateMatchChatSettings` | `{ matchId: string; extendedRetention: boolean }` | `{ success: boolean }` | Updates match-specific chat settings |
-| `getChatMediaSignedUrl` | `{ matchId: string; mediaPath: string }` | `{ url: string }` | Returns signed URL for media access |
+| `sendMessage` | `{ matchId: string; toUserId: string; content?: string; type?: string; mediaUrl?: string }` | `{ ok: true; messageId: string }` | `toUserId` is REQUIRED (other participant). Must have content or mediaUrl |
+| `unsendMessage` | `{ matchId: string; messageId: string }` | `{ ok: true }` | Plus-plan only; sender-only |
+| `editMessage` | `{ matchId: string; messageId: string; content: string }` | `{ ok: true }` | Sender-only edit |
+| `markMessagesRead` | `{ matchId: string }` | `{ ok: true; markedCount: number }` | Marks all unread messages sent to caller |
+| `setTyping` | `{ matchId: string; isTyping: boolean }` | `{ ok: true }` | Writes `typing.{uid}` on match doc |
+| `setPresenceStatus` | `{ isOnline: boolean }` | `{ ok: true }` | Writes isOnline/lastSeenAt on user doc |
+| `addReaction` | `{ matchId: string; messageId: string; emoji: string }` | `{ ok: true }` | Stores `reactions.{uid} = emoji` (one per user) |
+| `removeReaction` | `{ matchId: string; messageId: string }` | `{ ok: true }` | NO emoji param; removes caller's reaction |
+| `updateChatSettings` | `{ extendedRetention: boolean }` | `{ ok: true }` | Updates user's chat settings |
+| `updateMatchChatSettings` | `{ matchId: string; extendedRetention: boolean }` | `{ ok: true }` | Updates match-specific chat settings |
+| `getChatMediaSignedUrl` | `{ matchId: string; filePath: string }` | `{ url: string }` | Returns signed URL for media access |
 
 ### Profile & User Data
 
@@ -241,48 +245,52 @@ All Firestore rules are in `firestore.rules` (v2). Client writes are restricted;
 - Profile photo URLs max 9; interests max 20
 
 ### Matches Collection
-**Path:** `matches/{matchId}`
+**Path:** `matches/{matchId}` — **verified against source 2026-06-05**
 
 ```typescript
 {
-  matchId: string;                       // Doc ID = "uid1_uid2" (sorted)
+  // Doc ID is auto-generated (db.collection("matches").doc()), NOT "uid1_uid2".
   userIds: [string, string];             // Participant UIDs
-  status: 'active' | 'archived' | 'cancelled';
+  status: 'active' | 'unmatched';        // (no archived/cancelled)
+  preMatchRequests: { [uid: string]: number };  // per-user request counts
+  pinnedForUser: { [uid: string]: boolean };    // per-user pin state
   createdAt: Timestamp;
-  updatedAt: Timestamp;
-  participants: {
-    [uid: string]: {
-      swipedAt: Timestamp;
-      lastMessageAt?: Timestamp;
-      unreadCount: number;
-      lastReadTimestamp?: Timestamp;
-    }
-  };
-  settings?: {
-    extendedRetention?: boolean;
-  };
-  messages: {
-    subcollection: MessageDTO[];
-  };
+  // NOTE: no `updatedAt`. Freshness comes from lastMessageAt.
+  lastMessageAt?: Timestamp;
+  lastMessageContent?: string | null;    // truncated to 100 chars
+  lastMessageType?: string;
+  lastMessageFromUserId?: string;
+  readBy?: { [uid: string]: Timestamp }; // per-user last-read marker
+  typing?: { [uid: string]: boolean };   // per-user typing flag
+  typingUpdatedAt?: Timestamp;
+  mediaSendingEnabled?: boolean;
+  unmatchedBy?: string;
+  unmatchedAt?: Timestamp;
+  // Per-user unread count is NOT stored; backend computes at read time.
 }
 ```
 
-**Subcollection `matches/{matchId}/messages`:**
+**Subcollection `matches/{matchId}/messages`:** — **verified against source**
 ```typescript
 {
-  messageId: string;                    // Doc ID
-  senderId: string;
-  type: 'text' | 'image' | 'video' | 'audio' | 'gift' | 'voice';
-  content: string;
-  mediaUrl?: string;
-  mediaMetadata?: { width?: number; height?: number; duration?: number };
-  visibleTo: string[];                  // UIDs who can see this message
+  // Doc ID is auto-generated.
+  matchId: string;
+  fromUserId: string;                   // sender (NOT senderId)
+  toUserId: string;                     // recipient
+  type: 'text' | 'image' | 'video' | 'audio' | 'voice' | 'gift';
+  content: string | null;
+  mediaUrl?: string | null;
+  sentAt: Timestamp;                    // (NOT createdAt)
   isRead: boolean;
   readAt?: Timestamp;
-  reactions?: { [emoji: string]: [string, ...string[]] }; // Map emoji to [userId, ...]
-  createdAt: Timestamp;
-  editedAt?: Timestamp;
-  deletedAt?: Timestamp;                // Soft delete marker
+  readBy?: string;
+  isDeletedForSender: boolean;          // soft delete (per side)
+  isDeletedForRecipient: boolean;
+  reactions: { [uid: string]: string }; // one emoji per user (NOT emoji→[uid])
+  reactionsUpdatedAt?: Timestamp;
+  visibleTo: [string, string];          // [fromUserId, toUserId]
+  editedAt?: Timestamp;                 // present after editMessage
+  moderation?: { status; action; reason; severity; flagged };
 }
 ```
 
@@ -421,3 +429,4 @@ All changes to this contract must pass:
 | Date | Changes |
 |------|---------|
 | 2026-06-05 | Initial contract matrix from `my_first_project/functions` and `firestore.rules`. 69 callables/endpoints, 5+ collections, Firebase Storage paths documented. |
+| 2026-06-05 (rev 2) | **Verified callable + Firestore shapes directly against `functions/src/index.ts`** during web V2 implementation. Corrected: swipe/message/reaction request shapes, `{ ok }` success envelope, swipeRight returns `{ matched, matchId? }` (no DTO), message fields (`fromUserId`/`toUserId`/`sentAt`/`reactions` map), match fields (`pinnedForUser`/`preMatchRequests` maps, no `participants`/`updatedAt`). |
