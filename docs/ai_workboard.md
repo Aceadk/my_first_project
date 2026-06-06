@@ -20,7 +20,8 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| T-2026-06-05-ALIGNMENT-P1-BRANDING | 2026-06-05 | Web-Mobile Alignment — P1 #9 Branding | Completed | Web favicon/PWA/OG/manifest aligned to mobile brand (#0D0E12 + #FF3F7F heart). Next P1: #6 auth flows. |
+| T-2026-06-05-ALIGNMENT-P1-AUTH | 2026-06-05 | Web-Mobile Alignment — P1 #6 Auth error mapping | Completed | Shared friendly auth-error mapper (Firebase + callable codes), wired into auth store (21 tests). All 4 P1 findings done. Next: P2 (#11 parity, #12 docs) or operational Phase 2.5. |
+| T-2026-06-05-ALIGNMENT-P1-BRANDING | 2026-06-05 | Web-Mobile Alignment — P1 #9 Branding | Completed | Web favicon/PWA/OG/manifest aligned to mobile brand (#0D0E12 + #FF3F7F heart). |
 | T-2026-06-05-ALIGNMENT-P1-ENTITLEMENT | 2026-06-05 | Web-Mobile Alignment — P1 #7 Subscription/entitlement | Completed | Web entitlement unified on canonical `plan` (resolver + webhook writes canonical fields, 15 tests). |
 | T-2026-06-05-ALIGNMENT-P1-NOTIF | 2026-06-05 | Web-Mobile Alignment — P1 #8 Notification route parity | Completed | Web resolver maps all backend targetRoutes/types (27 tests). |
 | T-2026-06-05-ALIGNMENT-PHASE-2 | 2026-06-05 | Web-Mobile Alignment — Phase 2.0 (store cutover) | Completed | Stores cut over to V2 behind NEXT_PUBLIC_USE_V2_CHAT flag (default OFF). Next: run migration on staging, flip flag, validate E2E. |

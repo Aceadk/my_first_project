@@ -77,6 +77,45 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #311 — Web-Mobile Alignment P1 #6: Auth Error Mapping
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `a8e29f1`)
+
+**Original Request:** User: "continue" (final P1 finding).
+
+**Developer Intent Analysis:** P1 #6 (auth/session flow differences) is broad;
+chose a concrete, testable, high-value slice — shared auth error codes/messages
+so web auth presents consistent friendly errors (aligned with native), instead
+of leaking raw Firebase strings.
+
+**Findings:** The auth store set `error: error.message` verbatim, so users saw
+"Firebase: Error (auth/wrong-password)." etc. No centralized mapping. Two error
+families: Firebase Auth client codes (`auth/*`) and Cloud Functions callable
+HttpsError codes (`functions/*`).
+
+**Outcome (crush-web a8e29f1):**
+- New `packages/core/src/services/auth_errors.ts`: getAuthErrorMessage() maps
+  Firebase Auth codes + callable status codes to friendly text; prefers the
+  backend message for failed-precondition/invalid-argument/already-exists
+  (those are author-written user-facing strings); never leaks technical
+  "Firebase: …(code)" strings (falls back). Normalizes provider prefixes.
+- Wired into every auth-store catch block (sign-in, sign-up, Google, email
+  link, phone/code verification, password reset). Exported from core.
+- 21 tests; full web suite 137 green; core+web typecheck+lint clean.
+- Notes: This covers the "shared auth error codes" plan item. Remaining P1 #6
+  items are larger/operational: deciding web OTP/password flows (Firebase SDK
+  vs backend callables), unified redirect rules, and E2E coverage for
+  onboarding redirect / session timeout / account-deletion grace period —
+  tracked for a later pass (E2E needs the staging environment).
+
+**Milestone:** All four P1 alignment findings (#6 auth errors, #7 entitlement,
+#8 notifications, #9 branding) are now code-complete. crush-web test count grew
+47 → 137 across this session.
+
+---
+
 ### Task #310 — Web-Mobile Alignment P1 #9: Branding Alignment
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
