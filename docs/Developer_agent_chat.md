@@ -77,6 +77,42 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #310 — Web-Mobile Alignment P1 #9: Branding Alignment
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `8b561a4`)
+
+**Original Request:** User: "continue" (next code-actionable P1).
+
+**Developer Intent Analysis:** Close P1 #9 (branding/design). Make the web
+favicon, PWA icons, OG/Twitter images, and manifest match the native brand.
+
+**Canonical brand (from my_first_project design_tokens.json + adaptive icon):**
+primary `#FF3F7F`, dark background `#0D0E12`, heart mark on dark, app name
+"Crush". Web had drifted: rose `#E11D48` theme, white PWA background,
+`#FF416C→#FF4B2B` gradient on all generated icons/social images.
+
+**Outcome (crush-web 8b561a4):**
+- New `apps/web/src/lib/brand.ts` — shared BRAND constants + canonical HEART_PATH
+  (single source mirroring mobile tokens).
+- manifest.json: theme_color #FF3F7F, background_color #0D0E12.
+- favicon.svg: dark tile + primary heart (matches Android adaptive icon).
+- icon.tsx / apple-icon.tsx: dark bg + primary heart via BRAND/HEART_PATH.
+- opengraph-image.tsx / twitter-image.tsx: dark bg + primary glow + primary
+  heart + white text.
+- og-image.svg (static fallback) recolored to dark brand + canonical heart.
+- layout.tsx dark viewport themeColor #0F0F10 → #0D0E12.
+- No off-brand color refs remain in app source. Full web suite 116 green;
+  typecheck + lint clean.
+- Notes: Generated PNG raster icons (favicon.ico, multi-size PWA maskable icons)
+  from the source logo are a follow-up if the team wants raster fallbacks;
+  current setup uses SVG favicon + next/og dynamic PNG routes. Tailwind token
+  parity (whether web adopts mobile design_tokens.json wholesale) is a separate,
+  larger decision noted in the audit.
+
+---
+
 ### Task #309 — Web-Mobile Alignment P1 #7: Subscription/Entitlement Unification
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
