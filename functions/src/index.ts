@@ -7575,6 +7575,27 @@ export const setTyping = callable<{
   return { ok: true };
 });
 
+// Pin/unpin a match for the calling user. Writes the per-user pin flag on the
+// match doc (pinnedForUser.{uid}); each participant pins independently.
+export const setMatchPinned = callable<{
+  matchId?: string;
+  pinned?: boolean;
+}>(async (data, context) => {
+  const uid = requireAuth(context, "pin a match");
+  const matchId = requireString(data?.matchId, "matchId");
+  const pinned = !!data?.pinned;
+
+  await ensureUserInMatch(matchId, uid);
+  await db
+    .collection("matches")
+    .doc(matchId)
+    .set(
+      { pinnedForUser: { [uid]: pinned }, pinnedUpdatedAt: serverTimestamp() },
+      { merge: true },
+    );
+  return { ok: true };
+});
+
 export const setPresenceStatus = callable<{ isOnline?: boolean }>(
   async (data, context) => {
     const uid = requireAuth(context, "update presence");

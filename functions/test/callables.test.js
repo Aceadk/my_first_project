@@ -123,4 +123,26 @@ describe('callables auth/args', () => {
       expect(err.code).to.equal('unauthenticated');
     }
   });
+
+  it('setMatchPinned rejects unauthenticated calls', async () => {
+    const wrapped = functionsTest.wrap(functions.setMatchPinned);
+    try {
+      await wrapped({ matchId: 'm-1', pinned: true }, { auth: null });
+      throw new Error('Expected unauthenticated error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('unauthenticated');
+    }
+  });
+
+  it('setMatchPinned validates required matchId', async () => {
+    const wrapped = functionsTest.wrap(functions.setMatchPinned);
+    try {
+      await wrapped({ pinned: true }, { auth: { uid: 'user-1' } });
+      throw new Error('Expected invalid-argument error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('invalid-argument');
+    }
+  });
 });
