@@ -77,6 +77,46 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #315 — Web-Mobile Alignment P2 #11: Web I18N Foundation
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed (foundation) — incremental string migration is follow-up
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `ba18b0d`)
+
+**Original Request:** User: "scaffold web I18N as a foundation".
+
+**Developer Intent Analysis:** Web is English-only; mobile ships 21 ARB locales.
+Establish i18n infrastructure WITHOUT the risk of App Router locale
+routing/middleware (which I can't fully verify without a running dev server).
+Chose a lightweight, non-routing dictionary + context approach that lets strings
+be externalized incrementally and can migrate to next-intl later without
+changing call sites.
+
+**Outcome (crush-web ba18b0d), under apps/web/src/i18n/:**
+- locales.ts — Locale type, DEFAULT_LOCALE='en', KNOWN_LOCALES (21, mirrors
+  mobile), RTL set (ar/ur), resolveLocale() (region-tag/Accept-Language norm).
+- messages/en.ts — typed English catalog (source of truth); `Messages` = typeof
+  en enforces structural completeness for other locales. Namespaces:
+  common/nav/auth/discovery/chat/settings/subscription/errors/time.
+- messages/index.ts — registry; getMessages() falls back to en for unshipped
+  locales (partial catalogs allowed).
+- translate.ts — pure engine: dot-notation lookup, {placeholder} interpolation,
+  en fallback then key-as-fallback, _one/_other plurals; createTranslator().
+- I18nProvider.tsx — context + useI18n()/useTranslations(namespace) hooks;
+  defaults to en, safe outside a provider; exposes isRtl.
+- index.ts — barrel.
+- 12 tests (lookup, interpolation, plurals, partial-catalog fallback, registry,
+  locale resolution/RTL). Full web suite 150 green; typecheck + lint clean;
+  production build verified.
+
+**Notes / remaining (incremental, not blocking):** wrap the app (or subtree) in
+I18nProvider, migrate call sites to useTranslations, and add locale catalogs
+(es first). The originating audit P2 #11 also lists calls/RTC web and
+profile/media parity as separate large efforts. The i18n FOUNDATION is complete;
+full coverage is ongoing translation work.
+
+---
+
 ### Task #314 — Web-Mobile Alignment: Match Pinning Callable (gap closure)
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
