@@ -77,6 +77,44 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #316 — Re-Audit Gate 0: Green, Zero-Warning Web CI Baseline
+**Date:** 2026-06-06
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `b563091`)
+
+**Original Request:** User pasted Step 1 from the 2026-06-06 re-audit
+(`crush_web_mobile_alignment_reaudit_2026-06-06.md`, Gate 0): fix web CI/type
+safety — i18n typecheck failure, async client component, hook-dependency
+warnings, missing alt text, unused code; make lint warnings fail CI. Done when
+lint+typecheck+test+build all pass with zero errors and no high-risk warnings.
+
+**Outcome (crush-web b563091):**
+- **i18n typing:** replaced literal `Messages = typeof en` with a reusable
+  per-namespace `Record<keyof typeof en.x, string>` shape (shares the key set,
+  allows any locale's text). Fixes the i18n.test.ts typecheck failure. Avoided a
+  recursive mapped type that crashes typescript-eslint's no-unused-vars rule.
+- **async client component:** `messages/[matchId]/page.tsx` now unwraps the
+  params promise with React `use()` instead of being an async client component.
+- **hook deps (4):** verify-email (add user?.uid), streak-celebration
+  (useCallback handleClose), voice-note-recorder (stopRecording via ref to break
+  cycle), use-location (reorder effect below requestLocation + add deps).
+- **alt-text:** fallback-ui imports lucide `Image as ImageIcon`.
+- **unused code (~30 web + 9 core):** removed unused imports/vars/dead useState/
+  unused store `get` args; documented 2 intentional env-gated console.log with
+  eslint-disable + reason.
+- **CI enforcement:** added `--max-warnings=0` to lint scripts in apps/web,
+  packages/core, packages/ui so any new warning fails `pnpm lint` and the CI
+  lint lane.
+- **Verified:** pnpm lint (3/3), typecheck (3/3), test (12 files/150), build
+  (54 pages) — all green, zero warnings.
+- **Notes:** This completes the CI/type-safety slice of Gate 0. Remaining Gate 0
+  items (separate tasks): web App Check + CSP origins, a rules-emulator harness,
+  the canonical domain/hosting decision, and marking route/domain/contract
+  matrices as as-built vs target.
+
+---
+
 ### Task #315 — Web-Mobile Alignment P2 #11: Web I18N Foundation
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
@@ -17214,3 +17252,36 @@ The run completed pod install and Xcode build, then failed with:
   - `flutter pub outdated` / `npm outdated` / `npm audit` captured; nothing mutated.
   - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
 - **Next Step:** Execute remediation (firebase minor bumps + re-audit; multer v2) separately with smoke tests; generate license SBOM.
+
+### Task #293 — Deep Re-Audit Crush Web and Mobile Alignment
+
+**Original Request:**
+- Review the existing Crush Web and Mobile Alignment Plan, deeply inspect all relevant files/folders and concepts across UI/UX, frontend, and backend, determine what has been completed, and identify what still needs to be made cleaner, deeper, and more aligned.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Replace the 2026-06-03 alignment-plan snapshot with a current evidence-based completion and gap analysis.
+- **Scope:** `/Users/ace/my_first_project`, `/Users/ace/crush-web`, alignment specifications/plans, routes, schemas, services, backend contracts, UI/UX surfaces, testing/CI, documentation, and production-readiness evidence.
+- **Constraints:** audit and documentation only; preserve unrelated working-tree changes; distinguish implemented, flag-gated, migrated, deployed, and production-verified states.
+- **Expected Outcome:** a prioritized alignment report that states what is complete, what is partial, what remains, and the cleanest execution sequence.
+
+**Status Updates:**
+- **Received:** User requested a deep re-audit after completing much of the existing web/mobile alignment plan.
+- **In Progress:** Read required collaboration docs and the original plan; confirmed many former gaps now have committed implementations, then started systematic cross-repo contract, feature, UI/UX, and verification analysis.
+- **Completed:** Published a current evidence-based re-audit, marked the June 3 plan as a historical baseline, recorded newly exposed production/security risks, and validated the current backend/web baselines.
+
+**Outcome:**
+- **Files Changed:**
+  - `docs/reports/crush_web_mobile_alignment_reaudit_2026-06-06.md`
+  - `docs/reports/crush_web_mobile_alignment_plan_2026-06-03.md`
+  - `docs/risk_notes.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Key Result:** The original plan is substantially implemented, but web production alignment remains blocked by disabled V2 cutover, missing web App Check, CSP/backend-origin mismatch, Firestore rules/data-path conflicts, client-controlled trust/benefit state, and unresolved route/domain/deployment truth.
+- **Verification:**
+  - `functions/npm run build` passed.
+  - `crush-web/pnpm test` passed: 12 files, 150 tests.
+  - `crush-web/pnpm build` passed.
+  - `crush-web/pnpm lint` passed with 35 warnings.
+  - `crush-web/pnpm typecheck` failed in `apps/web/src/lib/__tests__/i18n.test.ts` because the message type is inferred from literal English values.
+  - `scripts/check_ai_docs_sync.sh --files <changed files>` passed.
+- **Next Step:** Execute `WEB-PROD-001` from the re-audit: fix the web typecheck regression, initialize App Check, correct CSP, and add staging integration evidence before enabling canonical backend paths.

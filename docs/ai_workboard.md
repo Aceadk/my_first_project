@@ -20,6 +20,7 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
+| T-2026-06-06-REAUDIT-GATE0 | 2026-06-06 | Re-Audit Gate 0 — green zero-warning web CI baseline | Completed | Fixed i18n typecheck, async client component, hook deps, alt-text, 44 lint warnings; lint --max-warnings=0. All 4 web CI commands green. Next Gate 0: App Check + CSP, rules emulator harness, domain decision. |
 | T-2026-06-05-ALIGNMENT-P2-I18N | 2026-06-05 | Web-Mobile Alignment — P2 #11 Web I18N foundation | In Progress | Scaffolded non-routing i18n (catalog + engine + provider/hook, 12 tests). Incremental follow-up: wrap app in I18nProvider, migrate call sites, add locale catalogs. Other P2 #11: calls/RTC. |
 | T-2026-06-05-ALIGNMENT-PIN | 2026-06-05 | Web-Mobile Alignment — Match pinning callable | Completed | Added backend setMatchPinned callable + wired web V2 (closes Phase 2.0 gap). Cross-repo, tested. |
 | T-2026-06-05-ALIGNMENT-P1-CI | 2026-06-05 | Web-Mobile Alignment — P1 #10 Web CI lanes | Completed | Added typecheck + build lanes to crush-web CI (verified locally). E2E/emulator/docs-sync lanes tracked in CI plan. |
@@ -7647,3 +7648,27 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `dart analyze lib/core/network/api_version.dart lib/core/network/dto/discovery_dto.dart lib/features/discovery/data/repositories/impl/http_discovery_repository.dart lib/features/discovery/data/repositories/impl/firebase_discovery_repository.dart lib/features/chat/data/repositories/impl/firebase_chat_repository.dart lib/features/chat/data/repositories/impl/http_chat_repository.dart lib/features/subscription/data/repositories/impl/http_subscription_repository.dart lib/features/subscription/data/repositories/impl/firebase_subscription_repository.dart lib/features/profile/data/repositories/impl/http_profile_repository.dart lib/features/calls/data/repositories/impl/http_call_repository.dart lib/features/calls/data/repositories/impl/firebase_call_repository.dart lib/features/calls/data/repositories/impl/call_contract_support.dart test/api_version_test.dart test/features/discovery/data/repositories/impl/http_discovery_repository_test.dart test/features/chat/data/repositories/impl/http_chat_repository_contract_test.dart test/features/subscription/data/repositories/impl/http_subscription_repository_test.dart test/features/calls/data/repositories/impl/call_contract_support_test.dart test/features/calls/data/repositories/impl/http_call_repository_test.dart`
   - `flutter test test/api_version_test.dart test/features/discovery/data/repositories/impl/http_discovery_repository_test.dart test/features/chat/data/repositories/impl/http_chat_repository_contract_test.dart test/features/chat/data/repositories/impl/http_chat_repository_transport_adapter_test.dart test/features/subscription/data/repositories/impl/http_subscription_repository_test.dart test/features/calls/data/repositories/impl/call_contract_support_test.dart test/features/calls/data/repositories/impl/http_call_repository_test.dart test/features/profile/data/repositories/impl/http_profile_repository_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_ios_test.dart test/features/subscription/data/repositories/firebase_subscription_repository_android_test.dart`
 - Next Step: Execute `API-005` to reconcile `HttpAuthRepository` with real backend contracts and decide the permanent backend/product contract for discovery rewind.
+
+### T-2026-06-06-WEB-MOBILE-ALIGNMENT-REAUDIT
+- Date: 2026-06-06
+- Owner: Codex
+- Status: Completed
+- Goal: Re-audit the full Crush web/mobile alignment state after the large implementation wave that followed the 2026-06-03 plan, and produce a current prioritized completion/gap roadmap.
+- Scope: `/Users/ace/my_first_project`, `/Users/ace/crush-web`, cross-repo contracts, data models, routes, frontend/backend behavior, UI/UX, testing/CI, workflow docs, and production-readiness evidence.
+- Key Changes:
+  - Published `docs/reports/crush_web_mobile_alignment_reaudit_2026-06-06.md` with a completed/partial/open assessment, module matrix, UI/UX and architecture audit, release blockers, target architecture, and ordered execution gates.
+  - Marked the 2026-06-03 plan as a historical baseline and recorded new risks `R-065` and `R-066`.
+- Findings:
+  - The original plan is stale in several major areas: Phase 0 specifications, web V2 chat/match services, migration tooling, flag-gated store cutover, auth-error mapping, entitlement, notification routing, branding, CI build/typecheck, web workflow docs, match pinning, and initial web i18n are now committed.
+  - The primary remaining gap is production-operational alignment: V2 is disabled, web App Check is absent, CSP excludes backend origins, several live web paths conflict with Firestore rules, and some trust/benefit state is client-controlled.
+- Risks/Mitigation:
+  - Do not treat page existence, adapter availability, or a feature flag as proof of end-to-end parity; require rules-emulator, authenticated staging E2E, migration, deployment, and observation evidence.
+  - Address `R-065` and `R-066` before production web cutover.
+- Verification:
+  - `functions/npm run build` passed.
+  - `crush-web/pnpm test` passed: 12 files, 150 tests.
+  - `crush-web/pnpm build` passed.
+  - `crush-web/pnpm lint` passed with 35 warnings.
+  - `crush-web/pnpm typecheck` failed in the i18n tests due to literal-value message typing.
+  - `scripts/check_ai_docs_sync.sh --files <changed files>` passed.
+- Next Step: Execute `WEB-PROD-001`, then `RULES-001` and `WEB-DATA-001` from the re-audit before chat/match cutover.
