@@ -20,7 +20,8 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 
 | Task ID         | Opened     | Title                                      | Status      | Next Step                                                                                          |
 | --------------- | ---------- | ------------------------------------------ | ----------- | -------------------------------------------------------------------------------------------------- |
-| T-2026-06-05-ALIGNMENT-PHASE-1 | 2026-06-05 | Web-Mobile Alignment — Phase 1.0/1.5 (V2 services + migration) | Completed | V2 services + verified contracts + migration script done. Next: Phase 2.0 (cut stores over to V2 + dual-write) then run migration on staging. |
+| T-2026-06-05-ALIGNMENT-PHASE-2 | 2026-06-05 | Web-Mobile Alignment — Phase 2.0 (store cutover) | Completed | Stores cut over to V2 behind NEXT_PUBLIC_USE_V2_CHAT flag (default OFF). Next: run migration on staging, flip flag, validate E2E. |
+| T-2026-06-05-ALIGNMENT-PHASE-1 | 2026-06-05 | Web-Mobile Alignment — Phase 1.0/1.5 (V2 services + migration) | Completed | V2 services + verified contracts + migration script done. |
 | T-2026-06-05-ALIGNMENT-PHASE-0 | 2026-06-05 | Web-Mobile Alignment — Phase 0 Stabilization | Completed | All Phase 0 tasks done: 4 spec docs, migration plan (Option B approved), CI plan, repo cleanup. Ready for Phase 0.5 (data audit). |
 | T-2026-06-05-ANDROID-BUILTIN-KOTLIN | 2026-06-05 | Migrate Android app away from explicit Kotlin Gradle Plugin | Completed | Track upstream plugin KGP migration risk in R-066. |
 | T-2026-06-05-PUSH-GITHUB | 2026-06-05 | Push complete local state to GitHub | Completed | Review draft PR #1 at `https://github.com/Aceadk/my_first_project/pull/1`. |

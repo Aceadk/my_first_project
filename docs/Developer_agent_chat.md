@@ -77,6 +77,56 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #307 — Web-Mobile Alignment Phase 2.0: Store Cutover (flag-gated)
+**Date:** 2026-06-05
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** crush-web (branch `codex/auth-storage-cleanup`, commit `f027ad1`)
+
+**Original Request:** User: "next" (proceed to Phase 2.0 component/store cutover).
+
+**Developer Intent Analysis:**
+- Primary goal: Make the V2 services actually used by the app (otherwise they're
+  dead code), without risking production until the data migration has run.
+- Implicit requirement: minimal store churn, reversible, testable.
+- Quality: keep legacy paths intact; default to legacy so prod is unchanged.
+
+**Approach — adapter + feature flag.** The architecture is components → Zustand
+stores → services. Rather than rewrite every store action (optimistic updates,
+retry logic), I added thin adapters implementing the exact legacy service
+surface the stores call, routed to the V2 services, and the stores select
+adapter-vs-legacy at module load via `isV2ChatEnabled()`
+(`NEXT_PUBLIC_USE_V2_CHAT`, default OFF).
+
+**Outcome:**
+- New (crush-web):
+  - `config/features.ts` — `isV2ChatEnabled()` flag (default OFF).
+  - `services/message_v2_adapter.ts` — legacy messageService surface → V2.
+    conversationId === matchId. Maps: getConversations from active matches,
+    synthetic getOrCreateConversation, typing uid[]→TypingIndicator, reaction
+    toggle direction (reads current reaction to choose add/remove), block→
+    blockUser callable by participant, delete→unsendMessage, markAsRead→
+    markMessagesRead, sendMessage resolves toUserId from the match doc.
+  - `services/match_v2_adapter.ts` — legacy matchService surface → V2. Discovery
+    stays on the legacy REST path (unchanged). pass→swipeLeft, like/superlike→
+    swipeRight. togglePin is a documented no-op (no backend callable yet — gap).
+  - `apps/web/.../v2-adapters-contract.test.ts` — 12 adapter contract tests.
+- Modified: `stores/message.ts`, `stores/match.ts` (one-line backend select +
+  imports; legacy paths untouched), `index.ts` (export flag).
+- Result: 12 new tests; full web suite 74 green; core + apps/web typecheck
+  clean; lint clean on changed files. Pushed `f027ad1`.
+- Known gap: match pinning has no V2 backend callable (togglePin no-op in V2).
+  Follow-up: add a `setPinned` callable, or write pinnedForUser via an allowed
+  rule.
+- Notes: Reverting = flip the flag off (or revert commit); legacy services
+  remain. **Next (Phase 2.5 cutover sequence):** (1) run the Phase 1.5 migration
+  on staging (dry-run → execute → verify), (2) set NEXT_PUBLIC_USE_V2_CHAT=true
+  on staging, (3) validate E2E (send/receive, read state, typing, swipe→match,
+  unmatch), (4) production migration + flag flip with monitoring, (5) after a
+  verification window, retire legacy conversations/ services + data.
+
+---
+
 ### Task #306 — Web-Mobile Alignment Phase 1.5: Data Migration Script
 **Date:** 2026-06-05
 **Agent:** Claude (Opus 4.8)
