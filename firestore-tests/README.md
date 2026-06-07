@@ -60,10 +60,11 @@ NOT granted here; reconciliation tests should be added as each is migrated:
 - ~~`promoCodes/*`, `promoCodeRedemptions/*`~~ → server-owned validate/redeem callables; deny-by-default for clients (done)
 - ~~Boost self-grant~~ → server-owned `activateBoost` callable + `boost` field locked in rules (done)
 - ~~Entitlement self-grant~~ → `subscription*`/`isPremium`/`premiumPlan`/`safetyFlags` locked in rules (done)
+- ~~`user_streaks/*`~~ → server-owned (backend writes only; streak bonus now raises
+  the authoritative daily like limit via `enforceDailyLikeLimit`; web reads
+  `getStreakStatus`). Deny-by-default for clients (verified). See
+  `docs/contracts/streak_decision_2026-06-07.md`. (done)
 - `users/{uid}/stories` (canonical is top-level `stories/{storyId}` + a `views` subcollection model) — **pending migration**
-- `user_streaks/*` — **blocked on product decision**: the backend enforces a flat
-  daily like limit (`rateLimits/{uid}`); whether the streak bonus should raise the
-  authoritative limit is a product call. Deny-by-default today (no self-grant risk).
 - Legacy direct match/swipe writes — superseded by V2 (flag-gated); removal follows
   the V2 production cutover.
 

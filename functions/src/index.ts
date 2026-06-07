@@ -431,6 +431,104 @@ const DAILY_LIKE_LIMIT_FREE = 30;
 const DAILY_LIKE_LIMIT_PLUS = 300;
 const HOURLY_LIKE_LIMIT_FREE = 10; // Hourly throttle for free users
 const HOURLY_LIKE_LIMIT_PLUS = 50; // Hourly throttle for plus users
+
+// Streak rewards (server-owned). A free user's daily like allowance is the base
+// limit plus a consecutive-day streak bonus, capped. Mirrors the web milestone
+// curve; the backend is the single source of truth (web displays these via the
+// getStreakStatus callable). See docs/contracts/streak_decision_2026-06-07.md.
+const STREAK_MILESTONES: { days: number; bonus: number }[] = [
+  { days: 2, bonus: 2 },
+  { days: 3, bonus: 4 },
+  { days: 4, bonus: 6 },
+  { days: 5, bonus: 8 },
+  { days: 7, bonus: 10 },
+  { days: 10, bonus: 12 },
+  { days: 14, bonus: 14 },
+  { days: 21, bonus: 16 },
+  { days: 30, bonus: 19 },
+];
+const STREAK_MAX_BONUS = STREAK_MILESTONES[STREAK_MILESTONES.length - 1].bonus;
+
+function streakBonusLikes(streakDays: number): number {
+  let bonus = 0;
+  for (const milestone of STREAK_MILESTONES) {
+    if (streakDays >= milestone.days) bonus = milestone.bonus;
+    else break;
+  }
+  return bonus;
+}
+
+function nextStreakMilestone(
+  streakDays: number,
+): { days: number; bonus: number } | null {
+  return STREAK_MILESTONES.find((m) => streakDays < m.days) ?? null;
+}
+
+const dayKey = (d: Date) => d.toISOString().slice(0, 10);
+
+/**
+ * Record one day of streak activity for a user (server-owned `user_streaks`).
+ * Idempotent within a day: the first activity advances/resets the streak;
+ * subsequent calls the same day are no-ops. Returns the current streak + bonus.
+ */
+async function recordDailyStreakActivity(uid: string): Promise<{
+  currentStreak: number;
+  longestStreak: number;
+  bonus: number;
+  incremented: boolean;
+  isNewRecord: boolean;
+}> {
+  const ref = db.collection("user_streaks").doc(uid);
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(ref);
+    const data = snap.exists ? (snap.data() as Record<string, unknown>) : {};
+    const now = new Date();
+    const today = dayKey(now);
+    const lastKey =
+      typeof data.lastActivityDate === "string"
+        ? data.lastActivityDate.slice(0, 10)
+        : null;
+
+    let currentStreak = (data.currentStreak as number) ?? 0;
+    const previousLongest = (data.longestStreak as number) ?? 0;
+    let longestStreak = previousLongest;
+    let streakStartDate =
+      (data.streakStartDate as string) ?? now.toISOString();
+    let incremented = false;
+
+    if (lastKey !== today) {
+      const yesterday = dayKey(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+      if (lastKey === yesterday) {
+        currentStreak += 1;
+      } else {
+        currentStreak = 1;
+        streakStartDate = now.toISOString();
+      }
+      incremented = true;
+      longestStreak = Math.max(longestStreak, currentStreak);
+      tx.set(
+        ref,
+        {
+          userId: uid,
+          currentStreak,
+          longestStreak,
+          lastActivityDate: now.toISOString(),
+          streakStartDate,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+
+    return {
+      currentStreak,
+      longestStreak,
+      bonus: streakBonusLikes(currentStreak),
+      incremented,
+      isNewRecord: incremented && currentStreak > previousLongest,
+    };
+  });
+}
 const DISCOVERY_PAGE_SIZE = 120;
 const DISCOVERY_QUERY_SCAN_LIMIT = 1000;
 const DISCOVERY_DECK_CURSOR_VERSION = 1;
@@ -7199,7 +7297,22 @@ function haversineDistanceKm(
 
 async function enforceDailyLikeLimit(uid: string, plan?: string) {
   const isPlus = (plan ?? "").toLowerCase() === "plus";
-  const dailyLimit = isPlus ? DAILY_LIKE_LIMIT_PLUS : DAILY_LIKE_LIMIT_FREE;
+
+  // Free users earn streak-bonus likes on top of the base daily limit. Streak
+  // recording is best-effort and must never block a swipe.
+  let streakBonus = 0;
+  if (!isPlus) {
+    try {
+      const streak = await recordDailyStreakActivity(uid);
+      streakBonus = Math.min(streak.bonus, STREAK_MAX_BONUS);
+    } catch (err) {
+      console.error("Streak activity record failed (non-blocking):", err);
+    }
+  }
+
+  const dailyLimit = isPlus
+    ? DAILY_LIKE_LIMIT_PLUS
+    : DAILY_LIKE_LIMIT_FREE + streakBonus;
   const hourlyLimit = isPlus ? HOURLY_LIKE_LIMIT_PLUS : HOURLY_LIKE_LIMIT_FREE;
 
   const now = new Date();
@@ -7830,6 +7943,81 @@ export const redeemPromoCode = callable<{
     discountPercent,
   };
 });
+
+// Server-authoritative streak + daily like-limit status for display. The web
+// reads this instead of hardcoding limit numbers, so the displayed allowance
+// always matches what enforceDailyLikeLimit actually enforces.
+export const getStreakStatus = callable<Record<string, never>>(
+  async (_data, context) => {
+    const uid = requireAuth(context, "get streak status");
+    const user = await getUser(uid);
+    const isPlus = (user.plan ?? "").toLowerCase() === "plus";
+
+    const streakSnap = await db.collection("user_streaks").doc(uid).get();
+    const streak = streakSnap.exists
+      ? (streakSnap.data() as Record<string, unknown>)
+      : {};
+    const currentStreak = (streak.currentStreak as number) ?? 0;
+    const longestStreak = (streak.longestStreak as number) ?? 0;
+    const bonus = streakBonusLikes(currentStreak);
+
+    const baseLikes = DAILY_LIKE_LIMIT_FREE;
+    const totalAllowed = isPlus ? -1 : baseLikes + bonus; // -1 = unlimited
+
+    const now = new Date();
+    const rlSnap = await db.collection("rateLimits").doc(uid).get();
+    const dailyLikes =
+      (rlSnap.data()?.dailyLikes as Record<string, number> | undefined) ?? {};
+    const used = dailyLikes[dayKey(now)] ?? 0;
+    const remaining = isPlus ? -1 : Math.max(0, totalAllowed - used);
+    const next = nextStreakMilestone(currentStreak);
+
+    const lastActivityDate =
+      typeof streak.lastActivityDate === "string"
+        ? streak.lastActivityDate
+        : null;
+    const maintainedToday =
+      lastActivityDate != null && lastActivityDate.slice(0, 10) === dayKey(now);
+
+    return {
+      ok: true,
+      isPremium: isPlus,
+      currentStreak,
+      longestStreak,
+      baseLikes,
+      streakBonus: bonus,
+      totalAllowed,
+      used,
+      remaining,
+      nextMilestoneDays: next?.days ?? null,
+      nextMilestoneBonus: next?.bonus ?? null,
+      maintainedToday,
+      lastActivityDate,
+      streakStartDate:
+        typeof streak.streakStartDate === "string"
+          ? streak.streakStartDate
+          : null,
+    };
+  },
+);
+
+// Record a day of streak activity (e.g. on app open), server-owned. Idempotent
+// per day. Like-consumption streak advancement also happens during swipes.
+export const recordStreakActivity = callable<Record<string, never>>(
+  async (_data, context) => {
+    const uid = requireAuth(context, "record streak activity");
+    const { currentStreak, longestStreak, bonus, incremented, isNewRecord } =
+      await recordDailyStreakActivity(uid);
+    return {
+      ok: true,
+      currentStreak,
+      longestStreak,
+      streakBonus: bonus,
+      incremented,
+      isNewRecord,
+    };
+  },
+);
 
 export const appealSafetyAction = callable<AppealRequest>(
   async (data, context) => {

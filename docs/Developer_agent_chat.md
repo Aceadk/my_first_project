@@ -77,6 +77,40 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #328 — Streak Decision: Server-Owned + Bonus Raises Real Like Limit
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8) — autonomous (user AFK said "continue both")
+**Status:** Completed
+**Repos:** my_first_project + crush-web (`codex/auth-storage-cleanup`)
+
+**Original Request:** "continue both" — (a) chat/match cutover execution and
+(b) the streak→limit decision.
+
+**(a) Cutover — BLOCKED:** the firebase CLI is authed to PRODUCTION `crush-265f7`
+only (no staging project), and admin ADC is unset, so the migration/inventory
+scripts can't authenticate. Running a data migration or flipping prod flags while
+the user is AFK is an unsafe, hard-to-reverse action → NOT performed. The full
+turn-key tooling + runbook already exist (Task #327).
+
+**(b) Streak decision — IMPLEMENTED.** Resolved the divergence (backend flat 30 vs
+web hardcoded 50/69):
+- Decision (docs/contracts/streak_decision_2026-06-07.md): streaks server-owned;
+  bonus raises the authoritative limit; keep base 30 (no monetization change);
+  backend is the single source of truth; web displays it.
+- Backend: STREAK_MILESTONES + streakBonusLikes; recordDailyStreakActivity
+  (transactional, idempotent/day, returns increment/isNewRecord);
+  enforceDailyLikeLimit is streak-aware for free users (base + bonus, capped at
+  +19) wrapped so a streak error never blocks a swipe; getStreakStatus +
+  recordStreakActivity callables. 20 callable tests; build + lint clean; the 59
+  pre-existing emulator failures unchanged (no regression; no test asserted the
+  flat limit).
+- Web: streak.ts reads → getStreakStatus; recordActivity → recordStreakActivity;
+  useLike → non-blocking display gate (backend swipe is the authoritative
+  consume). No hardcoded 50/69 remain. streak-server-owned.test.ts (6); web
+  suite 203; typecheck + lint + build green.
+
+---
+
 ### Task #327 — Phase 5 Steps 8/9: Chat/Match Cutover Tooling + Runbook
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8) — autonomous continuation (user AFK, authorized)
