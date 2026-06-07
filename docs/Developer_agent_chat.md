@@ -77,6 +77,58 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #333 — Phase 8 Step 18: Complete Web Localization
+**Date:** 2026-06-07
+**Agent:** Claude (Haiku 4.5)
+**Status:** Completed (code) / remaining string sweep + extra-locale translation tracked
+**Repos:** crush-web (code), my_first_project (docs)
+
+**Original Request:** Phase 8 Step 18 — complete web localization: mount the i18n
+provider globally; replace hardcoded UI copy; localize validation, backend
+errors, metadata, notifications, dates, currencies; add locale switching +
+persistence; add prioritized locale E2E coverage.
+
+**Built on** the P2 #11 non-routing i18n foundation (dot-notation keys,
+`{placeholder}` interpolation, `_one/_other` plurals, English fallback).
+
+**Provider mounted globally:** `<I18nProvider>` wraps the app in
+`app-providers.tsx`. Locale resolves client-first from the `crush-locale` cookie
+→ browser language → `en` (mirrors the theme strategy so static marketing pages
+are not deopted to dynamic). A pre-hydration `localeInitScript` in the layout
+`<head>` sets `<html lang/dir>` before paint (no-flash, correct RTL on first
+frame).
+
+**Switching + persistence:** `LocaleSwitcher` (accessible radio dropdown) in the
+sidebar footer; `setLocale` writes the cookie (+ localStorage) and updates state
++ `<html lang/dir>` instantly (no reload). 21 locales offered by endonym.
+
+**Formatting:** `i18n/format.ts` + `useFormatters` — locale-bound `Intl`
+date/dateTime/number/currency/relativeTime.
+
+**Copy + catalogs:** new namespaces (`validation`, `authErrors`,
+`notifications`, `meta`) + expanded `errors`/`settings`/`auth`. Backend/Firebase
+auth errors localized via `getAuthErrorKey()` (added to `@crush/core`, returns an
+`authErrors.<code>` key). Shipped `es` (LTR) + `ar` (RTL) catalogs typed as
+`Messages` (tsc-enforced completeness). Externalized the global chrome
+(`app-sidebar`) + the login form.
+
+**Tests:** vitest — translation engine, catalog parity (deep key set, no blanks,
+no unknown placeholders), formatters, `getAuthErrorKey`↔catalog; E2E
+`e2e/i18n.spec.ts` (default→en, es cookie→lang=es LTR, ar cookie→dir=rtl,
+switcher persistence across reload). **251 web unit tests green**; lint +
+typecheck clean (web + core).
+
+**Metadata boundary (intentional):** default `metadata` stays English/static for
+SEO stability; localized `meta.*` keys exist for client title sync + future use.
+Fully localized SSR metadata + per-locale routing/hreflang require routed locales
+(next-intl migration) — out of scope for the non-routing foundation, tracked.
+
+**Tracked follow-up:** externalize the remaining page copy into the existing
+namespaces; translate the other roadmap locales (fall back to English now);
+optional routed-locale SSR metadata. Contract: `web_localization_2026-06-07.md`.
+
+---
+
 ### Task #332 — Phase 8 Steps 15/16/17: UX Contracts, Design-System Alignment, A11y/Responsive
 **Date:** 2026-06-07
 **Agent:** Claude (Haiku 4.5)

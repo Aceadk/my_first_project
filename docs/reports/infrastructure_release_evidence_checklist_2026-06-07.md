@@ -143,6 +143,16 @@ Run on staging against the deployed app; record results in the release ticket.
   external keyboard · tablet/iPad · NVDA/JAWS live-region announcements ·
   dark-mode contrast (see §2 of the a11y/responsive contract).
 
+### Localization (Phase 8 Step 18)
+- ✅ i18n mounted globally (cookie-persisted locale, no-flash lang/dir), locale
+  switcher, `Intl` formatters, `es`+`ar` catalogs shipped, auth/validation errors
+  localized; chrome + login externalized. Contract: `web_localization_2026-06-07.md`.
+- ☐ 🌐 Run `e2e/i18n.spec.ts` (es LTR, ar RTL, switcher persistence) in the E2E lane.
+- ☐ Translation effort: externalize the remaining page copy into the existing
+  namespaces; translate the other roadmap locales (they fall back to English now).
+- ☐ Decide whether to add routed locales + localized SSR metadata/hreflang
+  (next-intl migration) — only if per-locale SEO becomes a priority.
+
 ### Calls (P2 #11 / blocked)
 - ☐ 📱 Calls device matrix — **blocked**: no web WebRTC yet (product decision to
   build or defer web calling).
