@@ -77,6 +77,54 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #329 — Phase 6 Steps 10/11: Domains, Deployment, As-Built Route Manifest
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed (web/code) — mobile/email/Stripe domain flip infra-sequenced
+**Repos:** my_first_project + crush-web (`codex/auth-storage-cleanup`)
+
+**Original Request:** Phase 6 — align domains/routes/deployments (Steps 10 + 11).
+
+**Decisions (via AskUserQuestion):** canonical production domain **crush.app**;
+canonical web deployment **Vercel**.
+
+**Key finding:** `crushhour.app` is the LIVE mobile deep-link + certificate-pinning
+domain (deep_links/cert_pinning/router tests) and the email sender + Stripe
+default URLs — so a blind global flip would break mobile universal links, cert
+pinning, and email delivery (all infra-gated). I canonicalized the WEB now and
+sequenced the mobile/email/Stripe flip behind the infra migration.
+
+**Step 10 outcome:**
+- `docs/contracts/domain_deployment_decision_2026-06-07.md`: decision + a
+  code-vs-INFRA migration checklist (DNS/SSL, Firebase Auth domains, Apple AASA,
+  Android assetlinks, cert-pin rotation, email sender verification, Stripe
+  dashboard) — infra FIRST, then flip code.
+- crush-web (safe, web-side): `crushapp.com`→`crush.app` (layout schema, contact,
+  faq, billing success/cancel URLs); notification resolver keeps crushhour.app as
+  a documented legacy-redirect host with crush.app canonical; removed the
+  conflicting `crush-web/firebase.json` Hosting config + repointed deploy scripts
+  to Vercel.
+- Deprecated-domain CI guard: `scripts/check-deprecated-domains.mjs` (+ `pnpm
+  check:domains` + a CI step) — rejects crushapp.com/app.crush.dating/crush.dating
+  in web source and crushhour.app outside the documented legacy-redirect allowlist.
+- Deferred (infra-gated, NOT flipped): mobile deep-link host + universal/app links
+  + cert pinning; backend EMAIL_FROM + Stripe default URLs.
+
+**Step 11 outcome:**
+- `apps/web/src/lib/route-manifest.ts`: as-built WEB_ROUTES (46) +
+  NOTIFICATION_REACHABLE_ROUTES + dynamic-aware matcher.
+- `route-existence.test.ts` (20): manifest ↔ filesystem (no missing/undocumented
+  routes) and every notification-reachable route is implemented.
+- `docs/reports/route_manifest_2026-06-07.md`: human-readable as-built matrix
+  (mobile↔web, status impl/target/alias/blocked), aliases/redirects, and web gaps
+  (view-other-profile, story viewer, chat-settings = target; calls = blocked).
+  Supersedes the aspirational route_deeplink_matrix.
+- Caught (documented): no web `/profile/:userId` page (mobile has it) — web target;
+  backend emits no profile-view notification so no live drift.
+- Verified: web lint/typecheck/build green; vitest 223; domains guard green.
+
+---
+
 ### Task #328 — Streak Decision: Server-Owned + Bonus Raises Real Like Limit
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8) — autonomous (user AFK said "continue both")
