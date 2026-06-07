@@ -34,6 +34,16 @@ import {
   type CallableContext,
   verifyCallableAppCheck,
 } from "./shared/callable";
+import {
+  PROFILE_PHOTO_MAX_BYTES,
+  PROFILE_PHOTO_ALLOWED_MIME_TYPES,
+  PROFILE_PHOTO_EXTENSION_BY_MIME,
+  CHAT_MEDIA_MAX_BYTES_BY_KIND,
+  CHAT_MEDIA_ALLOWED_MIME_TYPES_BY_KIND,
+  CHAT_MEDIA_EXTENSION_BY_MIME,
+  CHAT_MEDIA_MAX_BYTES,
+  type ChatMediaUploadKind,
+} from "./shared/media_limits";
 
 const bigquery = new BigQuery();
 const BQ_DATASET = "crushhour_ml";
@@ -10026,73 +10036,7 @@ export const checkProfileCompleteness = callable<ProfileCompletenessRequest>(
 // ═══════════════════════════════════════════════════════════════════════════
 
 const app = express();
-const PROFILE_PHOTO_MAX_BYTES = 10 * 1024 * 1024; // 10MB
-const PROFILE_PHOTO_ALLOWED_MIME_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-]);
-const PROFILE_PHOTO_EXTENSION_BY_MIME: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/heic": "heic",
-  "image/heif": "heif",
-};
-type ChatMediaUploadKind = "image" | "video" | "audio";
-const CHAT_MEDIA_MAX_BYTES_BY_KIND: Record<ChatMediaUploadKind, number> = {
-  image: 25 * 1024 * 1024,
-  video: 100 * 1024 * 1024,
-  audio: 25 * 1024 * 1024,
-};
-const CHAT_MEDIA_ALLOWED_MIME_TYPES_BY_KIND: Record<
-  ChatMediaUploadKind,
-  Set<string>
-> = {
-  image: new Set([
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "image/heic",
-    "image/heif",
-  ]),
-  video: new Set([
-    "video/mp4",
-    "video/quicktime",
-    "video/x-msvideo",
-    "video/webm",
-  ]),
-  audio: new Set([
-    "audio/mpeg",
-    "audio/mp4",
-    "audio/aac",
-    "audio/wav",
-    "audio/ogg",
-  ]),
-};
-const CHAT_MEDIA_EXTENSION_BY_MIME: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/gif": "gif",
-  "image/webp": "webp",
-  "image/heic": "heic",
-  "image/heif": "heif",
-  "video/mp4": "mp4",
-  "video/quicktime": "mov",
-  "video/x-msvideo": "avi",
-  "video/webm": "webm",
-  "audio/mpeg": "mp3",
-  "audio/mp4": "m4a",
-  "audio/aac": "aac",
-  "audio/wav": "wav",
-  "audio/ogg": "ogg",
-};
-const CHAT_MEDIA_MAX_BYTES = Math.max(
-  ...Object.values(CHAT_MEDIA_MAX_BYTES_BY_KIND),
-);
+// Media limits & MIME tables moved to ./shared/media_limits (Phase 9 Step 21).
 const profilePhotoUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: PROFILE_PHOTO_MAX_BYTES },
