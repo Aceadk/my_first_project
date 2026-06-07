@@ -77,6 +77,57 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #322 — Phase 3 Step 5: Fix User And Profile Writes (canonical-only)
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed (code + migration script; execution needs staging creds)
+**Repos:** crush-web (`codex/auth-storage-cleanup`) + my_first_project
+
+**Original Request:** User pasted Phase 3 Step 5 "Fix User And Profile Writes":
+stop web profile create/update from writing legacy flat fields; write canonical
+data only under profile.*; define retained root fields; shared Dart+TS fixtures;
+test onboarding/profile-edit/discovery-eligibility/legacy-reads; plan + execute
+legacy-profile migration. Done when web onboarding/profile editing pass current
+rules without workarounds.
+
+**Findings:** `buildUserProfileCreateData` and `buildUserProfileUpdateData` each
+wrote 7 keys in firestore.rules `legacyFlatProfileKeys()` at root —
+bio, birthDate, age, gender, sexualOrientation, interests, isVerified — all of
+which the rules reject on create/update. All 7 were already mirrored under
+`profile.*`. The read mapper already reads root-then-nested, so legacy reads keep
+working.
+
+**Outcome:**
+- crush-web `services/user_document.ts`: removed the 7 flat root keys from the
+  create return object and the flat-root assignments from the update builder
+  (kept the `profile.*` writes + allowed root mirrors: displayName, photos,
+  profilePhotoUrl, location, prompts, lifestyle, interestedIn, settings,
+  subscriptionTier, lifecycle flags).
+- Shared fixture: `my_first_project/docs/contracts/canonical_user_document.fixture.json`
+  (SoT) mirrored to `crush-web/apps/web/src/__fixtures__/canonical_user_document.json`,
+  with rejectedFlatRootKeys / protectedRootFields / retainedRootFields lists +
+  canonical, legacyInput, legacyInputExpectedProfile examples.
+- Tests:
+  - TS `profile-canonical-writes.test.ts` (7): builders emit no legacy flat root
+    keys; demographics under profile.*; allowed root mirrors retained.
+  - Rules emulator (`firestore-tests/rules.test.mjs`, now 68): canonical
+    web-shaped create + canonical profile.* multi-field update pass.
+  - Dart `test/core/schema/user_document_fixture_test.dart` (3): canonicalizer
+    migrates legacyInput → profile.*, marks flat keys for deletion, and the
+    canonical fixture has no flat root keys.
+- Migration: `crush-web/apps/web/scripts/migrate-flat-profile.mjs` (admin SDK,
+  dry-run default, idempotent: writes profile.* before deleting root keys, skips
+  keys already nested). npm scripts migrate:flat-profile[:execute]. Verified
+  node --check + arg-parse/admin-init flow (fails only at credentials here).
+- Verified: web lint/typecheck/test (191)/build green; rules emulator 68; Dart
+  fixture 3.
+- **Notes:** "Execute migration" needs a staging service account (deferred,
+  documented). Done-when met for code: web onboarding/profile-edit now produce
+  canonical-only writes that pass the rules. Remaining P0.3 paths: user_streaks,
+  promoCodes/redemptions, users/{uid}/stories, users/{uid}/fcmTokens.
+
+---
+
 ### Task #321 — P0.3 / WEB-DATA-001: Canonicalize Web Block / Report / Blocked-List
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)

@@ -123,6 +123,39 @@ describe('users/{uid}', () => {
       updateDoc(doc(as('alice'), 'users/alice'), { 'profile.bio': 'hello' })
     );
   });
+  it('canonical web-shaped create passes (nested profile + allowed root only)', async () => {
+    // Mirrors buildUserProfileCreateData output: demographics under profile.*,
+    // only allowed identity/lifecycle fields at root.
+    await assertSucceeds(
+      setDoc(doc(as('canonuser'), 'users/canonuser'), {
+        email: 'c@example.com',
+        displayName: 'Canon User',
+        photos: ['p1.jpg'],
+        interestedIn: ['male'],
+        onboardingComplete: true,
+        profileComplete: true,
+        profile: {
+          name: 'Canon User',
+          birthDate: '1998-05-10',
+          gender: 'female',
+          bio: 'hi',
+          interests: ['Hiking'],
+          photoUrls: ['p1.jpg'],
+        },
+      })
+    );
+  });
+  it('canonical profile.* multi-field update passes', async () => {
+    await assertSucceeds(
+      updateDoc(doc(as('alice'), 'users/alice'), {
+        displayName: 'Alice A',
+        'profile.name': 'Alice A',
+        'profile.bio': 'updated',
+        'profile.gender': 'female',
+        'profile.interests': ['Coffee'],
+      })
+    );
+  });
   it('owner CANNOT change protected field plan', async () => {
     await assertFails(updateDoc(doc(as('alice'), 'users/alice'), { plan: 'plus' }));
   });
