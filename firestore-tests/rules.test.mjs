@@ -185,6 +185,35 @@ describe('users/{uid}', () => {
   it('clients cannot delete user documents', async () => {
     await assertFails(deleteDoc(doc(as('alice'), 'users/alice')));
   });
+
+  describe('users/{uid}/fcmTokens/{token}', () => {
+    it('owner can register, read, and delete own push token', async () => {
+      await assertSucceeds(
+        setDoc(doc(as('alice'), 'users/alice/fcmTokens/tok1'), {
+          platform: 'web',
+          createdAt: new Date(),
+        })
+      );
+      await assertSucceeds(getDoc(doc(as('alice'), 'users/alice/fcmTokens/tok1')));
+      await assertSucceeds(
+        deleteDoc(doc(as('alice'), 'users/alice/fcmTokens/tok1'))
+      );
+    });
+    it('cannot write another user push token', async () => {
+      await assertFails(
+        setDoc(doc(as('bob'), 'users/alice/fcmTokens/tok1'), { platform: 'web' })
+      );
+    });
+    it('cannot read another user push tokens', async () => {
+      await seed('users/alice/fcmTokens/tok1', { platform: 'web' });
+      await assertFails(getDoc(doc(as('bob'), 'users/alice/fcmTokens/tok1')));
+    });
+    it('unauthenticated cannot write a push token', async () => {
+      await assertFails(
+        setDoc(doc(anon(), 'users/alice/fcmTokens/tok1'), { platform: 'web' })
+      );
+    });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -120,6 +120,14 @@ service cloud.firestore {
 
       // No client deletes; handled via admin.
       allow delete: if false;
+
+      // FCM PUSH TOKENS (owner-managed; backend reads via admin)
+      // Both web and mobile register/unregister their own device tokens here as
+      // users/{uid}/fcmTokens/{token}. Only the owner can read/write their own
+      // tokens; no other client may enumerate them.
+      match /fcmTokens/{tokenId} {
+        allow read, write: if isOwner(uid);
+      }
     }
 
     // USERNAME INDEX (server only)

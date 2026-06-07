@@ -27,6 +27,7 @@ For each path: allowed reads/writes for authenticated **owners/participants**,
 | Path | Client access (per rules) |
 |------|---------------------------|
 | `users/{uid}` | Owner read/update own; signed-in read others if visible + not blocked. Create own with **nested `profile.*`** only (legacy flat keys rejected). Protected fields (`plan`, `isIdVerified`, `stripe*`, `isEmailVerified`, `emailVerified`, `createdAt`, `kycVerificationStatus`) are backend-only. Array bounds: `profile.photoUrls` ≤ 9, `profile.interests` ≤ 20. No client delete. |
+| `users/{uid}/fcmTokens/{token}` | Owner read/write/delete own push tokens (web + mobile register here). No other client may read/enumerate. Backend reads via admin. |
 | `usernames/{username}` | Server-only (read/write denied). |
 | `auth_email_otps/{otpId}` | Server-only. |
 | `auth_rate_limits/{key}` | Server-only. |
@@ -52,10 +53,12 @@ NOT granted here; reconciliation tests should be added as each is migrated:
   `matches/{matchId}/messages`)
 - `users/{uid}/stories` (canonical is top-level `stories/{storyId}`)
 - `user_streaks/*`, `promoCodes/*`, `promoCodeRedemptions/*`
-- `users/{uid}/blocked` (canonical is top-level `blocks/{blockId}`)
-- `users/{uid}/fcmTokens` (no nested client rule)
-- Web report shape that differs from the canonical `reports` shape
-- Legacy flat `users/{uid}` profile writes (`age`, `gender`, `bio`, `interests`, …)
+- ~~`users/{uid}/blocked`~~ → migrated to top-level `blocks` + `getBlockedUsers` callable (done)
+- ~~`users/{uid}/fcmTokens`~~ → owner-scoped nested rule added (done)
+- ~~Web report shape~~ → routed through the `reportUser` callable (done)
+- ~~Legacy flat `users/{uid}` profile writes~~ → builders write `profile.*` only (done)
+- `users/{uid}/stories` (canonical is top-level `stories/{storyId}`) — pending
+- `user_streaks/*`, `promoCodes/*`, `promoCodeRedemptions/*` — pending (server-owned)
 
 ## CI
 

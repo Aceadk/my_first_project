@@ -77,6 +77,41 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #323 — P0.3: Reconcile users/{uid}/fcmTokens Rule
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** my_first_project (branch `codex/publish-auth-startup-hardening`)
+
+**Original Request:** User: "continue" — next P0.3 rejected-path reconciliation.
+
+**Developer Intent Analysis:** Both clients register device push tokens at
+`users/{uid}/fcmTokens/{token}` (web `notification.ts`, mobile
+`push_notification_service.dart`) with `{ createdAt, platform }`, and the backend
+reads them via admin. But `firestore.rules` had no nested rule, so the path was
+rejected — blocking web push (P1 #8). Since both clients already use this
+canonical path, the reconciliation is to permit owner-scoped management, not to
+move the data.
+
+**Outcome (my_first_project):**
+- `firestore.rules`: added a nested `match /fcmTokens/{tokenId}` under
+  `users/{uid}` with `allow read, write: if isOwner(uid)` (owner manages own
+  tokens; no other client may read/enumerate; backend uses admin).
+- Mirrored byte-identically to `functions/firestore.rules`
+  (check_firestore_rules_sync.sh parity passes).
+- `firestore-tests/rules.test.mjs` (68 → 72): owner register/read/delete own
+  token; another user cannot write or read; unauth cannot write.
+- README inventory: fcmTokens moved to the covered table; the rejected-paths
+  list updated (blocked/fcmTokens/report/flat-profile now struck through as done;
+  stories + streaks/promos remain pending).
+- No client code change needed — both clients already write the canonical path.
+- **Notes:** Remaining P0.3 paths deferred (need more design): users/{uid}/
+  stories → top-level stories (its `views` subcollection isn't covered by the
+  canonical top-level story rules), and user_streaks / promoCodes /
+  promoCodeRedemptions (entitlement-adjacent → should be server-owned per P0.4).
+
+---
+
 ### Task #322 — Phase 3 Step 5: Fix User And Profile Writes (canonical-only)
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)
