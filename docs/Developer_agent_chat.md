@@ -77,6 +77,46 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #330 — Phase 7 Steps 12/13/14: Auth / Subscription / Notification Contracts
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed (contracts + code alignment); E2E/device/provider-sandbox deferred
+**Repos:** my_first_project (contracts) + crush-web (prefs alignment)
+
+**Original Request:** Phase 7 — auth, subscription, and notification reliability
+(Steps 12, 13, 14). Much overlaps prior work (auth errors P1#6, entitlement
+resolver P1#7, notification routes P1#8, fcmTokens rule). Delivered the explicit
+"Define/Publish" contracts + the one missing code alignment, and flagged the
+operational validation.
+
+**Outcome:**
+- Step 12: `auth_method_support_matrix_2026-06-07.md` — per-platform auth methods
+  (email/pw, phone OTP, email OTP/link, Google, Apple, device-verify) + account
+  lifecycle (verify/reset/change/deletion-grace/cancel/export). **Apple-on-web
+  DECISION: excluded** (needs Apple Services ID + return URL + domain verify =
+  infra, not code) with the exact path to add it later.
+- Step 13: `entitlement_model_2026-06-07.md` — canonical model (`plan` SoT +
+  subscriptionExpiresAt + subscriptionLifecycle{provider}); all writes via
+  backend commands (Stripe/Apple/Google webhooks + verify callables + promo +
+  sync); client-write-protected (rules + abuse tests); state-reconciliation table
+  (active/renewal/cancel/expire/restore/promo-over-paid/legacy-conflict).
+- Step 14: `notification_preferences_schema_2026-06-07.md` — unified schema
+  (push/email channels + 8 backend categories incl. calls; safetyAlerts always
+  on); token metadata + lifecycle (register/refresh/revoke/cleanup); routes
+  validated by parity + route-existence tests.
+- Code: web `WebNotificationPrefs` aligned to the backend NotificationCategory
+  set — **added missing `calls`** category (+ defaults). Test:
+  notification-prefs-schema.test.ts (4) asserts keys == channels + 8 categories,
+  opt-out defaults.
+- Verified: web lint/typecheck/build green; vitest 227.
+- **Deferred (operational):** cross-platform account-lifecycle E2E; provider
+  webhook/reconciliation tests beyond the existing receipt-validation suites
+  (need emulator/provider sandboxes); web-push browser validation + mobile device
+  matrix. These are the Phase 7 "Done when" evidence that needs running
+  environments/devices.
+
+---
+
 ### Task #329 — Phase 6 Steps 10/11: Domains, Deployment, As-Built Route Manifest
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)
