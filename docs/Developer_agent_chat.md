@@ -77,6 +77,51 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #334 — Phase 9 Steps 19/20: Profile & Settings Parity + Calls Decision
+**Date:** 2026-06-07
+**Agent:** Claude (Haiku 4.5)
+**Status:** Completed (code + decision) / device-validation deferred (operational)
+**Repos:** crush-web (code), my_first_project (docs)
+
+**Original Request:** Phase 9 — remaining feature parity. Step 19: publish a
+shared profile-field capability matrix; align media limits/prompts/lifestyle/
+privacy/verification; implement missing web settings only when canonical backend
+support exists. Step 20: finish mobile native calling + device validation; decide
+whether web calling is required (build if so); update marketing claims to match
+deployed capability.
+
+**Step 19 — Profile & Settings:** Audited every profile field, media limit,
+privacy control, and settings page against canonical backend support (REST
+`PROFILE_PATCH_ALLOWED_FIELDS`, `/v1/profile/preferences`, callables, and
+`firestore.rules` write permissions) and the mobile source of truth. Published
+`profile_settings_capability_matrix_2026-06-07.md`. Added a shared single source
+of truth — `packages/core/src/config/profile_capabilities.ts` (MAX_PROFILE_PHOTOS=9,
+MAX_INTERESTS=10, MAX_PROMPTS=3, PROFILE_PHOTO_MAX_BYTES=10MB, allowed MIME,
+VERIFICATION_IS_SERVER_OWNED) + a parity test. **Fixed a real gap:** web capped
+photos at 6 while backend (rules ≤9) + mobile (9) allow 9 — onboarding, edit
+form, and `PhotoGridReorder` now all use `MAX_PROFILE_PHOTOS`; interests/prompts
+caps reference the shared constants. Verified (not a defect) that the web privacy
+`settings.show*` toggles are bridged to canonical `profile.preferences.showMy*`
+by `user_document.ts`, so discovery honors them. Verification is server-owned
+(`isIdVerified`/`kycVerificationStatus` protected) with no canonical client
+submit endpoint → web stays display-only (no submit flow built, per the rule).
+
+**Step 20 — Calls:** Mobile calling is already implemented (`lib/features/calls`:
+CallKit/PushKit bridge, native PiP, call quality/reconnect, lifecycle) — what
+remains is real-device validation (deferred to the hand-off as operational).
+**Decision (via AskUserQuestion): web calling = mobile-only** — not built this
+phase (large WebRTC effort; backend only mints Agora tokens; deployed web
+capability is messaging). Updated web marketing to match deployed capability:
+FAQ "Can I video chat" and the Features "Video Chat" card now state video calling
+is in the **mobile app** (web = messaging). Future web-calling scope captured in
+`calls_capability_decision_2026-06-07.md` (not built).
+
+**Verification:** web `pnpm test` 256 passed (25 files), lint + typecheck clean
+(web + core). Hand-off checklist §6 calls section rewritten to the mobile
+device-validation matrix.
+
+---
+
 ### Task #333 — Phase 8 Step 18: Complete Web Localization
 **Date:** 2026-06-07
 **Agent:** Claude (Haiku 4.5)

@@ -153,9 +153,15 @@ Run on staging against the deployed app; record results in the release ticket.
 - ☐ Decide whether to add routed locales + localized SSR metadata/hreflang
   (next-intl migration) — only if per-locale SEO becomes a priority.
 
-### Calls (P2 #11 / blocked)
-- ☐ 📱 Calls device matrix — **blocked**: no web WebRTC yet (product decision to
-  build or defer web calling).
+### Calls (Phase 9 Step 20 — decision: web = mobile-only)
+Web calling intentionally not built (decision: `calls_capability_decision_2026-06-07.md`);
+web marketing aligned to mobile-only video. Mobile calling is implemented; what
+remains is real-device validation:
+- ☐ 📱 iOS PushKit + CallKit incoming call (locked/background/foreground).
+- ☐ 📱 Android ConnectionService / full-screen-intent incoming call.
+- ☐ 📱 Native video rendering + camera/mic permissions on real devices.
+- ☐ 📱 Picture-in-Picture (iOS + Android) during an active call.
+- ☐ 📱 Call quality / reconnect under network change; call history persists.
 
 ## 7. Apple Sign-In on web (Phase 7 Step 12) — optional
 
