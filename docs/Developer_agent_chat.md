@@ -77,6 +77,42 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #325 — Phase 4 Step 6: Server-Own Promo Validation + Redemption
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repos:** my_first_project + crush-web (`codex/auth-storage-cleanup`)
+
+**Original Request:** Continue Phase 4 Step 6 — "Move promo validation and
+redemption to backend commands." (User AFK; authorized autonomous continuation.)
+
+**Developer Intent Analysis:** Promo redemption grants premium (entitlement), so
+it must be server-owned. The web `activateFreePremuim` wrote `plan`/`isPremium`/
+`premiumExpiresAt` directly — which the new rules lockdown (Task #324) now
+rejects — so the path was both a self-grant vector and broken.
+
+**Outcome:**
+- Backend (my_first_project): `validatePromoCode` (read-only preview) +
+  `redeemPromoCode` (transactional: re-validates active/dates/maxUses/
+  applicablePlans, one redemption per user per code via deterministic
+  `{uid}_{promoId}` doc, increments usedCount; free-access codes grant premium
+  via setUserPlan + canonical subscriptionExpiresAt/subscriptionLifecycle
+  (provider 'promo')). Tests: auth + required-code (callables.test → 18).
+- Web (crush-web): promo.ts validate/apply now call the callables; deleted the
+  direct premium-grant + redemption-record private methods; history helpers
+  (getUserRedemptions/getPendingPromoCode/mark/complete) kept but degrade
+  gracefully under deny-by-default rules. Added typed callables +
+  PromoRequest/Validate/Redeem response types.
+- Tests: web promo-server-owned.test.ts (5) — validate map valid/invalid,
+  redeem free-access (no redirect) / partial (redirect) / already-used error.
+- Verified: web suite 198; functions 18; build/lint/typecheck green.
+- **Notes:** Per-user redemption is one-per-code (deterministic id). Remaining
+  Step 6: streaks → backend command (currently inert), stories → canonical model
+  (needs views-subcollection rule), legacy match/swipe service deletion (follows
+  V2 cutover).
+
+---
+
 ### Task #324 — Phase 4 Steps 6/7: Server-Own Boost + Lock Entitlement/Security Fields
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)

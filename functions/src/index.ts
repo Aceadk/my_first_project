@@ -7653,6 +7653,184 @@ export const activateBoost = callable<Record<string, never>>(
   },
 );
 
+// ─── Promo codes (server-owned validation + redemption) ─────────────────────
+// Promo redemption can grant premium, so it MUST be backend-owned: the rules
+// reject client writes to promoCodes / promoCodeRedemptions and to the
+// entitlement fields (plan/subscription*). One redemption per user per code.
+interface PromoCodeData {
+  code?: string;
+  discountPercent?: number;
+  maxUses?: number | null;
+  usedCount?: number;
+  maxUsesPerUser?: number;
+  validFrom?: string;
+  validUntil?: string;
+  isActive?: boolean;
+  applicablePlans?: string[];
+}
+
+const PROMO_PLAN_DURATION_DAYS: Record<string, number> = {
+  monthly: 30,
+  quarterly: 90,
+  yearly: 365,
+};
+
+function evaluatePromoValidity(
+  promo: PromoCodeData,
+  planId: string,
+): { ok: true } | { ok: false; error: string } {
+  const now = Date.now();
+  if (!promo.isActive) return { ok: false, error: "This promo code is no longer active." };
+  if (promo.validFrom && now < Date.parse(promo.validFrom)) {
+    return { ok: false, error: "This promo code is not yet active." };
+  }
+  if (promo.validUntil && now > Date.parse(promo.validUntil)) {
+    return { ok: false, error: "This promo code has expired." };
+  }
+  if (
+    typeof promo.maxUses === "number" &&
+    promo.maxUses > 0 &&
+    (promo.usedCount ?? 0) >= promo.maxUses
+  ) {
+    return { ok: false, error: "This promo code has reached its maximum uses." };
+  }
+  if (
+    Array.isArray(promo.applicablePlans) &&
+    promo.applicablePlans.length > 0 &&
+    !promo.applicablePlans.includes(planId)
+  ) {
+    return { ok: false, error: "This promo code is not valid for the selected plan." };
+  }
+  return { ok: true };
+}
+
+async function findPromoByCode(code: string) {
+  const snap = await db
+    .collection("promoCodes")
+    .where("code", "==", code)
+    .limit(1)
+    .get();
+  return snap.empty ? null : snap.docs[0];
+}
+
+export const validatePromoCode = callable<{
+  code?: string;
+  planId?: string;
+}>(async (data, context) => {
+  const uid = requireAuth(context, "validate a promo code");
+  const code = requireString(data?.code, "code").toUpperCase();
+  const planId = optionalString(data?.planId) ?? "monthly";
+
+  const promoDoc = await findPromoByCode(code);
+  if (!promoDoc) return { ok: true, isValid: false, error: "Invalid promo code." };
+  const promo = promoDoc.data() as PromoCodeData;
+
+  const validity = evaluatePromoValidity(promo, planId);
+  if (!validity.ok) return { ok: true, isValid: false, error: validity.error };
+
+  // Per-user usage (one redemption per user per code).
+  const redemptionId = `${uid}_${promoDoc.id}`;
+  const existing = await db
+    .collection("promoCodeRedemptions")
+    .doc(redemptionId)
+    .get();
+  if (existing.exists) {
+    return { ok: true, isValid: false, error: "You have already used this promo code." };
+  }
+
+  const discountPercent = promo.discountPercent ?? 0;
+  return {
+    ok: true,
+    isValid: true,
+    discountPercent,
+    isFreeAccess: discountPercent >= 100,
+  };
+});
+
+export const redeemPromoCode = callable<{
+  code?: string;
+  planId?: string;
+}>(async (data, context) => {
+  const uid = requireAuth(context, "redeem a promo code");
+  requireEmailVerified(context, "redeem a promo code");
+  const code = requireString(data?.code, "code").toUpperCase();
+  const planId = optionalString(data?.planId) ?? "monthly";
+
+  const promoDoc = await findPromoByCode(code);
+  if (!promoDoc) {
+    throw new functions.https.HttpsError("not-found", "Invalid promo code.");
+  }
+  const promoRef = promoDoc.ref;
+  const redemptionRef = db
+    .collection("promoCodeRedemptions")
+    .doc(`${uid}_${promoDoc.id}`);
+
+  // Atomically re-validate, prevent double-redemption, record + increment.
+  const discountPercent = await db.runTransaction(async (tx) => {
+    const [promoSnap, redSnap] = await Promise.all([
+      tx.get(promoRef),
+      tx.get(redemptionRef),
+    ]);
+    if (!promoSnap.exists) {
+      throw new functions.https.HttpsError("not-found", "Invalid promo code.");
+    }
+    if (redSnap.exists) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "You have already used this promo code.",
+      );
+    }
+    const promo = promoSnap.data() as PromoCodeData;
+    const validity = evaluatePromoValidity(promo, planId);
+    if (!validity.ok) {
+      throw new functions.https.HttpsError("failed-precondition", validity.error);
+    }
+    const pct = promo.discountPercent ?? 0;
+    tx.set(redemptionRef, {
+      userId: uid,
+      promoCodeId: promoDoc.id,
+      promoCode: code,
+      discountPercent: pct,
+      planId,
+      redeemedAt: serverTimestamp(),
+      status: pct >= 100 ? "completed" : "pending",
+    });
+    tx.update(promoRef, {
+      usedCount: incrementBy(1),
+      updatedAt: serverTimestamp(),
+    });
+    return pct;
+  });
+
+  // Free-access codes grant premium immediately (server-owned entitlement).
+  if (discountPercent >= 100) {
+    const days = PROMO_PLAN_DURATION_DAYS[planId] ?? 30;
+    const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    await setUserPlan(uid, "plus");
+    await db.collection("users").doc(uid).set(
+      {
+        subscriptionExpiresAt: expiresAt,
+        subscriptionLifecycle: {
+          provider: "promo",
+          status: "active",
+          currentPeriodEnd: expiresAt,
+          cancelAtPeriodEnd: true,
+          lastValidatedAt: serverTimestamp(),
+        },
+        premiumSource: "promo_code",
+        premiumPromoCode: code,
+      },
+      { merge: true },
+    );
+  }
+
+  return {
+    ok: true,
+    isFreeAccess: discountPercent >= 100,
+    discountPercent,
+  };
+});
+
 export const appealSafetyAction = callable<AppealRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "submit an appeal");

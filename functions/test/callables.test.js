@@ -167,4 +167,37 @@ describe('callables auth/args', () => {
       expect(err.code).to.equal('unauthenticated');
     }
   });
+
+  it('validatePromoCode requires auth', async () => {
+    const wrapped = functionsTest.wrap(functions.validatePromoCode);
+    try {
+      await wrapped({ code: 'CRUSH100' }, { auth: null });
+      throw new Error('Expected unauthenticated error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('unauthenticated');
+    }
+  });
+
+  it('validatePromoCode validates a required code', async () => {
+    const wrapped = functionsTest.wrap(functions.validatePromoCode);
+    try {
+      await wrapped({}, { auth: { uid: 'user-1' } });
+      throw new Error('Expected invalid-argument error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('invalid-argument');
+    }
+  });
+
+  it('redeemPromoCode requires auth', async () => {
+    const wrapped = functionsTest.wrap(functions.redeemPromoCode);
+    try {
+      await wrapped({ code: 'CRUSH100' }, { auth: null });
+      throw new Error('Expected unauthenticated error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('unauthenticated');
+    }
+  });
 });
