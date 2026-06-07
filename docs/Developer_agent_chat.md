@@ -77,6 +77,41 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #326 — Phase 4 Status + Remaining-Work Decisions
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8) — autonomous continuation (user AFK, authorized)
+**Status:** Completed (status capture); 3 items flagged for owner decision
+
+**Context:** After completing the security-critical Phase 4 work (boost, promo,
+entitlement lockdown, device-trust decision), captured the phase status and the
+remaining items that require owner input rather than blind autonomous changes.
+
+**Outcome:**
+- `docs/reports/phase4_web_data_security_status_2026-06-07.md`: Step 7 "Done
+  when" met (cannot self-grant trust/premium/promos/boosts) with the
+  enforcement/evidence table; Step 6 item status; and the 3 decisions still
+  required.
+- `firestore-tests/README.md` inventory updated (promo/boost/entitlement done;
+  stories pending; streaks blocked-on-product; legacy deletion blocked-on-cutover).
+
+**Decisions flagged for owner:**
+1. **Streak → like-limit semantics** — backend enforces a FLAT daily limit
+   (`rateLimits/{uid}`), not streak-bonus-based. Making streaks server-authoritative
+   requires changing the backend limit logic (product call). Deferred; not a
+   self-grant risk (user_streaks deny-by-default).
+2. **Stories model migration** — `users/{uid}/stories` → top-level
+   `stories/{storyId}` + `views` subcollection rule + feed-query rewrite. Sizable;
+   best verified with the web app running.
+3. **V2 chat/match production cutover** — removing legacy services + the
+   NEXT_PUBLIC_USE_V2_CHAT flag needs the staging migration run (staging creds).
+
+**Verification:** functions build+lint clean, callables.test 18 passing
+(added +7 vs session baseline; the 59 pre-existing emulator-integration failures
+are unchanged — confirmed via a 0ba1944 worktree: baseline 137/59, now 144/59).
+Rules-emulator 77 passing. crush-web lint/typecheck/build clean, vitest 198.
+
+---
+
 ### Task #325 — Phase 4 Step 6: Server-Own Promo Validation + Redemption
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)

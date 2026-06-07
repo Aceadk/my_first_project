@@ -57,8 +57,15 @@ NOT granted here; reconciliation tests should be added as each is migrated:
 - ~~`users/{uid}/fcmTokens`~~ → owner-scoped nested rule added (done)
 - ~~Web report shape~~ → routed through the `reportUser` callable (done)
 - ~~Legacy flat `users/{uid}` profile writes~~ → builders write `profile.*` only (done)
-- `users/{uid}/stories` (canonical is top-level `stories/{storyId}`) — pending
-- `user_streaks/*`, `promoCodes/*`, `promoCodeRedemptions/*` — pending (server-owned)
+- ~~`promoCodes/*`, `promoCodeRedemptions/*`~~ → server-owned validate/redeem callables; deny-by-default for clients (done)
+- ~~Boost self-grant~~ → server-owned `activateBoost` callable + `boost` field locked in rules (done)
+- ~~Entitlement self-grant~~ → `subscription*`/`isPremium`/`premiumPlan`/`safetyFlags` locked in rules (done)
+- `users/{uid}/stories` (canonical is top-level `stories/{storyId}` + a `views` subcollection model) — **pending migration**
+- `user_streaks/*` — **blocked on product decision**: the backend enforces a flat
+  daily like limit (`rateLimits/{uid}`); whether the streak bonus should raise the
+  authoritative limit is a product call. Deny-by-default today (no self-grant risk).
+- Legacy direct match/swipe writes — superseded by V2 (flag-gated); removal follows
+  the V2 production cutover.
 
 ## CI
 
