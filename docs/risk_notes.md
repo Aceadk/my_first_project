@@ -1861,3 +1861,101 @@ Created: 2026-04-19
 Updated: 2026-04-21
 
 ---
+
+### R-065 — Web Production Controls Block Or Reject Canonical Runtime Paths
+
+Category: Security / Client-Backend Integration / Release
+
+Description:
+The web repo now contains backend-aligned V2 chat/match adapters and a REST
+discovery client, but the production web bootstrap does not initialize Firebase
+App Check and the web CSP does not allow the Cloud Functions origin used by the
+new callable/REST paths.
+Production backend callable and REST helpers enforce App Check.
+At the same time, several currently rendered web features still use direct
+Firestore paths or document shapes that current rules do not permit, including
+legacy-flat profile writes, nested notification tokens, blocked users, stories,
+streaks, promos, and legacy chat/match behavior.
+This creates a split failure mode: canonical paths can be rejected by App Check
+or CSP, while legacy/direct paths can be rejected by Firestore rules.
+
+Impact: Critical (web core flows can fail after deployment or cutover)
+
+Likelihood: High until staging integration evidence exists
+
+Affected Areas:
+
+- `../crush-web/packages/core/src/firebase/config.ts`
+- `../crush-web/apps/web/src/middleware.ts`
+- `../crush-web/packages/core/src/config/features.ts`
+- `../crush-web/packages/core/src/services/user_document.ts`
+- `../crush-web/packages/core/src/services/notification.ts`
+- `../crush-web/packages/core/src/services/user.ts`
+- `../crush-web/packages/core/src/services/story.ts`
+- `../crush-web/packages/core/src/services/streak.ts`
+- `../crush-web/packages/core/src/services/promo.ts`
+- `firestore.rules`
+- `functions/src/shared/callable.ts`
+- `functions/src/index.ts`
+
+Mitigation Plan:
+
+- Initialize web App Check and permit only the required backend origins in CSP.
+- Add Firestore rules-emulator tests for every retained direct web read/write.
+- Reconcile unsupported web paths with canonical backend commands.
+- Execute the V2 migration and cutover in staging before production.
+- Require authenticated staging E2E evidence for onboarding, discovery, match,
+  chat, report/block, notifications, subscription, and account lifecycle.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-06-06
+Updated: 2026-06-06
+
+---
+
+### R-066 — Web Client Can Self-Assert Security And Benefit State
+
+Category: Security / Entitlement
+
+Description:
+Web device trust is currently stored in the signed-in user's owner-writable
+document, and the client can add its current browser directly before the app
+shell treats it as trusted.
+Web boost activation also directly updates user-owned `boost.*` fields, while
+promo and premium-related services retain direct client data paths.
+These controls cannot be treated as security or entitlement boundaries because
+a modified client can attempt to self-grant or bypass them.
+
+Impact: High (trust gate bypass and benefit/entitlement abuse)
+
+Likelihood: High if exposed to adversarial clients
+
+Affected Areas:
+
+- `../crush-web/packages/core/src/services/device-security.ts`
+- `../crush-web/packages/core/src/stores/auth.ts`
+- `../crush-web/packages/core/src/services/boost.ts`
+- `../crush-web/packages/core/src/services/promo.ts`
+- `firestore.rules`
+- `functions/src/index.ts`
+
+Mitigation Plan:
+
+- Decide whether device trust is security enforcement or UX-only state.
+- For security enforcement, require a backend challenge, verified factor,
+  server-owned trusted-device records, and audit events.
+- Route boost activation, promo redemption, and final entitlement mutation
+  through server-owned commands.
+- Protect security and entitlement fields in rules and add abuse/replay tests.
+
+Status: Open
+
+Owner: AI
+
+Created: 2026-06-06
+Updated: 2026-06-06
+
+---

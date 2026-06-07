@@ -1,5 +1,8 @@
 # Crush Web and Mobile Alignment Plan
 
+> Historical baseline. For the current completion and gap assessment, see
+> `docs/reports/crush_web_mobile_alignment_reaudit_2026-06-06.md`.
+
 - Date: 2026-06-03
 - Repositories compared:
   - `/Users/ace/my_first_project` — Flutter mobile/iPad/web shell plus Firebase backend/functions.

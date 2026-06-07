@@ -77,6 +77,57 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #332 — Phase 8 Steps 15/16/17: UX Contracts, Design-System Alignment, A11y/Responsive
+**Date:** 2026-06-07
+**Agent:** Claude (Haiku 4.5)
+**Status:** Completed (contracts + code) / manual device matrix + E2E-lane execution deferred
+**Repos:** my_first_project (docs), crush-web (code)
+
+**Original Request:** Phase 8 — UI/UX/Accessibility/Localization. Step 15 publish
+shared UX contracts; Step 16 align design systems (+ visual-regression tests);
+Step 17 complete accessibility + responsive validation.
+
+**Step 15 — Shared UX contracts** (`docs/contracts/shared_ux_contracts_2026-06-07.md`):
+9 equivalent flows mapped mobile (`lib/features/*`) ↔ web routes against the same
+backend (onboarding/discovery/matching/chat/safety/premium/profile/settings/
+insights; calls = mobile-only, documented). Intentional navigation differences
+(mobile bottom-nav/gestures vs web sidebar/dialogs). One shared 8-state taxonomy
+— loading/empty/error/offline/retry/optimistic/blocked/permission-denied — with
+required behavior + parity rules (optimistic+retry duplicate-safe;
+permission-denied never collapsed into error; blocked enforced server-side).
+
+**Step 16 — Design-system alignment**
+(`docs/contracts/design_system_alignment_2026-06-07.md`): mapped semantic tokens
+web (`tailwind.config.ts` + `globals.css`) ↔ Flutter (`DsColors`/`DsTypography`/
+`DsGlassColors`) for colors, typography, spacing, radii, elevation, motion,
+focus, states. Decided intentional font (mobile Playfair+Plus-Jakarta+CJK vs web
+single system/Geist for LCP) and breakpoint (multi-breakpoint web vs single
+responsive mobile) differences. **Fixed a real defect:** `bg-primary-dark`,
+`via-primary-dark`, `bg-glass-light-surface`, `border-glass-light-border`,
+`backdrop-blur-glass` were referenced by `packages/ui/{button,card,dialog}.tsx`
+but undefined in config/CSS → rendered nothing (`variant="glass"` and primary
+hovers/gradients were dead). Added the tokens (alpha aligned to `DsGlassColors`)
++ a token-parity vitest (`design-token-parity.test.ts`, 5 assertions) that fails
+if any tailwind-referenced CSS var is undefined or those component classes lose
+backing. Added visual-regression scaffolding (`e2e/visual.spec.ts`).
+
+**Step 17 — Accessibility & responsive**
+(`docs/contracts/accessibility_responsive_validation_2026-06-07.md`): added
+`@axe-core/playwright` + `e2e/a11y-authenticated.spec.ts` (WCAG 2.1 AA scan of 9
+signed-in surfaces, fails on serious/critical); `e2e/a11y-interaction.spec.ts`
+(keyboard nav/focus order, dialog focus-trap + Escape, reduced-motion, 200% zoom
+reflow); `e2e/responsive.spec.ts` (viewport sweep 320→1536, no horizontal
+overflow + nav adaptation). Documented the manual device matrix
+(VoiceOver/TalkBack/external-keyboard/tablet/iPad/NVDA-JAWS) as release-gate
+evidence.
+
+**Verification:** web `pnpm test` 232 passed (22 files), `pnpm lint` clean,
+`pnpm typecheck` clean. E2E specs run in the Playwright lane (operational).
+Hand-off checklist §5/§6 updated to point at the new automation + remaining
+device matrix + visual-baseline generation.
+
+---
+
 ### Task #331 — Consolidated Infrastructure & Release-Evidence Checklist (Hand-off)
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)

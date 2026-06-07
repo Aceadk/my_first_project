@@ -101,7 +101,8 @@ then flip code.**
 - ✅ Web CI: lint + typecheck + test + build + deprecated-domain guard.
 - ✅ Functions CI + rules-emulator job.
 - ☐ 🌐 Add **Playwright authenticated E2E** lane (Firestore emulator) — plan in
-  `web_ci_upgrade_plan_2026-06-05.md`.
+  `web_ci_upgrade_plan_2026-06-05.md`. Now also runs the Phase 8 a11y/responsive/
+  visual specs (`@axe-core/playwright` dep added).
 - ☐ Add cross-repo **contract fixture** validation lane (shared fixture exists:
   `canonical_user_document.fixture.json`).
 - ☐ 🔑 Confirm Vercel project envs + production deploy; record deploy evidence.
@@ -131,9 +132,16 @@ Run on staging against the deployed app; record results in the release ticket.
 - ☐ 🌐 Two browsers + two devices on one match (realtime sync); offline send →
   reconnect → no duplicate messages.
 
-### UX / accessibility / responsive (re-audit Gate 3)
-- ☐ 📱 Authenticated axe + keyboard-only + focus-trap + contrast + reduced-motion
-  on web; iPad/VoiceOver/TalkBack/external-keyboard on mobile.
+### UX / accessibility / responsive (Phase 8 / re-audit Gate 3)
+- ✅ Web automation **built** (`apps/web/e2e/{a11y-authenticated,a11y-interaction,
+  responsive,visual}.spec.ts`): authenticated axe (WCAG 2.1 AA), keyboard/focus/
+  focus-trap, zoom/contrast, reduced-motion, 320→1536 responsive sweep, visual
+  regression. Contract: `accessibility_responsive_validation_2026-06-07.md`.
+- ☐ 🌐 Run those specs in the Playwright E2E lane; generate + commit visual
+  baselines on the CI runner OS (`pnpm test:e2e visual.spec.ts --update-snapshots`).
+- ☐ 📱 Manual device matrix: VoiceOver (iOS/Safari) · TalkBack (Android) ·
+  external keyboard · tablet/iPad · NVDA/JAWS live-region announcements ·
+  dark-mode contrast (see §2 of the a11y/responsive contract).
 
 ### Calls (P2 #11 / blocked)
 - ☐ 📱 Calls device matrix — **blocked**: no web WebRTC yet (product decision to
