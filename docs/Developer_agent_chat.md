@@ -77,6 +77,47 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #327 — Phase 5 Steps 8/9: Chat/Match Cutover Tooling + Runbook
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8) — autonomous continuation (user AFK, authorized)
+**Status:** Completed (tooling + runbook); execution BLOCKED on staging creds
+
+**Original Request:** User pasted Phase 5 (Steps 8 prepare migration + 9 enable
+V2). These are operational (run migration in staging, enable flag, multi-browser/
+device tests, production rollout, remove legacy) — they need staging + prod
+service accounts and a deployed staging web app, which I don't have.
+
+**Developer Intent Analysis:** Deliver everything code/tooling-actionable so the
+operator can execute Steps 8/9 directly, and document the operational procedure,
+rollback, backup, and decommission precisely.
+
+**Outcome:**
+- crush-web `apps/web/scripts/inventory-legacy-chat.mjs` (read-only): counts
+  conversations (+messages/unread/pins), legacy directional matches, canonical
+  matches (+messages/pins), swipes, typing_indicators, migration progress;
+  `--verify` cross-checks every conversation migrated + dst message count ≥ src.
+  npm: inventory:chat[:verify]. (Pairs with the Phase 1.5 migrate:conversations.)
+- my_first_project docs:
+  - `chat_match_cutover_runbook_2026-06-07.md` — full Step 8/9 procedure:
+    tooling table, complete field-mapping (incl. pins→per-uid map, unread→
+    backend-computed, typing/swipes→dropped as transient, directional→canonical
+    reconcile), rollback criteria, backup process (gcloud export), staging
+    prepare/dry-run/execute/verify/manual-validate, V2 enable + test matrix
+    (match/chat/send/read/edit/unsend/reactions/typing/pin/block/report,
+    multi-browser/device, offline/reconnect/dup), monitoring, prod rollout,
+    decommission, Done-when checklist.
+  - `legacy_chat_match_removal_manifest_2026-06-07.md` — exact files/exports to
+    delete post-observation (message.ts; legacy methods in match.ts while KEEPING
+    getDiscoveryProfiles etc.; the feature flag + store branches) and the legacy
+    collections to drop after a final backup.
+- Verified: inventory script node --check + flow OK; package.json valid.
+- **Blocked (operational, needs owner/infra):** running the migration in
+  staging/prod, enabling NEXT_PUBLIC_USE_V2_CHAT, multi-device testing, prod
+  rollout, and the decommission. All are scripted/checklisted; hand to whoever
+  has the staging service account.
+
+---
+
 ### Task #326 — Phase 4 Status + Remaining-Work Decisions
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8) — autonomous continuation (user AFK, authorized)
