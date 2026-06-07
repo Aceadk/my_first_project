@@ -77,6 +77,32 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #331 — Consolidated Infrastructure & Release-Evidence Checklist (Hand-off)
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed
+**Repo:** my_first_project
+
+**Original Request:** Produce one consolidated "infrastructure & release-evidence
+checklist" gathering every deferred operational item across all phases into one
+actionable hand-off doc.
+
+**Outcome:** `docs/reports/infrastructure_release_evidence_checklist_2026-06-07.md`
+— a single hand-off consolidating every operational/infra/device item deferred
+across Phases 0–7, organized into: (0) per-environment env-var matrix; (1) App
+Check + CSP; (2) Firestore rules CI; (3) data migrations (flat-profile + chat/
+match cutover, with exact commands + backup); (4) domain/email/deep-link
+migration off crushhour.app (infra-first ordering); (5) CI/CD release lanes;
+(6) release-evidence test matrix (account lifecycle, subscription provider
+reconciliation, notifications/push, chat/match, accessibility, calls);
+(7) Apple-on-web; (8) repo-hygiene guard. Each item tagged with credential/
+staging/device requirements, with owner fields, commands, acceptance criteria,
+a release-aligned Definition of Done, and links to every per-phase contract/
+report/runbook. This is the authoritative hand-off for the work that needs
+credentials, cloud/provider consoles, deployed staging, or real devices.
+
+---
+
 ### Task #330 — Phase 7 Steps 12/13/14: Auth / Subscription / Notification Contracts
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)
