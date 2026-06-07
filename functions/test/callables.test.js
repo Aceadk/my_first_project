@@ -156,4 +156,15 @@ describe('callables auth/args', () => {
       expect(err.code).to.equal('unauthenticated');
     }
   });
+
+  it('activateBoost requires auth', async () => {
+    const wrapped = functionsTest.wrap(functions.activateBoost);
+    try {
+      await wrapped({}, { auth: null });
+      throw new Error('Expected unauthenticated error');
+    } catch (err) {
+      expect(err).to.be.instanceOf(httpsFns.HttpsError);
+      expect(err.code).to.equal('unauthenticated');
+    }
+  });
 });

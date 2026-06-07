@@ -77,6 +77,61 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #324 — Phase 4 Steps 6/7: Server-Own Boost + Lock Entitlement/Security Fields
+**Date:** 2026-06-07
+**Agent:** Claude (Opus 4.8)
+**Status:** Completed (boost + entitlement lockdown + device-trust decision);
+remaining Step 6 functional migrations (promo/streak/stories) noted.
+**Repos:** my_first_project + crush-web (`codex/auth-storage-cleanup`)
+
+**Original Request:** User pasted Phase 4 Steps 6 (reconcile every web data
+service) + 7 (secure device trust & entitlements). Done when a modified client
+cannot self-grant trust, premium, promos, or boosts.
+
+**Developer Intent Analysis:** Several Step 6 items were already done
+(fcmTokens, blocked, report, profile writes). The remaining self-grant
+VULNERABILITIES were: boost (`activateBoost` wrote `boost.*` directly; cooldown
+enforced only client-side) and device trust (`security.trustedDevices` under the
+owner-writable user doc). The real "Done when" guarantee is the Firestore rules
+denying client writes to entitlement fields.
+
+**Findings:** The user update rule protected identity/billing fields but NOT
+`boost` or the entitlement mirror fields (`subscriptionExpiresAt`,
+`subscriptionLifecycle`, `subscriptionTier`, `isPremium`, `premiumPlan`) or
+`safetyFlags` — so a modified client could self-grant those. `promoCodes`/
+`promoCodeRedemptions`/`user_streaks` are already deny-by-default.
+
+**Outcome:**
+- Backend (my_first_project): new `activateBoost` callable — requireAuth +
+  requireEmailVerified, Plus check, server-side cooldown (30-min duration /
+  30-day cooldown), writes `boost.*` via admin. Auth test added (callables.test
+  → 15 passing); build + lint clean.
+- Rules: user update rule now rejects client mutation of `boost`,
+  `subscriptionExpiresAt`, `subscriptionLifecycle`, `subscriptionTier`,
+  `isPremium`, `premiumPlan`, `safetyFlags` (added to the protected list).
+  Mirrored byte-identically to functions/firestore.rules (parity passes).
+- Web (crush-web): boost.ts activateBoost → activateBoost callable (read-only
+  status compute kept for display); removed direct boost.* transaction write +
+  unused error map/imports. Added typed callable + ActivateBoostResponse.
+- Device trust DECISION: documented as UX-only (not a security boundary) in
+  docs/contracts/device_trust_decision_2026-06-07.md. Auth/session security is
+  Firebase Auth + App Check + middleware; nothing authorization-bearing keys off
+  trustedDevices, so "cannot self-grant trust" is met by the decision (trust
+  confers no privilege).
+- Tests: rules emulator (72 → 77) — cannot self-grant boost, premium (expiry/
+  tier/isPremium), promos/streaks (deny-by-default). Web boost-server-owned
+  test (2). Web suite 193; functions 15; build/lint/typecheck green.
+- **Notes / remaining Step 6 functional work:** promo validation/redemption and
+  streak updates still need backend callables to FUNCTION (they're currently
+  deny-by-default → inert direct paths, not a self-grant risk). Stories →
+  top-level model needs a `views` subcollection rule design. Legacy match/swipe
+  direct mutations are superseded by V2 (flag-gated). Obsolete-service deletion
+  follows the V2 production cutover. These are tracked in
+  firestore-tests/README.md; the security "Done when" for boost/premium/promo/
+  trust is met now.
+
+---
+
 ### Task #323 — P0.3: Reconcile users/{uid}/fcmTokens Rule
 **Date:** 2026-06-07
 **Agent:** Claude (Opus 4.8)

@@ -102,12 +102,17 @@ service cloud.firestore {
         && !hasLegacyFlatProfileDataOnCreate();
 
       // Owner can update their own document, but cannot change protected fields.
-      // These fields can only be changed by admin/backend (Cloud Functions).
+      // These fields can only be changed by admin/backend (Cloud Functions):
+      // identity/verification, billing/entitlement, and server-owned features
+      // (boost eligibility). This prevents a modified client from self-granting
+      // premium, promos, boosts, or trust by editing its own document.
       // Array sizes are bounded to prevent storage abuse.
       allow update: if isOwner(uid)
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
           'plan', 'isIdVerified', 'stripeCustomerId', 'stripeSubscriptionId',
-          'isEmailVerified', 'emailVerified', 'createdAt', 'kycVerificationStatus'
+          'isEmailVerified', 'emailVerified', 'createdAt', 'kycVerificationStatus',
+          'boost', 'subscriptionExpiresAt', 'subscriptionLifecycle',
+          'subscriptionTier', 'isPremium', 'premiumPlan', 'safetyFlags'
         ])
         // Bound array sizes to prevent abuse
         && (!('profile' in request.resource.data)

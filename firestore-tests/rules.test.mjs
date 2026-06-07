@@ -170,6 +170,26 @@ describe('users/{uid}', () => {
       updateDoc(doc(as('alice'), 'users/alice'), { stripeCustomerId: 'cus_x' })
     );
   });
+  it('owner CANNOT self-grant a boost by editing boost.*', async () => {
+    await assertFails(
+      updateDoc(doc(as('alice'), 'users/alice'), {
+        boost: { expiresAt: Date.now() + 3600000, totalActivations: 99 },
+      })
+    );
+  });
+  it('owner CANNOT self-grant premium via entitlement fields', async () => {
+    await assertFails(
+      updateDoc(doc(as('alice'), 'users/alice'), {
+        subscriptionExpiresAt: new Date(Date.now() + 9e9),
+      })
+    );
+    await assertFails(
+      updateDoc(doc(as('alice'), 'users/alice'), { subscriptionTier: 'plus' })
+    );
+    await assertFails(
+      updateDoc(doc(as('alice'), 'users/alice'), { isPremium: true })
+    );
+  });
   it('rejects update that introduces a legacy flat profile field', async () => {
     await assertFails(updateDoc(doc(as('alice'), 'users/alice'), { bio: 'flat' }));
   });
@@ -512,6 +532,22 @@ describe('presence/{uid}', () => {
     await seed('presence/alice', { isOnline: true });
     await assertSucceeds(getDoc(doc(as('dave'), 'presence/alice')));
   });
+});
+
+// Entitlement-adjacent collections must not be client-writable (no rule →
+// deny-by-default). Proves a client cannot self-grant promos/streaks/boost
+// eligibility outside the server-owned commands.
+describe('server-owned entitlement collections (deny client writes)', () => {
+  const paths = [
+    'promoCodes/code1',
+    'promoCodeRedemptions/r1',
+    'user_streaks/alice',
+  ];
+  for (const path of paths) {
+    it(`${path} rejects client writes`, async () => {
+      await assertFails(setDoc(doc(as('alice'), path), { x: 1 }));
+    });
+  }
 });
 
 // Sanity: the harness wired up (keeps mocha happy if a filter excludes all).

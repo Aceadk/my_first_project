@@ -7564,6 +7564,95 @@ export const getBlockedUsers = callable<Record<string, never>>(
   },
 );
 
+// Discovery boost (Plus-only). Server-owned so a client cannot self-grant a
+// boost or bypass the cooldown by editing its own user document — the `boost`
+// field is rejected on client writes by the Firestore rules.
+const BOOST_DURATION_MINUTES = 30;
+const BOOST_COOLDOWN_HOURS = 24 * 30; // one boost per 30 days
+
+function parseBoostMillis(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  if (value && typeof value === "object") {
+    const v = value as { toMillis?: () => number; toDate?: () => Date };
+    if (typeof v.toMillis === "function") return v.toMillis();
+    if (typeof v.toDate === "function") {
+      const ms = v.toDate().getTime();
+      return Number.isNaN(ms) ? null : ms;
+    }
+  }
+  return null;
+}
+
+export const activateBoost = callable<Record<string, never>>(
+  async (_data, context) => {
+    const uid = requireAuth(context, "activate a boost");
+    requireEmailVerified(context, "activate a boost");
+
+    const user = await getUser(uid);
+    if ((user.plan ?? "").toLowerCase() !== "plus") {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Boost is a Plus feature. Upgrade to activate boosts.",
+      );
+    }
+
+    const boost =
+      ((user as { boost?: Record<string, unknown> }).boost) ?? {};
+    const now = Date.now();
+    const expiresAtMs = parseBoostMillis(boost.expiresAt);
+    const lastActivatedMs = parseBoostMillis(boost.lastActivatedAt);
+
+    if (expiresAtMs && expiresAtMs > now) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "You already have an active boost.",
+      );
+    }
+    if (
+      lastActivatedMs &&
+      now - lastActivatedMs < BOOST_COOLDOWN_HOURS * 60 * 60 * 1000
+    ) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        "Boost is on cooldown. Try again when your cooldown ends.",
+      );
+    }
+
+    const boostExpiresAtMs = now + BOOST_DURATION_MINUTES * 60 * 1000;
+    await db
+      .collection("users")
+      .doc(uid)
+      .set(
+        {
+          boost: {
+            expiresAt: boostExpiresAtMs,
+            activatedAt: new Date(now),
+            lastActivatedAt: new Date(now),
+            totalActivations: incrementBy(1),
+            updatedAt: serverTimestamp(),
+          },
+        },
+        { merge: true },
+      );
+
+    return {
+      ok: true,
+      isActive: true,
+      activeUntil: new Date(boostExpiresAtMs).toISOString(),
+      cooldownUntil: new Date(
+        now + BOOST_COOLDOWN_HOURS * 60 * 60 * 1000,
+      ).toISOString(),
+      lastActivatedAt: new Date(now).toISOString(),
+      durationMinutes: BOOST_DURATION_MINUTES,
+      cooldownHours: BOOST_COOLDOWN_HOURS,
+    };
+  },
+);
+
 export const appealSafetyAction = callable<AppealRequest>(
   async (data, context) => {
     const uid = requireAuth(context, "submit an appeal");
