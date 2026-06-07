@@ -23,6 +23,10 @@ function deepClone(value) {
   return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
 }
 
+// Sentinel returned by the mock FieldValue.delete() (mirrors admin
+// FieldValue.delete()); the mock update() removes any key set to it.
+const DELETE_SENTINEL = Symbol('firestore.delete');
+
 function setByPath(target, path, value) {
   const parts = path.split('.');
   let cursor = target;
@@ -33,7 +37,12 @@ function setByPath(target, path, value) {
     }
     cursor = cursor[key];
   }
-  cursor[parts[parts.length - 1]] = value;
+  const leaf = parts[parts.length - 1];
+  if (value === DELETE_SENTINEL) {
+    delete cursor[leaf];
+  } else {
+    cursor[leaf] = value;
+  }
 }
 
 class MockDocRef {
@@ -62,6 +71,8 @@ class MockDocRef {
     Object.entries(payload || {}).forEach(([key, value]) => {
       if (key.includes('.')) {
         setByPath(next, key, value);
+      } else if (value === DELETE_SENTINEL) {
+        delete next[key];
       } else {
         next[key] = value;
       }
@@ -171,10 +182,17 @@ Object.defineProperty(admin, 'initializeApp', {
   writable: true,
   value: () => ({}),
 });
+const mockFirestoreAccessor = () => mockFirestore;
+// index.ts reads admin.firestore.FieldValue.delete()/serverTimestamp(); expose a
+// delete sentinel the mock update() honors. serverTimestamp is left unset so
+// index.ts falls back to new Date() (unchanged behavior for other suites).
+mockFirestoreAccessor.FieldValue = {
+  delete: () => DELETE_SENTINEL,
+};
 Object.defineProperty(admin, 'firestore', {
   configurable: true,
   writable: true,
-  value: () => mockFirestore,
+  value: mockFirestoreAccessor,
 });
 Object.defineProperty(admin, 'database', {
   configurable: true,
@@ -566,7 +584,8 @@ describe('profile REST endpoints', () => {
 
     const updated = users.get('user-1');
     expect(updated.profile.preferences).to.deep.equal(result.json.preferences);
-    expect(updated.preferences).to.deep.equal(result.json.preferences);
+    // Canonical behavior: the legacy top-level `preferences` mirror is removed.
+    expect(updated.preferences).to.equal(undefined);
   });
 
   it('PATCH /v1/profile/preferences merges with legacy top-level preferences fallback', async () => {
@@ -597,7 +616,8 @@ describe('profile REST endpoints', () => {
 
     const updated = users.get('user-1');
     expect(updated.profile.preferences).to.deep.equal(result.json.preferences);
-    expect(updated.preferences).to.deep.equal(result.json.preferences);
+    // Canonical behavior: the legacy top-level `preferences` mirror is removed.
+    expect(updated.preferences).to.equal(undefined);
   });
 
   it('PATCH /v1/profile/preferences rejects invalid merged min/max age', async () => {

@@ -1,5 +1,15 @@
 const { expect } = require('chai');
 const { https: httpsFns } = require('firebase-functions/v1');
+
+// Make this suite self-sufficient so it loads ../lib/index in isolation: provide
+// a demo FIREBASE_CONFIG before require so admin.initializeApp() succeeds offline
+// (otherwise it throws "Can't determine Firebase Database URL"). Same pattern as
+// accountDeletionMap.test.js.
+process.env.FIREBASE_CONFIG = process.env.FIREBASE_CONFIG || JSON.stringify({
+  projectId: 'demo-project',
+  databaseURL: 'https://demo-project.firebaseio.com',
+});
+
 const functions = require('../lib/index.js');
 
 describe('profile completeness helpers', () => {

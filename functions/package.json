@@ -3,7 +3,8 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint --ext .ts src",
-    "test": "npm run build && mocha --recursive --exit --ignore test/securityAbuseLanes.test.js",
+    "test": "npm run build && node test/run-isolated.js",
+    "test:shared": "npm run build && mocha --recursive --exit --ignore test/securityAbuseLanes.test.js",
     "test:security": "npm run build && mocha --exit test/securityAbuseLanes.test.js",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",

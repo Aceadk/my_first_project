@@ -77,6 +77,49 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #336 — Fix Functions Test Harness (59 failures → 0)
+**Date:** 2026-06-07
+**Agent:** Claude (Haiku 4.5)
+**Status:** Completed
+**Repo:** my_first_project (functions test harness + docs)
+
+**Original Request:** "okay do it" — fix the release-gate blocker (the 59 failing
+functions tests) flagged in the Phase 9 Step 22 release-gate report.
+
+**Diagnosis:** the 59 uniform "Auth error: Invalid token" → 401 failures were
+**cross-file test pollution**, not a product bug. Six integration suites
+(`callRestRateLimit`, `chatAuthz`, `chatRestPagination`, `profileRestEndpoints`,
+`safetyRestRegression`, `securityAbuseLanes`) each mutate the shared
+`firebase-admin` singleton (`admin.auth/firestore/storage`) at module load. Under
+one `mocha` process the LAST-loaded stub won for the entire run, so earlier
+suites executed against the wrong mock (wrong `decodedTokens`) → "Invalid token".
+In isolation those same suites passed. A residual 2 failures in
+`profileRestEndpoints` were a **stale test**: it asserted the legacy top-level
+`preferences` dual-write, but the handler now canonically deletes that mirror via
+`deleteField()` — which the mock didn't model (`deleteField()` resolved to `null`,
+so the legacy key was set to null instead of deleted).
+
+**Fix (test-harness only — ZERO product-code changes):**
+1. `functions/test/run-isolated.js` — runs each test file in its own process
+   (fresh module registry → no singleton pollution). Wired into `npm test`; the
+   previous single-process command kept as `npm run test:shared`. Deterministic
+   (unlike `mocha --parallel`, which can co-locate polluting files in a worker).
+2. `profileRestEndpoints.test.js` — added a `FieldValue.delete` sentinel the mock
+   `update()`/`setByPath` honor (removes the key), exposed it via the
+   `admin.firestore` stub, and updated the 2 preferences assertions to the
+   canonical "legacy top-level `preferences` removed" contract.
+3. `profileCompleteness.test.js` + `profileRestValidation.test.js` — made
+   self-sufficient in isolation via the `FIREBASE_CONFIG` demo-project env pattern
+   (mirrors `accountDeletionMap.test.js`) so `admin.initializeApp()` succeeds
+   offline.
+
+**Result:** `npm test` → **205 passing / 0 failing** across 23 files (was 146/59).
+No product behavior changed; the canonical preferences/photo behaviors are
+unaffected. The §C blocker in `final_alignment_release_gate_2026-06-07.md` is
+resolved and the engineering gate is now fully GREEN.
+
+---
+
 ### Task #335 — Phase 9 Steps 21/22: Complexity Reduction + Final Release Gate
 **Date:** 2026-06-07
 **Agent:** Claude (Haiku 4.5)

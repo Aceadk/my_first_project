@@ -13,7 +13,7 @@
 |---|---|---|
 | Functions build | `functions: tsc` | ✅ clean |
 | Functions lint | `functions: eslint` | ✅ clean |
-| Functions tests | `functions: npm test` | ✅ **146 passing** / ⚠️ 59 failing (pre-existing, see §C) |
+| Functions tests | `functions: npm test` (per-file isolated) | ✅ **205 passing / 0 failing** (was 146/59 — see §C) |
 | Web lint | `apps/web: eslint --max-warnings=0` | ✅ clean |
 | Web typecheck | `apps/web: tsc --noEmit` | ✅ clean |
 | Web unit tests | `apps/web: vitest run` | ✅ **256 passing** (25 files) |
@@ -35,18 +35,30 @@
 | Localization (provider/switcher/es+ar/E2E) | ✅ code + unit / E2E-lane run ⏳ | `web_localization_2026-06-07.md` |
 | Profile/settings parity | ✅ matrix + photo-cap fix + parity test | `profile_settings_capability_matrix_2026-06-07.md` |
 
-## C. The 59 pre-existing functions failures (must fix before sign-off)
-Root cause is uniform: **"Auth error: Invalid token" → endpoints return 401**
-instead of the expected status (29× expected 200, 8× 403, 8× 400, 6× 404, etc.).
-These are integration suites (`profile REST endpoints`, `chat message
-authorization`) whose test harness does not supply a token the auth middleware
-accepts in a bare `mocha` run (no auth emulator / token stub).
-- **Not a product regression:** the count is unchanged across the alignment work
-  (baseline 137→146 passing as tests were ADDED; 59 failing throughout) and is
-  unchanged by this phase's `media_limits` extraction.
-- **Action (before release):** fix the harness to mint/stub a valid token (auth
-  emulator or signed test token) so these suites exercise real status codes.
-  Tracked as a release blocker for the functions CI lane.
+## C. The 59 functions failures — RESOLVED (test-harness fix)
+**Root cause (diagnosed + fixed 2026-06-07):** cross-file test pollution, NOT a
+product bug. Six integration suites mutate the shared `firebase-admin` singleton
+(`admin.auth/firestore/storage`) at module load; under one `mocha` process the
+LAST-loaded stub won for the whole run, so earlier suites (`chatAuthz`,
+`chatRestPagination`, `callRestRateLimit`, `profileRestEndpoints`) ran against the
+wrong mock → uniform "Invalid token" → 401 (~57 failures). The remaining 2 were a
+**stale test** in `profileRestEndpoints` (asserted the legacy top-level
+`preferences` dual-write; the handler now canonically deletes that mirror via
+`deleteField()`, which the mock didn't model).
+
+**Fixes (test-harness only — zero product-code changes):**
+1. `test/run-isolated.js` runs each test file in its own process (fresh module
+   registry → no singleton pollution); wired into `npm test` (old recursive run
+   kept as `npm run test:shared`).
+2. `profileRestEndpoints`: added a `FieldValue.delete` sentinel the mock `update()`
+   honors, and updated 2 assertions to the canonical "legacy mirror removed"
+   contract.
+3. `profileCompleteness` + `profileRestValidation`: made self-sufficient via the
+   `FIREBASE_CONFIG` demo-project env pattern so they load `../lib/index` in
+   isolation.
+
+**Result:** `npm test` → **205 passing / 0 failing** across 23 files (was 146/59).
+No product behavior changed.
 
 ## D. Operational gates — required for production sign-off (⏳ / 📋)
 All itemized with owners/commands/acceptance in
@@ -72,9 +84,9 @@ All itemized with owners/commands/acceptance in
   `legacy_chat_match_removal_manifest_2026-06-07.md`).
 
 ## E. Gate decision
-- **Engineering gate (local automated):** ✅ GREEN except the 59 pre-existing
-  functions integration failures (§C), which are an isolated test-harness auth
-  issue to fix before the functions CI lane is green.
+- **Engineering gate (local automated):** ✅ **GREEN** — all local lanes pass,
+  including the functions suite (205/0 after the §C test-harness fix). No known
+  failing tests remain locally.
 - **Release gate (production):** ⏳ NOT yet — blocked only on the operational
   items in §D (staging, credentials, devices, provider sandboxes, production
   evidence). The codebase changes for the entire alignment program (Phases 0–9)
