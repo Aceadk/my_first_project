@@ -27,3 +27,19 @@
 - Acceptance Criteria: moderation and retention semantics documented and test-covered.
 - Testing: functions tests and deletion/report regression coverage.
 - Status: in progress — audited + verified 2026-05-31. Documented full pipeline: create→`onMessageCreated` (moderateContent, hold+flagUserForReview), read→`onMessageRead` (stamps tier-based `expiresAt`), hourly `cleanupExpiredMessages` (prunes `visibleTo`/deletes), report escalation thresholds (≥3 needs_review, ≥5 automatedFlags). Found & fixed a real consistency gap: REST-sent messages wrote only `senderId`, so `onMessageCreated` early-returned (no moderation/push) and missing `visibleTo` made them never expire; the CHAT-BE-001 send fix now writes fromUserId/toUserId/visibleTo/isRead so REST messages share the SDK lifecycle (test-covered). Remaining: emulator-based trigger tests for the moderation/retention sweep. See `docs/reports/chat_backend_audit_2026-05-31.md`.
+
+### CHAT-BE-004 - Execute canonical web chat and match cutover
+- Files: `/Users/ace/crush-web/packages/core/src/services/message_v2.ts`, `match_v2.ts`, stores/feature flag, migration scripts, backend match/chat commands, canonical Firestore documents
+- Description: Migrate web runtime behavior from legacy `conversations`, `typing_indicators`, directional matches, and direct swipes to backend-managed canonical matches and `matches/{matchId}/messages`.
+- Dependencies: `SEC-FE-004`, `DB-004`, `API-007`, `TEST-007`
+- Acceptance Criteria:
+  - Existing environment data is inventoried and migration field mappings are approved.
+  - Migration dry-run, staging execution, count reconciliation, representative-record validation, backup, and rollback criteria are recorded.
+  - V2 is enabled in staging and passes match creation, list, send, read, edit, unsend, reaction, typing, pin, block, and report flows.
+  - Production cutover includes monitoring and an observation window.
+  - Legacy services, feature flag, and unsupported collection paths are removed after the observation window.
+- Testing:
+  - Migration validation tests and staging data reconciliation.
+  - Authenticated multi-browser/device E2E including reconnect, duplicate prevention, and permission denial.
+  - Backend authz/moderation/retention regression tests.
+- Status: open — P0 cutover task; V2 exists but is disabled by default.

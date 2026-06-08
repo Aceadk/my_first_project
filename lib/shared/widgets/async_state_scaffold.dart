@@ -19,6 +19,7 @@ class AsyncStateScaffold extends StatefulWidget {
     this.backgroundColor,
     this.showBodyOnLoading = false,
     this.showErrorSnackBar = false,
+    this.extendBodyBehindAppBar = false,
   });
 
   final PreferredSizeWidget? appBar;
@@ -32,6 +33,7 @@ class AsyncStateScaffold extends StatefulWidget {
   final Color? backgroundColor;
   final bool showBodyOnLoading;
   final bool showErrorSnackBar;
+  final bool extendBodyBehindAppBar;
 
   @override
   State<AsyncStateScaffold> createState() => _AsyncStateScaffoldState();
@@ -76,6 +78,7 @@ class _AsyncStateScaffoldState extends State<AsyncStateScaffold> {
 
     return Scaffold(
       appBar: widget.appBar,
+      extendBodyBehindAppBar: widget.extendBodyBehindAppBar,
       floatingActionButton: widget.floatingActionButton,
       backgroundColor: widget.backgroundColor,
       body: AnimatedSwitcher(

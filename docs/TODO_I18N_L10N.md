@@ -27,3 +27,19 @@
 - Acceptance Criteria: plural-sensitive flows use proper localization APIs; embedded-text assets are removed or tracked.
 - Testing: localization QA and asset review.
 - Status: done (2026-06-04). Verified pluralization uses proper ICU `{count, plural, …}` syntax (16 plural keys: time-ago, unread counts, …), not concatenation; one naive count string (`daily_likes_service` "$remaining likes") folded into the I18N-001 backlog. Embedded-text assets limited to the brand wordmark/app icon (acceptable exception) — no localizable baked-in text. Report: `docs/reports/i18n_l10n_audit_2026-06-04.md`.
+
+### I18N-004 - Integrate web localization end to end
+- Files: `/Users/ace/crush-web/apps/web/src/i18n/**`, root/app layouts, route content, validation/errors, metadata, notifications, date/currency formatting
+- Description: Move web i18n from an unused foundation into the product runtime. Mount the provider, replace hardcoded critical-flow copy, persist locale choice, and align prioritized locales with mobile support.
+- Dependencies: `TEST-007`; begin full rollout after P0 operational gates
+- Acceptance Criteria:
+  - I18n provider is mounted for marketing, auth, onboarding, and authenticated app routes.
+  - Message types describe translation shape without literal-English type coupling.
+  - Critical-flow UI, validation, backend errors, metadata, notifications, dates, numbers, and currencies are localized.
+  - Locale selection persists and root document language/direction updates correctly.
+  - Missing-key and fallback behavior is observable and tested.
+- Testing:
+  - Standalone typecheck and translation-shape tests.
+  - Locale-switch, persistence, RTL, and long-text Playwright coverage.
+  - Hardcoded-string scan with approved exceptions.
+- Status: open — P1; foundation exists but is not mounted.

@@ -38,3 +38,19 @@
 - Testing: manual browser push verification in Chrome, Safari, and Firefox where supported.
 - Status: done
 - Evidence: `docs/reports/notification_audit_web_push_2026-05-30.md`
+
+### NOTIF-005 - Make web push registration and delivery production-valid
+- Files: `/Users/ace/crush-web/packages/core/src/services/notification.ts`, service worker, notification settings, backend token/pref handlers, `firestore.rules`
+- Description: Reconcile the implemented web push client with production App Check, Firestore rules, canonical token metadata, preference enforcement, and real browser delivery evidence.
+- Dependencies: `SEC-FE-004`, `DB-004`, `API-008`
+- Acceptance Criteria:
+  - Web token create/refresh/revoke uses a rules-supported or backend-managed canonical path.
+  - Token metadata and notification preferences use one documented schema across clients/backend.
+  - Every backend notification category maps to an existing web/mobile destination or an explicit fallback.
+  - Permission education, denial, revocation, expired-token cleanup, and logout cleanup are handled.
+  - Supported-browser matrix and limitations are documented.
+- Testing:
+  - Rules/backend tests for token lifecycle and preference enforcement.
+  - Notification route tests for foreground, background, and closed states.
+  - Staging delivery checks in supported Chrome, Safari, and Firefox configurations.
+- Status: open — P0 production-validation follow-up; `NOTIF-004` implementation alone is not sufficient evidence.

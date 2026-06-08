@@ -76,10 +76,15 @@
 **Description:** The CEO directive targets web as a first-class platform. The current web backlog still lacks audio/video calling. Define and implement the minimum viable WebRTC parity path for browser calling, device permission UX, and responsive call surfaces.
 **Acceptance Criteria:**
 
+- [ ] Product decision records whether browser calling is required, deferred, or unsupported
 - [ ] Web app supports browser-based audio/video call setup with permission prompts and failure recovery
 - [ ] Call UI works on desktop and tablet browser widths with intentional responsive layout
 - [ ] Call signaling/auth rules stay aligned with the existing backend call model
+- [ ] Web Permissions-Policy permits camera/microphone only on approved calling routes/origins
+- [ ] Reconnect, decline, missed-call, end-call, device selection, and denied-permission states are handled
+- [ ] Marketing and FAQ claims match the deployed browser capability
 
 **Testing:** Browser smoke tests in Chrome/Safari/Firefox, manual device permission verification, and backend signaling regression coverage.
+**Status:** open — P2 until mobile call reliability and the product decision are complete.
 
 ---

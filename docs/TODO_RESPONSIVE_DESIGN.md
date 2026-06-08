@@ -27,3 +27,19 @@
 - Acceptance Criteria: interactive elements expose appropriate hover/focus behavior where supported.
 - Testing: manual tablet/web interaction review.
 - Status: done (2026-06-03). **Fixed:** added `AppScrollBehavior` (mouse+touch+trackpad+stylus `dragDevices`) wired into `MaterialApp.router` so click-and-drag scrolling works on web/desktop/pointer tablets — Flutter's default omits mouse drag. Hover/focus verified via Material `InkWell`/button/`NavigationRail` built-ins. Test: `test/core/ui/app_scroll_behavior_test.dart`. Report: `docs/reports/responsive_design_audit_2026-06-03.md`.
+
+### RESP-004 - Publish shared web/mobile semantic design and navigation contracts
+- Files: `docs/design_tokens.json`, web Tailwind/theme tokens, mobile design system, app shells/navigation, shared UX documentation
+- Description: Align brand and interaction semantics without forcing identical platform rendering. Define shared semantic tokens and document intentional desktop/mobile information-architecture differences.
+- Dependencies: product/design decision; execute after P0 operational gates
+- Acceptance Criteria:
+  - Shared semantic contract covers color roles, typography roles, spacing, radii, elevation, motion, focus, and component states.
+  - Web/mobile typography, radii, and breakpoint differences are explicitly approved or aligned.
+  - Primary user goals and equivalent destinations are documented across mobile and desktop navigation.
+  - Loading, empty, error, offline, retry, optimistic, blocked, and permission-denied states use consistent behavior.
+  - Critical screens have responsive/visual acceptance references.
+- Testing:
+  - Visual regression coverage for critical web widths and mobile/tablet states.
+  - Token validation and contrast checks.
+  - Manual cross-platform journey review.
+- Status: open — P1 UX alignment task.

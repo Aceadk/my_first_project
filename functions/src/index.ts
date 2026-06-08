@@ -388,6 +388,10 @@ interface SendMessageRequest {
   content?: string;
   type?: string;
   mediaUrl?: string;
+  // Optional client-supplied idempotency key. When provided, a retried send with
+  // the same key is a no-op that returns the original message id (so an offline
+  // queue / network retry / double-tap cannot create duplicate messages).
+  clientMessageId?: string;
 }
 
 interface MarkMessagesReadRequest {
@@ -8920,6 +8924,23 @@ export const unsendMessage = callable<UnsendRequest>(async (data, context) => {
   return { ok: true };
 });
 
+// A client message id must be a safe, single-segment Firestore doc id.
+const CLIENT_MESSAGE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+function validateClientMessageId(value: unknown): string | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value !== "string" || !CLIENT_MESSAGE_ID_PATTERN.test(value)) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "clientMessageId must be 1-128 chars of [A-Za-z0-9_-].",
+    );
+  }
+  return value;
+}
+function isAlreadyExistsError(err: unknown): boolean {
+  const code = (err as { code?: unknown })?.code;
+  return code === 6 || code === "already-exists" || code === "ALREADY_EXISTS";
+}
+
 // Send message (for matched users)
 export const sendMessage = callable<SendMessageRequest>(
   async (data, context) => {
@@ -8930,6 +8951,7 @@ export const sendMessage = callable<SendMessageRequest>(
     const content = optionalString(data?.content);
     const type = optionalString(data?.type) ?? "text";
     const mediaUrl = optionalString(data?.mediaUrl);
+    const clientMessageId = validateClientMessageId(data?.clientMessageId);
 
     // Validate content - must have content or mediaUrl
     if (!content && !mediaUrl) {
@@ -8972,25 +8994,45 @@ export const sendMessage = callable<SendMessageRequest>(
     // Check if blocked
     await ensureNotBlocked(uid, toUserId);
 
-    // Create the message document
-    const messageRef = await db
+    // Create the message document.
+    const messagesCol = db
       .collection("matches")
       .doc(matchId)
-      .collection("messages")
-      .add({
-        matchId,
-        fromUserId: uid,
-        toUserId,
-        content: content ?? null,
-        type,
-        mediaUrl: mediaUrl ?? null,
-        sentAt: serverTimestamp(),
-        isRead: false,
-        isDeletedForSender: false,
-        isDeletedForRecipient: false,
-        reactions: {},
-        visibleTo: [uid, toUserId],
-      });
+      .collection("messages");
+    const messagePayload = {
+      matchId,
+      fromUserId: uid,
+      toUserId,
+      content: content ?? null,
+      type,
+      mediaUrl: mediaUrl ?? null,
+      sentAt: serverTimestamp(),
+      isRead: false,
+      isDeletedForSender: false,
+      isDeletedForRecipient: false,
+      reactions: {},
+      visibleTo: [uid, toUserId],
+    };
+
+    let messageId: string;
+    if (clientMessageId) {
+      // Idempotent path: deterministic doc id + create-if-absent. A retried send
+      // with the same key returns the original id without duplicating the message
+      // or re-bumping the match's last-message fields.
+      const ref = messagesCol.doc(clientMessageId);
+      try {
+        await ref.create(messagePayload);
+        messageId = ref.id;
+      } catch (err) {
+        if (isAlreadyExistsError(err)) {
+          return { ok: true, messageId: ref.id, deduped: true };
+        }
+        throw err;
+      }
+    } else {
+      const ref = await messagesCol.add(messagePayload);
+      messageId = ref.id;
+    }
 
     // Update match with last message info
     await db
@@ -9005,7 +9047,7 @@ export const sendMessage = callable<SendMessageRequest>(
 
     return {
       ok: true,
-      messageId: messageRef.id,
+      messageId,
     };
   },
 );
@@ -9757,6 +9799,9 @@ export const __test__helpers = {
   parseBeforeTimestampCursor,
   stripHtml,
   validateMessageContent,
+  validateClientMessageId,
+  isAlreadyExistsError,
+  moderateContent,
   validateProfileName,
   validateBio,
   userRelationDeletionTargets,

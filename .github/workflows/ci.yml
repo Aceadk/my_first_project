@@ -151,7 +151,7 @@ jobs:
       - name: Verify concrete cutover ticket on release refs
         run: scripts/check_release_cutover_ticket_release_ref_gate.sh
         env:
-          RELEASE_CUTOVER_TICKET_PATH: ${{ vars.RELEASE_CUTOVER_TICKET_PATH }}
+          RELEASE_CUTOVER_TICKET_PATH: ${{ vars['RELEASE_CUTOVER_TICKET_PATH'] }}
       - name: Test release-ref gate script behavior
         run: scripts/test_release_cutover_ticket_release_ref_gate.sh
       - name: Test release cutover invalid-input cases

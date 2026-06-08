@@ -54,7 +54,7 @@ class FirebaseAuthRepository
   // ActionCodeSettings for Email Link Authentication
   static final _actionCodeSettings = fb.ActionCodeSettings(
     // Use Firebase default domain (automatically authorized)
-    url: 'https://crush-265f7.firebaseapp.com/finishSignIn',
+    url: 'https://crush-f5352.firebaseapp.com/finishSignIn',
     // This must be true for email link sign-in
     handleCodeInApp: true,
     // Android settings

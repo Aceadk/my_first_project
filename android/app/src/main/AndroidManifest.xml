@@ -71,7 +71,7 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data
                     android:scheme="https"
-                    android:host="crush-265f7.firebaseapp.com"
+                    android:host="crush-f5352.firebaseapp.com"
                     android:pathPrefix="/finishSignIn"/>
             </intent-filter>
         </activity>

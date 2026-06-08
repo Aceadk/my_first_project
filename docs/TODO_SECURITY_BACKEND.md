@@ -35,3 +35,19 @@
 - Evidence: `docs/reports/security_backend_audit_2026-05-30.md`
 - Verification: `npx mocha --exit test/sanitizationPolicy.test.js` (7 passing), upload magic-byte/oversize/spoof cases in `test/profileRestEndpoints.test.js`
 - Fixes: hardened `stripHtml` against trailing unterminated tags; added `test/sanitizationPolicy.test.js`.
+
+### SEC-BE-004 - Move web trust and benefit state behind server-owned commands
+- Files: `functions/src/**`, `firestore.rules`, `/Users/ace/crush-web/packages/core/src/services/device-security.ts`, `boost.ts`, `promo.ts`, entitlement services/stores
+- Description: Remove client authority over device trust, boost activation, promo redemption, and final entitlement-affecting state. Decide whether device trust is a security control or UX-only state; if it is a control, require a verified backend challenge and audited server-owned records.
+- Dependencies: `AUTH-SEC-006`, `SUB-001`, `DB-004`
+- Acceptance Criteria:
+  - A client cannot self-add a trusted device or modify protected trust records.
+  - Boost eligibility, cooldown, activation, and counters are backend-enforced.
+  - Promo validation/redemption and final entitlement writes are backend-owned.
+  - Firestore rules deny direct client mutation of security and benefit fields.
+  - Security-sensitive commands produce audit events with actor, target, outcome, and request metadata.
+- Testing:
+  - Abuse tests for self-grant, replay, cooldown bypass, forged entitlement, and unauthorized revocation.
+  - Rules-emulator denial tests for protected fields.
+  - Staging smoke tests for legitimate trust, boost, promo, and entitlement flows.
+- Status: open — P0 security blocker from `R-066`.

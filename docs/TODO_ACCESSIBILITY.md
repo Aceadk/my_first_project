@@ -42,3 +42,18 @@
   - Fixed the resulting low-contrast success snackbars (`snackbar_utils.dart` + 3 direct call sites) to use a legible dark foreground (9.72:1).
   - Added `test/accessibility_reduced_motion_test.dart` verifying every DS entrance/press animation wrapper renders statically under `disableAnimations`.
   - Made the chat-list online status non-color-only by pairing the indicator with a label (the shared `CrushAvatar`/`GlassStatusBadge` already do this).
+
+### A11Y-004 - Add authenticated web accessibility release coverage
+- Files: `/Users/ace/crush-web/apps/web/**`, Playwright/axe tests, shared web components, authenticated route fixtures
+- Description: Extend web accessibility checks beyond utility/unit coverage into real authenticated journeys and complete manual cross-platform assistive-technology evidence.
+- Dependencies: `TEST-007`, `RESP-004`
+- Acceptance Criteria:
+  - Authenticated axe checks cover onboarding, discovery, matches/chat, profile, safety, premium, and settings.
+  - Keyboard-only navigation, focus order, dialog focus trapping/restoration, visible focus, zoom, reduced motion, and error announcements are verified.
+  - Interactive controls have meaningful names and status is not color-only.
+  - VoiceOver, TalkBack, external-keyboard, and supported browser evidence is recorded.
+- Testing:
+  - Playwright + axe authenticated CI lane.
+  - Keyboard/focus/reduced-motion automated checks.
+  - Manual assistive-technology matrix.
+- Status: open — P1 release evidence task.

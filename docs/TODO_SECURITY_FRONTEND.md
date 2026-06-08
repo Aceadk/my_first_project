@@ -36,3 +36,19 @@
 - Evidence: `docs/reports/security_frontend_audit_2026-05-30.md`
 - Verification: reviewed `crush-web` `next.config.js` headers, nonce-CSP `middleware.ts`, and `api/auth/**` SameSite cookie options.
 - Gaps tracked: explicit web HSTS header (P2); optional CSP `frame-ancestors` (P3).
+
+### SEC-FE-004 - Make protected web backend access production-operational
+- Files: `/Users/ace/crush-web/packages/core/src/firebase/config.ts`, `/Users/ace/crush-web/apps/web/src/middleware.ts`, web environment validation, protected web service tests
+- Description: Initialize Firebase App Check for the web app and align CSP `connect-src` with the approved callable/REST origins. Current production backend paths enforce App Check while the web bootstrap does not initialize it, and CSP excludes the Cloud Functions origin.
+- Dependencies: `API-008`, `TEST-007`
+- Acceptance Criteria:
+  - Web App Check uses an approved production provider with automatic token refresh.
+  - Local/emulator debug behavior is explicit and cannot weaken production enforcement.
+  - CSP permits only the required Firebase/Cloud Functions/API origins per environment.
+  - Discovery REST, Firebase callables, Storage, Stripe, and push registration work without CSP violations.
+  - Missing or invalid App Check tokens fail predictably and surface actionable diagnostics.
+- Testing:
+  - Unit tests for environment/provider selection and CSP construction.
+  - Staging integration tests proving protected REST and callable success with App Check and denial without it.
+  - Browser console/header smoke checks for CSP violations.
+- Status: open — P0 release blocker from `R-065`.

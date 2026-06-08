@@ -116,12 +116,13 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyBFXkqAFLzZm8TZe0wNmvxXPWlK2a0n_XM",
-            authDomain: "crush-265f7.firebaseapp.com",
-            projectId: "crush-265f7",
-            storageBucket: "crush-265f7.firebasestorage.app",
-            messagingSenderId: "72015170328",
-            appId: "1:72015170328:web:843883af66c2defe17ec6d"
+            apiKey: "AIzaSyDZe3kiO3HJUJ2XcZsWCW7YaQE3gY6iDJs",
+            authDomain: "crush-f5352.firebaseapp.com",
+            projectId: "crush-f5352",
+            storageBucket: "crush-f5352.firebasestorage.app",
+            messagingSenderId: "305121585498",
+            appId: "1:305121585498:web:b7908d98389c8752a0ab63",
+            measurementId: "G-VYN87B0YBR"
         };
 
         // Initialize Firebase
@@ -147,11 +148,11 @@
 
         function tryOpenApp() {
             // Try deep link for Android
-            const androidLink = 'intent://crush-265f7.firebaseapp.com/finishSignIn' + window.location.search +
+            const androidLink = 'intent://crush-f5352.firebaseapp.com/finishSignIn' + window.location.search +
                 '#Intent;scheme=https;package=com.ace.crush;end';
 
             // Try iOS universal link
-            const iosLink = 'https://crush-265f7.firebaseapp.com/finishSignIn' + window.location.search;
+            const iosLink = 'https://crush-f5352.firebaseapp.com/finishSignIn' + window.location.search;
 
             // Detect platform and redirect
             const userAgent = navigator.userAgent.toLowerCase();

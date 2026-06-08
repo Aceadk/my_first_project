@@ -59,3 +59,18 @@
 - Verification: `npm run build` + `npm run lint` (in `functions/`), `npx mocha --exit test/accountDeletionMap.test.js` (4 passing), `npx mocha --exit test/callables.test.js` (11 passing)
 - Fixes: `cascadeDeleteUserData` now deletes matches across `users`/`userIds`/`participants` (was missing matches) and scrubs top-level `likes`/`swipes`/`blocks`/`reports`; extracted tested `deleteDocsByQuery` + `userRelationDeletionTargets` deletion map.
 - Manual Follow-up: staging end-to-end deletion run (grace → cancel → purge) and store-subscription cancellation reminder before submission.
+
+### AUTH-SEC-006 - Align web auth capabilities and make device verification trustworthy
+- Files: web auth/session/device-verification flows, backend auth commands, trusted-device records, platform auth support matrix
+- Description: Publish the supported auth/account-lifecycle matrix across web and mobile, then replace the current owner-writable web device-trust gate with a server-verified flow or explicitly downgrade it to UX-only state.
+- Dependencies: `SEC-FE-004`, `SEC-BE-004`, `API-007`
+- Acceptance Criteria:
+  - Supported email/password, phone, Google, Apple, verification, refresh, logout, deletion, cancellation, and export flows are documented per platform.
+  - Device verification requires a verified factor/challenge before server-owned trust is granted, or is clearly removed as a security boundary.
+  - Trusted-device add/revoke actions are authenticated, authorized, rate-limited, and audited.
+  - Session and account-lifecycle behavior is equivalent where product support is intended.
+- Testing:
+  - Authenticated web/mobile lifecycle integration tests.
+  - Device-trust abuse/replay/revocation tests.
+  - Manual provider and stale-session smoke checks in staging.
+- Status: open — P0 security alignment task from `R-066`.

@@ -7692,3 +7692,193 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - `crush-web/pnpm typecheck` failed in the i18n tests due to literal-value message typing.
   - `scripts/check_ai_docs_sync.sh --files <changed files>` passed.
 - Next Step: Execute `WEB-PROD-001`, then `RULES-001` and `WEB-DATA-001` from the re-audit before chat/match cutover.
+
+### T-2026-06-07-WEB-MOBILE-ALIGNMENT-TODOS
+- Date: 2026-06-07
+- Owner: Codex
+- Status: Completed
+- Goal: Convert the 2026-06-06 web/mobile alignment re-audit into an executable, dependency-ordered TODO queue.
+- Scope: `docs/TODO_WEBAPP.md` and the owning module TODO files.
+- Constraints:
+  - Keep `TODO_WEBAPP.md` as a routing board.
+  - Put detailed acceptance criteria and tests in module-specific TODO files.
+  - Preserve completed historical items and avoid duplicate backlog definitions.
+- Key Changes:
+  - Added 15 new detailed alignment tasks across security, database/rules, API/contracts, profile, auth, chat, notifications, subscription, testing, i18n, responsive UX, and accessibility.
+  - Expanded `CALL-011` with product-decision, permissions-policy, failure-state, and marketing-truth requirements.
+  - Replaced the stale `TODO_WEBAPP.md` summary with Gate 0 through Gate 4 execution order and explicit exit criteria.
+- Decisions:
+  - Kept implementation details in module-specific TODOs and used `TODO_WEBAPP.md` only for sequencing and routing.
+  - Prioritized production-operational alignment before broad UI/feature parity.
+- Verification:
+  - Confirmed every task referenced by `docs/TODO_WEBAPP.md` exists in an owning TODO file.
+  - `git diff --check` passed.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: Execute Gate 0 in order: `TEST-007` -> `API-008` -> `SEC-FE-004`.
+
+### T-2026-06-07-FIREBASE-ACCOUNT-PROJECT-SWITCH
+- Date: 2026-06-07
+- Owner: Codex
+- Status: Completed (planning; execution requires user decision)
+- Goal: Safely replace the Firebase-managing Google account or migrate Crush to a new Firebase project.
+- Scope: IAM/account access, Firebase/gcloud CLI identities, registered apps, mobile/web config, Auth, Firestore, RTDB, Storage, Functions, App Check, FCM, OAuth, external integrations, data migration, and old-project retirement.
+- Key Findings:
+  - The current Firebase project is `crush-265f7`, and it has only one human IAM owner.
+  - If the goal is only to use a new Google account, ownership transfer is strongly preferred because it preserves every project resource and client configuration.
+  - A new Firebase project requires full migration and cutover; changing `.firebaserc` alone would break clients and backend integrations.
+  - Firebase CLI targets `crush-265f7`, while `gcloud` currently targets an unrelated project and must be switched separately.
+  - Current shipping Firebase app identities are Android/Apple `com.ace.crush` plus a web app; runtime references to the old project span mobile, web, backend URLs, and auth links.
+- Key Changes:
+  - Added `docs/FIREBASE_ACCOUNT_PROJECT_SWITCH_RUNBOOK.md` with Path A ownership transfer and Path B full migration procedures, validation gates, and retirement criteria.
+  - Added `R-067` for single-owner lockout and premature-retirement risk.
+- Verification:
+  - Audited `.firebaserc`, `firebase.json`, `lib/firebase_options.dart`, native Firebase config identities, web Firebase environment keys, runtime project-ID references, registered apps, enabled services, CLI identities, and IAM ownership.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: User chooses Path A or Path B and supplies the new account email plus destination project ID if applicable.
+
+### T-2026-06-07-FIREBASE-CLEAN-START
+- Date: 2026-06-07
+- Owner: Codex
+- Status: Completed (runbook; execution blocked on new account/project identifiers)
+- Goal: Start Crush from an empty new Firebase project under a new Google account and permanently retire `crush-265f7`.
+- Scope: Android, iOS, Crush Web, backend/rules/functions, Auth providers, App Check, FCM/APNs/VAPID, Vercel/Admin configuration, runtime reference cleanup, validation, and old-project deletion.
+- Decision:
+  - No Auth, Firestore, RTDB, Storage, FCM-token, or other old-project data will be migrated.
+  - New project must be fully validated before old-project shutdown.
+- Key Findings:
+  - Android package and intended Apple bundle ID are `com.ace.crush`.
+  - Some Xcode build configurations contain historical bundle IDs and must be normalized before destination Apple app registration.
+  - Android/email-link runtime paths and the iOS Google OAuth URL scheme contain old-project identifiers.
+  - FlutterFire CLI is installed but not on PATH; use `dart pub global run flutterfire_cli:flutterfire`.
+  - Backend functions, mobile auth links, Firebase Hosting completion pages, Crush Web/Vercel env, Admin credentials, App Check, and messaging providers all require destination-project configuration.
+- Key Changes:
+  - Added `docs/FIREBASE_CLEAN_START_CHECKLIST_2026-06-07.md` with exact phase order, commands, platform setup, validation, and deletion steps.
+  - Updated `R-067` to record the confirmed destructive clean-start decision.
+- Verification:
+  - Audited platform IDs, signing fingerprints, FlutterFire/Firebase CLI commands, function parameters, web environment keys, and old-project runtime references.
+  - `scripts/check_ai_docs_sync.sh --files <changed docs>` passed.
+- Next Step: User creates/selects the new project and supplies the new account email and globally unique project ID for implementation.
+
+### T-2026-06-07-FIREBASE-CLEAN-START-CONFIG
+- Date: 2026-06-07
+- Owner: Codex
+- Status: Completed (local cutover; Firebase Console/service deployment remains)
+- Goal: Cut local mobile, backend-target, and Crush Web configuration over from `crush-265f7` to the newly registered empty project `crush-f5352`.
+- Scope: Active runtime/configuration references, platform identity consistency, local web Firebase environment, targeted tests, and migration follow-up.
+- Constraints:
+  - Preserve unrelated working-tree changes.
+  - Do not deploy or delete the old project before validation.
+  - Do not fabricate missing OAuth client IDs or Realtime Database URLs.
+- Key Changes:
+  - `android/app/google-services.json` and `ios/Runner/GoogleService-Info.plist` already target `crush-f5352`.
+  - Updated Flutter `DefaultFirebaseOptions`, API base URLs, mobile email-link URLs, Android deep-link host, Firebase Hosting email-completion page, Firebase CLI project target, and matching tests to `crush-f5352`.
+  - Normalized iOS Runner app bundle IDs to `com.ace.crush`.
+  - Removed old iOS/macOS Google OAuth URL schemes because the new Firebase Apple config has no replacement `REVERSED_CLIENT_ID` yet.
+  - Updated Crush Web Firebase CLI target, local Firebase env, migration-script examples, and discovery test fixture to `crush-f5352`.
+  - Removed generated local old-project artifacts from `android/.kotlin/` and the Crush Web Firebase debug log.
+  - Synchronized `ios/Podfile.lock` to the FlutterFire-required Firebase iOS SDK `12.12.x` set so the iOS build can resolve pods.
+- Decisions/Handoffs:
+  - Did not guess a Realtime Database URL; the new Firebase configs do not contain one because RTDB is not enabled yet.
+  - Did not add a new iOS Google URL scheme; Google provider/OAuth clients must be enabled in the new project and configs re-downloaded first.
+  - Did not deploy backend functions or update Vercel production env/secrets because the new project still needs service setup and production secrets.
+- Risks/Mitigation:
+  - `R-067` remains open until Auth providers, App Check, messaging, RTDB, functions secrets, Vercel env, rules/functions deploy, and end-to-end validation are complete.
+- Verification:
+  - `flutter analyze` targeted Firebase/auth/API files and tests passed.
+  - `flutter test test/core/deep_link_bootstrap_test.dart test/api_version_test.dart` passed.
+  - `flutter build apk --debug` passed.
+  - `pod update --repo-update` resolved the stale iOS Firebase pod lock.
+  - `flutter build ios --simulator` reached `Xcode build done.` with exit code 0; `build/ios/Debug-iphonesimulator/Runner.app` exists.
+  - `pnpm test`, `pnpm typecheck`, and `pnpm build` passed in `/Users/ace/crush-web`.
+  - Ignore-independent stale-reference scans found no active old-project references outside historical docs/ignored downloads.
+- Next Step: Finish Firebase Console/service setup for `crush-f5352`, deploy rules/functions/hosting and Vercel env, validate all app flows, then delete `crush-265f7` only after the validation gate passes.
+
+### T-2026-06-08-ANDROID-DEBUG-SHA-FINGERPRINTS
+- Date: 2026-06-08
+- Owner: Codex
+- Status: Completed
+- Goal: Confirm the current local Android debug certificate fingerprints for Firebase Android app setup.
+- Scope: Local debug keystore and Android signing configuration.
+- Key Findings:
+  - The active local debug keystore is `/Users/ace/.android/debug.keystore`.
+  - The debug certificate was created on 2026-06-08, so it differs from the older fingerprints captured before the clean-start cutover.
+  - Debug SHA-1: `AA:DB:5E:D8:58:D6:83:0F:66:19:78:9A:27:EA:B9:CF:B8:7A:FE:A4`
+  - Debug SHA-256: `28:7C:76:AF:94:71:D8:3C:55:51:59:6C:A2:AC:C6:51:BC:FD:A4:8D:A2:F4:95:A5:C5:C4:B5:0B:77:33:F5:7E`
+- Decisions/Handoffs:
+  - These values are for local debug builds only; release/Play App Signing fingerprints still need separate Firebase registration for production builds.
+- Verification:
+  - `keytool -list -v -alias androiddebugkey -keystore "$HOME/.android/debug.keystore" -storepass android -keypass android`
+  - Android signing config scan confirmed release falls back to debug only when release keystore properties are absent.
+- Next Step: Add both debug fingerprints to Firebase Console under project `crush-f5352` -> Android app `com.ace.crush`, then download an updated `google-services.json` if OAuth clients are generated.
+
+### T-2026-06-08-REPLACE-OLD-DEBUG-SHA-REFERENCES
+- Date: 2026-06-08
+- Owner: Codex
+- Status: Completed
+- Goal: Replace stale local Android debug SHA references with the current debug certificate fingerprints.
+- Scope: Firebase clean-start documentation and Android App Links asset statement.
+- Key Changes:
+  - Updated `docs/FIREBASE_CLEAN_START_CHECKLIST_2026-06-07.md` with the current debug SHA-1/SHA-256.
+  - Updated `public/.well-known/assetlinks.json` to replace the old debug SHA-256 with the current debug SHA-256.
+  - Left the local release SHA-1/SHA-256 values unchanged because they are separate signing credentials.
+- Verification:
+  - `jq empty public/.well-known/assetlinks.json`
+  - Repository scan confirmed no old debug SHA-1/SHA-256 references remain.
+- Next Step: Register the new debug SHA values in Firebase Console for `crush-f5352` -> Android app `com.ace.crush`, then refresh `google-services.json` if OAuth clients are generated.
+
+### T-2026-06-08-VERIFY-CRUSH-WEB-FIREBASE-ADMIN-ENV
+- Date: 2026-06-08
+- Owner: Codex
+- Status: Completed
+- Goal: Safely verify the new Crush Web Firebase Admin service-account environment configuration without exposing secret values.
+- Scope: Ignored Crush Web `.env.local`, Next.js environment parsing, Firebase Admin credential construction, read-only Firestore connectivity, and local file permissions.
+- Key Findings:
+  - Next.js loads `FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON`; its JSON parses and targets `crush-f5352`.
+  - The service-account email belongs to `crush-f5352.iam.gserviceaccount.com`, and Firebase Admin accepts the credential structure.
+  - The read-only Firestore check reached Google Cloud but failed because the Cloud Firestore API is disabled/not initialized for `crush-f5352`.
+  - The private key was visible in a user-provided screenshot and must be revoked and regenerated before production use.
+- Key Changes:
+  - Tightened ignored `/Users/ace/crush-web/apps/web/.env.local` permissions from `0644` to `0600`.
+- Verification:
+  - Confirmed all required client/Admin variables are declared once and `.env.local` is ignored by Git.
+  - Next.js env loader parsed the Admin JSON successfully.
+  - Firebase Admin credential construction passed.
+  - Read-only Firestore probe returned `PERMISSION_DENIED` specifically because the Firestore API is disabled.
+- Next Step: Revoke the screenshot-exposed service-account key, generate and install a replacement without displaying it, then create/enable Firestore in `crush-f5352` and repeat the health check.
+
+### T-2026-06-08-AUDIT-VERCEL-FIREBASE-CUTOVER
+- Date: 2026-06-08
+- Owner: Codex
+- Status: Completed (audit; remote changes pending)
+- Goal: Define the exact Vercel environment cleanup and replacement required after moving Crush Web to Firebase project `crush-f5352`.
+- Scope: Crush Web environment-variable usage, local Vercel project linkage, Firebase client/Admin/App Check/FCM variables, deployment behavior, and unrelated variables that must be preserved.
+- Key Findings:
+  - Local Vercel metadata links to project `crush-web`, but the CLI is not authenticated, so remote values were not read or mutated.
+  - The seven Firebase web client values must be replaced with the `crush-f5352` web-app configuration in every active Vercel environment.
+  - `NEXT_PUBLIC_FIREBASE_DATABASE_URL` is not read by current Crush Web code and should be removed.
+  - Old Firebase Admin split credentials, migration-only `FIREBASE_SERVICE_ACCOUNT`/`GCLOUD_PROJECT`, old VAPID/App Check values, and production App Check debug/E2E bypass values must be removed or replaced as applicable.
+  - Stripe, Sentry, Upstash, analytics, session, feature-flag, domain, and Vercel system settings are separate from Firebase and must not be deleted merely because Firebase changed.
+  - Existing Vercel deployments retain their old environment snapshot; a new deployment is required, and old deployments may be deleted after the new deployment passes validation.
+- Decisions/Handoffs:
+  - Use only `FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` for Admin SDK configuration and remove the old split Admin variables.
+  - Do not upload the screenshot-exposed Admin key; revoke it and use a newly generated replacement.
+  - Scope the production Admin credential to Production only unless a separate trusted staging Firebase project/credential is created.
+- Verification:
+  - Audited all `process.env` usage across `apps/web` and `packages`.
+  - Confirmed current code derives default Functions URLs from `NEXT_PUBLIC_FIREBASE_PROJECT_ID`.
+  - Confirmed `.vercel/project.json` links to project `crush-web`.
+  - `vercel env ls` was blocked because no local Vercel credentials are available.
+- Next Step: Rotate the exposed Admin key, enable required new-project Firebase services, replace/remove the classified Vercel variables, redeploy, validate `/api/health` and core flows, then remove old deployments.
+
+### T-2026-06-08-VERCEL-ADMIN-ENV-INSTALL-GUIDANCE
+- Date: 2026-06-08
+- Owner: Codex
+- Status: Completed (guidance; remote confirmation blocked)
+- Goal: Explain how to add or verify `FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` in Vercel without exposing the private key.
+- Scope: Vercel environment variable presence, target environments, safe value handling, and redeploy requirement.
+- Key Findings:
+  - Local Vercel CLI is still not authenticated, so remote environment variables cannot be confirmed from the workspace.
+  - `FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` must use a rotated, unexposed service-account JSON value and should not be set as a public `NEXT_PUBLIC_` variable.
+- Verification:
+  - `vercel env ls FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` failed because no local Vercel credentials are available.
+- Next Step: Verify in the Vercel UI whether the variable exists, add/update it for the intended target environment, redeploy, and validate `/api/health`.

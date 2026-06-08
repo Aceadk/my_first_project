@@ -16,14 +16,10 @@ class DeckScreenAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.exploreMode,
     required this.onToggleExploreMode,
-    required this.onRefresh,
-    required this.canRefresh,
   });
 
   final bool exploreMode;
   final VoidCallback onToggleExploreMode;
-  final VoidCallback onRefresh;
-  final bool canRefresh;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -37,19 +33,15 @@ class DeckScreenAppBar extends StatelessWidget implements PreferredSizeWidget {
         filter: ImageFilter.blur(sigmaX: DsBlur.heavy, sigmaY: DsBlur.heavy),
         child: Container(
           decoration: BoxDecoration(
+            // Transparent scrim: keeps Crush/Boost/Weekly-picks legible while
+            // letting the (blurred) discovery photo show through behind the bar.
             gradient: LinearGradient(
-              begin: AlignmentDirectional.topStart,
-              end: AlignmentDirectional.bottomEnd,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
               colors: [
-                baseSurface.withValues(alpha: 0.8),
-                baseSurface.withValues(alpha: 0.6),
+                baseSurface.withValues(alpha: 0.22),
+                baseSurface.withValues(alpha: 0.0),
               ],
-            ),
-            border: Border(
-              bottom: BorderSide(
-                color: DsGlassColors.borderFor(context),
-                width: 0.5,
-              ),
             ),
           ),
           child: SafeArea(
@@ -106,15 +98,6 @@ class DeckScreenAppBar extends StatelessWidget implements PreferredSizeWidget {
                             onPressed: onToggleExploreMode,
                             size: 40,
                           ),
-                        if (!DsBreakpoints.isMobile(
-                          MediaQuery.sizeOf(context).width,
-                        ))
-                          const SizedBox(width: DsSpacing.xs),
-                        GlassIconButton(
-                          icon: Icons.refresh,
-                          onPressed: canRefresh ? onRefresh : () {},
-                          size: 40,
-                        ),
                       ],
                     ),
                   ),

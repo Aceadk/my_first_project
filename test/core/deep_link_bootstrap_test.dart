@@ -96,7 +96,7 @@ void main() {
     ) async {
       final authEvents = <AuthEvent>[];
       final deepLink = Uri.parse(
-        'https://crush-265f7.firebaseapp.com/finishSignIn?mode=signIn&oobCode=xyz',
+        'https://crush-f5352.firebaseapp.com/finishSignIn?mode=signIn&oobCode=xyz',
       );
 
       await pumpBootstrap(

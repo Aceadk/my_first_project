@@ -102,18 +102,18 @@ class ApiConfig {
 
   /// Development configuration (Firebase Emulator).
   static const ApiConfig development = ApiConfig(
-    baseUrl: 'http://127.0.0.1:5001/crush-265f7/us-central1/api',
+    baseUrl: 'http://127.0.0.1:5001/crush-f5352/us-central1/api',
     timeout: Duration(seconds: 60),
   );
 
   /// Staging configuration (Firebase Cloud Functions).
   static const ApiConfig staging = ApiConfig(
-    baseUrl: 'https://us-central1-crush-265f7.cloudfunctions.net/api',
+    baseUrl: 'https://us-central1-crush-f5352.cloudfunctions.net/api',
   );
 
   /// Production configuration (Firebase Cloud Functions).
   static const ApiConfig production = ApiConfig(
-    baseUrl: 'https://us-central1-crush-265f7.cloudfunctions.net/api',
+    baseUrl: 'https://us-central1-crush-f5352.cloudfunctions.net/api',
     retryCount: 3,
   );
 

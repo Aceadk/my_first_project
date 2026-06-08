@@ -25,55 +25,48 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBFXkqAFLzZm8TZe0wNmvxXPWlK2a0n_XM',
-    appId: '1:72015170328:web:843883af66c2defe17ec6d',
-    messagingSenderId: '72015170328',
-    projectId: 'crush-265f7',
-    authDomain: 'crush-265f7.firebaseapp.com',
-    storageBucket: 'crush-265f7.firebasestorage.app',
-    databaseURL: 'https://crush-265f7-default-rtdb.firebaseio.com',
+    apiKey: 'AIzaSyDZe3kiO3HJUJ2XcZsWCW7YaQE3gY6iDJs',
+    appId: '1:305121585498:web:b7908d98389c8752a0ab63',
+    messagingSenderId: '305121585498',
+    projectId: 'crush-f5352',
+    authDomain: 'crush-f5352.firebaseapp.com',
+    storageBucket: 'crush-f5352.firebasestorage.app',
+    measurementId: 'G-VYN87B0YBR',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC4gYpqwSFXzMgfTZF1LPMZZ92M0-Fwi7M',
-    appId: '1:72015170328:android:2d9554cc4d9596ad17ec6d',
-    messagingSenderId: '72015170328',
-    projectId: 'crush-265f7',
-    storageBucket: 'crush-265f7.firebasestorage.app',
-    databaseURL: 'https://crush-265f7-default-rtdb.firebaseio.com',
+    apiKey: 'AIzaSyAvqQwCPPLdI1rJR1PQoUOo5bpkbou7A0o',
+    appId: '1:305121585498:android:37d3912047732785a0ab63',
+    messagingSenderId: '305121585498',
+    projectId: 'crush-f5352',
+    storageBucket: 'crush-f5352.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBfdagoHbSSr8n76h1il_yPE0WCP84vEyc',
-    appId: '1:72015170328:ios:9f25dd836575951117ec6d',
-    messagingSenderId: '72015170328',
-    projectId: 'crush-265f7',
-    storageBucket: 'crush-265f7.firebasestorage.app',
+    apiKey: 'AIzaSyDo1H-39hL37B0IW2GkDbCMveYRBANKoVw',
+    appId: '1:305121585498:ios:3d67f77928072ef8a0ab63',
+    messagingSenderId: '305121585498',
+    projectId: 'crush-f5352',
+    storageBucket: 'crush-f5352.firebasestorage.app',
     iosBundleId: 'com.ace.crush',
-    iosClientId:
-        '72015170328-er7n0bjh53bj6favk67m3ebduqa2952b.apps.googleusercontent.com',
-    databaseURL: 'https://crush-265f7-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBfdagoHbSSr8n76h1il_yPE0WCP84vEyc',
-    appId: '1:72015170328:ios:9f25dd836575951117ec6d',
-    messagingSenderId: '72015170328',
-    projectId: 'crush-265f7',
-    storageBucket: 'crush-265f7.firebasestorage.app',
+    apiKey: 'AIzaSyDo1H-39hL37B0IW2GkDbCMveYRBANKoVw',
+    appId: '1:305121585498:ios:3d67f77928072ef8a0ab63',
+    messagingSenderId: '305121585498',
+    projectId: 'crush-f5352',
+    storageBucket: 'crush-f5352.firebasestorage.app',
     iosBundleId: 'com.ace.crush',
-    iosClientId:
-        '72015170328-er7n0bjh53bj6favk67m3ebduqa2952b.apps.googleusercontent.com',
-    databaseURL: 'https://crush-265f7-default-rtdb.firebaseio.com',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBFXkqAFLzZm8TZe0wNmvxXPWlK2a0n_XM',
-    appId: '1:72015170328:web:843883af66c2defe17ec6d',
-    messagingSenderId: '72015170328',
-    projectId: 'crush-265f7',
-    authDomain: 'crush-265f7.firebaseapp.com',
-    storageBucket: 'crush-265f7.firebasestorage.app',
-    databaseURL: 'https://crush-265f7-default-rtdb.firebaseio.com',
+    apiKey: 'AIzaSyDZe3kiO3HJUJ2XcZsWCW7YaQE3gY6iDJs',
+    appId: '1:305121585498:web:b7908d98389c8752a0ab63',
+    messagingSenderId: '305121585498',
+    projectId: 'crush-f5352',
+    authDomain: 'crush-f5352.firebaseapp.com',
+    storageBucket: 'crush-f5352.firebasestorage.app',
+    measurementId: 'G-VYN87B0YBR',
   );
 }

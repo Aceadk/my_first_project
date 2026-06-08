@@ -27,3 +27,19 @@
 - Acceptance Criteria: cascade map documented; orphan cleanup gaps tracked or fixed.
 - Testing: backend integration test and storage/database spot checks.
 - Status: done (2026-06-03). **Fixed a real orphaned-media bug:** `cascadeDeleteUserData` only swept legacy `photos/{uid}/` + `chat_media/{uid}/`, leaving production profile media (`users/{uid}/...`), ID-verification docs (`verification/{uid}/`), and production chat media (`chat_media/{matchId}/{uid}/`) in Storage after deletion. Now sweeps all of them via the pure, tested `userStorageDeletionPrefixes(uid, matchIds)` helper. Covered by new `accountDeletionMap.test.js` cases (8 passing). Report: `docs/reports/profile_backend_audit_2026-06-03.md`.
+
+### PROF-BE-004 - Complete canonical web profile-write migration
+- Files: `/Users/ace/crush-web/packages/core/src/services/user_document.ts`, web auth/profile stores, `firestore.rules`, profile migration tooling, Dart/TypeScript profile fixtures
+- Description: Stop web create/update flows from writing legacy flat profile fields rejected by current rules. Define the canonical persisted profile shape, intentionally retained root fields, and legacy read-only compatibility window.
+- Dependencies: `DB-004`, `API-007`
+- Acceptance Criteria:
+  - New web profiles write canonical nested `profile.*` fields only, except explicitly approved root lifecycle/identity fields.
+  - Web profile edits do not introduce or mutate legacy flat profile keys.
+  - Mobile and web map the same fixtures into equivalent canonical documents.
+  - Existing legacy profiles remain readable during a documented migration window.
+  - Migration/backfill and retirement plan exists for legacy fields.
+- Testing:
+  - TypeScript mapper tests and Dart schema fixture tests.
+  - Firestore emulator tests for create/update allow and protected/legacy-field denial.
+  - Authenticated onboarding, profile-edit, and discovery-eligibility E2E.
+- Status: open — P0 release blocker from `R-065`.

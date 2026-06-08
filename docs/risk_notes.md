@@ -1959,3 +1959,95 @@ Created: 2026-06-06
 Updated: 2026-06-06
 
 ---
+
+### R-067 — Firebase Project Has A Single Human Owner During Account Migration
+
+Category: Operations / Access Control / Migration
+
+Description:
+The current Firebase/Google Cloud project `crush-265f7` has only one human IAM
+owner. Removing or losing access to that account before a new owner is granted
+and independently verified would lock the team out of Firebase and Google Cloud
+resources.
+A full move to another Firebase project also changes app IDs, project number,
+function URLs, buckets, OAuth clients, App Check registrations, and FCM sender
+identity. Retiring the old project before data, stored media URLs, external
+webhooks, and released clients are fully cut over can cause irreversible service
+and data-access failures.
+
+Impact: Critical (administrative lockout, data loss, or production outage)
+
+Likelihood: High if the old account/project is removed before staged verification
+
+Affected Areas:
+
+- Firebase and Google Cloud IAM/billing
+- `.firebaserc`
+- `lib/firebase_options.dart`
+- native Firebase configuration files
+- mobile/web runtime project URLs and auth links
+- Firebase Auth, Firestore, RTDB, Storage, Functions, App Check, and FCM
+- OAuth/APNs/VAPID, Stripe, Resend, Agora, Vercel, and CI/CD integrations
+
+Mitigation Plan:
+
+- Follow the confirmed clean-start procedure in
+  `docs/FIREBASE_CLEAN_START_CHECKLIST_2026-06-07.md`.
+- Validate Android, iOS, Crush Web, backend/rules/functions, Auth providers,
+  App Check, messaging, and external integrations on the new empty project.
+- Keep the old project available until the destination-project validation gate
+  passes.
+- Rotate sensitive third-party credentials during account/project handoff.
+
+Decision Update (2026-06-07):
+
+- The developer confirmed that no old Auth, Firestore, RTDB, Storage, FCM-token,
+  or other project data needs to be retained.
+- The chosen direction is a completely new empty Firebase project under a new
+  Google account, followed by permanent shutdown of `crush-265f7`.
+- Old-project deletion remains prohibited until the destination-project
+  validation gate passes.
+
+Implementation Update (2026-06-07):
+
+- Local Android, iOS, Flutter, backend target, hosted email-completion, and
+  Crush Web configuration were cut over to the new project `crush-f5352`.
+- Active old-project runtime references were removed from the mobile repo and
+  Crush Web repo outside historical docs/ignored downloads.
+- The new native configs currently lack Google OAuth client IDs and RTDB URL
+  values, so Google Sign-In and Realtime Database flows remain blocked until
+  those Firebase Console products are enabled and platform configs are
+  re-downloaded.
+- Backend functions, App Check, FCM/APNs/VAPID, Vercel production env, Admin
+  credentials, and deploy validation are still pending; the old project must
+  remain available until those gates pass.
+
+Credential Update (2026-06-08):
+
+- A newly generated Firebase Admin service-account private key was displayed in
+  user-provided screenshots. Treat that key as exposed: revoke it in Google
+  Cloud IAM, generate a replacement, and install the replacement locally and in
+  deployment secrets without displaying or committing it.
+- The local Admin environment parses correctly and targets `crush-f5352`, but a
+  read-only Admin Firestore probe confirmed Cloud Firestore is currently
+  disabled/not initialized for the new project.
+
+Vercel Update (2026-06-08):
+
+- The developer confirmed the `crush-web` Vercel project still contains old
+  Firebase environment values. Existing production and preview deployments
+  retain their build-time environment snapshots until a new deployment is
+  created; old deployment URLs may continue serving old Firebase configuration.
+- Replace the Firebase client configuration, remove old Admin/migration/debug
+  values, install only a rotated new Admin credential, redeploy, validate, and
+  then remove old deployments. Preserve unrelated Stripe, Sentry, Upstash,
+  domain, and Vercel system settings.
+
+Status: Open
+
+Owner: Developer / Platform
+
+Created: 2026-06-07
+Updated: 2026-06-08
+
+---

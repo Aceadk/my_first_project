@@ -27,3 +27,19 @@
 - Acceptance Criteria: backup and restore runbook exists with one validated test or dry run.
 - Testing: documented dry run or validated restore exercise.
 - Status: done (2026-06-02). Added `docs/BACKUP_RESTORE_RUNBOOK.md` (cadence, ownership, setup, restore steps) and validated an emulator export→import dry run via `functions/scripts/backup_dryrun_{seed,verify}.js`. Ops follow-ups (bucket lifecycle, failure alerting, PITR, prod drill) tracked in runbook §5.
+
+### DB-004 - Prove every live web data path against Firestore rules
+- Files: `firestore.rules`, Firestore emulator tests, `/Users/ace/crush-web/packages/core/src/services/**`, mobile repositories that read/write Firestore directly
+- Description: Build a machine-readable client-path inventory and a rules-emulator suite for every retained direct client read/write. Reconcile current conflicts involving profile writes, notification tokens, blocked users, reports, stories, streaks, promos, boosts, and legacy chat/match paths.
+- Dependencies: `API-007`, `PROF-BE-004`, `SEC-BE-004`
+- Acceptance Criteria:
+  - Every live direct client path is listed with operation, actor, canonical schema, rule, index, and owner.
+  - Allowed owner/participant operations pass emulator tests.
+  - Unauthenticated, unrelated-user, protected-field, malformed-shape, and privilege-escalation operations are denied.
+  - Unsupported paths are removed or replaced with backend commands.
+  - Rules-emulator tests run as a required CI lane.
+- Testing:
+  - Firebase emulator allow/deny tests for every retained direct web/mobile path.
+  - Query/index validation for retained reads.
+  - Regression tests for the unsupported paths removed during remediation.
+- Status: open — P0 release blocker from `R-065`.

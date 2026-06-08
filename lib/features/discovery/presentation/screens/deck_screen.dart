@@ -362,15 +362,11 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
           exploreMode: _exploreMode,
           onToggleExploreMode: () =>
               setState(() => _exploreMode = !_exploreMode),
-          onRefresh: () {
-            if (refreshDeck == null) return;
-            refreshDeck();
-          },
-          canRefresh: refreshDeck != null,
         );
 
         return AsyncStateScaffold(
           appBar: appBar,
+          extendBodyBehindAppBar: true,
           isLoading: isLoading && state.deck.isEmpty,
           errorMessage: status == DeckStatus.error ? state.errorMessage : null,
           error: status == DeckStatus.error && state.deck.isEmpty
