@@ -52,7 +52,9 @@ void main() {
   ) async {
     final now = DateTime.now();
     final startOfToday = DateTime(now.year, now.month, now.day);
-    final todayCall = now.subtract(const Duration(hours: 1));
+    // Anchored to startOfToday (not `now - 1h`) so the fixture stays inside
+    // "Today" even when the test runs shortly after midnight.
+    final todayCall = startOfToday.add(const Duration(minutes: 30));
     final yesterdayCall = startOfToday.subtract(const Duration(hours: 12));
     final thisWeekCall = startOfToday.subtract(const Duration(days: 3, hours: 12));
     final earlierCall = startOfToday.subtract(

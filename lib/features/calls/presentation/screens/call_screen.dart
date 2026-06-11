@@ -178,7 +178,13 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         _startQualityMonitoring();
       }
     } else {
-      _initiateCall();
+      // Deferred: _initiateCall reads inherited widgets (AppLocalizations),
+      // which is illegal while initState is still running.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _initiateCall();
+        }
+      });
     }
   }
 

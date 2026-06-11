@@ -53,7 +53,13 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
-    _loadInitial();
+    // Deferred: _loadInitial reads inherited widgets (AppLocalizations),
+    // which is illegal while initState is still running.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadInitial();
+      }
+    });
   }
 
   @override

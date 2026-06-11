@@ -156,6 +156,31 @@ class AppLocalizationsRu extends AppLocalizations {
   String get errorNotFound => 'Запрошенный элемент не найден.';
 
   @override
+  String get pageNotFoundTitle => 'Page not found';
+
+  @override
+  String get pageNotFoundMessage =>
+      'The page you\'re looking for doesn\'t exist or may have moved.';
+
+  @override
+  String get goToHome => 'Go to Home';
+
+  @override
+  String get openingChat => 'Opening chat...';
+
+  @override
+  String get chatNotFound => 'Chat not found.';
+
+  @override
+  String get chatLoadFailed => 'Unable to load chat right now.';
+
+  @override
+  String get loadingProfile => 'Loading profile...';
+
+  @override
+  String get profileNotFound => 'Profile not found.';
+
+  @override
   String get errorOffline =>
       'Нет подключения к интернету. Проверьте соединение и попробуйте снова.';
 

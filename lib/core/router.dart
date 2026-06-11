@@ -6,7 +6,8 @@ import 'package:crushhour/dev/widget_catalog/widget_catalog_screen.dart';
 import 'router_refresh_stream.dart';
 import 'performance/performance_observer.dart';
 import 'package:crushhour/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:crushhour/features/auth/presentation/screens/auth_gateway_screen.dart';
+import 'package:crushhour/core/widgets/not_found_screen.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:crushhour/presentation/screens/home_screen.dart';
 import 'package:crushhour/presentation/screens/test/test_video_screen.dart';
 import 'package:crushhour/features/chat/presentation/screens/chat_screen.dart';
@@ -56,7 +57,7 @@ GoRouter createRouter(AuthBloc authBloc, {String? initialRoute}) {
     redirect: (context, state) =>
         resolveRouteRedirect(authState: authBloc.state, path: state.uri.path),
     errorPageBuilder: (context, state) {
-      return buildPage(state, const AuthGatewayScreen());
+      return buildPage(state, const NotFoundScreen());
     },
     routes: [
       // Auth, onboarding & verification routes
@@ -205,10 +206,13 @@ List<RouteBase> _mainAppRoutes(AuthBloc authBloc) => [
       return buildPage(state, ProfileInsightsScreen(userId: userId));
     },
   ),
-  GoRoute(
-    path: CrushRoutes.testAgora,
-    pageBuilder: (context, state) => buildPage(state, const TestVideoScreen()),
-  ),
+  // Agora test harness — debug builds only, never registered in release.
+  if (kDebugMode)
+    GoRoute(
+      path: CrushRoutes.testAgora,
+      pageBuilder: (context, state) =>
+          buildPage(state, const TestVideoScreen()),
+    ),
   GoRoute(
     path: CrushRoutes.profile,
     pageBuilder: (context, state) =>
@@ -311,11 +315,13 @@ class _ChatDeepLinkLoaderState extends State<_ChatDeepLinkLoader> {
       future: _matchesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const _DeepLinkLoadingScaffold(message: 'Opening chat...');
+          return _DeepLinkLoadingScaffold(
+            message: AppLocalizations.of(context).openingChat,
+          );
         }
         if (snapshot.hasError || snapshot.data == null) {
-          return const _DeepLinkErrorScaffold(
-            message: 'Unable to load chat right now.',
+          return _DeepLinkErrorScaffold(
+            message: AppLocalizations.of(context).chatLoadFailed,
           );
         }
         CrushMatch? match;
@@ -325,7 +331,9 @@ class _ChatDeepLinkLoaderState extends State<_ChatDeepLinkLoader> {
           match = null;
         }
         if (match == null) {
-          return const _DeepLinkErrorScaffold(message: 'Chat not found.');
+          return _DeepLinkErrorScaffold(
+            message: AppLocalizations.of(context).chatNotFound,
+          );
         }
         final args = ChatScreenArgs(
           matchId: match.id,
@@ -370,10 +378,14 @@ class _UserProfileDeepLinkLoaderState
       future: _profileFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
-          return const _DeepLinkLoadingScaffold(message: 'Loading profile...');
+          return _DeepLinkLoadingScaffold(
+            message: AppLocalizations.of(context).loadingProfile,
+          );
         }
         if (snapshot.hasError || snapshot.data == null) {
-          return const _DeepLinkErrorScaffold(message: 'Profile not found.');
+          return _DeepLinkErrorScaffold(
+            message: AppLocalizations.of(context).profileNotFound,
+          );
         }
         return OtherUserProfileScreen(
           args: OtherUserProfileArgs(profile: snapshot.data!),
@@ -423,7 +435,7 @@ class _DeepLinkErrorScaffold extends StatelessWidget {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () => context.go(CrushRoutes.home),
-                child: const Text('Go to Home'),
+                child: Text(AppLocalizations.of(context).goToHome),
               ),
             ],
           ),

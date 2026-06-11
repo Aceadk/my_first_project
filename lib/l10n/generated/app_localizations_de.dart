@@ -157,6 +157,31 @@ class AppLocalizationsDe extends AppLocalizations {
   String get errorNotFound => 'Das angeforderte Element wurde nicht gefunden.';
 
   @override
+  String get pageNotFoundTitle => 'Page not found';
+
+  @override
+  String get pageNotFoundMessage =>
+      'The page you\'re looking for doesn\'t exist or may have moved.';
+
+  @override
+  String get goToHome => 'Go to Home';
+
+  @override
+  String get openingChat => 'Opening chat...';
+
+  @override
+  String get chatNotFound => 'Chat not found.';
+
+  @override
+  String get chatLoadFailed => 'Unable to load chat right now.';
+
+  @override
+  String get loadingProfile => 'Loading profile...';
+
+  @override
+  String get profileNotFound => 'Profile not found.';
+
+  @override
   String get errorOffline =>
       'Keine Internetverbindung. Überprüfe deine Verbindung und versuche es erneut.';
 

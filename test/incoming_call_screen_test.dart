@@ -2,8 +2,10 @@ import 'package:crushhour/features/calls/domain/models/call.dart';
 import 'package:crushhour/features/calls/domain/repositories/call_manager_repository.dart';
 import 'package:crushhour/features/calls/data/services/call_service.dart';
 import 'package:crushhour/features/calls/presentation/screens/incoming_call_screen.dart';
+import 'package:crushhour/l10n/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -50,6 +52,14 @@ void main() {
       RepositoryProvider<CallManagerRepository>.value(
         value: service,
         child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
           home: IncomingCallScreen(
             incomingCall: call,
             ringTimeout: ringTimeout ?? const Duration(minutes: 5),

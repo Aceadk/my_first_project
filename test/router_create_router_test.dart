@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:crushhour/core/router.dart';
 import 'package:crushhour/core/services/badge_counter_service.dart';
+import 'package:crushhour/core/widgets/not_found_screen.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
 import 'package:crushhour/data/models/profile.dart';
@@ -220,17 +221,33 @@ void main() {
     final router = createRouter(authBloc, initialRoute: effectiveInitialRoute);
 
     if (lightweight) {
+      // SubscriptionBloc is provided globally in production (CrushDI), and
+      // public routes like the paywall depend on it.
+      final lightweightSubscriptionBloc =
+          subscriptionBloc ??
+          _TestSubscriptionBloc(
+            const SubscriptionState(tier: SubscriptionTier.free),
+          );
+      final closeLightweightSubscriptionBloc = subscriptionBloc == null;
       addTearDown(() async {
         await disposePumpedTree(tester);
         router.dispose();
+        if (closeLightweightSubscriptionBloc) {
+          await lightweightSubscriptionBloc.close();
+        }
         await authBloc.close();
       });
 
       await tester.pumpWidget(
         RepositoryProvider<AuthRepository>.value(
           value: authRepository,
-          child: BlocProvider<AuthBloc>.value(
-            value: authBloc,
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<AuthBloc>.value(value: authBloc),
+              BlocProvider<SubscriptionBloc>.value(
+                value: lightweightSubscriptionBloc,
+              ),
+            ],
             child: MaterialApp.router(
               routerConfig: router,
               localizationsDelegates: const [
@@ -572,7 +589,9 @@ void main() {
         lightweight: true,
       );
 
-      expect(find.byType(AuthGatewayScreen), findsOneWidget);
+      // Unknown routes show a dedicated not-found page (never the auth
+      // gateway, which would look like a forced logout to signed-in users).
+      expect(find.byType(NotFoundScreen), findsOneWidget);
     });
 
     testWidgets('auth sub-routes render expected screens', (tester) async {

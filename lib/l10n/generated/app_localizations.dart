@@ -425,6 +425,54 @@ abstract class AppLocalizations {
   /// **'The requested item was not found.'**
   String get errorNotFound;
 
+  /// No description provided for @pageNotFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Page not found'**
+  String get pageNotFoundTitle;
+
+  /// No description provided for @pageNotFoundMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The page you\'re looking for doesn\'t exist or may have moved.'**
+  String get pageNotFoundMessage;
+
+  /// No description provided for @goToHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Home'**
+  String get goToHome;
+
+  /// No description provided for @openingChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening chat...'**
+  String get openingChat;
+
+  /// No description provided for @chatNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat not found.'**
+  String get chatNotFound;
+
+  /// No description provided for @chatLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load chat right now.'**
+  String get chatLoadFailed;
+
+  /// No description provided for @loadingProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading profile...'**
+  String get loadingProfile;
+
+  /// No description provided for @profileNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile not found.'**
+  String get profileNotFound;
+
   /// No description provided for @errorOffline.
   ///
   /// In en, this message translates to:
