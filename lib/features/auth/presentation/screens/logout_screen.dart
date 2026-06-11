@@ -39,9 +39,13 @@ class LogoutScreen extends StatelessWidget {
                   }
                 },
                 builder: (context, state) {
+                  final l10n = AppLocalizations.of(context);
+                  final isDark =
+                      Theme.of(context).brightness == Brightness.dark;
                   final email = state.user?.email;
                   final username = state.user?.username;
-                  final identifier = username ?? email ?? 'your account';
+                  final identifier =
+                      username ?? email ?? l10n.logoutYourAccountFallback;
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,15 +70,17 @@ class LogoutScreen extends StatelessWidget {
                       ),
                       DsGap.xxl,
                       Text(
-                        'Ready to log out?',
+                        l10n.logoutReadyTitle,
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       DsGap.md,
                       Text(
-                        'You are signed in as $identifier.',
+                        l10n.logoutSignedInAs(identifier),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: DsColors.textMutedLight,
+                          color: isDark
+                              ? DsColors.textMutedDark
+                              : DsColors.textMutedLight,
                         ),
                       ),
                       DsGap.md,
@@ -96,7 +102,7 @@ class LogoutScreen extends StatelessWidget {
                             DsGap.mdH,
                             Expanded(
                               child: Text(
-                                'Logging out will pause new matches and messages until you return.',
+                                l10n.logoutPauseWarning,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(color: DsColors.warning),
                               ),
@@ -133,9 +139,13 @@ class LogoutScreen extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton(
+                          // /logout is directly addressable (deep link / URL),
+                          // so there may be nothing on the stack to pop.
                           onPressed: state.isLoading
                               ? null
-                              : () => Navigator.pop(context),
+                              : () => context.canPop()
+                                    ? context.pop()
+                                    : context.go(CrushRoutes.home),
                           style: OutlinedButton.styleFrom(
                             padding: DsEdgeInsets.buttonPadding,
                           ),

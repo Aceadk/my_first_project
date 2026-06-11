@@ -154,6 +154,21 @@ class AppLocalizationsHi extends AppLocalizations {
   String get errorNotFound => 'अनुरोधित आइटम नहीं मिला।';
 
   @override
+  String get logoutReadyTitle => 'Ready to log out?';
+
+  @override
+  String logoutSignedInAs(String identifier) {
+    return 'You are signed in as $identifier.';
+  }
+
+  @override
+  String get logoutYourAccountFallback => 'your account';
+
+  @override
+  String get logoutPauseWarning =>
+      'Logging out will pause new matches and messages until you return.';
+
+  @override
   String get pageNotFoundTitle => 'Page not found';
 
   @override
@@ -720,6 +735,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get authVerifyPasswordTitle => 'Verify Password';
+
+  @override
+  String get authVerifyPasswordPrompt =>
+      'Please enter your current password to continue.';
 
   @override
   String get authChangeEmailTitle => 'Change email';

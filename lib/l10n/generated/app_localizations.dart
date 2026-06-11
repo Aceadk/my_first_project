@@ -425,6 +425,30 @@ abstract class AppLocalizations {
   /// **'The requested item was not found.'**
   String get errorNotFound;
 
+  /// No description provided for @logoutReadyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to log out?'**
+  String get logoutReadyTitle;
+
+  /// No description provided for @logoutSignedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'You are signed in as {identifier}.'**
+  String logoutSignedInAs(String identifier);
+
+  /// No description provided for @logoutYourAccountFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'your account'**
+  String get logoutYourAccountFallback;
+
+  /// No description provided for @logoutPauseWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'Logging out will pause new matches and messages until you return.'**
+  String get logoutPauseWarning;
+
   /// No description provided for @pageNotFoundTitle.
   ///
   /// In en, this message translates to:
@@ -1426,6 +1450,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Verify Password'**
   String get authVerifyPasswordTitle;
+
+  /// No description provided for @authVerifyPasswordPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your current password to continue.'**
+  String get authVerifyPasswordPrompt;
 
   /// No description provided for @authChangeEmailTitle.
   ///

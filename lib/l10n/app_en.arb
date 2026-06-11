@@ -50,6 +50,17 @@
   "errorServer": "Server error. Please try again later.",
   "errorUnauthorized": "Session expired. Please sign in again.",
   "errorNotFound": "The requested item was not found.",
+  "logoutReadyTitle": "Ready to log out?",
+  "logoutSignedInAs": "You are signed in as {identifier}.",
+  "@logoutSignedInAs": {
+    "placeholders": {
+      "identifier": {
+        "type": "String"
+      }
+    }
+  },
+  "logoutYourAccountFallback": "your account",
+  "logoutPauseWarning": "Logging out will pause new matches and messages until you return.",
   "pageNotFoundTitle": "Page not found",
   "pageNotFoundMessage": "The page you're looking for doesn't exist or may have moved.",
   "goToHome": "Go to Home",
@@ -282,6 +293,7 @@
   "authTermsOfService": "Terms of Service",
   "authPrivacyPolicy": "Privacy Policy",
   "authVerifyPasswordTitle": "Verify Password",
+  "authVerifyPasswordPrompt": "Please enter your current password to continue.",
   "authChangeEmailTitle": "Change email",
   "authChangeEmailIntro": "Use a new email to keep your account recoverable.",
   "authCurrentEmailLabel": "Current email: {email}",

@@ -376,14 +376,14 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Please enter your current password to continue.'),
+                Text(AppLocalizations.of(context).authVerifyPasswordPrompt),
                 const SizedBox(height: 16),
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Current Password',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).authCurrentPassword,
+                    border: const OutlineInputBorder(),
                   ),
                   enabled: !isVerifying,
                 ),
@@ -590,14 +590,14 @@ class _PhoneProtectionScreenState extends State<PhoneProtectionScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Please enter your current password to continue.'),
+                Text(AppLocalizations.of(context).authVerifyPasswordPrompt),
                 const SizedBox(height: 16),
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Current Password',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).authCurrentPassword,
+                    border: const OutlineInputBorder(),
                   ),
                   enabled: !isVerifying,
                 ),
