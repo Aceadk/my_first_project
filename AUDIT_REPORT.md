@@ -132,7 +132,7 @@ P1 (Should Fix):
 - Confirm production mode does not mix stub users.
 
 P2 (Cleanups / Config):
-- Verify deep link domain consistency across iOS + Android (`crushhour.app` vs `crush-265f7.firebaseapp.com`).
+- Verify deep link domain consistency across iOS + Android (`crushhour.app` vs `crush-f5352.firebaseapp.com`).
 - Ensure `firebase.json` hosting aligns with Flutter web build output.
 
 ---

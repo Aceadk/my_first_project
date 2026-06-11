@@ -77,6 +77,82 @@ When the developer gives you a task:
 
 ## Task Log
 
+### Task #304 — Audit Old Firebase Connection References
+**Date:** 2026-06-08
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+- "bring up everything that is related to firebase . that is still relevant to old firebase connection"
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Identify every currently relevant reference to the old Firebase connection after the clean-start cutover.
+- **Scope:** Active mobile repo config/runtime files, local env files, hidden Firebase cache files, the sibling Crush Web local Firebase config/env files, historical docs/runbooks, Firebase CLI target, gcloud target, and read-only remote project visibility.
+- **Constraints:** Do not mutate Firebase Console, Google Cloud, Vercel, app code, or secret values; do not print private key material; classify active stale references separately from historical documentation.
+- **Expected Outcome:** A clear list of old-project references that still need attention, plus confirmation of active new-project wiring and remaining external access blockers.
+
+**Status Updates:**
+- **Received:** User requested all Firebase-related items still tied to the old connection.
+- **In Progress:** Scanned old identifiers (`crush-265f7`, project number `72015170328`, old auth/functions/storage/RTDB hosts) across active files, env files, hidden Firebase metadata, docs, and Crush Web.
+- **Completed:** Confirmed active mobile and local Crush Web config target `crush-f5352`; found one stale non-`docs/` historical report reference and multiple historical runbook/report references; verified remote old project state and current CLI access mismatch.
+
+**Outcome:**
+- **Files Changed:**
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+  - `docs/risk_notes.md`
+- **Result:**
+  - Active mobile runtime/config files do not point to `crush-265f7`; `.firebaserc`, `lib/firebase_options.dart`, `android/app/google-services.json`, iOS/macOS plists, API URLs, email-link URLs, Android manifest host, and hosted finish-sign-in page target `crush-f5352`.
+  - Local Crush Web `.firebaserc` and checked local Firebase env values target `crush-f5352`; the Admin JSON target is new-project but the private key remains a rotation risk and must not be reused for production.
+  - One stale non-`docs/` historical reference remains in `AUDIT_REPORT.md:135`: `crush-265f7.firebaseapp.com`.
+  - Old-project references remain in historical docs/runbooks/reports; they are not active runtime config but several runbooks are stale if used as-is after the clean start.
+  - `firebase use --json` returns `crush-f5352`, but `firebase projects:list` for the signed-in account only shows `fir-demo-project`; direct `firebase apps:list --project crush-f5352` returns 403.
+  - `gcloud projects describe crush-265f7` reports project number `72015170328` with lifecycle state `DELETE_REQUESTED`.
+  - Active gcloud account is `adhikarigya8@gmail.com`, while `gcloud config get-value project` is still `digital-menu-b5b76`; `crush-f5352` was not visible to that account in the read-only describe check.
+- **Verification:**
+  - `rg -uuu` scans for old project IDs/hosts across active repo files, docs, hidden Firebase metadata, and `/Users/ace/crush-web`.
+  - `firebase use --json`
+  - `firebase projects:list --json`
+  - `firebase apps:list --project crush-265f7 --json`
+  - `firebase apps:list --project crush-f5352 --json`
+  - `gcloud projects describe crush-265f7 --format='value(projectId,projectNumber,lifecycleState)'`
+  - `gcloud projects describe crush-f5352 --format='value(projectId,projectNumber,lifecycleState)'`
+- **Next Step:** Fix external access by signing Firebase/gcloud into an account with `crush-f5352` permissions, rotate the exposed Admin key, finish new-project Firebase services, update Vercel production env, and treat historical old-project docs as stale unless they are explicitly being used for deletion/forensics.
+
+### Task #303 — Android Signing SHA Fingerprint Lookup
+**Date:** 2026-06-08
+**Agent:** Codex
+**Status:** Completed
+
+**Original Request:**
+- "can you get me my sha -1 certificate keys"
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Retrieve the local Android certificate fingerprints needed for Firebase Google sign-in configuration.
+- **Scope:** Local debug keystore and configured release/upload keystore referenced by `android/key.properties`.
+- **Constraints:** Do not expose keystore passwords; do not modify signing files or Firebase Console state; report SHA-1 values and useful SHA-256 companion values.
+- **Expected Outcome:** Current debug and release/upload certificate SHA fingerprints are available for Firebase Console registration.
+
+**Status Updates:**
+- **Received:** User requested SHA-1 certificate keys.
+- **In Progress:** Read the local Android debug keystore and the non-secret release signing metadata, then used the configured keystore internally without printing passwords.
+- **Completed:** Captured debug and release/upload SHA-1 and SHA-256 fingerprints.
+
+**Outcome:**
+- **Files Changed:**
+  - `docs/Developer_agent_chat.md`
+  - `docs/ai_workboard.md`
+- **Result:**
+  - Debug SHA-1: `AA:DB:5E:D8:58:D6:83:0F:66:19:78:9A:27:EA:B9:CF:B8:7A:FE:A4`
+  - Debug SHA-256: `28:7C:76:AF:94:71:D8:3C:55:51:59:6C:A2:AC:C6:51:BC:FD:A4:8D:A2:F4:95:A5:C5:C4:B5:0B:77:33:F5:7E`
+  - Release/upload keystore alias: `crushhour`
+  - Release/upload SHA-1: `44:86:19:80:38:BD:BA:31:29:D2:42:7F:81:B8:33:B7:F5:D3:C1:72`
+  - Release/upload SHA-256: `0A:EC:40:A9:F7:CD:EC:9F:29:33:C1:57:D6:AF:8A:C4:C2:AC:1E:9D:ED:50:EE:86:2C:A5:94:68:53:5C:5B:CB`
+- **Verification:**
+  - `keytool -list -v -alias androiddebugkey -keystore "$HOME/.android/debug.keystore" -storepass android -keypass android`
+  - `keytool -list -v -alias crushhour -keystore /Users/ace/crushhour-release.keystore` using the local keystore password internally only.
+- **Next Step:** Add the debug SHA-1 for local Firebase testing and the release/upload SHA-1 for release builds; add the Play App Signing SHA-1 separately from Google Play Console if Play App Signing is enabled.
+
 ### Task #336 — Fix Functions Test Harness (59 failures → 0)
 **Date:** 2026-06-07
 **Agent:** Claude (Haiku 4.5)
@@ -18448,3 +18524,27 @@ The run completed pod install and Xcode build, then failed with:
 - **Verification:**
   - `vercel env ls FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` failed with missing local Vercel credentials, so remote existence could not be confirmed.
 - **Next Step:** User verifies/adds the variable in the Vercel UI, redeploys, and checks `/api/health`.
+
+### Task #303 — Full Production-Readiness Audit (Mobile + Web)
+
+**Original Request:**
+- Deep analysis of the entire project (mobile, web, backend, security, routing, state, parity) with a production-readiness report, refactor roadmap, and priority list.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Verify current state against the 2026-06-05/07 alignment reports, find live blockers, and deliver a prioritized production plan.
+- **Scope:** `Crush App`, `crush-web`, recommendation service, `Credentials/`, live Firebase project state via CLI. Analysis only — no app behavior changed.
+- **Constraints:** No code changes; no secrets printed; evidence-based.
+- **Expected Outcome:** `docs/reports/production_readiness_audit_2026-06-11.md` with findings + roadmap.
+
+**Status Updates:**
+- **Received → In Progress → Completed** (2026-06-11).
+
+**Outcome:**
+- **Files Changed:**
+  - `docs/reports/production_readiness_audit_2026-06-11.md` (new)
+  - `docs/Developer_agent_chat.md`, `docs/ai_workboard.md`
+- **Verification:**
+  - `flutter analyze` → 0 issues (617 files); `glass_bottom_nav_bar_test.dart` passing with dirty change.
+  - web `tsc --noEmit` clean; `vitest run` 256/256 passing.
+  - `firebase firestore:databases:list --project crush-f5352` → "No databases found" (CLI access works now; 06-09 403 resolved).
+- **Next Step:** Execute P0 cutover runbook; rotate Admin key; fix web session verification; flip `NEXT_PUBLIC_USE_V2_CHAT` at cutover.

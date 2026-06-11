@@ -7882,3 +7882,63 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Verification:
   - `vercel env ls FIREBASE_ADMIN_SERVICE_ACCOUNT_JSON` failed because no local Vercel credentials are available.
 - Next Step: Verify in the Vercel UI whether the variable exists, add/update it for the intended target environment, redeploy, and validate `/api/health`.
+
+### T-2026-06-08-ANDROID-SIGNING-SHA-FINGERPRINTS
+- Date: 2026-06-08
+- Owner: Codex
+- Status: Completed
+- Goal: Retrieve the Android certificate SHA fingerprints needed for Firebase Google sign-in setup.
+- Scope: Local debug keystore and configured release/upload keystore from `android/key.properties`; no Firebase Console mutation.
+- Key Findings:
+  - Debug SHA-1: `AA:DB:5E:D8:58:D6:83:0F:66:19:78:9A:27:EA:B9:CF:B8:7A:FE:A4`
+  - Debug SHA-256: `28:7C:76:AF:94:71:D8:3C:55:51:59:6C:A2:AC:C6:51:BC:FD:A4:8D:A2:F4:95:A5:C5:C4:B5:0B:77:33:F5:7E`
+  - Release/upload keystore alias: `crushhour`
+  - Release/upload SHA-1: `44:86:19:80:38:BD:BA:31:29:D2:42:7F:81:B8:33:B7:F5:D3:C1:72`
+  - Release/upload SHA-256: `0A:EC:40:A9:F7:CD:EC:9F:29:33:C1:57:D6:AF:8A:C4:C2:AC:1E:9D:ED:50:EE:86:2C:A5:94:68:53:5C:5B:CB`
+- Decisions/Handoffs:
+  - Keystore passwords were not printed. Play App Signing SHA-1 is separate and must be copied from Google Play Console if Play App Signing is enabled.
+- Verification:
+  - `keytool -list -v -alias androiddebugkey -keystore "$HOME/.android/debug.keystore" -storepass android -keypass android`
+  - `keytool -list -v -alias crushhour -keystore /Users/ace/crushhour-release.keystore` using the local keystore password internally only.
+- Next Step: Register the relevant SHA-1 values in Firebase Console for Android package `com.ace.crush`, then refresh `google-services.json` if OAuth clients are generated.
+
+### T-2026-06-08-OLD-FIREBASE-REFERENCE-AUDIT
+- Date: 2026-06-08
+- Owner: Codex
+- Status: Completed
+- Goal: Surface all currently relevant Firebase references still tied to the old `crush-265f7` connection.
+- Scope: Active mobile repo config/runtime files, local env files, hidden Firebase cache files, sibling Crush Web local Firebase config/env, historical docs/runbooks, Firebase CLI target, gcloud target, and read-only remote project visibility.
+- Key Findings:
+  - Active mobile runtime/config files now target `crush-f5352`: `.firebaserc`, `lib/firebase_options.dart`, `android/app/google-services.json`, iOS/macOS plists, API URLs, email-link URL, Android manifest host, and hosted finish-sign-in page.
+  - Local Crush Web `.firebaserc` and checked Firebase env values target `crush-f5352`; the Admin JSON also targets `crush-f5352`, but the private key remains exposed/rotation-required and must not be reused for production.
+  - One stale non-`docs/` historical reference remains in `AUDIT_REPORT.md:135`: `crush-265f7.firebaseapp.com`.
+  - Old-project references remain across historical docs/runbooks/reports, including backup/restore, domain/environment, backend contract, chat migration, and Firebase clean-start/account-switch docs. These are not active runtime config but are stale if used for new-project operations without editing.
+  - Firebase CLI local target is `crush-f5352`, but the signed-in Firebase account only lists `fir-demo-project`; `firebase apps:list --project crush-f5352` returns 403.
+  - Google Cloud reports old project `crush-265f7` / `72015170328` as `DELETE_REQUESTED`.
+  - Active gcloud account is `adhikarigya8@gmail.com`, while gcloud's selected project remains `digital-menu-b5b76`; `crush-f5352` was not visible in the read-only describe check.
+- Decisions/Handoffs:
+  - No app code changed because no active runtime old-project reference was found.
+  - External access must be fixed before deploy: sign Firebase/gcloud into an account with `crush-f5352` permissions or grant the current account the needed IAM roles.
+- Verification:
+  - `rg -uuu` scans for `crush-265f7`, `72015170328`, and old auth/functions/storage/RTDB hosts across active files, env files, hidden Firebase metadata, docs, and `/Users/ace/crush-web`.
+  - `firebase use --json`
+  - `firebase projects:list --json`
+  - `firebase apps:list --project crush-265f7 --json`
+  - `firebase apps:list --project crush-f5352 --json`
+  - `gcloud projects describe crush-265f7 --format='value(projectId,projectNumber,lifecycleState)'`
+  - `gcloud projects describe crush-f5352 --format='value(projectId,projectNumber,lifecycleState)'`
+- Next Step: Rotate the exposed Admin key, grant/verify Firebase and gcloud access to `crush-f5352`, finish new-project Firebase services, update Vercel production env, and treat old-project docs as historical unless used for deletion/forensics.
+
+## Task #303 — 2026-06-11 — Production-Readiness Audit — Completed
+- Goal + Scope: Full-system audit (mobile, web, backend, security, parity); analysis only.
+- Key Changes: `docs/reports/production_readiness_audit_2026-06-11.md` (new report).
+- Key Findings:
+  - P0: `crush-f5352` has NO Firestore database, Storage, or deployed Functions (verified via CLI 2026-06-11); cutover runbook 2026-06-09 not yet executed. All production breakage stems from this.
+  - P1: web `/api/auth/session` sets unverified cookie; middleware excludes `/api`; checkout route trusts body `userId`. Use Firebase session cookies + server-side verification.
+  - P1: duplicate Stripe paths (Next `/api/stripe/*` vs functions callables); tier drift (`platinum_*` vs `plan: plus`).
+  - P1: `NEXT_PUBLIC_USE_V2_CHAT` default OFF → legacy web chat writes rejected by rules; clean-start DB means flip ON and skip migration.
+  - P2: two deployed web apps (Flutter web Vercel + Next.js); unknown-route fallback shows login screen; `/test-agora` in release builds.
+  - Local gates re-verified green: flutter analyze 0, web tsc clean, vitest 256/256.
+- Decisions/Handoffs: No code changed; P0–P1 actions itemized in report §15.
+- Verification: Firebase CLI live checks; analyzer/typecheck/test runs (2026-06-11).
+- Next Step: Run cutover runbook; rotate Admin key; harden web session; single Stripe path.

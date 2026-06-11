@@ -104,35 +104,61 @@ class GlassBottomNavBar extends StatelessWidget {
 
     final borderColor = DsGlassColors.borderFor(context);
 
+    // Floating rounded "pill" bar (Tinder-style): inset from the screen edges
+    // and detached from the bottom so it hovers above the home indicator, with
+    // all four corners rounded and a soft drop shadow.
+    const radius = DsRadius.xxl;
+    final pillBorderRadius = BorderRadius.circular(radius);
+
     return RepaintBoundary(
-      child: ClipRRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            height: height + bottomInset,
-            decoration: BoxDecoration(
-              color: bgColor,
-              border: Border(top: BorderSide(color: borderColor, width: 0.6)),
-            ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                DsSpacing.sm,
-                DsSpacing.xs,
-                DsSpacing.sm,
-                DsSpacing.xs + bottomInset,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: DsSpacing.lg,
+          right: DsSpacing.lg,
+          bottom: bottomInset > 0 ? bottomInset : DsSpacing.sm,
+        ),
+        child: DecoratedBox(
+          // Shadow lives on the outer box so it isn't clipped by the ClipRRect.
+          decoration: BoxDecoration(
+            borderRadius: pillBorderRadius,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
               ),
-              child: Row(
-                children: List.generate(items.length, (index) {
-                  final item = items[index];
-                  final isSelected = index == currentIndex;
-                  return Expanded(
-                    child: _GlassNavItemWidget(
-                      item: item,
-                      isSelected: isSelected,
-                      onTap: () => onTap(index),
-                    ),
-                  );
-                }),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: pillBorderRadius,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+              child: Container(
+                height: height,
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: pillBorderRadius,
+                  border: Border.all(color: borderColor, width: 0.6),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: DsSpacing.sm,
+                    vertical: DsSpacing.xs,
+                  ),
+                  child: Row(
+                    children: List.generate(items.length, (index) {
+                      final item = items[index];
+                      final isSelected = index == currentIndex;
+                      return Expanded(
+                        child: _GlassNavItemWidget(
+                          item: item,
+                          isSelected: isSelected,
+                          onTap: () => onTap(index),
+                        ),
+                      );
+                    }),
+                  ),
+                ),
               ),
             ),
           ),

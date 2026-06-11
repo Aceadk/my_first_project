@@ -2043,6 +2043,21 @@ Vercel Update (2026-06-08):
   then remove old deployments. Preserve unrelated Stripe, Sentry, Upstash,
   domain, and Vercel system settings.
 
+Access/Deletion Update (2026-06-08):
+
+- A read-only gcloud check reports the old project `crush-265f7` / `72015170328`
+  in lifecycle state `DELETE_REQUESTED`.
+- Active local runtime/config scans found no old-project references outside
+  historical reports/runbooks, except one stale historical note in
+  `AUDIT_REPORT.md`.
+- Firebase CLI's local target is `crush-f5352`, but the currently signed-in
+  Firebase account only lists `fir-demo-project` and receives 403 when listing
+  apps for `crush-f5352`.
+- The active gcloud account is `adhikarigya8@gmail.com`, while the selected
+  gcloud project is still `digital-menu-b5b76`; `crush-f5352` was not visible in
+  the read-only describe check. Deploys remain blocked until Firebase/gcloud
+  access to `crush-f5352` is granted or the CLI accounts are switched.
+
 Status: Open
 
 Owner: Developer / Platform

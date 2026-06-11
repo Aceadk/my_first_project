@@ -1,6 +1,6 @@
 {
-    "name": "Crush",
-    "short_name": "Crush",
+    "name": "Crush App",
+    "short_name": "Crush App",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0D0E12",
