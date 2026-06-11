@@ -18548,3 +18548,23 @@ The run completed pod install and Xcode build, then failed with:
   - web `tsc --noEmit` clean; `vitest run` 256/256 passing.
   - `firebase firestore:databases:list --project crush-f5352` → "No databases found" (CLI access works now; 06-09 403 resolved).
 - **Next Step:** Execute P0 cutover runbook; rotate Admin key; fix web session verification; flip `NEXT_PUBLIC_USE_V2_CHAT` at cutover.
+
+### Task #304 — Production-Readiness Fixes (P1/P2 from 2026-06-11 audit)
+
+**Original Request:**
+- "Solve all problems existing and also look deeply for more UI/UX problems, login logout and other app features."
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Fix the P1/P2 code findings from `docs/reports/production_readiness_audit_2026-06-11.md` and sweep auth/UI flows for additional defects.
+- **Scope:** Both repos. Web session security, V2 chat default, mobile routing/lifecycle/i18n fixes, repo cleanup, test repairs.
+- **Constraints:** No infra provisioning (Firestore creation blocked by permissions — handed to owner); no deletion of ambiguous assets (recommendation-service duplicates kept).
+- **Expected Outcome:** All local gates green with fixes committed in logical units.
+
+**Status Updates:**
+- **Received → In Progress → Completed** (2026-06-12).
+
+**Outcome:**
+- **Files Changed (crush-web):** `api/auth/session/route.ts` (verify ID token → Firebase session cookie), `shared/lib/server-session.ts` (new verifySessionCookie), `api/auth/activity/route.ts`, `api/stripe/create-checkout-session/route.ts` (server-derived identity), `premium-view.tsx`, `middleware.ts` (14-day cap + role comment), `lib/firebase-admin.ts` (getAdminAuth), `packages/core/src/config/features.ts` (V2 chat default ON), AGENTS.md, store comments, new `session-auth-contract.test.ts` (6 tests), `__tests__/setup.ts` (node-env guard).
+- **Files Changed (Crush App):** `core/router.dart` (NotFoundScreen error page, kDebugMode test-agora, localized deep-link strings), new `core/widgets/not_found_screen.dart`, `calls/.../call_screen.dart` + `call_history_screen.dart` (initState inherited-widget lifecycle fixes), `auth/.../logout_screen.dart` (i18n, theme-aware color, safe Cancel pop), `phone_protection_screen.dart` (dialog i18n), `app_en.arb` (+12 keys), test repairs (router harness SubscriptionBloc, incoming-call l10n delegates, midnight-safe call-history fixture), junk-file cleanup + January audit archived.
+- **Verification:** flutter analyze 0 issues; router suite 25/25; call suites 29/29; web tsc clean; vitest 262/262; eslint clean on touched files; full `flutter test` run recorded below.
+- **Next Step:** Owner runs Firestore creation + cutover runbook; rotate Admin key; set NEXT_PUBLIC_USE_V2_CHAT in Vercel envs (or rely on new default).

@@ -54,16 +54,26 @@ class FirebaseHttpAuthSessionBridge implements HttpAuthSessionBridge {
     FirebaseFirestore? firestore,
     FirebaseFunctions? functions,
     FlutterSecureStorage? secureStorage,
-  }) : _firebaseAuth = firebaseAuth ?? fb.FirebaseAuth.instance,
-       _delegate = FirebaseAuthRepository(
-         firebaseAuth: firebaseAuth ?? fb.FirebaseAuth.instance,
-         firestore: firestore ?? FirebaseFirestore.instance,
-         functions: functions ?? FirebaseFunctions.instance,
-         secureStorage: secureStorage,
-       );
+  }) : _firebaseAuthOverride = firebaseAuth,
+       _firestoreOverride = firestore,
+       _functionsOverride = functions,
+       _secureStorageOverride = secureStorage;
 
-  final fb.FirebaseAuth _firebaseAuth;
-  final FirebaseAuthRepository _delegate;
+  final fb.FirebaseAuth? _firebaseAuthOverride;
+  final FirebaseFirestore? _firestoreOverride;
+  final FirebaseFunctions? _functionsOverride;
+  final FlutterSecureStorage? _secureStorageOverride;
+
+  // Lazily resolved so that constructing the DI graph (e.g. http mode in
+  // tests) does not require Firebase.initializeApp to have run.
+  late final fb.FirebaseAuth _firebaseAuth =
+      _firebaseAuthOverride ?? fb.FirebaseAuth.instance;
+  late final FirebaseAuthRepository _delegate = FirebaseAuthRepository(
+    firebaseAuth: _firebaseAuthOverride ?? fb.FirebaseAuth.instance,
+    firestore: _firestoreOverride ?? FirebaseFirestore.instance,
+    functions: _functionsOverride ?? FirebaseFunctions.instance,
+    secureStorage: _secureStorageOverride,
+  );
 
   @override
   Stream<CrushUser?> authStateChanges() => _delegate.authStateChanges();

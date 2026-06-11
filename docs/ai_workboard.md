@@ -7942,3 +7942,11 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
 - Decisions/Handoffs: No code changed; P0–P1 actions itemized in report §15.
 - Verification: Firebase CLI live checks; analyzer/typecheck/test runs (2026-06-11).
 - Next Step: Run cutover runbook; rotate Admin key; harden web session; single Stripe path.
+
+## Task #304 — 2026-06-12 — Production-Readiness Fixes (P1/P2) — Completed
+- Goal + Scope: Implement audit fixes across both repos; deep auth/UI sweep.
+- Key changes: web session-cookie verification (Admin SDK), checkout identity from session, V2 chat default ON (clean start), mobile NotFound page, debug-gated /test-agora, call-screen initState lifecycle fixes, logout/password-dialog i18n, junk cleanup.
+- Decisions/Handoffs: Firestore DB creation + provider/App Check/Stripe console setup → owner (permission-gated). Recommendation-service duplicate (Firestore vs BigQuery impls) → owner decision. Community-guidelines legal copy left English-only pending product/legal translation.
+- Risks/Mitigation: auth-critical changes covered by new contract tests (6) + existing suites; session lifetime now capped at Firebase's 14-day max (was 30-day cookie).
+- Verification: flutter analyze 0; vitest 262/262; tsc clean (web+core); router 25/25; calls 29/29.
+- Next Step: Execute cutover runbook against crush-f5352, then staging smoke per audit §12.

@@ -32,10 +32,17 @@ void main() {
 
   group('DateTimeFormatter chat separator', () {
     test('formatChatSeparator returns today label for current date', () {
-      final now = DateTime.now().subtract(const Duration(hours: 2));
+      // Anchored to the start of today (not `now - 2h`) so the fixture stays
+      // inside "today" even when the test runs shortly after midnight.
+      final now = DateTime.now();
+      final today = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).add(const Duration(minutes: 30));
 
       final value = DateTimeFormatter.formatChatSeparator(
-        now,
+        today,
         l10n: l10n,
         locale: 'en_US',
       );
@@ -44,9 +51,12 @@ void main() {
     });
 
     test('formatChatSeparator returns yesterday label for previous day', () {
-      final yesterday = DateTime.now().subtract(
-        const Duration(days: 1, hours: 1),
-      );
+      final now = DateTime.now();
+      final yesterday = DateTime(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(const Duration(hours: 12));
 
       final value = DateTimeFormatter.formatChatSeparator(
         yesterday,

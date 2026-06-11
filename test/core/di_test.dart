@@ -29,12 +29,22 @@ import 'package:crushhour/features/subscription/data/repositories/impl/http_subs
 import 'package:crushhour/features/subscription/data/repositories/impl/stub_subscription_repository.dart';
 import 'package:crushhour/features/subscription/data/services/native_billing_service.dart';
 import 'package:crushhour/features/subscription/domain/repositories/subscription_repository.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+
+import 'services/firebase_mocks.dart';
 
 void main() {
   group('CrushDI', () {
     late TargetPlatform? previousPlatform;
+
+    setUpAll(() async {
+      // http mode wires HttpAuthRepository -> FirebaseHttpAuthSessionBridge,
+      // which resolves FirebaseAuth on first use and needs a (mock) app.
+      setupFirebaseCoreMocks();
+      await Firebase.initializeApp();
+    });
 
     setUp(() {
       previousPlatform = debugDefaultTargetPlatformOverride;
