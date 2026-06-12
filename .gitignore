@@ -102,8 +102,25 @@ android/.kotlin/
 
 # Android signing keys (contains sensitive credentials)
 android/key.properties
+key.properties
 *.keystore
 *.jks
+*keystore-backup*.txt
+
+# Firebase Admin / service-account keys (NEVER commit)
+*serviceAccount*.json
+*-adminsdk-*.json
+*firebase-adminsdk*.json
+
+# Apple signing secrets (NEVER commit)
+*.p8
+*.p12
+*.mobileprovision
+*.certSigningRequest
+
+# Env variants
+.env.*
+!.env.example
 
 # Generated dataconnect
 lib/dataconnect_generated/
