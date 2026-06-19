@@ -5575,3 +5575,24 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - one-time production Firestore REST backfill using `buildLegacyDiscoveryMirrorPatch` logic (`8` processed, `2` patched) (pass)
   - post-backfill production legacy-query check for `7wvb5ZCWk6gHbJ4dHDmXdOwVF942` and `UJJWsL1Qmtc6HMcuUJbTWkK5CXD2` (pass; both visible)
 - Next Step: Keep the Vercel/web deployment cleanup as a non-blocking follow-up, then remove the compatibility mirror only after all public web clients are confirmed on the backend deck path.
+
+### T-2026-06-19-REFRESH-GITHUB-README
+- Date: 2026-06-19
+- Owner: Codex
+- Status: Completed
+- Goal: Replace the stale prototype README with an accurate description of the current Crush mobile application and Firebase backend.
+- Scope: Root `README.md`, GitHub repository presentation metadata, and required workflow logs.
+- Key Changes:
+  - Reframed the product as Crush, an 18+ safety-first dating platform, instead of the retired CrushHour prototype description.
+  - Documented the maintained Flutter/Firebase architecture, current feature surface, companion Next.js web repository, backend modes, setup, emulator workflow, quality gates, deployment commands, and operational release boundaries.
+  - Added the maintained app icon and CI/toolchain badges using existing repository assets.
+  - Removed obsolete statements about placeholder tests, the old folder layout, Stripe-only mobile billing, and optional BigQuery examples as primary product behavior.
+- Decisions/Handoffs:
+  - Kept the existing GitHub repository name to avoid breaking clones and integrations.
+  - Described native calling as implemented but still subject to provider credentials and real-device release validation.
+  - Limited source changes to documentation; no application or backend behavior changed.
+- Verification:
+  - Validated every linked local file and command path against the repository.
+  - Confirmed the README references tracked icon assets and the separate `Aceadk/crush-web` repository.
+  - Ran Markdown link/path validation and the required docs-sync guard.
+- Next Step: Capture current App Store and Play Store screenshots when release-ready and add them to the product overview.
