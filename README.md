@@ -1,11 +1,11 @@
-# CrushHour
+# Crush
 
 Dating-style Flutter app with Firebase backend, Stripe billing, and optional BigQuery ML pipelines.
 
 ## What this app does
 - Discovery deck with swipes, mutual matches, and pre-match message requests.
 - Chat with read receipts, typing/presence indicators, reactions, media sending toggle, unmatch, and Plus-only unsend.
-- Stripe Checkout for CrushHour Plus; webhook updates user plan in Firestore.
+- Stripe Checkout for Crush Plus; webhook updates user plan in Firestore.
 - Data Connect client stubs (generated) for server-side operations.
 - Example BigQuery pipelines for recommendations/ranking (optional, offline/analytics).
 
