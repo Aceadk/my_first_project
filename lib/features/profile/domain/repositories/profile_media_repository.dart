@@ -121,6 +121,19 @@ class ProfileMediaEnsureResult {
   bool get hasIssues => issues.isNotEmpty;
   bool get hasBlockingFailures =>
       issues.any((issue) => !issue.recoveredWithFallback);
+
+  /// The error from the first photo that failed to upload, if any.
+  /// Used to surface the underlying cause (e.g. unauthorized / App Check)
+  /// instead of a generic "upload failed" message.
+  ProfileMediaError? get firstPhotoUploadError {
+    for (final issue in issues) {
+      if (issue.mediaType == ProfileMediaType.photo &&
+          issue.kind == ProfileMediaMigrationIssueKind.uploadFailed) {
+        return issue.error;
+      }
+    }
+    return null;
+  }
 }
 
 abstract class ProfileMediaRepository {

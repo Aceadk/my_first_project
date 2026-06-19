@@ -19,9 +19,13 @@ typedef MediaDeleteHandler = Future<void> Function(String url);
 
 /// ProfileMediaService handles uploading profile photos and videos to Firebase Storage.
 ///
-/// In debug mode, if Firebase Storage upload fails (e.g., due to security rules),
-/// it will fall back to using local file paths. This allows development to continue
-/// while Firebase Storage rules are being configured.
+/// Optionally (opt-in via [useFallbackInDebug]), if a Firebase Storage upload
+/// fails in debug mode it can fall back to the local file path so the picked
+/// media still renders on-device. This is OFF by default: the local path is
+/// later discarded by the repository (only remote URLs are persisted), so a
+/// silent fallback makes uploads *look* successful while the photo is never
+/// actually saved. Failing loudly surfaces the real cause (e.g. Storage rules
+/// not deployed, or App Check rejecting the request).
 
 class ProfileMediaService implements ProfileMediaRepository {
   ProfileMediaService({
@@ -44,8 +48,12 @@ class ProfileMediaService implements ProfileMediaRepository {
   final bool Function() _isDebugMode;
   final String Function() _uuidGenerator;
 
-  /// Whether to use local file fallback when Firebase Storage fails (debug only)
-  static bool useFallbackInDebug = true;
+  /// Whether to use local file fallback when Firebase Storage fails (debug only).
+  ///
+  /// Defaults to false so failed uploads surface a real error instead of
+  /// silently substituting a local path that the repository will later drop.
+  /// Opt in per-session if you need offline/local-only development.
+  static bool useFallbackInDebug = false;
 
   /// Upload a photo to Firebase Storage.
   /// Returns an explicit typed result for success/failure/fallback paths.

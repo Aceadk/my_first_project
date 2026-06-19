@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 
 const bool kUseFirebaseEmulators = bool.fromEnvironment(
@@ -22,6 +23,10 @@ const int kFunctionsEmulatorPort = int.fromEnvironment(
 const int kFirestoreEmulatorPort = int.fromEnvironment(
   'FIREBASE_FIRESTORE_EMULATOR_PORT',
   defaultValue: 8080,
+);
+const int kStorageEmulatorPort = int.fromEnvironment(
+  'FIREBASE_STORAGE_EMULATOR_PORT',
+  defaultValue: 9199,
 );
 
 bool _configured = false;
@@ -47,6 +52,11 @@ Future<void> configureFirebaseEmulators() async {
   }
   FirebaseFirestore.instance.useFirestoreEmulator(host, kFirestoreEmulatorPort);
   FirebaseFunctions.instance.useFunctionsEmulator(host, kFunctionsEmulatorPort);
+  // Wire Storage to the emulator too, so profile photo uploads work locally
+  // without hitting production rules / App Check. Without this, Storage leaks
+  // to the live bucket while auth uses an emulator token, so every upload is
+  // rejected and the photo silently fails to attach.
+  await FirebaseStorage.instance.useStorageEmulator(host, kStorageEmulatorPort);
 }
 
 String _resolveEmulatorHost() {

@@ -413,7 +413,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
     if (!mounted) return;
     if (uploadResult.photoUrls.isEmpty) {
-      showErrorSnackBar(context, l10n.errorMediaUploadFailed);
+      final reason = uploadResult.firstPhotoUploadError?.message;
+      showErrorSnackBar(context, reason ?? l10n.errorMediaUploadFailed);
       setState(() => _uploading = false);
       return;
     }

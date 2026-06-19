@@ -175,9 +175,11 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
       uploads.photoUrls,
     );
     if (!uploadedMediaValidation.isValid) {
+      final reason = uploads.firstPhotoUploadError?.message;
       showErrorSnackBar(
         context,
-        'Some photos could not be uploaded. Please add at least one photo.',
+        reason ??
+            'Some photos could not be uploaded. Please add at least one photo.',
       );
       setState(() => _uploading = false);
       return;
