@@ -1,0 +1,10 @@
+# Test configuration.
+#
+# The `golden` tag marks pixel-comparison (golden) widget tests. Their reference
+# images are generated on a developer machine (macOS) and are not portable to
+# the Linux CI runner or across Flutter versions, so CI runs
+# `flutter test --exclude-tags golden`. Run them locally with a matched
+# toolchain: `flutter test test/golden/`.
+tags:
+  golden:
+    description: Golden/pixel-comparison widget tests (excluded from cross-platform CI).

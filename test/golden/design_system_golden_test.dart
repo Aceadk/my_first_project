@@ -12,6 +12,12 @@
 /// ```
 /// flutter test test/golden/design_system_golden_test.dart
 /// ```
+///
+/// Tagged `golden` and excluded from the cross-platform CI `flutter test` run:
+/// golden images are pixel-comparisons against locally-generated references and
+/// are not portable to the Linux CI runner / a different Flutter version. Run
+/// them locally with a matched toolchain (`flutter test test/golden/`).
+@Tags(['golden'])
 library;
 
 import 'package:flutter/material.dart';

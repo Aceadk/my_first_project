@@ -1,3 +1,7 @@
+// Tagged `golden` and excluded from the cross-platform CI `flutter test` run:
+// golden pixel-comparisons are not portable to the Linux CI runner. Run locally
+// with a matched toolchain (`flutter test test/golden/`).
+@Tags(['golden'])
 library;
 
 import 'package:crushhour/data/models/subscription.dart';

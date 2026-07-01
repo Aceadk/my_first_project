@@ -51,7 +51,10 @@ jobs:
       - name: Run accessibility regression lane
         run: flutter test test/accessibility_regression_lane_test.dart -r compact
       - name: Run unit tests
-        run: flutter test --coverage
+        # Exclude golden tests: their reference images are macOS-generated pixel
+        # comparisons that are not portable to the Linux CI runner. Run them
+        # locally with a matched toolchain (`flutter test test/golden/`).
+        run: flutter test --coverage --exclude-tags golden
       - name: Generate coverage hotspot artifact
         run: dart run tool/coverage_summary.dart --artifact=coverage_logic_lowest_raw.txt
       - name: Verify coverage hotspot artifact is up to date
