@@ -110,7 +110,24 @@ async function mirrorToPrivate(
     });
   }
 }
-const rtdb = admin.database();
+// Lazily resolve the Realtime Database handle. Calling admin.database() at
+// module load fails the deploy "analyze" phase when the RTDB URL can't be
+// determined locally (no databaseURL is configured anywhere). Deferring the
+// call until first use keeps deploys working; runtime behaviour is unchanged
+// because every `rtdb.<member>` access resolves the real instance on demand.
+let _rtdb: admin.database.Database | null = null;
+const rtdb: admin.database.Database = new Proxy(
+  {} as admin.database.Database,
+  {
+    get(_target, prop, receiver) {
+      _rtdb ??= admin.database();
+      const value = Reflect.get(_rtdb as object, prop, receiver);
+      return typeof value === "function"
+        ? (value as (...args: unknown[]) => unknown).bind(_rtdb)
+        : value;
+    },
+  },
+);
 const fieldValue = (
   admin.firestore as unknown as {
     FieldValue?: {
