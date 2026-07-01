@@ -877,9 +877,7 @@ class OtherUserProfileScreen extends StatelessWidget {
           currentUserId: userId,
           otherUserId: profile.id,
           otherName: profile.publicDisplayName,
-          otherPhotoUrl: profile.photoUrls.isNotEmpty
-              ? profile.photoUrls.first
-              : null,
+          otherPhotoUrl: profile.displayPhotoUrl,
         ),
       );
       return;
@@ -976,17 +974,9 @@ class OtherUserProfileScreen extends StatelessWidget {
                                         fromUserName:
                                             currentProfile?.publicDisplayName,
                                         fromUserPhotoUrl:
-                                            currentProfile
-                                                    ?.photoUrls
-                                                    .isNotEmpty ==
-                                                true
-                                            ? currentProfile!.photoUrls.first
-                                            : null,
+                                            currentProfile?.displayPhotoUrl,
                                         toUserName: profile.publicDisplayName,
-                                        toUserPhotoUrl:
-                                            profile.photoUrls.isNotEmpty
-                                            ? profile.photoUrls.first
-                                            : null,
+                                        toUserPhotoUrl: profile.displayPhotoUrl,
                                       );
                                   if (!context.mounted) return;
                                   if (request == null) {
@@ -1246,8 +1236,9 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final hasPhotos = widget.profile.photoUrls.isNotEmpty;
-    final photoCount = widget.profile.photoUrls.length;
+    final photos = widget.profile.displayOrderedPhotoUrls;
+    final hasPhotos = photos.isNotEmpty;
+    final photoCount = photos.length;
 
     return Semantics(
       child: GestureDetector(
@@ -1272,7 +1263,7 @@ class _ProfileHeaderState extends State<_ProfileHeader> {
           children: [
             if (hasPhotos)
               CachedNetworkImage(
-                imageUrl: widget.profile.photoUrls[_currentPhotoIndex],
+                imageUrl: photos[_currentPhotoIndex],
                 fit: BoxFit.cover,
                 errorWidget: _buildPlaceholder(),
               )

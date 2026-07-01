@@ -868,6 +868,44 @@ function toStringArray(value: unknown): string[] {
     .filter((v) => v.length > 0);
 }
 
+function normalizePrimaryPhotoIndex(
+  value: unknown,
+  photoCount: number,
+): number {
+  if (photoCount <= 0) return 0;
+  const parsed = toNumber(value);
+  if (parsed === undefined) return 0;
+  return Math.max(0, Math.min(Math.trunc(parsed), photoCount - 1));
+}
+
+function profilePhotoSelection(
+  profileValue: unknown,
+  fallbackPhotoUrl?: unknown,
+): {
+  photoUrls: string[];
+  primaryPhotoIndex: number;
+  displayPhotoUrl: string | null;
+} {
+  const profile =
+    profileValue && typeof profileValue === "object"
+      ? (profileValue as Record<string, unknown>)
+      : {};
+  const photoUrls = toStringArray(profile.photoUrls);
+  const fallback = optionalString(fallbackPhotoUrl);
+  if (photoUrls.length === 0 && fallback) {
+    photoUrls.push(fallback);
+  }
+  const primaryPhotoIndex = normalizePrimaryPhotoIndex(
+    profile.primaryPhotoIndex,
+    photoUrls.length,
+  );
+  return {
+    photoUrls,
+    primaryPhotoIndex,
+    displayPhotoUrl: photoUrls[primaryPhotoIndex] ?? null,
+  };
+}
+
 function toMillis(value: unknown, fallback: number): number {
   if (typeof value === "number") return value;
   if (value instanceof Date) return value.getTime();
@@ -2086,6 +2124,7 @@ interface DiscoveryUserSnapshot {
   birthDateIso: string | null;
   gender: string | null;
   photoUrls: string[];
+  primaryPhotoIndex: number;
   interests: string[];
   prompts: string[];
   isVerified: boolean;
@@ -2347,6 +2386,10 @@ function buildDiscoveryUserSnapshot(
   if (photoUrls.length === 0 && fallbackPrimaryPhoto) {
     photoUrls.push(fallbackPrimaryPhoto);
   }
+  const primaryPhotoIndex = normalizePrimaryPhotoIndex(
+    mergedProfile.primaryPhotoIndex,
+    photoUrls.length,
+  );
 
   const preferences = buildDiscoveryPreferenceSnapshot(
     userData,
@@ -2371,6 +2414,7 @@ function buildDiscoveryUserSnapshot(
     birthDateIso: profileBirthDateIso(mergedProfile),
     gender: normalizeProfileGender(mergedProfile.gender),
     photoUrls,
+    primaryPhotoIndex,
     interests: toStringArray(mergedProfile.interests),
     prompts: profilePromptAnswers(mergedProfile),
     isVerified:
@@ -2663,7 +2707,8 @@ function buildLegacyDiscoveryMirrorPatch(
     patch.photos = snapshot.photoUrls;
   }
 
-  const desiredPrimaryPhoto = snapshot.photoUrls[0];
+  const desiredPrimaryPhoto =
+    snapshot.photoUrls[snapshot.primaryPhotoIndex];
   if (
     desiredPrimaryPhoto &&
     desiredPrimaryPhoto !== toNonEmptyString(userData.profilePhotoUrl)
@@ -2756,6 +2801,7 @@ function buildDiscoveryProfileResponse(
     gender: user.gender,
     bio: user.bio,
     photoUrls: user.photoUrls,
+    primaryPhotoIndex: user.primaryPhotoIndex,
     interests: user.interests,
     prompts: user.prompts,
     country: user.country,
@@ -5434,6 +5480,7 @@ type ProfileData = {
   birthDate?: unknown;
   dateOfBirth?: unknown; // Legacy fallback
   photoUrls?: unknown;
+  primaryPhotoIndex?: unknown;
   prompts?: unknown;
   profilePrompts?: unknown; // Canonical structured prompts
   interests?: unknown;
@@ -7714,7 +7761,7 @@ export const getBlockedUsers = callable<Record<string, never>>(
             const user = await getUser(blockedId);
             const profile = user.profile as ProfileData | null;
             name = (profile?.name as string | undefined) ?? null;
-            photoUrl = toStringArray(profile?.photoUrls)[0] ?? null;
+            photoUrl = profilePhotoSelection(profile).displayPhotoUrl;
           } catch {
             // Blocked user may have been deleted; return id only.
           }
@@ -8555,6 +8602,297 @@ export const mirrorUserPrivateFields = functions.firestore
     await mirrorToPrivate(context.params.userId, nextSensitive);
   });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// OPEN DISCOVERY MODE (TEMPORARY — small user base)
+//
+// Goal: while Crush has few users, any logged-in account should be able to see
+// and swipe ANY other valid account, regardless of gender/age/distance/interest
+// /compatibility preferences, profile completion, premium, popularity, etc.
+//
+// The full "advanced" system is intentionally NOT deleted. Its query builder
+// (buildDiscoveryCandidateQueryPlan), account/eligibility gate
+// (evaluateDiscoveryEligibility) and per-candidate filter + ranking
+// (evaluateDiscoveryCandidateForRequester) are all preserved and are used
+// whenever DISCOVERY_MODE === "advanced".
+//
+// HOW TO SWITCH BACK: set DISCOVERY_MODE below (or the DISCOVERY_MODE env var)
+// to "advanced" and redeploy the functions. Nothing else needs to change — both
+// the mobile callable (fetchDiscoveryCandidates) and the web REST route
+// (/v1/discovery/deck) go through buildDiscoveryDeckPayload, so this one switch
+// controls discovery on every platform.
+//
+// TODO(discovery): flip back to "advanced" once the user base is large enough.
+// ═══════════════════════════════════════════════════════════════════════════
+
+type DiscoveryMode = "open" | "advanced";
+
+/**
+ * Active discovery strategy.
+ * - "open": show every valid account (temporary, for a small user base).
+ * - "advanced": the original filtered + distance + compatibility-ranked system.
+ * Overridable at runtime via the DISCOVERY_MODE env var so it can be flipped
+ * without editing code.
+ */
+const DISCOVERY_MODE: DiscoveryMode =
+  (process.env.DISCOVERY_MODE || "").trim().toLowerCase() === "advanced"
+    ? "advanced"
+    : "open";
+
+/**
+ * Tunables for OPEN discovery. Kept explicit so behaviour is obvious and easy
+ * to adjust during testing.
+ */
+const OPEN_DISCOVERY_CONFIG = {
+  // Don't re-show profiles the requester already liked/swiped/matched. Set to
+  // false if swipe history hides too many of your test users during testing.
+  excludeSwipeHistory: true,
+  // Respect a user's explicit "hide me from discovery" / incognito choice.
+  // These are deliberate privacy opt-outs, not matching filters, and new
+  // accounts default both to false, so this does not hide normal test users.
+  respectPrivacyOptOut: true,
+  // Require a name + at least one photo so cards aren't blank. Left false so
+  // half-finished accounts still appear (per "don't filter on profile
+  // completion"); flip to true if empty cards become a problem.
+  requireMinimalProfile: false,
+};
+
+/**
+ * OPEN-mode candidate query: fetch users broadly, ordered by recency. No
+ * onboarding/profile-completion, gender or verification pre-filters — those
+ * belong to the advanced plan (buildDiscoveryCandidateQueryPlan). The shared
+ * fetchDiscoveryCandidateSnapshotWithFallback tolerates docs missing updatedAt.
+ */
+function buildOpenDiscoveryQueryPlan(
+  limit: number,
+): DiscoveryCandidateQueryPlan {
+  return {
+    filters: [],
+    orderBy: { fieldPath: "updatedAt", direction: "desc" },
+    limit,
+  };
+}
+
+/**
+ * OPEN-mode eligibility. Excludes only accounts that are genuinely not valid to
+ * show: terminal account states (deactivated/pending/disabled/deleted/banned),
+ * moderation holds, and — when configured — explicit privacy opt-outs and
+ * profiles too empty to render. It deliberately does NOT enforce profile
+ * completion (name/age/gender/photos/preferences) the way the advanced
+ * evaluateDiscoveryEligibility does.
+ */
+function evaluateOpenDiscoveryEligibility(
+  user: DiscoveryUserSnapshot,
+): DiscoveryEligibilityResult {
+  const reasons = buildDiscoveryReasons([
+    user.status === "deactivated" ||
+    user.status === "pending" ||
+    user.status === "disabled" ||
+    user.status === "deleted" ||
+    user.status === "banned"
+      ? {
+          code: "account_not_active",
+          stage: "eligibility",
+          message: `Account status ${user.status} prevents discovery.`,
+        }
+      : null,
+    user.moderationStatus === "held" ||
+    user.moderationStatus === "needs_review" ||
+    user.moderationStatus === "banned"
+      ? {
+          code: "moderation_hold",
+          stage: "eligibility",
+          message:
+            "Moderation state prevents the profile from appearing in discovery.",
+        }
+      : null,
+    OPEN_DISCOVERY_CONFIG.respectPrivacyOptOut &&
+    user.preferences.hideFromDiscovery
+      ? {
+          code: "hidden_from_discovery",
+          stage: "eligibility",
+          message: "The profile is hidden from discovery.",
+        }
+      : null,
+    OPEN_DISCOVERY_CONFIG.respectPrivacyOptOut && user.preferences.incognitoMode
+      ? {
+          code: "incognito_mode_enabled",
+          stage: "eligibility",
+          message: "The profile is in incognito mode.",
+        }
+      : null,
+    OPEN_DISCOVERY_CONFIG.requireMinimalProfile && !user.name
+      ? {
+          code: "missing_name",
+          stage: "eligibility",
+          message: "Profile name is missing.",
+        }
+      : null,
+    OPEN_DISCOVERY_CONFIG.requireMinimalProfile && user.photoUrls.length === 0
+      ? {
+          code: "missing_photos",
+          stage: "eligibility",
+          message: "At least one photo is required for discovery.",
+        }
+      : null,
+  ]);
+
+  return {
+    eligible: reasons.length === 0,
+    reasons,
+  };
+}
+
+/**
+ * OPEN-mode per-candidate evaluation. Keeps the safety/abuse exclusions
+ * (self, blocked & reported in both directions) and — configurably — swipe
+ * history, then drops EVERY preference filter (gender/age/distance/interests/
+ * photos/verified). Distance is still computed for display only. Ranking is by
+ * recency so recently-active people surface first, but everyone valid appears.
+ */
+function evaluateOpenDiscoveryCandidate(params: {
+  requester: DiscoveryUserSnapshot;
+  candidate: DiscoveryUserSnapshot;
+  exclusionSets: DiscoveryExclusionSets;
+}): DiscoveryCandidateEvaluationResult {
+  const { requester, candidate, exclusionSets } = params;
+
+  // Never show the requester their own profile.
+  if (candidate.id === requester.id) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "self_excluded",
+          stage: "relationship",
+          message:
+            "The current user is excluded from their own discovery deck.",
+        },
+      ],
+    };
+  }
+
+  // Safety / abuse exclusions — ALWAYS enforced in open mode, both directions.
+  if (exclusionSets.blockedByMe.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "blocked_by_requester",
+          stage: "relationship",
+          message: "The requester has blocked this profile.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.blockedMe.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "blocked_requester",
+          stage: "relationship",
+          message: "This profile has blocked the requester.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.reportedByMe.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "reported_by_requester",
+          stage: "relationship",
+          message: "The requester has reported this profile.",
+        },
+      ],
+    };
+  }
+  if (exclusionSets.reportedMe.has(candidate.id)) {
+    return {
+      included: false,
+      reasons: [
+        {
+          code: "reported_requester",
+          stage: "relationship",
+          message: "This profile has reported the requester.",
+        },
+      ],
+    };
+  }
+
+  // Swipe history — configurable so testing isn't blocked by prior swipes.
+  if (OPEN_DISCOVERY_CONFIG.excludeSwipeHistory) {
+    if (exclusionSets.matched.has(candidate.id)) {
+      return {
+        included: false,
+        reasons: [
+          {
+            code: "already_matched",
+            stage: "relationship",
+            message: "This profile is already matched with the requester.",
+          },
+        ],
+      };
+    }
+    if (exclusionSets.liked.has(candidate.id)) {
+      return {
+        included: false,
+        reasons: [
+          {
+            code: "already_liked",
+            stage: "relationship",
+            message: "The requester has already liked this profile.",
+          },
+        ],
+      };
+    }
+    if (exclusionSets.swiped.has(candidate.id)) {
+      return {
+        included: false,
+        reasons: [
+          {
+            code: "already_swiped",
+            stage: "relationship",
+            message: "The requester has already swiped on this profile.",
+          },
+        ],
+      };
+    }
+  }
+
+  // Account validity (banned/deleted/deactivated/moderation) + optional privacy.
+  const eligibility = evaluateOpenDiscoveryEligibility(candidate);
+  if (!eligibility.eligible) {
+    return {
+      included: false,
+      reasons: eligibility.reasons,
+    };
+  }
+
+  // Distance is display-only in open mode (never used to exclude).
+  const myLat = requester.latitude === null ? undefined : requester.latitude;
+  const myLon = requester.longitude === null ? undefined : requester.longitude;
+  const distanceKm = haversineDistanceKm(
+    myLat,
+    myLon,
+    candidate.latitude === null ? undefined : candidate.latitude,
+    candidate.longitude === null ? undefined : candidate.longitude,
+  );
+
+  // Rank purely by recency so everyone appears; recent activity floats up.
+  const recencyBoost = recentDiscoveryBoost(
+    candidate.updatedAtMs ?? candidate.lastActiveMs,
+  );
+
+  return {
+    included: true,
+    reasons: [],
+    distanceKm,
+    score: 1 + recencyBoost,
+  };
+}
+
 async function buildDiscoveryDeckPayload(params: {
   uid: string;
   request: DiscoveryRequest;
@@ -8573,7 +8911,12 @@ async function buildDiscoveryDeckPayload(params: {
       source: params.source,
     },
   );
-  const requesterStatus = evaluateDiscoveryEligibility(meSnapshot);
+  // In open mode the requester's own eligibility uses the same relaxed rules so
+  // an incomplete profile never blocks them from discovering others.
+  const requesterStatus =
+    DISCOVERY_MODE === "open"
+      ? evaluateOpenDiscoveryEligibility(meSnapshot)
+      : evaluateDiscoveryEligibility(meSnapshot);
   const exclusionSets = await getDiscoveryExclusionSets(params.uid);
 
   const requestedShowMeGenders = normalizeDiscoveryPreferenceTokens(
@@ -8626,11 +8969,17 @@ async function buildDiscoveryDeckPayload(params: {
     DISCOVERY_QUERY_SCAN_LIMIT,
     Math.max(DISCOVERY_PAGE_SIZE * 4, limit * 20),
   );
-  const queryPlan = buildDiscoveryCandidateQueryPlan({
-    showMeGenders,
-    requireVerified,
-    limit: queryLimit,
-  });
+  // OPEN vs ADVANCED discovery (see DISCOVERY_MODE above). Open mode broadens
+  // the Firestore query so completion/gender/verification never pre-filter
+  // candidates out; advanced mode keeps the original narrowed query.
+  const queryPlan =
+    DISCOVERY_MODE === "open"
+      ? buildOpenDiscoveryQueryPlan(queryLimit)
+      : buildDiscoveryCandidateQueryPlan({
+          showMeGenders,
+          requireVerified,
+          limit: queryLimit,
+        });
   const snap = await fetchDiscoveryCandidateSnapshotWithFallback({
     uid: params.uid,
     source: params.source,
@@ -8644,21 +8993,30 @@ async function buildDiscoveryDeckPayload(params: {
       doc.id,
       doc.data() as Record<string, unknown>,
     );
-    const evaluation = evaluateDiscoveryCandidateForRequester({
-      requester: meSnapshot,
-      candidate,
-      request: {
-        ...params.request,
-        minAge,
-        maxAge,
-        maxDistanceKm,
-        showMeGenders,
-        interests: Array.from(requiredInterests),
-        requirePhotos,
-        requireVerified,
-      },
-      exclusionSets,
-    });
+    // Open mode: safety + swipe-history + account-validity only, no preference
+    // filters. Advanced mode: the full preference/distance/interest filter.
+    const evaluation =
+      DISCOVERY_MODE === "open"
+        ? evaluateOpenDiscoveryCandidate({
+            requester: meSnapshot,
+            candidate,
+            exclusionSets,
+          })
+        : evaluateDiscoveryCandidateForRequester({
+            requester: meSnapshot,
+            candidate,
+            request: {
+              ...params.request,
+              minAge,
+              maxAge,
+              maxDistanceKm,
+              showMeGenders,
+              interests: Array.from(requiredInterests),
+              requirePhotos,
+              requireVerified,
+            },
+            exclusionSets,
+          });
     if (!evaluation.included) return;
 
     const score = normalizeDiscoveryDeckSortScore(evaluation.score ?? 0);
@@ -8839,7 +9197,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
       ...matchNotification,
       otherUserId: uid,
       otherUserName: myData?.name ?? "Someone",
-      otherUserPhotoUrl: toStringArray(myData?.photoUrls)[0] ?? null,
+      otherUserPhotoUrl: profilePhotoSelection(myData).displayPhotoUrl,
     });
 
     // Notify current user (immediate feedback in case they navigate away)
@@ -8847,7 +9205,7 @@ export const swipeRight = callable<SwipeRequest>(async (data, context) => {
       ...matchNotification,
       otherUserId: targetUserId,
       otherUserName: theirData?.name ?? "Someone",
-      otherUserPhotoUrl: toStringArray(theirData?.photoUrls)[0] ?? null,
+      otherUserPhotoUrl: profilePhotoSelection(theirData).displayPhotoUrl,
     });
   } else {
     matchId = existing.id;
@@ -9957,6 +10315,10 @@ export const __test__helpers = {
   paginateDiscoveryDeckCandidates,
   buildDiscoveryCandidateQueryPlan,
   buildDiscoveryDeckPayload,
+  // Open-discovery (temporary) helpers — exposed for tests.
+  buildOpenDiscoveryQueryPlan,
+  evaluateOpenDiscoveryEligibility,
+  evaluateOpenDiscoveryCandidate,
   evaluateProfileCompleteness,
   ensureProfileQuality,
   normalizeGooglePlayPackageName,
@@ -10889,6 +11251,10 @@ app.get(
 
       const data = userDoc.data() || {};
       const profile = data.profile || {};
+      const photoSelection = profilePhotoSelection(
+        profile,
+        data.profilePhotoUrl,
+      );
       const preferences = getCanonicalProfilePreferences(data, {
         uid: req.uid,
         source: "rest:/v1/profile/me",
@@ -10916,10 +11282,10 @@ app.get(
         education: profile.education || profile.school,
         city: profile.city,
         country: profile.country,
-        photos: (profile.photoUrls || []).map((url: string, i: number) => ({
+        photos: photoSelection.photoUrls.map((url: string, i: number) => ({
           id: `photo_${i}`,
           url,
-          is_primary: i === 0,
+          is_primary: i === photoSelection.primaryPhotoIndex,
           order: i,
         })),
         interests: profile.interests || [],
@@ -11055,16 +11421,23 @@ app.post(
       // Update user's photo array
       const userData = userDoc.data() || {};
       const profile = userData.profile || {};
-      const photos = profile.photoUrls || [];
+      const currentSelection = profilePhotoSelection(
+        profile,
+        userData.profilePhotoUrl,
+      );
+      const photos = [...currentSelection.photoUrls];
+      let primaryPhotoIndex = currentSelection.primaryPhotoIndex;
 
       if (isPrimary) {
         photos.unshift(url);
+        primaryPhotoIndex = 0;
       } else {
         photos.push(url);
       }
 
       await userRef.update({
         "profile.photoUrls": photos,
+        "profile.primaryPhotoIndex": primaryPhotoIndex,
         "profile.updatedAt": serverTimestamp(),
       });
 
@@ -11105,7 +11478,11 @@ app.delete(
 
       const userData = userDoc.data() || {};
       const profile = userData.profile || {};
-      const photos: string[] = profile.photoUrls || [];
+      const selection = profilePhotoSelection(
+        profile,
+        userData.profilePhotoUrl,
+      );
+      const photos = selection.photoUrls;
 
       if (photoIndex >= photos.length) {
         return res.status(404).json({ error: "Photo not found" });
@@ -11126,9 +11503,17 @@ app.delete(
       }
 
       const remainingPhotos = photos.filter((_, index) => index !== photoIndex);
+      const remainingPrimaryPhotoIndex =
+        photoIndex < selection.primaryPhotoIndex
+          ? selection.primaryPhotoIndex - 1
+          : normalizePrimaryPhotoIndex(
+              selection.primaryPhotoIndex,
+              remainingPhotos.length,
+            );
 
       await userRef.update({
         "profile.photoUrls": remainingPhotos,
+        "profile.primaryPhotoIndex": remainingPrimaryPhotoIndex,
         "profile.updatedAt": serverTimestamp(),
       });
 
@@ -11188,6 +11573,7 @@ app.post(
       const reorderedPhotos = normalizedIndexes.map((index) => currentPhotos[index]);
       await userRef.update({
         "profile.photoUrls": reorderedPhotos,
+        "profile.primaryPhotoIndex": 0,
         "profile.updatedAt": serverTimestamp(),
       });
 
@@ -11282,6 +11668,10 @@ app.get(
 
       const data = userDoc.data() || {};
       const profile = data.profile || {};
+      const photoSelection = profilePhotoSelection(
+        profile,
+        data.profilePhotoUrl,
+      );
 
       res.json({
         id: userId,
@@ -11291,10 +11681,10 @@ app.get(
         birth_date: profileBirthDateIso(profile as Record<string, unknown>),
         gender: profile.gender,
         city: profile.city,
-        photos: (profile.photoUrls || []).map((url: string, i: number) => ({
+        photos: photoSelection.photoUrls.map((url: string, i: number) => ({
           id: `photo_${i}`,
           url,
-          is_primary: i === 0,
+          is_primary: i === photoSelection.primaryPhotoIndex,
         })),
         interests: profile.interests || [],
         prompts: profilePromptAnswers(profile as Record<string, unknown>),
@@ -11372,7 +11762,12 @@ app.get(
         city: candidate.city,
         photos: toStringArray(candidate.photoUrls).map((url, index) => ({
           url,
-          is_primary: index === 0,
+          is_primary:
+            index ===
+            normalizePrimaryPhotoIndex(
+              candidate.primaryPhotoIndex,
+              toStringArray(candidate.photoUrls).length,
+            ),
         })),
         interests: candidate.interests ?? [],
         prompts: candidate.prompts ?? [],
@@ -11531,6 +11926,10 @@ app.get(
       const profiles = pageLikerIds.map((likerId) => {
         const userData = userDocs.get(likerId) ?? {};
         const profile = (userData.profile ?? {}) as Record<string, unknown>;
+        const photoSelection = profilePhotoSelection(
+          profile,
+          userData.profilePhotoUrl,
+        );
         return {
           id: likerId,
           display_name:
@@ -11540,10 +11939,10 @@ app.get(
           age: deriveProfileAge(profile),
           bio: optionalString(profile.bio) ?? null,
           city: optionalString(profile.city) ?? null,
-          photos: toStringArray(profile.photoUrls).map((url, index) => ({
+          photos: photoSelection.photoUrls.map((url, index) => ({
             id: `photo_${index}`,
             url,
-            is_primary: index === 0,
+            is_primary: index === photoSelection.primaryPhotoIndex,
           })),
           interests: toStringArray(profile.interests),
           is_verified: userData.idVerified === true,
@@ -11747,12 +12146,16 @@ app.get(
         const otherUserId = data.users.find((id: string) => id !== req.uid);
         const otherUserData = usersMap.get(otherUserId) || {};
         const profile = otherUserData.profile || {};
+        const photoSelection = profilePhotoSelection(
+          profile,
+          otherUserData.profilePhotoUrl,
+        );
 
         return {
           id: doc.id,
           matched_user_id: otherUserId,
           matched_user_name: profile.name || profile.displayName,
-          matched_user_photo: (profile.photoUrls || [])[0],
+          matched_user_photo: photoSelection.displayPhotoUrl,
           created_at: data.createdAt?.toDate?.()?.toISOString(),
           last_message_at: data.lastMessageAt?.toDate?.()?.toISOString(),
         };
@@ -11892,11 +12295,15 @@ app.get(
           const otherUserId = data.users.find((id: string) => id !== req.uid);
           const otherUserData = usersMap.get(otherUserId) || {};
           const profile = otherUserData.profile || {};
+          const photoSelection = profilePhotoSelection(
+            profile,
+            otherUserData.profilePhotoUrl,
+          );
           const participantPayload = otherUserId
             ? {
                 id: otherUserId,
                 name: profile.name || profile.displayName,
-                photo_url: (profile.photoUrls || [])[0],
+                photo_url: photoSelection.displayPhotoUrl,
               }
             : null;
 

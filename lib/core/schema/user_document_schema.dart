@@ -144,6 +144,17 @@ UserDocumentCanonicalizationResult canonicalizeUserDocumentSchema(
     migratedProfileFields = true;
   }
 
+  // Some early web/auth documents only persisted a single display-photo URL.
+  // Preserve it as the canonical gallery when no photo list exists.
+  final legacyDisplayPhoto = userData['profilePhotoUrl'];
+  if ((!profile.containsKey('photoUrls') || profile['photoUrls'] == null) &&
+      legacyDisplayPhoto is String &&
+      legacyDisplayPhoto.trim().isNotEmpty) {
+    profile['photoUrls'] = <String>[legacyDisplayPhoto.trim()];
+    profile['primaryPhotoIndex'] = 0;
+    migratedProfileFields = true;
+  }
+
   final legacyLocation = _asStringDynamicMap(userData['location']);
   for (final entry in kLegacyWebLocationKeyAliases.entries) {
     final legacyValue = legacyLocation[entry.key];

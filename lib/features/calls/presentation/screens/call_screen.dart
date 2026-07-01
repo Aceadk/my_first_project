@@ -307,10 +307,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
       final authState = context.read<AuthBloc>().state;
       final currentUserId = authState.user?.id;
       final currentUserName = authState.user?.profile?.name;
-      final currentUserPhoto =
-          authState.user?.profile?.photoUrls.isNotEmpty == true
-          ? authState.user!.profile!.photoUrls.first
-          : null;
+      final currentUserPhoto = authState.user?.profile?.displayPhotoUrl;
 
       if (currentUserId == null) {
         throw Exception('User not authenticated');
@@ -536,7 +533,8 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildCallInfo() {
-    final name = widget.matchName ?? AppLocalizations.of(context).callUnknownName;
+    final name =
+        widget.matchName ?? AppLocalizations.of(context).callUnknownName;
     final status = _getStatusText();
     final isConnecting =
         _uiState == CallUIState.outgoing || _uiState == CallUIState.connecting;

@@ -416,9 +416,7 @@ class _LikeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final photoUrl = profile.photoUrls.isNotEmpty
-        ? profile.photoUrls.first
-        : null;
+    final photoUrl = profile.displayPhotoUrl;
 
     return Semantics(
       label: isBlurred
@@ -548,9 +546,7 @@ class _ProfileDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final photoUrl = profile.photoUrls.isNotEmpty
-        ? profile.photoUrls.first
-        : null;
+    final photoUrl = profile.displayPhotoUrl;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,

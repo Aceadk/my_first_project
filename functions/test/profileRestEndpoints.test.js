@@ -423,6 +423,38 @@ describe('profile REST endpoints', () => {
     });
   });
 
+  it('GET /v1/profile/me marks the canonical selected display photo', async () => {
+    users.set('user-1', {
+      ...defaultUserDoc(),
+      profile: {
+        ...defaultUserDoc().profile,
+        photoUrls: [
+          'https://img.example.com/secondary.jpg',
+          'https://img.example.com/main.jpg',
+        ],
+        primaryPhotoIndex: 1,
+      },
+    });
+
+    const result = await sendRequest('GET', '/v1/profile/me');
+
+    expect(result.status).to.equal(200);
+    expect(result.json.photos).to.deep.equal([
+      {
+        id: 'photo_0',
+        url: 'https://img.example.com/secondary.jpg',
+        is_primary: false,
+        order: 0,
+      },
+      {
+        id: 'photo_1',
+        url: 'https://img.example.com/main.jpg',
+        is_primary: true,
+        order: 1,
+      },
+    ]);
+  });
+
   it('GET /v1/profile/me falls back to legacy top-level preferences', async () => {
     users.set('user-1', {
       ...defaultUserDoc(),
@@ -701,6 +733,7 @@ describe('profile REST endpoints', () => {
     expect(storageSaveLog[0].metadata).to.have.nested.property('metadata.firebaseStorageDownloadTokens');
     const updated = users.get('user-1');
     expect(updated.profile.photoUrls).to.deep.equal([result.json.url]);
+    expect(updated.profile.primaryPhotoIndex).to.equal(0);
   });
 
   it('POST /v1/profile/photos rejects unsupported mime types', async () => {
@@ -900,6 +933,36 @@ describe('profile REST endpoints', () => {
     expect(updated.profile.photoUrls).to.deep.equal([secondPhotoUrl]);
     expect(storageDeleteLog).to.include(storageKey(DEFAULT_BUCKET, firstPhotoPath));
     expect(storageObjects.has(storageKey(DEFAULT_BUCKET, firstPhotoPath))).to.equal(false);
+  });
+
+  it('DELETE /v1/profile/photos/:photoId keeps the same primary photo selected', async () => {
+    const photoPaths = [
+      'photos/user-1/first.jpg',
+      'photos/user-1/main.jpg',
+      'photos/user-1/last.jpg',
+    ];
+    const photoUrls = photoPaths.map((path) => photoUrlForPath(path));
+    photoPaths.forEach((path) =>
+      storageObjects.add(storageKey(DEFAULT_BUCKET, path))
+    );
+    users.set('user-1', {
+      ...defaultUserDoc(),
+      profile: {
+        ...defaultUserDoc().profile,
+        photoUrls,
+        primaryPhotoIndex: 1,
+      },
+    });
+
+    const result = await sendRequest('DELETE', '/v1/profile/photos/photo_0');
+
+    expect(result.status).to.equal(200);
+    const updated = users.get('user-1');
+    expect(updated.profile.photoUrls).to.deep.equal(photoUrls.slice(1));
+    expect(updated.profile.primaryPhotoIndex).to.equal(0);
+    expect(updated.profile.photoUrls[updated.profile.primaryPhotoIndex]).to.equal(
+      photoUrls[1]
+    );
   });
 
   it('DELETE /v1/profile/photos/:photoId rejects invalid photo indexes', async () => {

@@ -806,9 +806,7 @@ class _LikesYouCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final photoUrl = profile.photoUrls.isNotEmpty
-        ? profile.photoUrls.first
-        : null;
+    final photoUrl = profile.displayPhotoUrl;
     final dobLabel = _formatDob(profile);
     final distanceLabel = _formatDistance(profile);
 

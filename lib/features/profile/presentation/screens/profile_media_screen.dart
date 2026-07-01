@@ -53,7 +53,7 @@ class _ProfileMediaScreenState extends State<ProfileMediaScreen>
 
   @override
   Widget build(BuildContext context) {
-    final photos = widget.profile.photoUrls;
+    final photos = widget.profile.displayOrderedPhotoUrls;
     final videos = _validVideoUrls;
     final displayName = widget.profile.publicDisplayNameOr('This member');
 

@@ -381,7 +381,17 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     Emitter<ProfileState> emit,
   ) async {
     AppLogger.info('[ProfileBloc] _onSaveRequested called');
-    emit(state.copyWith(isSaving: true, errorMessage: null));
+    final previousUser = state.user;
+    final previousProfile = state.profile;
+    final optimisticUser = previousUser?.copyWith(profile: event.profile);
+    emit(
+      state.copyWith(
+        user: optimisticUser ?? previousUser,
+        profile: event.profile,
+        isSaving: true,
+        errorMessage: null,
+      ),
+    );
 
     final result = await Result.guard(
       () => profileRepository.updateProfile(event.profile),
@@ -395,18 +405,29 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         error: result.errorMessage,
         data: {'hasUser': state.user != null},
       );
-    } else {
-      AppLogger.info('[ProfileBloc] Profile saved successfully');
+      emit(
+        ProfileState(
+          user: previousUser,
+          profile: previousProfile,
+          isLoading: false,
+          isSaving: false,
+          status: ProfileStatus.loaded,
+          errorMessage: result.errorMessage,
+          nextRetrySeconds: state.nextRetrySeconds,
+        ),
+      );
+      return;
     }
 
+    AppLogger.info('[ProfileBloc] Profile saved successfully');
     final updatedUser = result.data;
     emit(
       state.copyWith(
-        user: updatedUser ?? state.user,
-        profile: updatedUser?.profile ?? state.profile,
+        user: updatedUser ?? optimisticUser ?? previousUser,
+        profile: updatedUser?.profile ?? event.profile,
         isSaving: false,
         status: ProfileStatus.loaded,
-        errorMessage: result.errorMessage,
+        errorMessage: null,
       ),
     );
   }

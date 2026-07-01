@@ -134,7 +134,39 @@ void main() {
       expect(preferences['incognitoMode'], isFalse);
       expect(result.hasLegacyData, isTrue);
       expect(result.shouldPersistMigration, isTrue);
-      expect(result.legacyRootKeysToDelete, containsAll(['birthDate', 'gender']));
+      expect(
+        result.legacyRootKeysToDelete,
+        containsAll(['birthDate', 'gender']),
+      );
+    });
+
+    test('migrates a legacy single display photo when no gallery exists', () {
+      final result = canonicalizeUserDocumentSchema({
+        'displayName': 'Legacy User',
+        'profilePhotoUrl': ' https://img.example.com/legacy.jpg ',
+      });
+
+      expect(result.canonicalProfile['photoUrls'], [
+        'https://img.example.com/legacy.jpg',
+      ]);
+      expect(result.canonicalProfile['primaryPhotoIndex'], 0);
+      expect(result.shouldPersistMigration, isTrue);
+    });
+
+    test('canonical nested photo list wins over stale root photo mirrors', () {
+      final result = canonicalizeUserDocumentSchema({
+        'photos': ['https://img.example.com/stale-list.jpg'],
+        'profilePhotoUrl': 'https://img.example.com/stale-display.jpg',
+        'profile': {
+          'photoUrls': ['https://img.example.com/canonical.jpg'],
+          'primaryPhotoIndex': 0,
+        },
+      });
+
+      expect(result.canonicalProfile['photoUrls'], [
+        'https://img.example.com/canonical.jpg',
+      ]);
+      expect(result.canonicalProfile['primaryPhotoIndex'], 0);
     });
   });
 }

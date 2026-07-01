@@ -1105,9 +1105,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       preMatchMessageRequestsCount: 0,
       pinnedForUser: false,
       otherUserName: matchedProfile.publicDisplayName,
-      otherUserPhotoUrl: matchedProfile.photoUrls.isNotEmpty
-          ? matchedProfile.photoUrls.first
-          : null,
+      otherUserPhotoUrl: matchedProfile.displayPhotoUrl,
     );
 
     await _saveMatch(userId, match);
@@ -1326,9 +1324,7 @@ class StubDiscoveryRepository implements DiscoveryRepository {
       preMatchMessageRequestsCount: 0,
       pinnedForUser: false,
       otherUserName: matchedProfile.publicDisplayName,
-      otherUserPhotoUrl: matchedProfile.photoUrls.isNotEmpty
-          ? matchedProfile.photoUrls.first
-          : null,
+      otherUserPhotoUrl: matchedProfile.displayPhotoUrl,
     );
 
     await _saveMatch(userId, match);

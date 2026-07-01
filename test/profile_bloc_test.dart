@@ -509,6 +509,52 @@ void main() {
       );
 
       test(
+        'ProfileSaveRequested updates immediately and rolls back on failure',
+        () async {
+          final authRepo = _StubAuthRepository();
+          addTearDown(authRepo.dispose);
+          final repo = _StubProfileRepository(
+            userToReturn: _testUser,
+            shouldFailUpdateProfile: true,
+          );
+          final bloc = ProfileBloc(
+            profileRepository: repo,
+            authRepository: authRepo,
+          );
+          bloc.add(ProfileLoadRequested());
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+
+          final updatedProfile = _testProfile.copyWith(
+            photoUrls: const ['https://cdn.example.com/new.jpg'],
+          );
+          final expectation = expectLater(
+            bloc.stream,
+            emitsInOrder([
+              isA<ProfileState>()
+                  .having((state) => state.isSaving, 'saving', isTrue)
+                  .having(
+                    (state) => state.profile?.displayPhotoUrl,
+                    'optimistic display photo',
+                    'https://cdn.example.com/new.jpg',
+                  ),
+              isA<ProfileState>()
+                  .having((state) => state.isSaving, 'saving', isFalse)
+                  .having(
+                    (state) => state.profile,
+                    'rolled back profile',
+                    _testProfile,
+                  )
+                  .having((state) => state.errorMessage, 'error', isNotNull),
+            ]),
+          );
+
+          bloc.add(ProfileSaveRequested(profile: updatedProfile));
+          await expectation;
+          await bloc.close();
+        },
+      );
+
+      test(
         'ProfileLocationUpdateRequested returns early with no profile',
         () async {
           final authRepo = _StubAuthRepository();

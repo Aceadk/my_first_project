@@ -63,7 +63,7 @@ class _SwipeCardState extends State<SwipeCard> {
     }
     // Rebuild and cache the media list
     final items = <_MediaItem>[];
-    for (final url in widget.profile.photoUrls) {
+    for (final url in widget.profile.displayOrderedPhotoUrls) {
       items.add(_MediaItem(url: url, isVideo: false));
     }
     for (final url in widget.profile.videoUrls) {
@@ -87,6 +87,8 @@ class _SwipeCardState extends State<SwipeCard> {
     if (oldWidget.profile.id != widget.profile.id) {
       _disposeVideoController();
       _currentMediaIndex = 0;
+      _cachedMedia = null;
+      _cachedProfileId = null;
     }
   }
 

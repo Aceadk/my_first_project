@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:crushhour/core/schema/user_document_schema.dart';
 import 'package:crushhour/data/models/profile.dart';
 import 'package:crushhour/data/models/match.dart';
 import 'package:crushhour/data/models/preferences.dart';
@@ -164,7 +165,7 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
         .limit(100)
         .get();
 
-    return matchesQuery.docs.map((doc) {
+    final matches = matchesQuery.docs.map((doc) {
       final data = doc.data();
       final userIds = List<String>.from(data['userIds'] ?? []);
       final otherUserId = userIds.firstWhere(
@@ -185,6 +186,7 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
         otherUserPhotoUrl: data['otherUserPhotoUrl'] as String?,
       );
     }).toList();
+    return _hydrateCurrentMatchProfiles(matches);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -227,6 +229,18 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
   Profile _profileFromFirestore(Map<String, dynamic> data) {
     // Parse distance from Cloud Function response (distanceKm field)
     final distanceKm = data['distanceKm'] as num?;
+    final photoUrls = List<String>.from(data['photoUrls'] ?? [])
+        .map((url) => url.trim())
+        .where((url) => url.startsWith('http://') || url.startsWith('https://'))
+        .toList(growable: false);
+    final requestedPrimaryPhotoIndex = data['primaryPhotoIndex'];
+    final primaryPhotoIndex = photoUrls.isEmpty
+        ? 0
+        : (requestedPrimaryPhotoIndex is num
+                  ? requestedPrimaryPhotoIndex.toInt()
+                  : 0)
+              .clamp(0, photoUrls.length - 1)
+              .toInt();
 
     return Profile(
       id: data['id'] ?? data['userId'] ?? '',
@@ -238,17 +252,13 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
       sexualOrientation: data['sexualOrientation'],
       bio: data['bio'] ?? '',
       // Filter to only include valid remote URLs (exclude any accidentally saved local paths)
-      photoUrls: List<String>.from(data['photoUrls'] ?? [])
-          .where(
-            (url) => url.startsWith('http://') || url.startsWith('https://'),
-          )
-          .toList(),
+      photoUrls: photoUrls,
       videoUrls: List<String>.from(data['videoUrls'] ?? [])
           .where(
             (url) => url.startsWith('http://') || url.startsWith('https://'),
           )
           .toList(),
-      primaryPhotoIndex: data['primaryPhotoIndex'] ?? 0,
+      primaryPhotoIndex: primaryPhotoIndex,
       interests: List<String>.from(data['interests'] ?? []),
       country: data['country'] ?? '',
       city: data['city'] ?? '',
@@ -277,6 +287,74 @@ class FirebaseDiscoveryRepository implements DiscoveryRepository {
         data['privacySettings'] as Map<String, dynamic>?,
       ),
     );
+  }
+
+  Future<List<CrushMatch>> _hydrateCurrentMatchProfiles(
+    List<CrushMatch> matches,
+  ) async {
+    final otherUserIds = matches
+        .map((match) => match.otherUserId)
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (otherUserIds.isEmpty) return matches;
+
+    final currentUsers = <String, Map<String, dynamic>>{};
+    for (var start = 0; start < otherUserIds.length; start += 30) {
+      final end = start + 30 > otherUserIds.length
+          ? otherUserIds.length
+          : start + 30;
+      final snapshot = await _firestore
+          .collection('users')
+          .where(
+            FieldPath.documentId,
+            whereIn: otherUserIds.sublist(start, end),
+          )
+          .get();
+      for (final document in snapshot.docs) {
+        currentUsers[document.id] = document.data();
+      }
+    }
+
+    return matches
+        .map((match) {
+          final userData = currentUsers[match.otherUserId];
+          if (userData == null) return match;
+          final profile = canonicalizeUserDocumentSchema(
+            userData,
+          ).canonicalProfile;
+          final photos =
+              (profile['photoUrls'] as Iterable?)
+                  ?.whereType<String>()
+                  .map((url) => url.trim())
+                  .where(
+                    (url) =>
+                        url.startsWith('https://') || url.startsWith('http://'),
+                  )
+                  .toList(growable: false) ??
+              const <String>[];
+          final requestedIndex = profile['primaryPhotoIndex'];
+          final primaryIndex = photos.isEmpty
+              ? 0
+              : (requestedIndex is num ? requestedIndex.toInt() : 0)
+                    .clamp(0, photos.length - 1)
+                    .toInt();
+          final name = profile['name'];
+
+          return CrushMatch(
+            id: match.id,
+            userId: match.userId,
+            otherUserId: match.otherUserId,
+            status: match.status,
+            preMatchMessageRequestsCount: match.preMatchMessageRequestsCount,
+            pinnedForUser: match.pinnedForUser,
+            otherUserName: name is String && name.trim().isNotEmpty
+                ? name.trim()
+                : match.otherUserName,
+            otherUserPhotoUrl: photos.isEmpty ? null : photos[primaryIndex],
+          );
+        })
+        .toList(growable: false);
   }
 
   DiscoveryPreferences _preferencesFromFirestore(Map<String, dynamic>? data) {

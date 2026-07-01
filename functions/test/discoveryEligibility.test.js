@@ -119,7 +119,11 @@ describe('discovery eligibility helpers', () => {
         birthDate: '1996-07-22',
         gender: 'male',
         bio: 'Hiking and coffee',
-        photoUrls: ['https://img.example.com/ben.jpg'],
+        photoUrls: [
+          'https://img.example.com/ben-secondary.jpg',
+          'https://img.example.com/ben.jpg',
+        ],
+        primaryPhotoIndex: 1,
         interests: ['Hiking', 'Coffee'],
         city: 'Denver',
         country: 'US',
@@ -143,6 +147,10 @@ describe('discovery eligibility helpers', () => {
     expect(snapshot.sourceSchema).to.equal('canonical_nested');
     expect(snapshot.name).to.equal('Ben App');
     expect(snapshot.gender).to.equal('male');
+    expect(snapshot.primaryPhotoIndex).to.equal(1);
+    expect(snapshot.photoUrls[snapshot.primaryPhotoIndex]).to.equal(
+      'https://img.example.com/ben.jpg'
+    );
     expect(snapshot.preferences.showMeGenders).to.deep.equal(['female']);
     expect(snapshot.preferences.maxDistanceKm).to.equal(40);
     expect(evaluateDiscoveryEligibility(snapshot)).to.deep.equal({
@@ -158,7 +166,11 @@ describe('discovery eligibility helpers', () => {
         birthDate: '1996-07-22',
         gender: 'male',
         bio: 'Hiking and coffee',
-        photoUrls: ['https://img.example.com/ben.jpg'],
+        photoUrls: [
+          'https://img.example.com/ben-secondary.jpg',
+          'https://img.example.com/ben.jpg',
+        ],
+        primaryPhotoIndex: 1,
         interests: ['Hiking', 'Coffee'],
         profilePrompts: [
           { question: 'Sunday', answer: 'Trail run' },
@@ -187,7 +199,10 @@ describe('discovery eligibility helpers', () => {
     expect(patch.birthDate).to.equal('1996-07-22T00:00:00.000Z');
     expect(patch.age).to.equal(snapshot.age);
     expect(patch.gender).to.equal('male');
-    expect(patch.photos).to.deep.equal(['https://img.example.com/ben.jpg']);
+    expect(patch.photos).to.deep.equal([
+      'https://img.example.com/ben-secondary.jpg',
+      'https://img.example.com/ben.jpg',
+    ]);
     expect(patch.profilePhotoUrl).to.equal('https://img.example.com/ben.jpg');
     expect(patch.interests).to.deep.equal(['Hiking', 'Coffee']);
     expect(patch.prompts).to.deep.equal(['Trail run']);

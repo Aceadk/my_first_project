@@ -317,7 +317,9 @@ class _ProfileViewScreenState extends State<ProfileViewScreen> {
                                 _InfoSection(
                                   title: 'My Photos',
                                   icon: Icons.photo_library_outlined,
-                                  child: _PhotosGrid(photos: profile.photoUrls),
+                                  child: _PhotosGrid(
+                                    photos: profile.displayOrderedPhotoUrls,
+                                  ),
                                 ),
                                 DsGap.lg,
                               ],

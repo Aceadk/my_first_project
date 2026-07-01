@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/schema/user_document_schema.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
@@ -507,9 +508,10 @@ class FirebaseChatRepository implements ChatRepository {
         .orderBy('matchedAt', descending: true)
         .get();
 
-    return matchesQuery.docs.map((doc) {
+    final matches = matchesQuery.docs.map((doc) {
       return _matchFromFirestore(userId, doc.id, doc.data());
     }).toList();
+    return _hydrateCurrentMatchProfiles(matches);
   }
 
   @override
@@ -553,9 +555,10 @@ class FirebaseChatRepository implements ChatRepository {
 
     final matchesQuery = await query.get();
 
-    final items = matchesQuery.docs.map((doc) {
+    final storedItems = matchesQuery.docs.map((doc) {
       return _matchFromFirestore(userId, doc.id, doc.data());
     }).toList();
+    final items = await _hydrateCurrentMatchProfiles(storedItems);
 
     return PaginatedResult(
       items: items,
@@ -885,6 +888,74 @@ class FirebaseChatRepository implements ChatRepository {
       otherUserName: data['otherUserName'] as String?,
       otherUserPhotoUrl: data['otherUserPhotoUrl'] as String?,
     );
+  }
+
+  Future<List<CrushMatch>> _hydrateCurrentMatchProfiles(
+    List<CrushMatch> matches,
+  ) async {
+    final otherUserIds = matches
+        .map((match) => match.otherUserId)
+        .where((id) => id.isNotEmpty)
+        .toSet()
+        .toList();
+    if (otherUserIds.isEmpty) return matches;
+
+    final currentUsers = <String, Map<String, dynamic>>{};
+    for (var start = 0; start < otherUserIds.length; start += 30) {
+      final end = start + 30 > otherUserIds.length
+          ? otherUserIds.length
+          : start + 30;
+      final snapshot = await _firestore
+          .collection('users')
+          .where(
+            FieldPath.documentId,
+            whereIn: otherUserIds.sublist(start, end),
+          )
+          .get();
+      for (final document in snapshot.docs) {
+        currentUsers[document.id] = document.data();
+      }
+    }
+
+    return matches
+        .map((match) {
+          final userData = currentUsers[match.otherUserId];
+          if (userData == null) return match;
+          final profile = canonicalizeUserDocumentSchema(
+            userData,
+          ).canonicalProfile;
+          final photos =
+              (profile['photoUrls'] as Iterable?)
+                  ?.whereType<String>()
+                  .map((url) => url.trim())
+                  .where(
+                    (url) =>
+                        url.startsWith('https://') || url.startsWith('http://'),
+                  )
+                  .toList(growable: false) ??
+              const <String>[];
+          final requestedIndex = profile['primaryPhotoIndex'];
+          final primaryIndex = photos.isEmpty
+              ? 0
+              : (requestedIndex is num ? requestedIndex.toInt() : 0)
+                    .clamp(0, photos.length - 1)
+                    .toInt();
+          final name = profile['name'];
+
+          return CrushMatch(
+            id: match.id,
+            userId: match.userId,
+            otherUserId: match.otherUserId,
+            status: match.status,
+            preMatchMessageRequestsCount: match.preMatchMessageRequestsCount,
+            pinnedForUser: match.pinnedForUser,
+            otherUserName: name is String && name.trim().isNotEmpty
+                ? name.trim()
+                : match.otherUserName,
+            otherUserPhotoUrl: photos.isEmpty ? null : photos[primaryIndex],
+          );
+        })
+        .toList(growable: false);
   }
 
   DateTime? _parseTimestamp(dynamic value) {

@@ -27,7 +27,7 @@ class SafetyProfileInfo {
     return SafetyProfileInfo(
       id: profile.id,
       name: profile.publicDisplayName,
-      photoUrl: profile.photoUrls.isNotEmpty ? profile.photoUrls.first : null,
+      photoUrl: profile.displayPhotoUrl,
     );
   }
 

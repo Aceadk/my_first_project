@@ -30,11 +30,30 @@ class Profile extends Equatable {
   final List<String> videoUrls;
   final int primaryPhotoIndex; // Index of the photo to use as display picture
 
+  /// A safe primary-photo index for persisted legacy or malformed data.
+  int get normalizedPrimaryPhotoIndex {
+    if (photoUrls.isEmpty) return 0;
+    return primaryPhotoIndex.clamp(0, photoUrls.length - 1);
+  }
+
   /// Returns the primary/display photo URL, or null if no photos exist
   String? get displayPhotoUrl {
     if (photoUrls.isEmpty) return null;
-    final index = primaryPhotoIndex.clamp(0, photoUrls.length - 1);
-    return photoUrls[index];
+    return photoUrls[normalizedPrimaryPhotoIndex];
+  }
+
+  /// Returns gallery photos with the display picture first.
+  ///
+  /// Storage order remains unchanged; display surfaces use this view so the
+  /// selected primary photo is consistent in discovery and full-profile views.
+  List<String> get displayOrderedPhotoUrls {
+    if (photoUrls.length < 2 || normalizedPrimaryPhotoIndex == 0) {
+      return List<String>.unmodifiable(photoUrls);
+    }
+    final ordered = List<String>.of(photoUrls);
+    final primary = ordered.removeAt(normalizedPrimaryPhotoIndex);
+    ordered.insert(0, primary);
+    return List<String>.unmodifiable(ordered);
   }
 
   /// Check if user can change their display name (once every 28 days)

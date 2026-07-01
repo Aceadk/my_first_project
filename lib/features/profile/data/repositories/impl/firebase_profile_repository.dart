@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crushhour/core/app_logger.dart';
+import 'package:crushhour/core/schema/user_document_schema.dart';
 import 'package:crushhour/core/security/input_sanitizer.dart';
 import 'package:crushhour/core/utils/result.dart';
 import 'package:crushhour/data/models/chat_settings.dart';
@@ -659,9 +660,14 @@ class FirebaseProfileRepository
 
   CrushUser _userFromFirestore(String id, Map<String, dynamic> data) {
     Profile? profile;
-    final profileData = data['profile'] as Map<String, dynamic>?;
+    final canonicalData = canonicalizeUserDocumentSchema(data);
+    final userData = canonicalData.canonicalUserData;
+    final profileData = canonicalData.canonicalProfile.isEmpty
+        ? null
+        : canonicalData.canonicalProfile;
 
     if (profileData != null) {
+      final remotePhotoUrls = _remoteUrlList(profileData['photoUrls']);
       final parsedBirthDate =
           _parseTimestamp(profileData['birthDate']) ??
           _parseTimestamp(profileData['dateOfBirth']);
@@ -679,7 +685,8 @@ class FirebaseProfileRepository
 
       profile = Profile(
         id: id,
-        username: data['username'], // Username is stored at user document level
+        username:
+            userData['username'], // Username is stored at user document level
         name: profileData['name'] ?? '',
         lastName: profileData['lastName'],
         age: normalizedAge,
@@ -690,13 +697,12 @@ class FirebaseProfileRepository
         lastNameChangeAt: _parseTimestamp(profileData['lastNameChangeAt']),
         bio: profileData['bio'] ?? '',
         // Filter to only include valid remote URLs (exclude any accidentally saved local paths)
-        photoUrls: List<String>.from(
-          profileData['photoUrls'] ?? [],
-        ).where(_isRemoteUrl).toList(),
-        videoUrls: List<String>.from(
-          profileData['videoUrls'] ?? [],
-        ).where(_isRemoteUrl).toList(),
-        primaryPhotoIndex: profileData['primaryPhotoIndex'] ?? 0,
+        photoUrls: remotePhotoUrls,
+        videoUrls: _remoteUrlList(profileData['videoUrls']),
+        primaryPhotoIndex: _normalizedPrimaryPhotoIndex(
+          profileData['primaryPhotoIndex'],
+          remotePhotoUrls.length,
+        ),
         interests: List<String>.from(profileData['interests'] ?? []),
         profilePrompts: parsedProfilePrompts,
         country: profileData['country'] ?? '',
@@ -741,21 +747,22 @@ class FirebaseProfileRepository
 
     return CrushUser(
       id: id,
-      phoneNumber: data['phoneNumber'] ?? '',
-      email: data['email'],
-      username: data['username'],
-      lastUsernameChangeAt: _parseTimestamp(data['lastUsernameChangeAt']),
-      isEmailVerified: data['isEmailVerified'] ?? false,
-      isPhoneVerified: data['isPhoneVerified'] ?? false,
-      isIdVerified: data['isIdVerified'] ?? false,
-      tier: data['plan'] == 'plus'
+      phoneNumber: userData['phoneNumber'] ?? '',
+      email: userData['email'],
+      username: userData['username'],
+      lastUsernameChangeAt: _parseTimestamp(userData['lastUsernameChangeAt']),
+      isEmailVerified: userData['isEmailVerified'] ?? false,
+      isPhoneVerified: userData['isPhoneVerified'] ?? false,
+      isIdVerified: userData['isIdVerified'] ?? false,
+      tier: userData['plan'] == 'plus'
           ? SubscriptionTier.plus
           : SubscriptionTier.free,
-      themePreference: data['themePreference'] ?? data['theme_preference'],
+      themePreference:
+          userData['themePreference'] ?? userData['theme_preference'],
       profile: profile,
-      hasAcceptedTerms: data['hasAcceptedTerms'] ?? false,
-      hasSkippedBasicInfo: data['hasSkippedBasicInfo'] ?? false,
-      hasSkippedProfileSetup: data['hasSkippedProfileSetup'] ?? false,
+      hasAcceptedTerms: userData['hasAcceptedTerms'] ?? false,
+      hasSkippedBasicInfo: userData['hasSkippedBasicInfo'] ?? false,
+      hasSkippedProfileSetup: userData['hasSkippedProfileSetup'] ?? false,
     );
   }
 
@@ -803,11 +810,33 @@ class FirebaseProfileRepository
     return url.startsWith('http://') || url.startsWith('https://');
   }
 
+  List<String> _remoteUrlList(dynamic value) {
+    if (value is! Iterable) return const <String>[];
+    return value
+        .whereType<String>()
+        .map((url) => url.trim())
+        .where((url) => url.isNotEmpty && _isRemoteUrl(url))
+        .toList(growable: false);
+  }
+
+  int _normalizedPrimaryPhotoIndex(dynamic value, int photoCount) {
+    if (photoCount == 0) return 0;
+    final index = value is num ? value.toInt() : 0;
+    return index.clamp(0, photoCount - 1);
+  }
+
   Map<String, dynamic> _profileToFirestore(Profile p) {
     // CRITICAL: Only save remote URLs, not local file paths.
     // Local paths can become invalid if files are deleted from device.
     final remotePhotoUrls = p.photoUrls.where(_isRemoteUrl).toList();
     final remoteVideoUrls = p.videoUrls.where(_isRemoteUrl).toList();
+    final selectedDisplayPhoto = p.displayPhotoUrl;
+    final selectedRemoteIndex = selectedDisplayPhoto == null
+        ? -1
+        : remotePhotoUrls.indexOf(selectedDisplayPhoto);
+    final remotePrimaryPhotoIndex = selectedRemoteIndex < 0
+        ? 0
+        : selectedRemoteIndex;
 
     // Log warning if local paths were filtered out (for debugging)
     if (remotePhotoUrls.length != p.photoUrls.length) {
@@ -838,7 +867,7 @@ class FirebaseProfileRepository
       'bio': p.bio,
       'photoUrls': remotePhotoUrls,
       'videoUrls': remoteVideoUrls,
-      'primaryPhotoIndex': p.primaryPhotoIndex,
+      'primaryPhotoIndex': remotePrimaryPhotoIndex,
       'interests': p.interests,
       'profilePrompts': canonicalProfilePrompts
           .map((prompt) => prompt.toJson())

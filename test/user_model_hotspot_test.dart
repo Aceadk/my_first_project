@@ -104,6 +104,37 @@ void main() {
         expect(clearedTimestamp.username, original.username);
       },
     );
+
+    test('display photo selection is safe and consistently ordered', () {
+      final selected = _buildProfile(
+        photoUrls: const <String>[
+          'https://cdn.example.com/one.jpg',
+          'https://cdn.example.com/two.jpg',
+          'https://cdn.example.com/three.jpg',
+        ],
+        primaryPhotoIndex: 1,
+      );
+      expect(selected.displayPhotoUrl, 'https://cdn.example.com/two.jpg');
+      expect(selected.displayOrderedPhotoUrls, const <String>[
+        'https://cdn.example.com/two.jpg',
+        'https://cdn.example.com/one.jpg',
+        'https://cdn.example.com/three.jpg',
+      ]);
+
+      final malformed = _buildProfile(
+        photoUrls: const <String>['https://cdn.example.com/only.jpg'],
+        primaryPhotoIndex: 99,
+      );
+      expect(malformed.normalizedPrimaryPhotoIndex, 0);
+      expect(malformed.displayPhotoUrl, 'https://cdn.example.com/only.jpg');
+
+      final empty = _buildProfile(
+        photoUrls: const <String>[],
+        primaryPhotoIndex: -4,
+      );
+      expect(empty.displayPhotoUrl, isNull);
+      expect(empty.displayOrderedPhotoUrls, isEmpty);
+    });
   });
 }
 
@@ -140,6 +171,7 @@ Profile _buildProfile({
   String gender = 'female',
   List<String> photoUrls = const <String>['https://cdn.example.com/photo.jpg'],
   List<String> videoUrls = const <String>[],
+  int primaryPhotoIndex = 0,
 }) {
   return Profile(
     id: 'profile_1',
@@ -150,6 +182,7 @@ Profile _buildProfile({
     bio: 'Test bio',
     photoUrls: photoUrls,
     videoUrls: videoUrls,
+    primaryPhotoIndex: primaryPhotoIndex,
     interests: const <String>['music'],
     country: 'US',
     city: 'Austin',

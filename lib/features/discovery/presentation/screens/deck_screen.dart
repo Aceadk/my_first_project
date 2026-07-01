@@ -184,10 +184,9 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     // Mark current profile's photos as priority (don't evict them first)
     if (currentIndex < deck.length) {
       final currentProfile = deck[currentIndex];
-      if (currentProfile.photoUrls.isNotEmpty) {
-        NetworkImageCache.instance.markAsPriority([
-          currentProfile.photoUrls.first,
-        ]);
+      final displayPhoto = currentProfile.displayPhotoUrl;
+      if (displayPhoto != null) {
+        NetworkImageCache.instance.markAsPriority([displayPhoto]);
       }
     }
 
@@ -197,23 +196,25 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
     final lowPriorityUrls = <String>[];
 
     // Current card's first photo - immediate priority
-    if (currentIndex < deck.length && deck[currentIndex].photoUrls.isNotEmpty) {
-      immediateUrl = deck[currentIndex].photoUrls.first;
+    if (currentIndex < deck.length) {
+      immediateUrl = deck[currentIndex].displayPhotoUrl;
     }
 
     // Next 2 profiles - high priority (most likely to be seen soon)
     for (int i = 1; i <= 2; i++) {
       final nextIndex = currentIndex + i;
-      if (nextIndex < deck.length && deck[nextIndex].photoUrls.isNotEmpty) {
-        highPriorityUrls.add(deck[nextIndex].photoUrls.first);
+      if (nextIndex < deck.length) {
+        final displayPhoto = deck[nextIndex].displayPhotoUrl;
+        if (displayPhoto != null) highPriorityUrls.add(displayPhoto);
       }
     }
 
     // Preview stack profiles (3-4) - low priority
     for (int i = 3; i <= _previewCount; i++) {
       final nextIndex = currentIndex + i;
-      if (nextIndex < deck.length && deck[nextIndex].photoUrls.isNotEmpty) {
-        lowPriorityUrls.add(deck[nextIndex].photoUrls.first);
+      if (nextIndex < deck.length) {
+        final displayPhoto = deck[nextIndex].displayPhotoUrl;
+        if (displayPhoto != null) lowPriorityUrls.add(displayPhoto);
       }
     }
 
@@ -271,18 +272,13 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
 
           // Get current user's photo for the celebration modal
           final currentProfile = context.read<ProfileBloc>().state.profile;
-          final currentUserPhotoUrl =
-              currentProfile?.photoUrls.isNotEmpty == true
-              ? currentProfile!.photoUrls.first
-              : null;
+          final currentUserPhotoUrl = currentProfile?.displayPhotoUrl;
 
           // Show the celebration modal
           MatchCelebration.show(
             context: context,
             matchName: newMatch.matchedProfile.name,
-            matchImageUrl: newMatch.matchedProfile.photoUrls.isNotEmpty
-                ? newMatch.matchedProfile.photoUrls.first
-                : '',
+            matchImageUrl: newMatch.matchedProfile.displayPhotoUrl ?? '',
             yourImageUrl: currentUserPhotoUrl ?? '',
             onKeepSwiping: () {
               // Just close the modal - state already cleared
@@ -297,9 +293,7 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                   currentUserId: userId ?? '',
                   otherUserId: matchedProfile.id,
                   otherName: matchedProfile.publicDisplayName,
-                  otherPhotoUrl: matchedProfile.photoUrls.isNotEmpty
-                      ? matchedProfile.photoUrls.first
-                      : null,
+                  otherPhotoUrl: matchedProfile.displayPhotoUrl,
                 ),
               );
             },
@@ -789,129 +783,168 @@ class _DeckScreenState extends State<DeckScreen> with WidgetsBindingObserver {
                                     return SingleChildScrollView(
                                       child: ConstrainedBox(
                                         constraints: BoxConstraints(
-                                          minHeight: actionConstraints.maxHeight,
+                                          minHeight:
+                                              actionConstraints.maxHeight,
                                         ),
                                         child: IntrinsicHeight(
                                           child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // Rewind button (premium only)
-                                      DeckActionButton(
-                                        icon: Icons.replay,
-                                        color: DsColors.actionRewind,
-                                        semanticLabel: 'Undo last swipe',
-                                        semanticHint: 'Same as swiping down',
-                                        size: 44,
-                                        enabled: state.canRewind,
-                                        onTap: () async {
-                                          if (userId == null) return;
-                                          final discoveryBloc = context
-                                              .read<DiscoveryBloc>();
-                                          discoveryBloc.add(
-                                            DiscoveryRewindRequested(userId),
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(height: DsSpacing.md),
-                                      // Dislike button
-                                      DeckActionButton(
-                                        icon: Icons.close_rounded,
-                                        color: DsColors.actionPass,
-                                        semanticLabel: 'Pass on this profile',
-                                        semanticHint: 'Same as swiping left',
-                                        size: 52,
-                                        onTap: () => _performSwipe(
-                                          context,
-                                          action: _SwipeAction.pass,
-                                          userId: userId,
-                                          target: currentProfile,
-                                          completeness: completeness,
-                                          backendSwipeReady: backendSwipeReady,
-                                          isAccountVerified: isAccountVerified,
-                                        ),
-                                      ),
-                                      const SizedBox(height: DsSpacing.md),
-                                      // Super Like button (with remaining count badge)
-                                      Stack(
-                                        clipBehavior: Clip.none,
-                                        children: [
-                                          DeckActionButton(
-                                            icon: Icons.star_rounded,
-                                            color: DsColors.actionSuperLike,
-                                            semanticLabel:
-                                                'Super like this profile',
-                                            semanticHint: 'Same as swiping up',
-                                            size: 48,
-                                            enabled:
-                                                state.superLikesRemaining > 0,
-                                            onTap: () => _performSwipe(
-                                              context,
-                                              action: _SwipeAction.superLike,
-                                              userId: userId,
-                                              target: currentProfile,
-                                              completeness: completeness,
-                                              backendSwipeReady:
-                                                  backendSwipeReady,
-                                              isAccountVerified:
-                                                  isAccountVerified,
-                                              superLikesRemaining:
-                                                  state.superLikesRemaining,
-                                            ),
-                                          ),
-                                          // Badge showing remaining super likes
-                                          PositionedDirectional(
-                                            top: -4,
-                                            end: -4,
-                                            child: Container(
-                                              padding: const EdgeInsets.all(4),
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    state.superLikesRemaining >
-                                                        0
-                                                    ? DsColors.actionSuperLike
-                                                    : DsColors.ink300,
-                                                shape: BoxShape.circle,
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: DsColors.ink900
-                                                        .withValues(alpha: 0.3),
-                                                    blurRadius: 6,
-                                                    offset: const Offset(0, 2),
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              // Rewind button (premium only)
+                                              DeckActionButton(
+                                                icon: Icons.replay,
+                                                color: DsColors.actionRewind,
+                                                semanticLabel:
+                                                    'Undo last swipe',
+                                                semanticHint:
+                                                    'Same as swiping down',
+                                                size: 44,
+                                                enabled: state.canRewind,
+                                                onTap: () async {
+                                                  if (userId == null) return;
+                                                  final discoveryBloc = context
+                                                      .read<DiscoveryBloc>();
+                                                  discoveryBloc.add(
+                                                    DiscoveryRewindRequested(
+                                                      userId,
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                              const SizedBox(
+                                                height: DsSpacing.md,
+                                              ),
+                                              // Dislike button
+                                              DeckActionButton(
+                                                icon: Icons.close_rounded,
+                                                color: DsColors.actionPass,
+                                                semanticLabel:
+                                                    'Pass on this profile',
+                                                semanticHint:
+                                                    'Same as swiping left',
+                                                size: 52,
+                                                onTap: () => _performSwipe(
+                                                  context,
+                                                  action: _SwipeAction.pass,
+                                                  userId: userId,
+                                                  target: currentProfile,
+                                                  completeness: completeness,
+                                                  backendSwipeReady:
+                                                      backendSwipeReady,
+                                                  isAccountVerified:
+                                                      isAccountVerified,
+                                                ),
+                                              ),
+                                              const SizedBox(
+                                                height: DsSpacing.md,
+                                              ),
+                                              // Super Like button (with remaining count badge)
+                                              Stack(
+                                                clipBehavior: Clip.none,
+                                                children: [
+                                                  DeckActionButton(
+                                                    icon: Icons.star_rounded,
+                                                    color: DsColors
+                                                        .actionSuperLike,
+                                                    semanticLabel:
+                                                        'Super like this profile',
+                                                    semanticHint:
+                                                        'Same as swiping up',
+                                                    size: 48,
+                                                    enabled:
+                                                        state
+                                                            .superLikesRemaining >
+                                                        0,
+                                                    onTap: () => _performSwipe(
+                                                      context,
+                                                      action: _SwipeAction
+                                                          .superLike,
+                                                      userId: userId,
+                                                      target: currentProfile,
+                                                      completeness:
+                                                          completeness,
+                                                      backendSwipeReady:
+                                                          backendSwipeReady,
+                                                      isAccountVerified:
+                                                          isAccountVerified,
+                                                      superLikesRemaining: state
+                                                          .superLikesRemaining,
+                                                    ),
+                                                  ),
+                                                  // Badge showing remaining super likes
+                                                  PositionedDirectional(
+                                                    top: -4,
+                                                    end: -4,
+                                                    child: Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            4,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            state.superLikesRemaining >
+                                                                0
+                                                            ? DsColors
+                                                                  .actionSuperLike
+                                                            : DsColors.ink300,
+                                                        shape: BoxShape.circle,
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: DsColors
+                                                                .ink900
+                                                                .withValues(
+                                                                  alpha: 0.3,
+                                                                ),
+                                                            blurRadius: 6,
+                                                            offset:
+                                                                const Offset(
+                                                                  0,
+                                                                  2,
+                                                                ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Text(
+                                                        '${state.superLikesRemaining}',
+                                                        style: const TextStyle(
+                                                          color: DsColors
+                                                              .surfaceLight,
+                                                          fontSize: 10,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                        ),
+                                                      ),
+                                                    ),
                                                   ),
                                                 ],
                                               ),
-                                              child: Text(
-                                                '${state.superLikesRemaining}',
-                                                style: const TextStyle(
-                                                  color: DsColors.surfaceLight,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
+                                              const SizedBox(
+                                                height: DsSpacing.md,
+                                              ),
+                                              // Like button
+                                              DeckActionButton(
+                                                icon: Icons.favorite_rounded,
+                                                color: DsColors.actionLike,
+                                                semanticLabel:
+                                                    'Like this profile',
+                                                semanticHint:
+                                                    'Same as swiping right',
+                                                size: 52,
+                                                onTap: () => _performSwipe(
+                                                  context,
+                                                  action: _SwipeAction.like,
+                                                  userId: userId,
+                                                  target: currentProfile,
+                                                  completeness: completeness,
+                                                  backendSwipeReady:
+                                                      backendSwipeReady,
+                                                  isAccountVerified:
+                                                      isAccountVerified,
                                                 ),
                                               ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: DsSpacing.md),
-                                      // Like button
-                                      DeckActionButton(
-                                        icon: Icons.favorite_rounded,
-                                        color: DsColors.actionLike,
-                                        semanticLabel: 'Like this profile',
-                                        semanticHint: 'Same as swiping right',
-                                        size: 52,
-                                        onTap: () => _performSwipe(
-                                          context,
-                                          action: _SwipeAction.like,
-                                          userId: userId,
-                                          target: currentProfile,
-                                          completeness: completeness,
-                                          backendSwipeReady: backendSwipeReady,
-                                          isAccountVerified: isAccountVerified,
-                                        ),
-                                      ),
-                                    ],
+                                            ],
                                           ),
                                         ),
                                       ),
