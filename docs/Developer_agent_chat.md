@@ -18630,3 +18630,19 @@ Make discovery very open (any account can discover/swipe any other valid account
 - `functions`: `openDiscovery.test.js` 9 passing, `discoveryEligibility.test.js` 17 passing, `tsc` build clean.
 - Project-wide `flutter analyze`: no issues.
 - `cmp firestore.rules functions/firestore.rules`: identical.
+
+### Task #306 - Exclude host-specific tests from Linux CI
+**Date:** 2026-07-01
+**Agent:** Claude
+**Status:** Completed
+
+**Context:** After the CI Flutter pin was bumped (PR #3), the Flutter job could finally run the full suite and surfaced 21 pre-existing failures that only fail on the Linux CI host (they pass locally on macOS): 20 golden pixel-comparison tests and 1 `in_app_review` test relying on a mobile-only platform channel.
+
+**Outcome:**
+- **Files Changed:** `.github/workflows/ci.yml` (`--exclude-tags golden`), `dart_test.yaml` (new; defines the `golden` tag), `test/golden/*_test.dart` (`@Tags(['golden'])`), `test/in_app_review_service_test.dart` (skip `openStoreListing` off macOS/iOS/Android), plus these workflow logs.
+- **Result:** Golden tests are excluded from cross-platform CI (run locally with a matched toolchain); the mobile-only review test skips on Linux. The Flutter job runs the portable suite and passes.
+
+**Verification:**
+- Full non-golden suite passes locally: 2268 tests, 0 failures.
+- Coverage hotspot artifact unchanged after regeneration.
+- `--exclude-tags golden` confirmed to skip the golden files locally.
