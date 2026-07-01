@@ -295,11 +295,16 @@ service cloud.firestore {
     }
 
     // Likes: only creator can write; reads are scoped to the two participants.
-    // (Kept in sync with root firestore.rules — the deployed copy.) Previously
-    // any signed-in user could read every like document, leaking the full
-    // like-graph / who-likes-whom and partially bypassing the premium "See who
-    // likes you" gate. Reads are now limited to the like's sender or recipient
-    // (toUserId or legacy targetUserId).
+    // Previously any signed-in user could read every like document, which let a
+    // modified client scrape the entire like-graph and read who likes any other
+    // user (privacy/BOLA) and was a partial bypass of the premium "See who likes
+    // you" gate. Reads are now limited to the like's sender or recipient. The
+    // recipient field has historically been written as either `toUserId`
+    // (mobile create rule) or `targetUserId` (web/discovery query), so both are
+    // accepted to avoid breaking legitimate self-reads. NOTE: fully gating
+    // "See who likes you" behind payment still requires serving incoming likes
+    // through a premium-checked Cloud Function (see audit report) — this rule
+    // closes the cross-user leak without that refactor.
     match /likes/{likeId} {
       allow read: if isSignedIn()
         && (resource.data.fromUserId == request.auth.uid

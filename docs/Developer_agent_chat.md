@@ -18602,3 +18602,31 @@ Update and replace the GitHub README so it matches what the app actually is now,
 - Validated the Markdown structure and command paths.
 
 **Next Step:** Add current store-ready product screenshots after the real-device release validation and store asset pass are complete.
+
+### Task #305 - Open discovery mode + main CI green
+**Date:** 2026-07-01
+**Agent:** Claude
+**Status:** Completed
+
+**Original Request:**
+Make discovery very open (any account can discover/swipe any other valid account) while preserving the advanced filtered/ranked system for later; then "do what is needed" on the failing main CI run.
+
+**Goal / Scope / Constraints:**
+- **Goal:** Maximize discoverability now, keep the advanced system reusable, and restore a green CI on `main`.
+- **Scope:** `functions/src/index.ts` discovery deck builder + a new test; `.github/workflows/ci.yml` toolchain pin; `functions/firestore.rules` parity; required workflow docs.
+- **Constraints:** Do not delete the advanced discovery logic, do not break swipe/match/chat/subscription flows, keep safety/abuse and account-state exclusions, and do not sweep unrelated dirty-worktree changes.
+
+**Outcome:**
+- **Files Changed:**
+  - `functions/src/index.ts` (open discovery mode, feature-flagged; advanced path preserved)
+  - `functions/test/openDiscovery.test.js` (new)
+  - `.github/workflows/ci.yml` (Flutter `3.35.0` → `3.44.0`)
+  - `functions/firestore.rules` (re-synced to deployed `firestore.rules`)
+  - `docs/ai_workboard.md`, `docs/Developer_agent_chat.md`
+- **Result:** Open discovery is active via `DISCOVERY_MODE = "open"` and reversible to `"advanced"`. The two Flutter CI jobs now resolve dependencies (Dart >= 3.11 for `sign_in_with_apple`), and the Firestore rules parity check passes.
+- **Notes:** Open discovery ships in the cloud function shared by mobile (`fetchDiscoveryCandidates`) and web (`/v1/discovery/deck`), so no client changes are required. Activating it requires deploying functions.
+
+**Verification:**
+- `functions`: `openDiscovery.test.js` 9 passing, `discoveryEligibility.test.js` 17 passing, `tsc` build clean.
+- Project-wide `flutter analyze`: no issues.
+- `cmp firestore.rules functions/firestore.rules`: identical.

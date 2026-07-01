@@ -7970,3 +7970,30 @@ Keep only actionable and planning-relevant information. Avoid duplicate notes ac
   - Confirmed the README references tracked icon assets and the separate `Aceadk/crush-web` repository.
   - Ran Markdown link/path validation and the required docs-sync guard.
 - Next Step: Capture current App Store and Play Store screenshots when release-ready and add them to the product overview.
+
+### T-2026-07-01-OPEN-DISCOVERY-AND-CI-GREEN
+- Date: 2026-07-01
+- Owner: Claude
+- Status: Completed
+- Goal: Open up discovery for the small user base and get main CI green.
+- Key Changes:
+  - Discovery: added a temporary OPEN discovery mode in `functions/src/index.ts`
+    (`DISCOVERY_MODE`, `OPEN_DISCOVERY_CONFIG`, `buildOpenDiscoveryQueryPlan`,
+    `evaluateOpenDiscoveryEligibility`, `evaluateOpenDiscoveryCandidate`). Every
+    valid account is now discoverable regardless of gender/age/distance/interest
+    /compatibility preferences or profile completion. Safety (self, blocked,
+    reported), account validity (banned/deleted/deactivated/moderation) and
+    swipe history are still enforced. The full "advanced" filtered/ranked path
+    is preserved and re-enabled by setting `DISCOVERY_MODE = "advanced"`.
+  - CI: bumped the `subosito/flutter-action` pin from `3.35.0` to `3.44.0` in
+    `.github/workflows/ci.yml` so `flutter pub get` resolves `sign_in_with_apple`
+    (requires Dart SDK >= 3.11.0). Fixes the "Startup guard" and
+    "Flutter - analyze & test" jobs.
+  - CI: re-synced `functions/firestore.rules` with the deployed `firestore.rules`
+    (they had drifted in comments only), fixing the "Verify Firestore rules
+    parity" security check.
+- Verification: functions build + tests (new `functions/test/openDiscovery.test.js`,
+  9 passing; existing `discoveryEligibility.test.js`, 17 passing); project-wide
+  `flutter analyze` clean; Firestore rules parity confirmed via `cmp`.
+- Next Step: Deploy functions (`firebase deploy --only functions`) to activate
+  open discovery; flip `DISCOVERY_MODE` back to `advanced` once the user base grows.
