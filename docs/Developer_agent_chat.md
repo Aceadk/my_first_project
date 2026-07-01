@@ -18568,3 +18568,37 @@ The run completed pod install and Xcode build, then failed with:
 - **Files Changed (Crush App):** `core/router.dart` (NotFoundScreen error page, kDebugMode test-agora, localized deep-link strings), new `core/widgets/not_found_screen.dart`, `calls/.../call_screen.dart` + `call_history_screen.dart` (initState inherited-widget lifecycle fixes), `auth/.../logout_screen.dart` (i18n, theme-aware color, safe Cancel pop), `phone_protection_screen.dart` (dialog i18n), `app_en.arb` (+12 keys), test repairs (router harness SubscriptionBloc, incoming-call l10n delegates, midnight-safe call-history fixture), junk-file cleanup + January audit archived.
 - **Verification:** flutter analyze 0 issues; router suite 25/25; call suites 29/29; web tsc clean; vitest 262/262; eslint clean on touched files; full `flutter test` run recorded below.
 - **Next Step:** Owner runs Firestore creation + cutover runbook; rotate Admin key; set NEXT_PUBLIC_USE_V2_CHAT in Vercel envs (or rely on new default).
+### Task #237b - Refresh GitHub README
+**Date:** 2026-06-19
+**Agent:** Codex (GPT-5)
+**Status:** Completed
+
+**Original Request:**
+Update and replace the GitHub README so it matches what the app actually is now, and change the related repository presentation that is still stale.
+
+**Refined Prompt (Goal, Scope, Constraints, Expected Outcome):**
+- **Goal:** Replace the obsolete prototype README with a truthful, useful overview of the maintained Crush product.
+- **Scope:** Root README, existing brand assets, current feature and architecture evidence, setup/test/deploy commands, GitHub description/homepage, and required workflow logs.
+- **Constraints:** Do not include unrelated dirty-worktree changes, do not rename the repository, do not overstate operationally unverified calling/provider flows, and do not expose credentials.
+- **Expected Outcome:** GitHub presents Crush accurately to developers and reviewers, with working navigation to the companion web client and current technical documentation.
+
+**Status Updates:**
+- **Received:** Audited the existing README and found the early CrushHour layout, placeholder-test claim, Stripe-only billing description, and BigQuery-focused guidance were no longer representative.
+- **In Progress:** Inventoried current feature modules, routes, auth methods, billing paths, backend exports, CI lanes, localization catalogs, release contracts, and existing brand assets.
+- **Completed:** Replaced the README with current product, architecture, setup, test, security, deployment, and release-boundary documentation.
+
+**Outcome:**
+- **Files Changed:**
+  - `README.md`
+  - `docs/ai_workboard.md`
+  - `docs/Developer_agent_chat.md`
+- **Result:** The repository now presents Crush as the current Flutter mobile application and Firebase backend, distinguishes the separate Next.js web client, and accurately labels feature-gated or operationally pending areas.
+- **Notes:** No app or backend runtime behavior changed.
+
+**Verification:**
+- Confirmed all local README links and referenced files exist.
+- Confirmed `assets/icons/app_icon.png` is tracked on the target branch.
+- Ran `scripts/check_ai_docs_sync.sh` for the documentation-only change set.
+- Validated the Markdown structure and command paths.
+
+**Next Step:** Add current store-ready product screenshots after the real-device release validation and store asset pass are complete.
