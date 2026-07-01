@@ -16,16 +16,17 @@ class TestCredentials {
   // PRIMARY TEST ACCOUNT
   // ===========================================================================
 
-  /// Primary test account email
+  /// Primary test account email. Real value MUST be injected at run time via
+  /// --dart-define=TEST_EMAIL=... ; never hardcode a real account here.
   static const String testEmail = String.fromEnvironment(
     'TEST_EMAIL',
-    defaultValue: 'adhikarigya8@gmail.com',
+    defaultValue: 'test@example.com',
   );
 
-  /// Primary test account password
+  /// Primary test account password. Inject via --dart-define=TEST_PASSWORD=...
   static const String testPassword = String.fromEnvironment(
     'TEST_PASSWORD',
-    defaultValue: 'admin1234',
+    defaultValue: '',
   );
 
   // ===========================================================================
@@ -42,16 +43,17 @@ class TestCredentials {
   // SECONDARY TEST ACCOUNT (for chat/match testing)
   // ===========================================================================
 
-  /// Secondary test account email (for testing chat between users)
+  /// Secondary test account email (for testing chat between users).
+  /// Inject the real value via --dart-define=TEST_EMAIL_2=...
   static const String secondaryEmail = String.fromEnvironment(
     'TEST_EMAIL_2',
-    defaultValue: 'test2@crushhour.app',
+    defaultValue: 'test2@example.com',
   );
 
-  /// Secondary test account password
+  /// Secondary test account password. Inject via --dart-define=TEST_PASSWORD_2=...
   static const String secondaryPassword = String.fromEnvironment(
     'TEST_PASSWORD_2',
-    defaultValue: 'testpass123',
+    defaultValue: '',
   );
 
   // ===========================================================================
@@ -62,7 +64,7 @@ class TestCredentials {
   static bool get hasRealCredentials =>
       testEmail.isNotEmpty &&
       testPassword.isNotEmpty &&
-      testEmail != 'adhikarigya8@gmail.com'; // Check if using defaults
+      testEmail != 'test@example.com'; // false when using the placeholder default
 
   /// Whether we should use Firebase (real) auth or stub auth
   static bool get useFirebaseAuth =>

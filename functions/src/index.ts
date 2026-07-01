@@ -69,6 +69,47 @@ async function logInteractionEvent(
 
 admin.initializeApp();
 const db = admin.firestore();
+
+// H-2: mirror sensitive fields into the owner-only private doc
+// (users/{uid}/private/account) and maintain the Stripe reverse-lookup map
+// (stripe_customers/{customerId} -> uid). Best-effort / non-fatal — like the
+// BigQuery sink above, a mirror failure must never break the main operation.
+// Keeps the private store current before the H-2 cutover removes these fields
+// from the public user doc. See docs/h2_user_private_split_runbook_2026-06-12.md.
+async function mirrorToPrivate(
+  uid: string,
+  fields: Record<string, unknown>,
+): Promise<void> {
+  try {
+    await db
+      .collection("users")
+      .doc(uid)
+      .collection("private")
+      .doc("account")
+      .set(
+        { ...fields, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
+        { merge: true },
+      );
+    const customerId = fields.stripeCustomerId;
+    if (typeof customerId === "string" && customerId) {
+      await db
+        .collection("stripe_customers")
+        .doc(customerId)
+        .set(
+          {
+            uid,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          },
+          { merge: true },
+        );
+    }
+  } catch (error) {
+    console.error("mirrorToPrivate failed (non-critical):", {
+      uid,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
 const rtdb = admin.database();
 const fieldValue = (
   admin.firestore as unknown as {
@@ -8441,6 +8482,77 @@ export const syncLegacyDiscoveryFields = functions.firestore
     });
 
     await change.after.ref.set(patch, { merge: true });
+  });
+
+// H-2: sensitive fields that must not be cross-user readable. Mirrored from the
+// public user doc into users/{uid}/private/account by mirrorUserPrivateFields.
+const SENSITIVE_USER_FIELDS = [
+  "email",
+  "phoneNumber",
+  "stripeCustomerId",
+  "stripeSubscriptionId",
+  "kycVerificationStatus",
+  "safetyFlags",
+  "subscriptionLifecycle",
+  "isIdVerified",
+  "isEmailVerified",
+  "emailVerified",
+  "plan",
+  "subscriptionTier",
+  "isPremium",
+  "premiumPlan",
+  "subscriptionExpiresAt",
+  "premiumExpiresAt",
+  "premiumAutoRenew",
+  "billingPeriod",
+  "boost",
+] as const;
+
+function extractSensitiveUserFields(
+  data: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const key of SENSITIVE_USER_FIELDS) {
+    if (data[key] !== undefined) out[key] = data[key];
+  }
+  const loc =
+    data.location && typeof data.location === "object"
+      ? (data.location as Record<string, unknown>)
+      : {};
+  const prof =
+    data.profile && typeof data.profile === "object"
+      ? (data.profile as Record<string, unknown>)
+      : {};
+  const geo: Record<string, unknown> = {};
+  if (typeof loc.latitude === "number") geo.locationLatitude = loc.latitude;
+  if (typeof loc.longitude === "number") geo.locationLongitude = loc.longitude;
+  if (typeof prof.latitude === "number") geo.profileLatitude = prof.latitude;
+  if (typeof prof.longitude === "number") geo.profileLongitude = prof.longitude;
+  if (Object.keys(geo).length > 0) out.geo = geo;
+  return out;
+}
+
+// H-2: keep users/{uid}/private/account in sync with the sensitive fields written
+// to the public user doc by ANY writer (web webhook, callables, client). Additive
+// — never modifies the public doc. Writing the private subcollection does NOT
+// re-trigger this parent-doc handler, so there is no write loop. Removed at the
+// H-2 cutover once all readers consume the private doc.
+export const mirrorUserPrivateFields = functions.firestore
+  .document("users/{userId}")
+  .onWrite(async (change, context) => {
+    if (!change.after.exists) return;
+    const after = (change.after.data() ?? {}) as Record<string, unknown>;
+    const before = (change.before.data() ?? {}) as Record<string, unknown>;
+    const nextSensitive = extractSensitiveUserFields(after);
+    if (Object.keys(nextSensitive).length === 0) return;
+    // Skip when the sensitive subset is unchanged (avoid write amplification).
+    if (
+      JSON.stringify(nextSensitive) ===
+      JSON.stringify(extractSensitiveUserFields(before))
+    ) {
+      return;
+    }
+    await mirrorToPrivate(context.params.userId, nextSensitive);
   });
 
 async function buildDiscoveryDeckPayload(params: {

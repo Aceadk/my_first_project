@@ -133,6 +133,24 @@ service cloud.firestore {
       match /fcmTokens/{tokenId} {
         allow read, write: if isOwner(uid);
       }
+
+      // PRIVATE ACCOUNT DOC (H-2 public/private split)
+      // Sensitive fields — billing IDs, KYC status, safety flags, exact geo,
+      // email/phone, entitlement — live under users/{uid}/private/* and are
+      // readable ONLY by the owner. Writes are backend-only (Admin SDK bypasses
+      // rules). Because Firestore has no field-level read rules, moving these out
+      // of the public user doc is the only way to stop cross-user exposure (H-2).
+      match /private/{docId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+    }
+
+    // STRIPE CUSTOMER -> UID MAP (server only)
+    // Reverse lookup for Stripe webhooks once stripeCustomerId moves into the
+    // private account doc (H-2). Never client-readable.
+    match /stripe_customers/{customerId} {
+      allow read, write: if false;
     }
 
     // USERNAME INDEX (server only)
@@ -276,9 +294,23 @@ service cloud.firestore {
       allow update: if false;
     }
 
-    // Likes: only creator can write; everyone signed-in can read.
+    // Likes: only creator can write; reads are scoped to the two participants.
+    // Previously any signed-in user could read every like document, which let a
+    // modified client scrape the entire like-graph and read who likes any other
+    // user (privacy/BOLA) and was a partial bypass of the premium "See who likes
+    // you" gate. Reads are now limited to the like's sender or recipient. The
+    // recipient field has historically been written as either `toUserId`
+    // (mobile create rule) or `targetUserId` (web/discovery query), so both are
+    // accepted to avoid breaking legitimate self-reads. NOTE: fully gating
+    // "See who likes you" behind payment still requires serving incoming likes
+    // through a premium-checked Cloud Function (see audit report) — this rule
+    // closes the cross-user leak without that refactor.
     match /likes/{likeId} {
-      allow read: if isSignedIn();
+      allow read: if isSignedIn()
+        && (resource.data.fromUserId == request.auth.uid
+            || resource.data.toUserId == request.auth.uid
+            || (('targetUserId' in resource.data)
+                && resource.data.targetUserId == request.auth.uid));
       allow create: if isSignedIn()
         && request.resource.data.fromUserId == request.auth.uid
         // Cannot like yourself

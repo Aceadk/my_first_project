@@ -234,6 +234,36 @@ describe('users/{uid}', () => {
       );
     });
   });
+
+  // H-2: sensitive fields live under users/{uid}/private/* — owner-read only,
+  // backend-only write. Closes the cross-user sensitive-field leak.
+  describe('users/{uid}/private/{docId}', () => {
+    it('owner can read their own private account doc', async () => {
+      await seed('users/alice/private/account', {
+        stripeCustomerId: 'cus_123',
+        kycVerificationStatus: 'verified',
+      });
+      await assertSucceeds(getDoc(doc(as('alice'), 'users/alice/private/account')));
+    });
+    it('a non-owner CANNOT read another user private doc', async () => {
+      await seed('users/alice/private/account', {
+        stripeCustomerId: 'cus_123',
+        safetyFlags: { status: 'clean' },
+      });
+      await assertFails(getDoc(doc(as('bob'), 'users/alice/private/account')));
+    });
+    it('an unauthenticated visitor CANNOT read a private doc', async () => {
+      await seed('users/alice/private/account', { stripeCustomerId: 'cus_123' });
+      await assertFails(getDoc(doc(anon(), 'users/alice/private/account')));
+    });
+    it('the owner CANNOT write their own private doc (backend-only)', async () => {
+      await assertFails(
+        setDoc(doc(as('alice'), 'users/alice/private/account'), {
+          stripeCustomerId: 'cus_self_grant',
+        })
+      );
+    });
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -243,6 +273,7 @@ describe('server-only collections', () => {
     'auth_email_otps/otp1',
     'auth_rate_limits/key1',
     'auth_audit_logs/log1',
+    'stripe_customers/cus_123',
   ];
   for (const path of paths) {
     it(`${path} is not client-readable`, async () => {
@@ -374,9 +405,21 @@ describe('message_requests/{requestId}', () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe('likes/{likeId}', () => {
-  it('signed-in user can read likes', async () => {
+  it('recipient (toUserId) can read a like about them', async () => {
     await seed('likes/l1', { fromUserId: 'bob', toUserId: 'alice' });
     await assertSucceeds(getDoc(doc(as('alice'), 'likes/l1')));
+  });
+  it('sender (fromUserId) can read their own like', async () => {
+    await seed('likes/l1', { fromUserId: 'bob', toUserId: 'alice' });
+    await assertSucceeds(getDoc(doc(as('bob'), 'likes/l1')));
+  });
+  it('recipient via legacy targetUserId field can read', async () => {
+    await seed('likes/lt', { fromUserId: 'bob', targetUserId: 'alice' });
+    await assertSucceeds(getDoc(doc(as('alice'), 'likes/lt')));
+  });
+  it('third party cannot read a like between two other users (no scraping)', async () => {
+    await seed('likes/l1', { fromUserId: 'bob', toUserId: 'alice' });
+    await assertFails(getDoc(doc(as('carol'), 'likes/l1')));
   });
   it('unauthenticated cannot read likes', async () => {
     await seed('likes/l1', { fromUserId: 'bob', toUserId: 'alice' });

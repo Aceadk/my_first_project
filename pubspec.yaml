@@ -77,6 +77,10 @@ flutter:
   generate: true
   config:
     enable-swift-package-manager: false
+    # LLDB attach is very slow on iOS 17+/26+ physical devices and stalls
+    # `flutter run`. Dart-side debugging (hot reload, Dart breakpoints, the
+    # VM service) is unaffected; this only disables the native LLDB attach.
+    enable-lldb-debugging: false
   assets:
     - assets/animations/
     - assets/icons/google_logo.png

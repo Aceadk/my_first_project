@@ -1809,9 +1809,19 @@ class FirebaseAuthRepository
     await refreshCurrentUser();
   }
 
+  /// Web OAuth client ID (type 3, from google-services.json). Required as the
+  /// serverClientId so Google returns an idToken that Firebase Auth accepts —
+  /// without it `authentication.idToken` is null and sign-in fails. The iOS
+  /// client ID is supplied via Info.plist (GIDClientID); Android resolves its
+  /// client from the package name + SHA fingerprint.
+  static const String _googleServerClientId =
+      '305121585498-kh520d8k3m6vursau7nnr7f3vc45fhfh.apps.googleusercontent.com';
+
   Future<void> _ensureGoogleSignInInitialized() async {
     if (_isGoogleSignInInitialized) return;
-    await GoogleSignIn.instance.initialize();
+    await GoogleSignIn.instance.initialize(
+      serverClientId: _googleServerClientId,
+    );
     _isGoogleSignInInitialized = true;
   }
 

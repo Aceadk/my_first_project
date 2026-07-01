@@ -86,5 +86,22 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Google Sign-In: iOS OAuth client + reversed-client-ID callback scheme.
+	     Without these the native Google flow has no client and cannot redirect
+	     back to the app, so sign-in fails. Values are the project's iOS OAuth
+	     client (type 2) from google-services.json. -->
+	<key>GIDClientID</key>
+	<string>305121585498-fmnd75jj83n05sv1ao5pgl9o9eoma1a3.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.305121585498-fmnd75jj83n05sv1ao5pgl9o9eoma1a3</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
