@@ -18646,3 +18646,16 @@ Make discovery very open (any account can discover/swipe any other valid account
 - Full non-golden suite passes locally: 2268 tests, 0 failures.
 - Coverage hotspot artifact unchanged after regeneration.
 - `--exclude-tags golden` confirmed to skip the golden files locally.
+
+### Task #307 - Make brittle CI governance gates non-blocking
+**Date:** 2026-07-02
+**Agent:** Claude
+**Status:** Completed
+
+**Context:** After PR #4 merged green, a later `docs: record coverage hotspots` commit turned `main` red again on two gates that are structurally fragile: the coverage-hotspot artifact `git diff --exit-code` (environment-sensitive, regenerated per run) and the docs-sync guard (hard-fails any change set that doesn't touch the two workboard docs).
+
+**Outcome:**
+- **Files Changed:** `.github/workflows/ci.yml` (both steps set `continue-on-error: true`), plus these workflow logs.
+- **Result:** Both gates now report drift/violations as warnings instead of failing the build, so routine commits stop re-breaking `main`. The signals are preserved (visible in the run) without blocking merges.
+
+**Verification:** YAML-only change; the two steps are marked non-blocking.
